@@ -51,7 +51,7 @@
     }
     const displayedClose=number(report?.close);
     if(displayedClose!==null&&Math.abs(rows.at(-1).close-displayedClose)>Math.max(.02,displayedClose*.0001)){
-      return unavailable('日K收盤價與報告現價不一致，避免混用價格',{dataDate,expectedClose:displayedClose,seriesClose:rows.at(-1).close});
+      return unavailable('日K收盤價與報告最新收盤不一致，避免混用價格',{dataDate,expectedClose:displayedClose,seriesClose:rows.at(-1).close});
     }
     return {available:true,rows,dataDate,count:rows.length,period:'已完成日K',source:report?.source||'既有正式報告日K'};
   }
@@ -130,6 +130,7 @@
   }
 
   function rsi5(report,dataDate){
+    const P=globalThis.ShitouScanPolicy5328;if(P){const x=P.rsi(report);return x.value===null?unavailable("原報告與完成日K沒有可靠RSI 5T",{date:x.date}):{available:true,value:x.value,date:x.date,period:"日RSI 5T",source:x.source};}
     const value=number(report?.dailyRsi5 ?? report?.dailyRsi);
     const date=isoDate(report?.dailyRsi5Date||report?.rsiDate||report?.closeDate)||dataDate||null;
     return value===null?unavailable('原有報告沒有可靠的日RSI 5T',{date}):{available:true,value,date,period:'日RSI 5T',source:'既有正式報告欄位'};

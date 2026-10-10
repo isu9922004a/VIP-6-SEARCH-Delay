@@ -121,7 +121,7 @@ function momentumBreakoutEvidence(report,raw,poc){
   const add=(label,test,available=true,detail="")=>items.push({label,status:!available?"unavailable":test?"pass":"fail",detail});
   add("收盤站上5日平均價",last&&m5!==null&&last.close>m5,!!last&&m5!==null,m5===null?"":`5日平均價 ${price(m5)}`);
   add("沒有高出5日平均價超過5%",last&&m5!==null&&((last.close/m5-1)*100)<=5,!!last&&m5!==null);
-  add("今天沒有出現價跌量增",r.length>=2&&!(last.close<r.at(-2).close&&last.volume>r.at(-2).volume),r.length>=2);
+  add("今天沒有出最新收盤跌量增",r.length>=2&&!(last.close<r.at(-2).close&&last.volume>r.at(-2).volume),r.length>=2);
   add("5、10、20日平均價呈多頭順序",m5>m10&&m10>m20,[m5,m10,m20].every(x=>x!==null));
   add("20日平均價正在往上",m20>m20prev,m20!==null&&m20prev!==null);
   add("最近5日漲幅沒有超過15%",ret5!==null&&ret5<=15,ret5!==null,ret5===null?"":`近5日 ${pct(ret5)}`);
@@ -129,7 +129,7 @@ function momentumBreakoutEvidence(report,raw,poc){
   const amount5=r.length>=5?avg(r.slice(-5).map(x=>x.volume*((x.high+x.low+x.close)/3))):null;add("近5日平均成交金額超過1,000萬元",amount5>10000000,amount5!==null);
   const amp=r.length>=20?(Math.max(...r.slice(-20).map(x=>x.high))-Math.min(...r.slice(-20).map(x=>x.low)))/Math.min(...r.slice(-20).map(x=>x.low))*100:null;add("20日價格整理範圍小於10%",amp<10,amp!==null,amp===null?"":`目前 ${pct(amp)}`);
   add("最近3日成交量都高於20日平均量",r.length>=20&&r.slice(-3).every(x=>x.volume>vol20),r.length>=20);
-  add("現價在60日最高價附近（95%～105%）",last&&high60&&last.close/high60>=.95&&last.close/high60<=1.05,!!last&&!!high60);
+  add("最新收盤在60日最高價附近（95%～105%）",last&&high60&&last.close/high60>=.95&&last.close/high60<=1.05,!!last&&!!high60);
   let above=0;for(let i=Math.max(5,r.length-10);i<r.length;i++){const a=avg(r.slice(i-5,i).map(x=>x.volume));if(a!==null&&r[i].volume>a)above++;}add("最近10日至少5日成交量高於各自5日平均量",above>=5,r.length>=15,`符合 ${above} 日`);
   const ys=rev.map(x=>finite(x.yoy));add("最近三個月營收年增都超過10%",ys.length===3&&ys.every(x=>x>10),ys.length===3);
   add("外資連續5日且每天買超500張",cap.foreignFiveStrong,cap.days?.length===5);
@@ -202,7 +202,7 @@ if(typeof originalGenerator==="function")window.generateStockImageByModeV51=asyn
   const report=typeof lastReportData!=="undefined"?lastReportData:null;
   if(!report){if(message)message.textContent="請先完成個股分析，再生成圖片報告。";return;}
   const old=button?.textContent||"";if(button){button.disabled=true;button.textContent="圖片產生中…";}
-try{if(document.fonts?.ready)await document.fonts.ready;const base=professional?window.renderStockProfessionalInfographicV51(report):window.renderStockInfographicV46(report);let canvas=appendAssistantCanvasV47(base,report.shitoAssistantEvidence,report.industryContext);if(withWatermark&&typeof window.applyAntiTheftWatermarkV3761==="function")window.applyAntiTheftWatermarkV3761(canvas,"stock");const d=String(report.closeDate||"").replace(/\D/g,"").slice(0,8)||"latest",filename=window.sanitizeFilenameV3328(`石頭少爺_${report.name||report.code}_${report.code}_${professional?"專業":"新手"}個股圖片報告_${d}_V47_R5.3.2.4.19-R4.5_前端資源調度與失敗呈現修正版.png`);await window.showInfographicPreviewV3328(canvas,filename,`${window.formatStockNameWithCode(report.name,report.code)}｜個股盤後報告`);const note=document.getElementById("imagePreviewNote");if(note)note.textContent=`${professional?"專業完整":"新手簡易"}版為 ${canvas.width}×${canvas.height}；圖片已移除公司／法人助理區，只保留主要成交密集區。`;if(message)message.textContent="✅ 圖片報告已產生；公司／法人助理區已移除，主要成交密集區保留。";}catch(err){console.error(err);if(message)message.textContent=`❌ 圖片產生失敗：${err?.message||"未知錯誤"}`;}finally{if(button){button.disabled=false;button.textContent=old;}}
+try{if(document.fonts?.ready)await document.fonts.ready;const base=professional?window.renderStockProfessionalInfographicV51(report):window.renderStockInfographicV46(report);let canvas=appendAssistantCanvasV47(base,report.shitoAssistantEvidence,report.industryContext);if(withWatermark&&typeof window.applyAntiTheftWatermarkV3761==="function")window.applyAntiTheftWatermarkV3761(canvas,"stock");const d=String(report.closeDate||"").replace(/\D/g,"").slice(0,8)||"latest",filename=window.sanitizeFilenameV3328(`石頭少爺_${report.name||report.code}_${report.code}_${professional?"專業":"新手"}個股圖片報告_${d}_V50_R5.3.2.5.6.3.1_圖片統一排版完整版.png`);await window.showInfographicPreviewV3328(canvas,filename,`${window.formatStockNameWithCode(report.name,report.code)}｜個股盤後報告`);const note=document.getElementById("imagePreviewNote");if(note)note.textContent=`${professional?"專業完整":"新手簡易"}版為 ${canvas.width}×${canvas.height}；圖片已移除公司／法人助理區，只保留主要成交密集區。`;if(message)message.textContent="✅ 圖片報告已產生；公司／法人助理區已移除，主要成交密集區保留。";}catch(err){console.error(err);if(message)message.textContent=`❌ 圖片產生失敗：${err?.message||"未知錯誤"}`;}finally{if(button){button.disabled=false;button.textContent=old;}}
 };
 
 window.SHITO_ASSISTANT_RULES_V1=SHITO_ASSISTANT_RULES_V1;

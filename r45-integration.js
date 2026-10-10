@@ -1,9 +1,9 @@
-/* R5.3.2.4.19-R4.5 official release: frontend resource scheduling and failure presentation fix. */
+/* V50 R5.3.2.5.6.3.1: 教材證據與明日開盤白話判讀；正式 Gate、分數與排名不變。 */
 (function(){
 'use strict';
 
-const RELEASE='石頭少爺 Agent V47 正式版｜R5.3.2.4.19-R4.5 前端資源調度與失敗呈現修正版';
-const FILE_VERSION='V47_R5.3.2.4.19-R4.5_前端資源調度與失敗呈現修正版';
+const RELEASE='石頭少爺 Agent V50 正式版｜R5.3.2.8｜七類排除與RSI 5T清晰報告版';
+const FILE_VERSION='V50_R5.3.2.5.6.3.1_圖片統一排版完整版';
 const E=window.ShitouTechnicalEvidenceR45;
 window.R45_RELEASE_LABEL=RELEASE;
 window.R45_FILE_VERSION=FILE_VERSION;
@@ -14,7 +14,9 @@ function activeText(value){
     .replaceAll('V47_R5.3.2.4.13-R4.4_五本教材策略保留_雙選股圖片字體自適應優化版',FILE_VERSION)
     .replaceAll('石頭少爺 Agent V47 正式版｜R5.3.2.4.12 顯示與共用狀態一致性收尾版',RELEASE)
     .replaceAll('V47_R5.3.2.4.12_顯示與共用狀態一致性收尾版',FILE_VERSION)
-    .replace(/R5\.3\.2\.4\.13-R4\.4/g,'R5.3.2.4.19-R4.5');
+    .replace(/R5\.3\.2\.4\.13-R4\.4/g,'R5.3.2.4.30-R4.9.5')
+    .replaceAll('石頭少爺 Agent V49 正式版｜R5.3.2.4.28-R4.9.3｜主升中文名稱＋個股圖片版面安全修正版',RELEASE)
+    .replaceAll('V49_R5.3.2.4.28-R4.9.3_主升中文名稱_個股圖片版面安全修正版',FILE_VERSION);
 }
 window.r45ActiveText=activeText;
 
@@ -81,7 +83,7 @@ function insertPanel(rootId,evidence,title,prices=[]){
 function stockUi(report){
   if(!report||!E)return;
   insertPanel('result',E.analyze(report,{kind:'stock'}),'個股趨勢',[
-    {label:'🔴 原始現價',value:report.close},{label:'👀 ABC的B點',value:report.fib?.B},
+    {label:'🔴 原始最新收盤',value:report.close},{label:'👀 ABC的B點',value:report.fib?.B},
     {label:'🛡️ 原有20日均線',value:report.structure?.ma20??report.dailyMa20??report.ma20}
   ]);
 }
@@ -173,7 +175,7 @@ wrapText('buildDayTradeTextReportV1',scan=>scanText(scan,'daytrade'));
 
 const candidateBanner=document.createElement('div');
 candidateBanner.className='r45-candidate-banner';
-candidateBanner.textContent='🧪 R4.5 研究候選：EMA／KD只作補充證據；未通過全部實機與正式行情驗收前，不會改稱正式封板版。';
+candidateBanner.textContent='📚 R4.9.5 教材證據＋明日開盤白話判讀：直接顯示可優先觀察／先等確認／不適合進場；不改原正式 Gate、分數或排名。';
 const main=document.querySelector('main');if(main)main.prepend(candidateBanner);
 
 window.SHITO_R45_UI_AUDIT={

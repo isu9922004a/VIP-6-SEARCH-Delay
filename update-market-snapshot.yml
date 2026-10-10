@@ -1,0 +1,54 @@
+name: Update TWSE TPEx market snapshot
+
+on:
+  workflow_dispatch:
+  schedule:
+    # GitHub cron uses UTC. 17:40~19:00 Asia/Taipei every 10 minutes.
+    # Scheduled runs are best-effort and may start late, so the repeated window provides redundancy.
+    # Only same-date, complete official TWSE + TPEx data can replace latest.json.
+    - cron: '40,50 9 * * 1-5'
+    - cron: '0,10,20,30,40,50 10 * * 1-5'
+    - cron: '0 11 * * 1-5'
+    # Later safety attempts at 19:20, 20:20, 21:20 and 22:20 Taipei.
+    - cron: '20 11,12,13,14 * * 1-5'
+    # Morning safety run: 07:20 Asia/Taipei Monday-Friday.
+    - cron: '20 23 * * 0-4'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-market-snapshot
+  cancel-in-progress: false
+
+jobs:
+  update-market-snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Fetch official TWSE and TPEx data
+        run: node scripts/update-market-snapshot.mjs
+
+      - name: Commit snapshot when changed
+        shell: bash
+        run: |
+          if [ -z "$(git status --porcelain -- index.html data/market/latest.json data/market/archive data/market/exclusions data/market/scan-exclusions.json data/market/scan-exclusions.js)" ]; then
+            echo "No complete market snapshot change."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html data/market/latest.json data/market/archive data/market/exclusions data/market/scan-exclusions.json data/market/scan-exclusions.js
+          TRADE_DATE=$(node -e "const f=require('./data/market/latest.json');process.stdout.write(String(f.tradeDate||'unknown'))")
+          git commit -m "data: update complete TWSE TPEx snapshot ${TRADE_DATE}"
+          git push
