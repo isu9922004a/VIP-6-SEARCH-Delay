@@ -3,7 +3,7 @@
 'use strict';
 const T=typeof module==='object'&&module.exports?require('./teacher-three-pan-core.js'):globalThis.ShitouTeacherThreePan;
 const MODEL='SHITOU_WAVE_CORE_V50_FIB_RETRACE';
-const RELEASE='石頭少爺 Agent V50 正式版｜R5.3.2.7｜三盤量價與個股報告優化版';
+const RELEASE='石頭少爺 Agent V50 正式版｜R5.3.2.8.1｜手機免CMD自動同步版';
 const FIB_RATIOS=Object.freeze([0,.236,.382,.5,.618,.786,1]);
 const num=v=>{if(v===null||v===undefined||v==='')return null;const n=Number(typeof v==='string'?v.replace(/,/g,''):v);return Number.isFinite(n)?n:null;};
 const avg=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:null;
