@@ -1,6 +1,6 @@
 (function(root){'use strict';
-const I=root.ShitouTowerIntegration,R=root.ShitouTowerReport,U=root.ShitouThreePanUI,C=root.ShitouTowerCore;
-if(!I||!R||!U||!C){console.error('寶塔線獨立報告相依模組未載入');return;}
+const I=root.ShitouTowerIntegration,R=root.ShitouTowerReport,U=root.ShitouThreePanUI,C=root.ShitouTowerCore,B=root.ShitouTowerBeginner;
+if(!I||!R||!U||!C||!B){console.error('寶塔線獨立報告相依模組未載入');return;}
 const WIDTH=1284,HEIGHT=2778,RELEASE=root.ShitouReleaseV50.code;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num=(v,n=2)=>v===null||v===undefined||!Number.isFinite(Number(v))?'不足':Number(v).toFixed(n);
@@ -13,35 +13,43 @@ const current=()=>typeof lastReportData!=='undefined'?lastReportData:null;
 const raw=input=>input?.report||input||{};
 function get(input){return I.get(input);}
 function textFrom(a,input){
- const r=raw(input),t=a.tower,f=a.risk.features||{},l=a.risk.levels||{},s=t.states[3]||{};
- return [`【寶塔線個股分析｜獨立專業報告】`,`${a.name||r.name||'個股'}（${a.code||'-'}）`,
-  `資料日期 ${a.date||'不足'}｜最後有效交易日 ${t.bars?.at(-1)?.date||'不足'}`,
-  `最新有效收盤 ${num(t.bars?.at(-1)?.close)}｜盤後確認 ${t.completed?'已確認':'未確認'}`,
-  '', '【一、訊號與趨勢】',...R.lines(a),
-  `本次T3：${color(s.color)}｜${t.ok?flip(s.flip):'資料不足，沒有確認訊號'}｜確認日 ${t.ok?t.date:'不足'}`,
-  `策略 ${a.type==='A'?'A 紅線延續':a.type==='B'?'B 今日黑翻紅':'無A/B成立訊號'}｜分類 ${a.subtype||'無'}｜${status(a.status)}`,
-  `研究品質 ${a.quality?.value??'不足'}/100；不是隔日上漲機率，未校準勝率。`,
-  '', '【二、量價與均線確認】',
-  `日MA20 ${num(f.ma20)}｜日MA60 ${num(f.ma60)}｜MA20近5根變化 ${num(f.ma20Slope)}`,
-  `RSI5 ${num(f.rsi5,1)}｜20日量比 ${num(f.volumeRatio20)}｜5日量比 ${num(f.volumeRatio5)}`,
-  `收盤位置 ${f.clv==null?'不足':num(f.clv*100,1)+'%'}｜上影比例 ${f.upperShadowRatio==null?'不足':num(f.upperShadowRatio*100,1)+'%'}`,
-  `MA20乖離 ${num(f.gap20Pct,1)}%｜ATR14 ${num(f.atr14)}（${f.atrMethod||'資料不足'}）｜ATR延伸 ${num(f.atrExtension)}`,
-  `5日／10日／20日漲跌 ${num(f.return5d,1)}%／${num(f.return10d,1)}%／${num(f.return20d,1)}%`,
-  `月線確認：${monthly(a.monthly.status)}｜月20MA ${num(a.monthly.ma20)}`,
-  '', '【三、假突破、過熱與轉弱風險】',
-  ...(a.risk.groups?.length?a.risk.groups.map(g=>`[${g.severity}] ${g.code}：${g.detail}`):[a.risk.ok?'本模型未列出風險證據；不表示沒有交易風險。':'風險資料不足，暫停風險推論。']),
-  `原因碼：${a.reasonCodes.join('、')||'無'}`,
-  '', '【四、關鍵價位與計算依據】',
-  `T3下一完成收盤翻紅 > ${num(l.turnAbove)}：最近3根高點最大值，嚴格大於。`,
-  `T3下一完成收盤翻黑／失效 < ${num(l.invalidation)}：最近3根低點最小值，嚴格小於。`,
-  `支撐 ${num(l.support)}：前20根低點中低於目前收盤的最高低點。`,
-  `壓力 ${num(l.resistance)}：前60根高點中高於目前收盤的最低高點；沒有資料不造目標價。`,
-  `參考RR ${num(l.riskReward)}：以訊號收盤與上述失效、歷史壓力計算；不是隔日可成交價。`,
-  '', '【五、下一交易日三種情境】',...Object.entries(a.scenarios).map(([k,v])=>`${{bull:'向上',range:'整理',weak:'轉弱'}[k]}：${v}`),
-  '', '【六、操作觀察與限制】',a.nonHolder,a.holder,
-  `結論：${a.trend.label}｜${status(a.status)}。寶塔訊號與隔日能否延續分開確認；不宣稱翻紅必漲。`,
-  `資料限制：${t.reason||''} ${(t.warnings||[]).join('、')||'依本次檢查'}`,
-  `${C.MODEL}｜${C.RELEASE}｜${RELEASE}｜沿用既有OHLC單色柱與風險核心；本報告僅拆分展示。`
+ const t=a.tower,f=a.risk.features||{},l=a.risk.levels||{},s=t.states[3]||{},g=B.guide(a);
+ return [
+  '【寶塔線個股分析｜新手白話版】',`${a.name||raw(input).name||'個股'}（${a.code||'-'}）｜資料日 ${a.date||'不足'}`,
+  `完成收盤 ${g.price}｜${t.completed?'盤後已確認':'收盤狀態未確認'}`,
+  '', '【1. 先看結論｜強不強、能不能追】',
+  `${g.category}｜${status(a.status)}`,
+  g.intro,`現在適合追嗎？${g.buy}`,
+  `研究品質 ${a.quality?.value??'不足'}/100（模型條件評分，絕非隔日上漲機率）。`,
+  '', '【2. 寶塔紅黑｜今天到底發生什麼】',
+  `T3 ${g.color3}｜T5 ${g.color5}｜T3連紅 ${s.redDays??'不足'} 根`,
+  g.todayFlip,
+  `今天以前3根的高低：上 ${g.pastHigh}／下 ${g.pastLow}。`,
+  `最近翻紅日 ${s.lastRedDate||'未確認'}｜最近翻黑日 ${s.lastBlackDate||'未確認'}。`,
+  '', '【3. 價格與量能｜是真的比較強嗎】',
+  g.volume, g.rsi,
+  `日MA20 ${num(f.ma20)}（20日平均成本參考）｜日MA60 ${num(f.ma60)}（較長方向參考）`,
+  `距日MA20 ${num(f.gap20Pct,1)}%｜${monthly(a.monthly.status)}，月MA20 ${num(a.monthly.ma20)}。`,
+  '', '【4. 追高風險｜看懂「很強卻不一定能買」】',
+  `${g.modelHeat}；另外提醒：${g.heat}`,
+  `假突破／衰竭／資料風險：${a.risk.groups?.length?a.risk.groups.map(v=>v.detail).join('；'):'本模型未列警示，不能解讀成零風險。'}`,
+  g.outlook,
+  '', '【5. 價位階梯｜每個數字有不同用途】',
+  `今天 T3 翻色所用的「前3日」上緣 ${g.pastHigh}／下緣 ${g.pastLow}（是歷史判讀，不是明天進場價）。`,
+  `當日低點 ${g.dayLow}（短線第一觀察點；跌破不等於寶塔已翻黑）。`,
+  `最近20根的歷史支撐 ${g.support}；上方歷史壓力 ${g.pressure}。`,
+  g.nextThreshold,
+  '注意：翻紅價、下一日續強門檻、支撐、個人停損，各有不同用途，不能畫上等號。',
+  '', '【6. 明天三種走法｜只講條件，不猜一定漲跌】',g.up,g.sideways,g.down,
+  '', '【7. 空手者下一步】',g.empty,
+  '', '【8. 已持有下一步】',g.holder,
+  '', '【9. 資料來源／限制】',
+  `日K完整狀態：${t.completed?'已確認':'未確認'}｜資料有效：${t.ok?'是':'否'}`,
+  `日K來源 ${t.source||'資料不足'}｜價格調整 ${t.basis||'未知'}｜${t.warnings?.join('、')||'無額外註記'}`,
+  `原模型風險與候選資格未修改。月20MA、T3/T5 與研究分數仍由原核心計算。`,g.limitation,
+  '', '【10. 最後一句白話口訣】',
+  '寶塔翻紅代表值得觀察，不代表隔天開盤值得追；守住支撐再看量價，跌破防線要重評。',
+  `版本 ${RELEASE}｜${C.MODEL}`
  ].join('\n');
 }
 function text(input){return textFrom(get(input),input);}
@@ -56,7 +64,7 @@ function chart(ctx,t,T,x,y,w,h){
 }
 function renderAnalysis(a,input){
  const canvas=document.createElement('canvas');canvas.width=WIDTH;canvas.height=HEIGHT;
- const ctx=canvas.getContext('2d'),M=36,W=1212,sections=[],fit=U.fit,r=raw(input),t=a.tower,s=t.states[3]||{},f=a.risk.features||{},l=a.risk.levels||{};
+ const ctx=canvas.getContext('2d'),M=36,W=1212,sections=[],fit=U.fit,r=raw(input),t=a.tower,s=t.states[3]||{},f=a.risk.features||{},l=a.risk.levels||{},g=B.guide(a);
  ctx.fillStyle='#eef3f8';ctx.fillRect(0,0,WIDTH,HEIGHT);
  const mark=(id,top,bottom)=>sections.push({id,top,bottom});
  const card=(id,y,h,title,body,tone='blue',opts={})=>{U.box(ctx,M,y,W,h,title,body,tone,{size:30,min:26,titleSize:33,titleH:44,pad:20,...opts});mark(id,y,y+h);};
@@ -64,45 +72,46 @@ function renderAnalysis(a,input){
  fit(ctx,`${a.name||r.name||'個股'}（${a.code||'-'}）`,M,24,W,70,47,30,'#fff',900);
  fit(ctx,`寶塔線個股分析｜專業版｜${a.date||'資料不足'}`,M,103,W,38,29,25,'#d9e7f1');
  fit(ctx,`有效收盤 ${num(t.bars?.at(-1)?.close)}｜${t.completed?'盤後已確認':'盤後未確認'}`,M,143,W,34,25,22,'#d9e7f1');mark('header',0,184);
- card('verdict',200,204,`${a.trend.label}｜${status(a.status)}`,[
-  `T2 ${color(t.states[2]?.color)}｜T3 ${color(s.color)}｜T5 ${color(t.states[5]?.color)}`,
-  `A/B訊號 ${a.subtype||'未成立'}｜研究品質 ${a.quality?.value??'不足'}/100（非勝率）`,
-  `${monthly(a.monthly.status)}；翻紅不等於隔日進場確認。`
- ],a.status==='NO_CHASE'||a.status==='REJECT'?'red':a.status==='FORMAL_CANDIDATE'?'green':'yellow');
+ card('verdict',200,204,`${g.category}｜${status(a.status)}`,[
+  `${g.intro}`,
+  `能直接追嗎？${g.buy}`,
+  `T3 ${g.color3}｜T5 ${g.color5}｜研究品質 ${a.quality?.value??'不足'}/100（不是勝率）`
+ ],g.heatFlag||a.status==='NO_CHASE'?'yellow':a.status==='FORMAL_CANDIDATE'?'green':'yellow',{size:27,min:23,titleSize:31,titleH:42,pad:13});
  for(const [T,y,h] of [[3,420,378],[5,814,314]]){
   card('chart-'+T,y,h,`T=${T} 寶塔線｜${color(t.states[T]?.color)}`,[], 'blue');
   chart(ctx,t,T,M+20,y+70,W-40,h-114);
   fit(ctx,'單色柱＝前日收盤 → 今日收盤｜紅線／黑線由原核心判定',M+20,y+h-38,W-40,32,25,22,'#3d536b');
  }
- card('turns',1144,152,t.ok?`${flip(s.flip)}｜連紅 ${s.redDays??0}／連黑 ${s.blackDays??0} 根`:'資料不足｜不產生紅黑訊號',[
-  `最近翻紅 ${s.lastRedDate||'未確認'}｜翻黑 ${s.lastBlackDate||'未確認'}`,
-  `T3／T5 ${t.ok?(a.trend.directionConflict?'方向衝突':'方向一致'):'無法確認'}｜20根翻轉 ${t.flipCount20??'不足'} 次`
- ],'blue',{size:29,min:25,titleH:38,pad:16});
+ card('turns',1144,152,'今天寶塔發生什麼事？',[g.todayFlip,
+  `T3 連紅 ${s.redDays??'不足'} 根｜T3／T5 ${t.ok?(a.trend.directionConflict?'不同方向':'同方向'):'資料不足'}`
+ ],'blue',{size:27,min:23,titleH:38,pad:12});
  card('confirmation',1312,178,'量價與均線確認',[
   `日MA20 ${num(f.ma20)}｜日MA60 ${num(f.ma60)}｜RSI5 ${num(f.rsi5,1)}`,
   `20日量比 ${num(f.volumeRatio20)}｜收盤位置 ${f.clv==null?'不足':num(f.clv*100,1)+'%'}`,
   `日MA20乖離 ${num(f.gap20Pct,1)}%｜月20MA ${num(a.monthly.ma20)}`
  ],'blue',{size:30,min:25,pad:12});
  const risk=key=>a.risk.families?.[key]?({HIGH:'高風險',MEDIUM:'需留意',LOW:'觀察'}[a.risk.families[key].severity]):a.risk.ok?'未見本模型警示':'資料不足';
- card('risk',1506,254,'假突破・過熱・轉弱風險',[
-  `假突破：${risk('BREAKOUT')}｜過熱：${risk('HEAT')}`,
-  `衰竭：${risk('EXHAUSTION')}｜反覆翻轉：${risk('CHOP')}`,
-  `大盤背景：${risk('MARKET')}｜資料信心：${risk('CONFIDENCE')}`,
-  a.risk.ok?'量價證據需合併檢查；完整原因與來源見獨立文字報告。':`暫停風險推論：${t.reason||a.reasonCodes.join('、')}`
- ],a.status==='NO_CHASE'||a.trend.key==='EARLY_WEAKNESS'?'red':'yellow',{size:29,min:24});
- card('actions',1776,208,'空手與持有｜分開觀察',[a.nonHolder,a.holder],'blue',{size:30,min:26});
- card('scenarios',2000,308,'下一交易日｜三種完成收盤情境',[
-  `向上：${a.scenarios.bull}`,`整理：${a.scenarios.range}`,`轉弱：${a.scenarios.weak}`
- ],'blue',{size:31,min:27});
- card('levels',2324,212,'關鍵價位｜沿用可追溯計算',[
-  `T3翻紅 > ${num(l.turnAbove)}｜翻黑／失效 < ${num(l.invalidation)}`,
-  `歷史支撐 ${num(l.support)}｜歷史壓力 ${num(l.resistance)}`,
-  'T3門檻取最近3根高／低；支撐前20根，壓力前60根。',
-  '僅為觀察條件；沒有上方壓力資料，不虛構目標價。'
- ],'blue',{size:28,min:25,pad:12});
+ card('risk',1506,254,'追高警戒｜模型警示＋新手提醒',[ 
+  `${g.modelHeat}（原有風控門檻不改）`,
+  `新手提醒：${g.heat}`,
+  `假突破 ${risk('BREAKOUT')}｜衰竭 ${risk('EXHAUSTION')}`,
+  `${g.outlook}`
+ ],g.heatFlag||a.status==='NO_CHASE'?'yellow':'blue',{size:27,min:22,titleSize:32,titleH:42,pad:13});
+ card('actions',1776,208,'下一步｜沒買與已持有分開看',[
+  g.empty,g.holder
+ ],'blue',{size:29,min:24,pad:15});
+ card('scenarios',2000,308,'下一交易日｜三種可能的走法',[
+  g.up,g.sideways,g.down
+ ],'blue',{size:29,min:24,pad:14});
+ card('levels',2324,212,'價位看清楚｜今天與明天不能混用',[
+  `當日 T3 上緣 ${g.pastHigh}／下緣 ${g.pastLow}（今天以前3根）`,
+  `明日 T3 上緣 ${g.nextHigh}／下緣 ${g.nextLow}（包含今天）`,
+  `今日低點 ${g.dayLow}｜支撐 ${g.support}｜上方壓力 ${g.pressure}`,
+  '短線警戒不等於翻黑；收盤確認，不把門檻當買點。'
+ ],'blue',{size:27,min:22,pad:12});
  card('source',2552,136,'資料與結論',[
   `${a.trend.label}｜${status(a.status)}｜有效日 ${t.date||'不足'}`,
-  `資料${t.ok?'有效':'不足'}；盤後訊號不保證漲跌。詳細限制見文字報告。`
+  `資料${t.ok?'有效':'不足'}；翻紅不等於明天能追，詳細原因見文字報告。`
  ],'blue',{size:26,min:23,titleSize:28,titleH:34,pad:16});
  ctx.fillStyle='#15344e';ctx.fillRect(0,2704,WIDTH,74);
  fit(ctx,`石頭少爺｜${RELEASE}｜${a.date||'不足'}`,M,2724,W,34,25,22,'#d9e7f1');mark('footer',2704,2778);
