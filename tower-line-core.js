@@ -1,9 +1,9 @@
 /* Source: supplied book pp.52–67 (single-colour bodies), 70–74 (T-day OHLC range).
    Initial colour, equality and missing-data policies are explicit engineering conventions.
    No seeded RED/BLACK and no future bars. */
-(function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.ShitouTowerCore=api;})(typeof globalThis!=='undefined'?globalThis:this,function(){
+(function(root,factory){const N=typeof module==='object'&&module.exports,api=factory(N?require('./version-v50.js'):root.ShitouReleaseV50);if(N)module.exports=api;else root.ShitouTowerCore=api;})(typeof globalThis!=='undefined'?globalThis:this,function(V){
 'use strict';
-const MODEL='TOWER_OHLC_RANGE_SINGLE_COLOR_1.0.0',RELEASE='R5.3.2.8.1-TOWER-SHADOW.1';
+const MODEL='TOWER_OHLC_RANGE_SINGLE_COLOR_1.0.0',RELEASE=V.code;
 const number=v=>v===null||v===undefined||String(v).trim()===''?null:Number.isFinite(Number(String(v).replace(/,/g,'')))?Number(String(v).replace(/,/g,'')):null;
 function date(v){const s=String(v??'').replace(/[-/]/g,'');if(!/^\d{8}$/.test(s))return null;const d=s.slice(0,4)+'-'+s.slice(4,6)+'-'+s.slice(6),x=new Date(d+'T00:00:00Z');return Number.isFinite(+x)&&x.toISOString().slice(0,10)===d?d:null;}
 function unavailable(codes,detail){return {ok:false,model:MODEL,release:RELEASE,reasonCodes:[...new Set(codes)],reason:detail||codes.join('、'),states:{},bars:[]};}

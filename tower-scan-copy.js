@@ -1,9 +1,9 @@
 (function(root,factory){
- const api=factory();
+ const api=factory(typeof module==='object'&&module.exports?require('./version-v50.js'):root.ShitouReleaseV50);
  if(typeof module==='object'&&module.exports)module.exports=api;
  else{root.ShitouTowerScanCopy=api;api.install(root);}
-})(typeof globalThis!=='undefined'?globalThis:this,function(){'use strict';
-const VERSION='TOWER-COPY-1';
+})(typeof globalThis!=='undefined'?globalThis:this,function(V){'use strict';
+const VERSION=V.code;
 const stateLabels={FORMAL_CANDIDATE:'技術候選',CONDITIONAL_WATCH:'條件觀察',NO_CHASE:'追價風險高',REJECT:'風險排除',DATA_UNAVAILABLE:'資料不足'};
 const trendLabels={STRONG_BULL:'強勢多頭',BULL_CONTINUATION:'偏多續強',EARLY_STRENGTH:'初步轉強',RANGE:'盤整震盪',EARLY_WEAKNESS:'初步轉弱',BEAR:'空頭偏弱',DATA:'資料不足'};
 const monthLabels={PASS:'月線通過',UNCONFIRMED:'月線尚未確認',NOT_PASS:'月線未通過',UNAVAILABLE:'月線資料不足'};
@@ -67,7 +67,7 @@ function format(scan){
  if(!scan)return '請先完成寶塔線點金術掃描。';
  const list=Array.isArray(scan.candidates)?scan.candidates:[],date=clean(scan.date)||'未確認';
  const shared=sharedDataCodes.filter(code=>list.length&&list.every(a=>codes(a).includes(code)));
- const lines=['④ 寶塔線點金術｜選股排名戰報',
+ const lines=['④ 寶塔線點金術｜選股排名戰報',`版本：${V.displayCode}`,
   `資料日：${date}｜本次排名 ${list.length} 檔｜研究觀察版`,
   `深掃：${count(scan.attempted)}／${count(scan.planned)}｜成功 ${count(scan.success)}｜失敗 ${count(scan.failed)}｜資料不足 ${count(scan.dataUnavailable)}｜未處理 ${count(scan.pending)}`,
   `${scan.complete?'本次掃描已處理完成':'本次掃描尚未完整完成'}；${scan.fullMarketCertified?'原完整市場資料認證通過':'僅列已掃描樣本，非全市場完整排名'}。`,

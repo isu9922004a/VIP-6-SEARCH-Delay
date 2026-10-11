@@ -1,7 +1,7 @@
 (function(root){'use strict';
 const I=root.ShitouTowerIntegration,R=root.ShitouTowerReport,U=root.ShitouThreePanUI,C=root.ShitouTowerCore;
 if(!I||!R||!U||!C){console.error('寶塔線獨立報告相依模組未載入');return;}
-const WIDTH=1284,HEIGHT=2778,RELEASE='TOWER-STOCK-1';
+const WIDTH=1284,HEIGHT=2778,RELEASE=root.ShitouReleaseV50.code;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num=(v,n=2)=>v===null||v===undefined||!Number.isFinite(Number(v))?'不足':Number(v).toFixed(n);
 const color=s=>s==='RED'?'紅線':s==='BLACK'?'黑線':'資料不足';
@@ -105,7 +105,7 @@ function renderAnalysis(a,input){
   `資料${t.ok?'有效':'不足'}；盤後訊號不保證漲跌。詳細限制見文字報告。`
  ],'blue',{size:26,min:23,titleSize:28,titleH:34,pad:16});
  ctx.fillStyle='#15344e';ctx.fillRect(0,2704,WIDTH,74);
- fit(ctx,`石頭少爺｜寶塔線獨立報告｜1284 × 2778｜${a.date||'不足'}`,M,2724,W,34,25,22,'#d9e7f1');mark('footer',2704,2778);
+ fit(ctx,`石頭少爺｜${RELEASE}｜${a.date||'不足'}`,M,2724,W,34,25,22,'#d9e7f1');mark('footer',2704,2778);
  canvas.dataset.reportMode='tower-stock';canvas.dataset.iphoneFullScreen='1284x2778';canvas.dataset.release=RELEASE;canvas.dataset.dataDate=a.date||'UNAVAILABLE';canvas.dataset.reportText=textFrom(a,input);
  canvas.dataset.towerAnalysis=encodeURIComponent(JSON.stringify(a));canvas.dataset.layoutAudit=encodeURIComponent(JSON.stringify({size:'1284x2778',fullBleed:true,noOverlap:sections.every((s,i)=>!i||s.top>=sections[i-1].bottom),textOverflowCount:0,sections,dataBlocked:!t.ok||!a.risk.ok}));return canvas;
 }
@@ -115,7 +115,7 @@ function mount(input){
  const a=get(input);active={input,a,text:textFrom(a,input)};
  let panel=document.getElementById('towerStockAnalysisPanel');if(!panel){panel=document.createElement('section');panel.id='towerStockAnalysisPanel';panel.className='v50-panel';}
  const three=document.getElementById('teacherThreePanPanel');if(three)three.insertAdjacentElement('afterend',panel);else target.appendChild(panel);
- panel.innerHTML=`<div class="v50-title">寶塔線個股分析</div><p>${esc(a.name)}（${esc(a.code)}）｜${esc(a.date||'不足')}｜${esc(a.trend.label)}｜${esc(status(a.status))}</p><p>寶塔文字與圖片獨立輸出；原個股專業版、三盤與寶塔圖片分開儲存。</p><div class="copy-actions"><button type="button" class="copy-btn image-btn" id="generateTowerStockImageButton">下載寶塔線專業版圖片｜iPhone 12 Pro Max</button><button type="button" class="copy-btn watermark-image-btn" id="generateTowerStockWatermarkImageButton">寶塔線專業版圖片｜防盜浮水印</button><button type="button" class="copy-btn" id="copyTowerStockReportButton">複製寶塔線文字報告</button><button type="button" class="copy-btn" id="downloadTowerStockReportButton">下載寶塔線文字 TXT</button></div><p id="towerStockMessage" role="status" aria-live="polite"></p><details ${a.tower.ok?'':'open'}><summary>查看完整寶塔線文字報告</summary><pre style="white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7;font-size:14px;max-height:520px;overflow:auto">${esc(active.text)}</pre></details>`;
+ panel.innerHTML=`<div class="v50-title">寶塔線個股分析</div><p>${esc(a.name)}（${esc(a.code)}）｜${esc(a.date||'不足')}｜${esc(a.trend.label)}｜${esc(status(a.status))}｜${esc(RELEASE)}</p><p>寶塔文字與圖片獨立輸出；原個股專業版、三盤與寶塔圖片分開儲存。</p><div class="copy-actions"><button type="button" class="copy-btn image-btn" id="generateTowerStockImageButton">下載寶塔線專業版圖片｜iPhone 12 Pro Max</button><button type="button" class="copy-btn watermark-image-btn" id="generateTowerStockWatermarkImageButton">寶塔線專業版圖片｜防盜浮水印</button><button type="button" class="copy-btn" id="copyTowerStockReportButton">複製寶塔線文字報告</button><button type="button" class="copy-btn" id="downloadTowerStockReportButton">下載寶塔線文字 TXT</button></div><p id="towerStockMessage" role="status" aria-live="polite"></p><details ${a.tower.ok?'':'open'}><summary>查看完整寶塔線文字報告</summary><pre style="white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7;font-size:14px;max-height:520px;overflow:auto">${esc(active.text)}</pre></details>`;
  panel.querySelector('#generateTowerStockImageButton').onclick=()=>generate(false);
  panel.querySelector('#generateTowerStockWatermarkImageButton').onclick=()=>generate(true);
  panel.querySelector('#copyTowerStockReportButton').onclick=copy;
