@@ -1,14 +1,14 @@
 'use strict';
 
 (function(root){
-  const CODE='R5.3.2.8.1-TOWER-SHADOW.2';
+  const CODE='R5.3.2.8.1-TOWER-SHADOW.3';
   const RELEASE=`石頭少爺 Agent V50｜${CODE}｜寶塔獨立報告與排名戰報版`;
   const FILE_VERSION=`V50_${CODE}_寶塔獨立報告與排名戰報版`;
   const VERSION=Object.freeze({
     major:50,
     baseRelease:'R5.3.2.8.1',
     code:CODE,
-    displayCode:'R5.3.2.8.1｜寶塔更新2',
+    displayCode:'R5.3.2.8.1｜寶塔更新3',
     towerModel:'TOWER_OHLC_RANGE_SINGLE_COLOR_1.0.0',
     release:RELEASE,
     fileVersion:FILE_VERSION,

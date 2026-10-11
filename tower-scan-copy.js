@@ -63,6 +63,27 @@ function stockLines(a,index,date,shared=[]){
   `留意：${note}`
  ];
 }
+function successLines(scan){
+ const seen=new Set(),rows=(Array.isArray(scan.results)?scan.results:[]).filter(a=>{
+  const code=clean(a.code);
+  if(!code||seen.has(code)||a.date!==scan.date||a.tower?.ok!==true||a.risk?.ok!==true)return false;
+  seen.add(code);return true;
+ });
+ const recorded=number(scan.success),lines=[];
+ if(!rows.length){if(recorded>0)lines.push(`系統記錄分析成功 ${count(recorded)} 檔，但本次沒有可核對的成功明細；請重新掃描後再複製。`);return lines;}
+ lines.push('',`【分析成功個股｜${rows.length} 檔】`,'分析成功表示資料與判讀完成，不代表通過候選條件；以下不是選股排名。');
+ if(recorded!==null&&recorded!==rows.length)lines.push(`成功計數 ${count(recorded)} 檔與可核對明細 ${rows.length} 檔不一致，請重新掃描確認。`);
+ rows.forEach((a,i)=>{
+  const t=a.tower,s=t.states?.[3]||{},five=t.states?.[5]||{};
+  const trend=trendLabels[a.trend?.key]||'趨勢待確認';
+  const reasons=codes(a).map(chineseReason);
+  if(!a.type&&!codes(a).includes('NO_T3_SUBSTRATEGY'))reasons.unshift(chineseReason('NO_T3_SUBSTRATEGY'));
+  if(a.type&&['A','B'].includes(scan.subset)&&a.type!==scan.subset)reasons.unshift('不屬於本次選擇的子策略');
+  lines.push(`${i+1}. ${clean(a.name)||'名稱未提供'}（${clean(a.code)}）｜股價 ${price(t.bars?.at(-1)?.close)} 元｜${trend}｜3日${color(s.color)}／5日${color(five.color)}`,
+   '未列入候選原因：'+(Array.from(new Set(reasons)).join('；')||'本次未通過原候選條件')+'。');
+ });
+ return lines;
+}
 function format(scan){
  if(!scan)return '請先完成寶塔線點金術掃描。';
  const list=Array.isArray(scan.candidates)?scan.candidates:[],date=clean(scan.date)||'未確認';
@@ -72,7 +93,7 @@ function format(scan){
   `深掃：${count(scan.attempted)}／${count(scan.planned)}｜成功 ${count(scan.success)}｜失敗 ${count(scan.failed)}｜資料不足 ${count(scan.dataUnavailable)}｜未處理 ${count(scan.pending)}`,
   `${scan.complete?'本次掃描已處理完成':'本次掃描尚未完整完成'}；${scan.fullMarketCertified?'原完整市場資料認證通過':'僅列已掃描樣本，非全市場完整排名'}。`,
   '沿用畫面原排名；研究品質分不是勝率。',''];
- if(!list.length)lines.push('本次沒有可列出的候選；缺資料、失敗或未處理者不能視為已排除。');
+ if(!list.length)lines.push('本次沒有可列出的候選；缺資料、失敗或未處理者不能視為已排除。',...successLines(scan),'');
  list.forEach((a,i)=>lines.push(...stockLines(a,i,scan.date,shared),''));
  if(shared.length)lines.push('共同資料提醒：'+shared.map(chineseReason).join('；')+'。');
  lines.push('價位以完成收盤確認；大於才轉強、小於才轉弱，相等仍觀察。整理區間僅表示尚無新翻轉，不等於已確認盤整。',
