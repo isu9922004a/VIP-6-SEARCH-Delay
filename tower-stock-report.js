@@ -16,10 +16,11 @@ function textFrom(a,input){
  const t=a.tower,f=a.risk.features||{},l=a.risk.levels||{},s=t.states[3]||{},g=B.guide(a);
  return [
   '【寶塔線個股分析｜新手白話版】',`${a.name||raw(input).name||'個股'}（${a.code||'-'}）｜資料日 ${a.date||'不足'}`,
-  `完成收盤 ${g.price}｜${t.completed?'盤後已確認':'收盤狀態未確認'}`,
+  `${t.completed?'完成收盤':'未確認行情參考價'} ${g.price}｜${t.completed?'盤後已確認':'收盤狀態未確認'}`,
   '', '【1. 先看結論｜強不強、能不能追】',
-  `${g.category}｜${status(a.status)}`,
-  g.intro,`現在適合追嗎？${g.buy}`,
+  `${g.category}｜${status(a.status)}｜追價風險：${g.chaseRisk}`,
+  g.intro,`現在能追嗎？${g.buy}`,
+  `【為什麼現在不能只看翻紅就追？】${g.explainNoChase}`, 
   `研究品質 ${a.quality?.value??'不足'}/100（模型條件評分，絕非隔日上漲機率）。`,
   '', '【2. 寶塔紅黑｜今天到底發生什麼】',
   `T3 ${g.color3}｜T5 ${g.color5}｜T3連紅 ${s.redDays??'不足'} 根`,
@@ -37,9 +38,11 @@ function textFrom(a,input){
   '', '【5. 價位階梯｜每個數字有不同用途】',
   `今天 T3 翻色所用的「前3日」上緣 ${g.pastHigh}／下緣 ${g.pastLow}（是歷史判讀，不是明天進場價）。`,
   `當日低點 ${g.dayLow}（短線第一觀察點；跌破不等於寶塔已翻黑）。`,
-  `最近20根的歷史支撐 ${g.support}；上方歷史壓力 ${g.pressure}。`,
+  `第一道上方壓力 ${g.resistance1}。來源：${g.resistance1Source}。`,
+  `第二道較高的轉折壓力 ${g.resistance2}。來源：${g.resistance2Source}。`,
+  `歷史低點候選 ${g.support}。來源：${g.supportSource}。`,
   g.nextThreshold,
-  '注意：翻紅價、下一日續強門檻、支撐、個人停損，各有不同用途，不能畫上等號。',
+  '注意：T3上緣達標，不等於突破第一道歷史壓力，更不等於跨過更高的前波高點。這裡的數字都由個股資料動態帶入；關卡與個人停損不可畫等號。',
   '', '【6. 明天三種走法｜只講條件，不猜一定漲跌】',g.up,g.sideways,g.down,
   '', '【7. 空手者下一步】',g.empty,
   '', '【8. 已持有下一步】',g.holder,
@@ -71,11 +74,11 @@ function renderAnalysis(a,input){
  ctx.fillStyle='#15344e';ctx.fillRect(0,0,WIDTH,184);
  fit(ctx,`${a.name||r.name||'個股'}（${a.code||'-'}）`,M,24,W,70,47,30,'#fff',900);
  fit(ctx,`寶塔線個股分析｜專業版｜${a.date||'資料不足'}`,M,103,W,38,29,25,'#d9e7f1');
- fit(ctx,`有效收盤 ${num(t.bars?.at(-1)?.close)}｜${t.completed?'盤後已確認':'盤後未確認'}`,M,143,W,34,25,22,'#d9e7f1');mark('header',0,184);
- card('verdict',200,204,`${g.category}｜${status(a.status)}`,[
+ fit(ctx,`${t.completed?'有效收盤':'未確認行情參考價'} ${num(t.bars?.at(-1)?.close)}｜${t.completed?'盤後已確認':'盤後未確認'}`,M,143,W,34,25,22,'#d9e7f1');mark('header',0,184);
+ card('verdict',200,204,`${g.category}｜追價風險 ${g.chaseRisk}`,[
   `${g.intro}`,
-  `能直接追嗎？${g.buy}`,
-  `T3 ${g.color3}｜T5 ${g.color5}｜研究品質 ${a.quality?.value??'不足'}/100（不是勝率）`
+  `買點怎麼看？${g.buy}`,
+  `T3 ${g.color3}｜T5 ${g.color5}｜研究品質 ${a.quality?.value??'不足'}/100（非勝率）`
  ],g.heatFlag||a.status==='NO_CHASE'?'yellow':a.status==='FORMAL_CANDIDATE'?'green':'yellow',{size:27,min:23,titleSize:31,titleH:42,pad:13});
  for(const [T,y,h] of [[3,420,378],[5,814,314]]){
   card('chart-'+T,y,h,`T=${T} 寶塔線｜${color(t.states[T]?.color)}`,[], 'blue');
@@ -91,11 +94,11 @@ function renderAnalysis(a,input){
   `日MA20乖離 ${num(f.gap20Pct,1)}%｜月20MA ${num(a.monthly.ma20)}`
  ],'blue',{size:30,min:25,pad:12});
  const risk=key=>a.risk.families?.[key]?({HIGH:'高風險',MEDIUM:'需留意',LOW:'觀察'}[a.risk.families[key].severity]):a.risk.ok?'未見本模型警示':'資料不足';
- card('risk',1506,254,'追高警戒｜模型警示＋新手提醒',[ 
-  `${g.modelHeat}（原有風控門檻不改）`,
-  `新手提醒：${g.heat}`,
+ card('risk',1506,254,'為什麼不能直接追？｜模型與新手提醒',[ 
+  `${g.modelHeat}；追價風險 ${g.chaseRisk}`,
+  `注意：${g.heat}`,
   `假突破 ${risk('BREAKOUT')}｜衰竭 ${risk('EXHAUSTION')}`,
-  `${g.outlook}`
+  `趨勢很強也可能買太貴；先等收盤與量能確認。`
  ],g.heatFlag||a.status==='NO_CHASE'?'yellow':'blue',{size:27,min:22,titleSize:32,titleH:42,pad:13});
  card('actions',1776,208,'下一步｜沒買與已持有分開看',[
   g.empty,g.holder
@@ -103,15 +106,15 @@ function renderAnalysis(a,input){
  card('scenarios',2000,308,'下一交易日｜三種可能的走法',[
   g.up,g.sideways,g.down
  ],'blue',{size:29,min:24,pad:14});
- card('levels',2324,212,'價位看清楚｜今天與明天不能混用',[
-  `當日 T3 上緣 ${g.pastHigh}／下緣 ${g.pastLow}（今天以前3根）`,
-  `明日 T3 上緣 ${g.nextHigh}／下緣 ${g.nextLow}（包含今天）`,
-  `今日低點 ${g.dayLow}｜支撐 ${g.support}｜上方壓力 ${g.pressure}`,
-  '短線警戒不等於翻黑；收盤確認，不把門檻當買點。'
+ card('levels',2324,212,'價位階梯｜來源與用途分開',[
+  `今天 T3 上 ${g.pastHigh}／下 ${g.pastLow}；明日上 ${g.nextHigh}／下 ${g.nextLow}`,
+  `第一壓力 ${g.resistance1}（前60根單日高點）｜第二 ${g.resistance2}（局部高點）`,
+  `今日低點 ${g.dayLow}（短線警戒）｜歷史低點候選 ${g.support}（前20根）`,
+  'T3上緣≠突破全部壓力；跌破日低≠正式翻黑。'
  ],'blue',{size:27,min:22,pad:12});
  card('source',2552,136,'資料與結論',[
   `${a.trend.label}｜${status(a.status)}｜有效日 ${t.date||'不足'}`,
-  `資料${t.ok?'有效':'不足'}；翻紅不等於明天能追，詳細原因見文字報告。`
+  `資料${t.ok?'有效':'不足'}；價位為候選關卡，不是明日買點。`
  ],'blue',{size:26,min:23,titleSize:28,titleH:34,pad:16});
  ctx.fillStyle='#15344e';ctx.fillRect(0,2704,WIDTH,74);
  fit(ctx,`石頭少爺｜${RELEASE}｜${a.date||'不足'}`,M,2724,W,34,25,22,'#d9e7f1');mark('footer',2704,2778);

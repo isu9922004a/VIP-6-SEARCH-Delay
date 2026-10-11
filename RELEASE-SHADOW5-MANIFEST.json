@@ -1,0 +1,303 @@
+{
+  "release": "R5.3.2.8.1-TOWER-SHADOW.5",
+  "sourceArchive": "VIP-BOWTOWER-4-SEARCH-main.zip",
+  "sourceArchiveSha256": "b8d5ca69d2713a70ae4c69f282ac6b707b5d58d462427e97c1414e07a08c7038",
+  "sourceZipItems": 63,
+  "sourceFiles": 62,
+  "note": "Only hashes of this archive's actual contents; old delivery-sha256.json / integrity-check.json in supplied ZIP refer to earlier work and are not current.",
+  "deploymentNotice": "Supplied ZIP does not contain .github/, scripts/, or data/. Keep those folders from existing GitHub repository.",
+  "modified": [
+    "README.md",
+    "START_HERE.md",
+    "index.html",
+    "tower-beginner-guide.js",
+    "tower-stock-report.js",
+    "version-v50.js"
+  ],
+  "newFiles": [
+    "SHADOW5-CHANGELOG.md",
+    "tests/preview-shadow5.html",
+    "tests/test-tower-report-shadow5.cjs"
+  ],
+  "unchangedFiles": 56,
+  "criticalStrategyFilesByteIdenticalToUpload": {
+    "tower-line-core.js": "1bfa00936f1a041d787f02abddc48ea0d463ad7ce8396e9bb56c05f08a0ed7c7",
+    "tower-risk-adapter.js": "0d524aaa0f926bbd98407f0b6e0f08fab8ef2f5ae674780ccbe09a60162a7976",
+    "tower-trend-classifier.js": "fa4e416918af18007b3cc8ff3707b9c5ef852372d1ed792bdaba32f1f06284a3",
+    "tower-gold-scanner.js": "3b870bd52af71e9391e3dac9a3fcf317f1127a23583d7194f3ba1fceee983435",
+    "shitou-v50-core.js": "23d65f0a6a94334dbe75789abafbe2a3075f35f2465e75ffc0debbd35b8ddb03",
+    "shitou-v50-ui.js": "2dab6aae8a36d321f4f0a3360704b68094e7bcf4d652cc3dd8e977ede5cc5cd1",
+    "strong-stock-filter-v47.js": "688037df4843231e5a9fb25ab606626449567297bc0cd99d5410c3f3ba6ec7a0",
+    "swing-risk-r5329.js": "8653a66dec9ffd2556362c164b2c18dbb9c6c0d6a6e44e4a3b407918092ae782",
+    "tower-integration.js": "d2d7a8cd11f86f7d3f515ee79ac039faf87340207db6a8fd9864fb1b0d864f51"
+  },
+  "verification": {
+    "nodeRegression": "14/14 pass",
+    "chromiumSyntheticCanvas": "PASS 1284x2778; 12 sections; noOverlap=true",
+    "marketLiveData": "NOT TESTED",
+    "iPhoneSafari": "NOT TESTED",
+    "fullGithubWorkflows": "NOT INCLUDED IN UPLOAD"
+  },
+  "contents": {
+    ".nojekyll": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "Preview.cmd": {
+      "bytes": 237,
+      "sha256": "de1f3b05b874be49ae70ca51ad68edb1b29910eb17102c1c5eea09de807a4d66"
+    },
+    "README.md": {
+      "bytes": 4168,
+      "sha256": "1acc3ed657df779aeb096d54c96bab7b67a5d1037fb954222b27501750d0df07"
+    },
+    "Restore-Original.cmd": {
+      "bytes": 103,
+      "sha256": "7de0d7aeb1774572ddbb23daae1d8c13c8e9175b10a247f325c6940f458c0314"
+    },
+    "Restore-Original.ps1": {
+      "bytes": 1517,
+      "sha256": "cc2e8d2a8eebecd1a12c28254b8c11abfe9215bad2e074e92d5b9754f86e141d"
+    },
+    "SHADOW5-CHANGELOG.md": {
+      "bytes": 2158,
+      "sha256": "e657f3decceec7deeb7c71eef8a0130828630bd9a16bde899702db5aa47edfe3"
+    },
+    "START_HERE.md": {
+      "bytes": 4596,
+      "sha256": "35f075f3e36b1e3e5b9d59efd50114fb3af5e3cd049e9849e0076e4fd6cda079"
+    },
+    "book-evidence-r494.js": {
+      "bytes": 19064,
+      "sha256": "5ffb2924f2cd5dc1ded9903efb90e568cba80cd8b3f7bfdc500e157082f87ff9"
+    },
+    "book-evidence-r495.js": {
+      "bytes": 19252,
+      "sha256": "33a892c795364918cc94ec3f347c598f05ecbf05661dd9fa3101ea6905d49d42"
+    },
+    "book-image-manifest.json": {
+      "bytes": 92821,
+      "sha256": "1d7296ba0ed330881bc58dc9d793cbab7c6c66b80bfce0f09c62f2afe7a6333f"
+    },
+    "changes.patch": {
+      "bytes": 7626,
+      "sha256": "315e43ea4c02c54a3a15e7ed6cf1880f0081c281c6284bc0b8d9f1bded1435e3"
+    },
+    "daytrade-r11-performance.js": {
+      "bytes": 9264,
+      "sha256": "a3d7f0e27da9271ee37ae0ae14080cbcd42e6316b82978b7602c61f765006d37"
+    },
+    "delivery-sha256.json": {
+      "bytes": 19614,
+      "sha256": "89b27c7beda891b8e9a1764720705ba0b163b70f84a8bf7eae1491a23080f088"
+    },
+    "function-override-inventory.json": {
+      "bytes": 221715,
+      "sha256": "2f9d7c5f992951414e8871c2f89775c7bc080edcd1ef412b5ed8245f2eb51310"
+    },
+    "historical-data-audit.json": {
+      "bytes": 4591,
+      "sha256": "876b5ed187d2d6b4325506ab5fc81e840b0dd7fc67606572a352dfd746a39d1e"
+    },
+    "index.html": {
+      "bytes": 1922118,
+      "sha256": "c75efbbbd6fd990a27876f185a99b99d3ef61bdb399e754174768dd378b646fe"
+    },
+    "industry-context-v47.js": {
+      "bytes": 21845,
+      "sha256": "553be924798fed161cc03ebf0662dec1306f39b05ffc7ef0938e401dc2ea0c9a"
+    },
+    "integrity-check.json": {
+      "bytes": 1059,
+      "sha256": "a1ffc1c49591e2c44e7d7076824de260cc291e3c50e33338908c2f767797c443"
+    },
+    "mobile-png-export-r5329.js": {
+      "bytes": 3412,
+      "sha256": "a569e339c1fd1e5dca8d9536fc847347439cdfbe0c5e3611515a98602403a0e9"
+    },
+    "modified-files.json": {
+      "bytes": 17464,
+      "sha256": "3b7d5937eaeb2370797f2dbb732ee165563b1f84c7cedf9d241b80c27b7bff6c"
+    },
+    "original-file-inventory.json": {
+      "bytes": 9916,
+      "sha256": "fd78fd623e114e77ba13c34331c9f998735619ea0c5d949a2994bf10e45ac172"
+    },
+    "r45-integration.js": {
+      "bytes": 10346,
+      "sha256": "83370eb88d0c8248c432b54833384e017a3fd57a4e435eb0fe7b4e80f40e8d4b"
+    },
+    "r45-report-suite.js": {
+      "bytes": 72523,
+      "sha256": "634069ed066de75f5fc4d3e3586cd830c5e8ffa3726b064ab8c572e3c2be1d13"
+    },
+    "r53281-report-safety-fix.js": {
+      "bytes": 14152,
+      "sha256": "818ef1f65d611c80c7206db18922bfd7ee11c857d85de4920ce791fcadf3d9c4"
+    },
+    "r53282-quality-guard.js": {
+      "bytes": 4500,
+      "sha256": "4c22a4bdb707fa085a67dc324be97f180260c8360ee6bf4627b79cc04a767519"
+    },
+    "report-layout-v563.js": {
+      "bytes": 24021,
+      "sha256": "d1f0a2cb18de907c70b221940d867e87cd0dd7efc0febcbc3f6f16979d78e7b9"
+    },
+    "report-pages-v47.js": {
+      "bytes": 9849,
+      "sha256": "ef3fd9a4f0106dbc28221e77fd04a3b10baf900da461681053403fa7be3a71f5"
+    },
+    "scan-exclusions-rsi-v5328.js": {
+      "bytes": 10920,
+      "sha256": "35e4be1709333ec803319d62115f5747dc077410ab55548534582ec4ac3cd567"
+    },
+    "scan-report-rsi-v5328.js": {
+      "bytes": 14892,
+      "sha256": "c321b9179973cfb5136305157a56ffd28d609ecfef0378e45b29259ea18017a9"
+    },
+    "scan-swing-integration-r5329.js": {
+      "bytes": 2124,
+      "sha256": "d11f0c040b79c20e0b8f4848408903ebe23924abbdef5937c6cdb02b785e4cd7"
+    },
+    "shito-assistant-v47.js": {
+      "bytes": 27989,
+      "sha256": "f6d967571ebf1d404aa5270b9ecc681c93b4df27d2ecb1cd94f1fffbafd0444d"
+    },
+    "shitou-v50-core.js": {
+      "bytes": 21058,
+      "sha256": "23d65f0a6a94334dbe75789abafbe2a3075f35f2465e75ffc0debbd35b8ddb03"
+    },
+    "shitou-v50-ui.js": {
+      "bytes": 52534,
+      "sha256": "2dab6aae8a36d321f4f0a3360704b68094e7bcf4d652cc3dd8e977ede5cc5cd1"
+    },
+    "shitou-wave-core-v48.js": {
+      "bytes": 11663,
+      "sha256": "29c38a1db496bdb487c6c0833ce4b06dedb73d1420a9ec67718c8abd1c91d5e2"
+    },
+    "shitou-wave-ui-v48.js": {
+      "bytes": 13692,
+      "sha256": "e91386496831eb779dc67524b1a2d15c4e78572129f674a7da7f621c83f321d3"
+    },
+    "stock-image-colors-v1.js": {
+      "bytes": 1618,
+      "sha256": "6f62bbb8ed203f6032bb9c6c1f67a0c06871ee5537dcc816be909baefe9dcdde"
+    },
+    "stock-mobile-layout-r5329.js": {
+      "bytes": 9594,
+      "sha256": "a8c3d2be8923c0e1e7bd1eed2e4f52133198456d236f8616728b16625a95a2df"
+    },
+    "strong-stock-filter-v47.js": {
+      "bytes": 12084,
+      "sha256": "688037df4843231e5a9fb25ab606626449567297bc0cd99d5410c3f3ba6ec7a0"
+    },
+    "strong-stock-ui-v47.js": {
+      "bytes": 35038,
+      "sha256": "bfcdde14b054452484f6f2a0cd48119ae42cb50949e78a050487e07e9e756442"
+    },
+    "swing-afterclose-guard-v1.js": {
+      "bytes": 7941,
+      "sha256": "fe3e54b89f00366511ac6d0a440061b631099ff31b0652c5ef8f55fa294192d5"
+    },
+    "swing-afterclose-integration-v1.js": {
+      "bytes": 9060,
+      "sha256": "089c35c43218fa6aac437b9a497ad5c5299dc6587955657ca83a682722ba7e36"
+    },
+    "swing-risk-r5329.js": {
+      "bytes": 6168,
+      "sha256": "8653a66dec9ffd2556362c164b2c18dbb9c6c0d6a6e44e4a3b407918092ae782"
+    },
+    "teacher-three-pan-core.js": {
+      "bytes": 16435,
+      "sha256": "415b77b851c546603cd26fd443ca6212b804516ccad87809aba78794961c924e"
+    },
+    "teacher-three-pan-ui.js": {
+      "bytes": 22163,
+      "sha256": "4ccd04b685035382bd8cad1293f1794c0129bb4723ec33c52fd4c23db7f59468"
+    },
+    "technical-evidence-r45.js": {
+      "bytes": 11492,
+      "sha256": "80539cc55bb38be9e30701986946d0fa424e7572a39d1e2a04338e8d27cb54da"
+    },
+    "technical-evidence-ui-v47.js": {
+      "bytes": 6358,
+      "sha256": "780ea9f07c7cf59f42fc754e11b2957cf2d0e88b53cbbac02bcbccac7f531981"
+    },
+    "technical-evidence-v47.js": {
+      "bytes": 8082,
+      "sha256": "3d3d20c1280c01e9d308edc4dc19eeb40a6af7634e2047911824da2c39b285c9"
+    },
+    "tests/preview-shadow5.html": {
+      "bytes": 4093,
+      "sha256": "9b3296a5370e7ed9b94324dd94a93e6b8eec318b7c3a39cdb6dbe69e553789ee"
+    },
+    "tests/test-tower-report-shadow5.cjs": {
+      "bytes": 4882,
+      "sha256": "b7d28c58b2db49bdcc1f520604189c4edeb66c9b62b67ec62410a23762c37323"
+    },
+    "tower-backtest.js": {
+      "bytes": 5678,
+      "sha256": "07aa87913c6c8448714a75b46b64387d878a40fd36ffd7ed0964cd3742036ff6"
+    },
+    "tower-beginner-guide.js": {
+      "bytes": 11034,
+      "sha256": "11eeaecdb8b3bb6c892754911f9cf8172d6b0f30e6f19bb9d6077bd83cff6767"
+    },
+    "tower-design-ui.js": {
+      "bytes": 7939,
+      "sha256": "dc252c95316f4ac5710b8b13022aff51db7cbb249ceb941f013a0fee009ec04f"
+    },
+    "tower-design.css": {
+      "bytes": 9564,
+      "sha256": "7a56d6086e0e4b73c306f68589543803d2acd00d66fb54707e38ce00ca578b3f"
+    },
+    "tower-gold-scanner.js": {
+      "bytes": 6360,
+      "sha256": "3b870bd52af71e9391e3dac9a3fcf317f1127a23583d7194f3ba1fceee983435"
+    },
+    "tower-integration.js": {
+      "bytes": 10809,
+      "sha256": "d2d7a8cd11f86f7d3f515ee79ac039faf87340207db6a8fd9864fb1b0d864f51"
+    },
+    "tower-line-core.js": {
+      "bytes": 7568,
+      "sha256": "1bfa00936f1a041d787f02abddc48ea0d463ad7ce8396e9bb56c05f08a0ed7c7"
+    },
+    "tower-report.js": {
+      "bytes": 8834,
+      "sha256": "1c8d394b8e2b925a33e54bba08231a683d9953bb387c3528b8b07e9d26726e70"
+    },
+    "tower-risk-adapter.js": {
+      "bytes": 6827,
+      "sha256": "0d524aaa0f926bbd98407f0b6e0f08fab8ef2f5ae674780ccbe09a60162a7976"
+    },
+    "tower-scan-copy.js": {
+      "bytes": 9603,
+      "sha256": "64df1410d2f5da6da1ea3843d646600471f593f393575703a6c98cc38175ba70"
+    },
+    "tower-scan-export.js": {
+      "bytes": 9817,
+      "sha256": "c68937f9ea4e8c27ce600118cc76995bdf5f0191de420fdfbb40686a5dfc5d12"
+    },
+    "tower-stock-report.js": {
+      "bytes": 15968,
+      "sha256": "1eb4bc68b85df373af4159bc6636d9765cf0755202c4a6c90b4fc42736a7c08b"
+    },
+    "tower-trend-classifier.js": {
+      "bytes": 5453,
+      "sha256": "fa4e416918af18007b3cc8ff3707b9c5ef852372d1ed792bdaba32f1f06284a3"
+    },
+    "update-market-snapshot.yml": {
+      "bytes": 2092,
+      "sha256": "e98cbb70040b3f9f444e977926496d6b1c31c6235eca5b1ad299d5827fe7338c"
+    },
+    "version-v50.js": {
+      "bytes": 782,
+      "sha256": "776da54621860c861b2dd97b97640a2e66cd419902cf8e266d3a11186960ea9f"
+    },
+    "xiaomingdao-course-v52.js": {
+      "bytes": 6050,
+      "sha256": "7b7a3b7d5512a8ee474cc44dcb5b3914da02c2badff002fe71a7d6d6bb894be4"
+    }
+  }
+}

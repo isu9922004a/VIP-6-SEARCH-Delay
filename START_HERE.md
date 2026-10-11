@@ -1,3 +1,6 @@
+> **注意：此為過去 SHADOW.1 研究包留下的歷史說明，不是本次 SHADOW.5 部署狀態。**
+> 目前版請優先閱讀根目錄 `README.md`、`SHADOW5-CHANGELOG.md` 和 `RELEASE-SHADOW5-MANIFEST.json`。
+
 # 石頭少爺 V50 寶塔線本地研究整合包
 
 **已完成可檢查的本地SHADOW實作；尚未達到全部正式驗收，未部署。** 母版R5.3.2.8.1保留，新包版本R5.3.2.8.1-TOWER-SHADOW.1。共用T2/3/5核心、第四獨立A/B全量掃描、七級個股／大盤診斷、七節TXT與1284px專業個股長圖已實作。
