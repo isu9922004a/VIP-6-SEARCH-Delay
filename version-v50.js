@@ -1,10 +1,12 @@
 'use strict';
 
 (function(root){
-  const RELEASE='石頭少爺 Agent V50 正式版｜R5.3.2.8.1｜手機免CMD自動同步版';
-  const FILE_VERSION='V50_R5.3.2.8.1_手機免CMD自動同步版';
+  const RELEASE='石頭少爺 Agent V50｜R5.3.2.8.1-TOWER-SHADOW.1｜寶塔線研究整合版';
+  const FILE_VERSION='V50_R5.3.2.8.1-TOWER-SHADOW.1_寶塔線研究整合版';
   const VERSION=Object.freeze({
     major:50,
+    baseRelease:'R5.3.2.8.1',
+    towerModel:'TOWER_OHLC_RANGE_SINGLE_COLOR_1.0.0',
     release:RELEASE,
     fileVersion:FILE_VERSION,
     dataTiming:'POST_CLOSE_ONLY',

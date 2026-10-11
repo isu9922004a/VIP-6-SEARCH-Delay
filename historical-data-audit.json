@@ -1,0 +1,197 @@
+{
+  "status": "UNAVAILABLE",
+  "notZeroSignals": true,
+  "reason": "提供的本地日快照不足60根暖機，且缺歷史月線、退市母體、價格調整与成交性資料",
+  "snapshotDates": [
+    {
+      "date": "2026-09-17",
+      "rows": 1948,
+      "calendarReady": null
+    },
+    {
+      "date": "2026-09-18",
+      "rows": 1949,
+      "calendarReady": null
+    },
+    {
+      "date": "2026-09-21",
+      "rows": 1960,
+      "calendarReady": null
+    },
+    {
+      "date": "2026-09-22",
+      "rows": 1956,
+      "calendarReady": null
+    },
+    {
+      "date": "2026-09-23",
+      "rows": 1950,
+      "calendarReady": null
+    },
+    {
+      "date": "2026-09-24",
+      "rows": 1949,
+      "calendarReady": true
+    },
+    {
+      "date": "2026-09-29",
+      "rows": 1952,
+      "calendarReady": true
+    },
+    {
+      "date": "2026-09-30",
+      "rows": 1964,
+      "calendarReady": true
+    },
+    {
+      "date": "2026-10-01",
+      "rows": 1949,
+      "calendarReady": true
+    },
+    {
+      "date": "2026-10-02",
+      "rows": 1954,
+      "calendarReady": true
+    },
+    {
+      "date": "2026-10-05",
+      "rows": 1958,
+      "calendarReady": true
+    },
+    {
+      "date": "2026-10-06",
+      "rows": 1952,
+      "calendarReady": true
+    },
+    {
+      "date": "2026-10-07",
+      "rows": 1954,
+      "calendarReady": true
+    },
+    {
+      "date": "2026-10-08",
+      "rows": 1950,
+      "calendarReady": true
+    }
+  ],
+  "distinctCodes": 1981,
+  "maxBarsPerCode": 14,
+  "minBarsPerCode": 3,
+  "required": [
+    "至少60根暖機＋10日退出窗口的每股完整OHLCV",
+    "足夠月資料及每日期當時可得原月20MA資格",
+    "當時上市／上櫃与退市完整母體",
+    "除權息／分割調整來源",
+    "同日大盤／市場狀態",
+    "停牌、漲跌停鎖價與成交性",
+    "明示券商成本与滑價",
+    "固定樣本外期間及策略組合持倉政策"
+  ],
+  "comparisons": {
+    "ORIGINAL_MAIN": {
+      "status": "UNAVAILABLE",
+      "signals": null,
+      "winRate": null,
+      "netReturn": null,
+      "expectancy": null,
+      "maxDrawdown": null
+    },
+    "MAIN_OBSERVATION": {
+      "status": "UNAVAILABLE",
+      "signals": null,
+      "winRate": null,
+      "netReturn": null,
+      "expectancy": null,
+      "maxDrawdown": null
+    },
+    "MAIN_RISK": {
+      "status": "UNAVAILABLE",
+      "signals": null,
+      "winRate": null,
+      "netReturn": null,
+      "expectancy": null,
+      "maxDrawdown": null
+    },
+    "ORIGINAL_DAYTRADE": {
+      "status": "UNAVAILABLE",
+      "signals": null,
+      "winRate": null,
+      "netReturn": null,
+      "expectancy": null,
+      "maxDrawdown": null
+    },
+    "DAYTRADE_OBSERVATION": {
+      "status": "UNAVAILABLE",
+      "signals": null,
+      "winRate": null,
+      "netReturn": null,
+      "expectancy": null,
+      "maxDrawdown": null
+    },
+    "DAYTRADE_RISK": {
+      "status": "UNAVAILABLE",
+      "signals": null,
+      "winRate": null,
+      "netReturn": null,
+      "expectancy": null,
+      "maxDrawdown": null
+    },
+    "ORIGINAL_STRONG": {
+      "status": "UNAVAILABLE",
+      "signals": null,
+      "winRate": null,
+      "netReturn": null,
+      "expectancy": null,
+      "maxDrawdown": null
+    },
+    "STRONG_OBSERVATION": {
+      "status": "UNAVAILABLE",
+      "signals": null,
+      "winRate": null,
+      "netReturn": null,
+      "expectancy": null,
+      "maxDrawdown": null
+    },
+    "STRONG_RISK": {
+      "status": "UNAVAILABLE",
+      "signals": null,
+      "winRate": null,
+      "netReturn": null,
+      "expectancy": null,
+      "maxDrawdown": null
+    },
+    "TOWER_A_RAW": {
+      "status": "UNAVAILABLE",
+      "signals": null,
+      "winRate": null,
+      "netReturn": null,
+      "expectancy": null,
+      "maxDrawdown": null
+    },
+    "TOWER_A_RISK": {
+      "status": "UNAVAILABLE",
+      "signals": null,
+      "winRate": null,
+      "netReturn": null,
+      "expectancy": null,
+      "maxDrawdown": null
+    },
+    "TOWER_B_RAW": {
+      "status": "UNAVAILABLE",
+      "signals": null,
+      "winRate": null,
+      "netReturn": null,
+      "expectancy": null,
+      "maxDrawdown": null
+    },
+    "TOWER_B_RISK": {
+      "status": "UNAVAILABLE",
+      "signals": null,
+      "winRate": null,
+      "netReturn": null,
+      "expectancy": null,
+      "maxDrawdown": null
+    }
+  },
+  "noPerformanceImprovementClaim": true
+}

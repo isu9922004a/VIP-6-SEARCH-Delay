@@ -1,0 +1,35 @@
+(function(root){'use strict';
+// Presentation only: consumes the existing analysis without changing it.
+const R=root.ShitouTowerReport,C=root.ShitouTowerCore;
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=(n,d=2)=>n===null||n===undefined||!Number.isFinite(Number(n))?'資料不足':Number(n).toFixed(d);
+const statusLabels={FORMAL_CANDIDATE:'技術候選',CONDITIONAL_WATCH:'條件觀察',NO_CHASE:'禁止追高',REJECT:'風險排除',DATA_UNAVAILABLE:'資料不足'};
+const monthlyLabels={PASS:'通過',UNCONFIRMED:'尚未確認',NOT_PASS:'未通過',UNAVAILABLE:'資料不足'};
+const colorLabels={RED:'紅',BLACK:'黑',UNKNOWN:'未確認'};
+function presentation(a){const t=a.tower||{},s=t.states?.[3]||{},r=a.risk||{},lev=r.levels||{};return {close:t.bars?.at(-1)?.close,status:statusLabels[a.status]||a.status||'待確認',tone:a.status==='NO_CHASE'?'warn':a.status==='REJECT'?'danger':a.status==='DATA_UNAVAILABLE'?'muted':a.type==='B'?'gold':'blue',strategy:a.type==='A'?'紅線恆強':a.type==='B'?'今日黑翻紅':'無已確認訊號',monthly:monthlyLabels[a.monthly?.status]||a.monthly?.status||'資料不足',t3:colorLabels[s.color]||'資料不足',t5:colorLabels[t.states?.[5]?.color]||'資料不足',redDays:s.redDays,flipDate:s.lastRedDate,levels:lev};}
+function metric(label,value){return `<div class="tower-metric"><span>${esc(label)}</span><strong>${esc(value)}</strong></div>`;}
+function card(a,i,certified){const v=presentation(a),lines=R.lines(a);return `<article class="tower-candidate tower-tone-${v.tone}" data-tower-candidate="${esc(a.code)}">
+ <div class="tower-candidate-head"><div><div class="tower-rank">${certified?'候選':'已驗證樣本'} #${i+1} · ${esc(a.date)}</div><h3>${esc(a.name)} <span>（${esc(a.code)}）</span></h3></div><div class="tower-close"><span>最新收盤</span><strong>${fmt(v.close)}<small> 元</small></strong></div></div>
+ <div class="tower-badges"><span class="tower-chip tower-chip-strategy">${esc(a.subtype||a.type||'待確認')} · ${esc(v.strategy)}</span><span class="tower-chip tower-chip-${v.tone}" title="${esc(a.status)}">${esc(v.status)}</span><span class="tower-chip">${esc(a.trend.label)}</span></div>
+ <div class="tower-metrics">${metric('研究品質分',fmt(a.quality?.value,0)+' / 100')}${metric('T3 ／ T5 方向',v.t3+' ／ '+v.t5)}${metric('T3 連紅天數',fmt(v.redDays,0)+' 天')}${metric('月20MA條件',v.monthly)}</div>
+ <div class="tower-price-rail"><div><span>↗ 關鍵轉強</span><strong>&gt; ${fmt(v.levels.turnAbove)}</strong></div><div><span>🛡 失效參考</span><strong>&lt; ${fmt(v.levels.invalidation)}</strong></div><div><span>最近翻紅</span><strong>${esc(v.flipDate||'尚無已確認')}</strong></div></div>
+ <p class="tower-card-note">${esc(a.nonHolder)}</p>${a.status==='NO_CHASE'||a.status==='REJECT'||a.status==='DATA_UNAVAILABLE'?`<p class="tower-risk-note">${esc(v.status)}：${esc(a.trend.plain)}</p>`:''}
+ <div class="tower-card-bottom"><span>品質分為研究評分，非勝率</span><button class="tower-detail-button" type="button" data-tower-code="${esc(a.code)}">個股詳細分析 ↗</button></div>
+ <details class="tower-diagnosis"><summary>完整寶塔診斷與資料依據</summary><div class="tower-diagnosis-body">${lines.map(s=>'<p>'+esc(s)+'</p>').join('')}<h4>明天三種走法</h4>${Object.values(a.scenarios).map(s=>'<p>'+esc(s)+'</p>').join('')}</div></details>
+ </article>`;}
+function cards(scan){return scan.candidates.length?scan.candidates.map((a,i)=>card(a,i,scan.fullMarketCertified)).join(''):'<div class="tower-empty"><strong>本次沒有已驗證訊號</strong><p>失敗與未處理者不能推論為不合格，請核對掃描完整性。</p></div>';}
+function progress(s){const bar=document.getElementById('towerProgressBar'),track=document.getElementById('towerProgressTrack');const n=s.planned?Math.floor(s.attempted/s.planned*100):0;if(bar)bar.style.width=n+'%';if(track)track.setAttribute('aria-valuenow',String(n));}
+function summary(scan){const box=document.getElementById('towerResultOverview');if(!box)return;box.hidden=false;const candidates=scan.candidates,a=candidates.filter(x=>x.type==='A').length,b=candidates.filter(x=>x.type==='B').length;box.innerHTML=`<div class="tower-results-heading"><div><span class="tower-eyebrow">掃描結果</span><h3>寶塔線候選排行</h3></div><span class="tower-chip ${scan.fullMarketCertified?'tower-chip-blue':'tower-chip-warn'}">${scan.fullMarketCertified?'完整市場資料認證':'已驗證樣本 · 非全市場排名'}</span></div><div class="tower-scan-metrics">${metric('已驗證候選',candidates.length+' 檔')}${metric('A · 紅線恆強',a+' 檔')}${metric('B · 今日黑翻紅',b+' 檔')}${metric('深掃進度',scan.attempted+' / '+scan.planned)}</div>`;progress(scan);}
+function reset(){const box=document.getElementById('towerResultOverview');if(box){box.hidden=true;box.textContent='';}progress({attempted:0,planned:0});}
+function controls(){return `<div class="tower-control-heading"><div class="section-title">④ 寶塔線點金術 <span class="tower-heading-sub">（獨立策略）</span></div><span class="tower-chip tower-chip-blue">A ／ B 雙策略</span></div>
+ <p class="tower-intro">紅線恆強追蹤續強結構，今日黑翻紅觀察新轉強訊號。以完成日K檢查寶塔方向、量價風險與月線條件。</p>
+ <div class="strong-stock-reminder tower-reminder">📌 名單是下一交易日的觀察順序，品質分不是勝率；盤後訊號不代表開盤買點。研究版，僅供盤後觀察。</div>
+ <div class="tower-options"><div class="tower-field"><label for="towerSubset">子策略</label><select id="towerSubset"><option value="ALL">全部掃描 · A＋B</option><option value="A">A · 紅線恆強</option><option value="B">B · 今日黑翻紅</option></select></div><div class="tower-field"><label for="towerProfile">行情資料</label><select id="towerProfile"><option value="FULL">完整分析（含原月線欄位）</option><option value="DAILY_ONLY">日K觀察（月線缺失不列正式）</option></select></div><p class="tower-options-note">全量深掃所有原快篩合格股票，不設TOP100／140截斷；失敗與缺資料不標記成功。</p></div>
+ <div class="strong-stock-actions tower-scan-actions"><button id="towerRun" class="btn" type="button">🔎 查詢寶塔線點金術 · 全量深掃</button><button id="towerStop" class="momentum-stop-btn show" type="button">■ 停止</button></div>
+ <div id="towerProgressTrack" class="strong-stock-progress" role="progressbar" aria-label="寶塔線深掃進度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="towerProgressBar"></div></div>
+ <p id="towerSummary" class="meta tower-progress-note" role="status">等待盤後查詢…</p>
+ <div class="tower-export-actions"><button id="towerImage" class="copy-btn image-btn" disabled type="button">🖼 前8檔圖片報告</button><button id="towerZip" class="copy-btn image-btn" disabled type="button">🗂 全部候選圖片 ZIP</button><button id="towerCopy" class="copy-btn" disabled type="button">📋 複製完整戰報</button><button id="towerDownload" class="copy-btn" disabled type="button">📄 下載完整 TXT</button></div>
+ <div id="towerResultOverview" hidden></div><div id="towerList" class="tower-candidate-list"></div>
+ <details class="tower-full-report"><summary>完整文字戰報與掃描數量核對</summary><p class="tower-version">${esc(C.RELEASE)}｜研究版本</p><pre id="towerReportText"></pre></details>`;}
+root.ShitouTowerDesign=Object.freeze({controls,cards,card,summary,progress,reset,presentation,statusLabels,monthlyLabels,esc,fmt,version:'TOWER_DESIGN_1'});
+})(typeof window!=='undefined'?window:globalThis);

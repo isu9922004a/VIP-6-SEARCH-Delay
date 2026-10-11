@@ -1,4 +1,4 @@
-/* 強勢飆股濾網 V50 R5.3.2.8.1：圖片版面一致性；三盤、價格三線、量能三線與費波規則不變。
+/* 強勢飆股濾網 V50 R5.3.2.5.6.3.1：圖片版面一致性；三盤、價格三線、量能三線與費波規則不變。
    沿用官方市場成交量校正與同級執行品質次排序；S/A/B資格與原條件分不變。 */
 (function(root,factory){const api=factory(root?.ShitouWaveCoreV48,root?.ShitouXiaoMingDaoV52);if(typeof module==='object'&&module.exports){let W=null,X=null;try{W=require('./shitou-wave-core-v48.js');}catch(_){}try{X=require('./xiaomingdao-course-v52.js');}catch(_){}module.exports=factory(W,X);}else if(root)root.ShitouStrongStockFilterV47=api;})(typeof globalThis!=='undefined'?globalThis:null,function(W,X){
 'use strict';

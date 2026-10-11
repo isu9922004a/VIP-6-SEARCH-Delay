@@ -1,9 +1,9 @@
-/* R5.3.2.8.1 display-only verification and classification.
+/* R5.3.2.8.2 display-only verification and classification.
  * Original scan quick filters, score formulas, existing ranks and Worker contract are preserved.
  */
 (function(root){
   'use strict';
-  const RELEASE=root.ShitouReleaseV50?.release||'石頭少爺 Agent V50 正式版｜R5.3.2.8.1｜手機免CMD自動同步版';
+  const RELEASE=root.ShitouReleaseV50?.release||'石頭少爺 Agent V50 正式版｜R5.3.2.8.2｜手機免CMD自動同步版';
   const POLICY=Object.freeze({
     release:RELEASE,monthlyMomentum:'BONUS_ONLY',monthlyFormalWave:'HARD_GATE',monthlySafety:'HARD_GATE',
     statusPurpose:'研究觀察分類，不構成隔日買進許可',changingOriginalScoring:false
@@ -86,7 +86,7 @@
   function reportNote(scan){
     prepare(scan);const a=scan.r53281BreakoutStats;
     const lines=[
-      '【R5.3.2.8.1｜盤後風險與新買觀察分流】',
+      '【R5.3.2.8.2｜盤後風險與新買觀察分流】',
       '版本：'+RELEASE,
       RULES,
       '突破資格：🟢已突破且站穩 '+a.confirmed+'｜🟡已突破等站穩 '+a.wait+'｜⚪尚未突破 '+a.prebreak+'｜🔴失效 '+a.failed+'｜⚪資料未驗證 '+a.unknown,

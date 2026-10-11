@@ -1,0 +1,139 @@
+--- original/index.html
++++ shadow/index.html
+@@ -9,8 +9,8 @@
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ 
+ <title>石頭少爺 Agent V50 正式版｜R5.3.2.5.6.3.1｜圖片統一排版完整版</title>
+-<script src="./scan-exclusions-rsi-v5328.js?v=R5328"></script>
+-<script src="./version-v50.js?v=R5.3.2.5.6.3.1"></script>
++<script src="./scan-exclusions-rsi-v5328.js?v=R5.3.2.8.1-TOWER-SHADOW.1"></script>
++<script src="./version-v50.js?v=R5.3.2.8.1-TOWER-SHADOW.1"></script>
+ 
+ <style>
+ 
+@@ -32375,8 +32375,8 @@
+ 
+ </script>
+ 
+-<script src="./shito-assistant-v47.js"></script>
+-<script src="./industry-context-v47.js"></script>
++<script src="./shito-assistant-v47.js?v=R5.3.2.8.1-TOWER-SHADOW.1"></script>
++<script src="./industry-context-v47.js?v=R5.3.2.8.1-TOWER-SHADOW.1"></script>
+ 
+ <script>
+ // ========================================================================
+@@ -34740,17 +34740,17 @@
+ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭少爺 Agent V47/.test(el.textContent||""))el.textContent=R43_RELEASE_LABEL+(el.classList?.contains("version-pill")?"｜盤後資料｜雙通道＋自動擴掃":"");});
+ </script>
+ 
+-<script src="./technical-evidence-r45.js"></script>
+-<script src="./r45-integration.js"></script>
+-<script src="./r45-report-suite.js?v=R5.3.2.5.6.3.1-iphone12pm-fullscreen1-deeper20261005"></script>
+-<script src="./teacher-three-pan-core.js?v=teacher-v1"></script>
+-<script src="./shitou-wave-core-v48.js?v=R5.3.2.5.6.3.1"></script>
+-<script src="./xiaomingdao-course-v52.js?v=R5.3.2.5.6.3.1"></script>
+-<script src="./strong-stock-filter-v47.js?v=R5.3.2.5.6.3.1"></script>
+-<script src="./strong-stock-ui-v47.js?v=R5.3.2.5.6.3.1"></script>
+-<script src="./shitou-wave-ui-v48.js?v=R5.3.2.5.6.3.1"></script>
+-<script src="./book-evidence-r495.js?v=R5.3.2.5.6.3.1"></script>
+-<script src="./shitou-v50-core.js?v=R5.3.2.5.6.3.1"></script>
++<script src="./technical-evidence-r45.js?v=R5.3.2.8.1-TOWER-SHADOW.1"></script>
++<script src="./r45-integration.js?v=R5.3.2.8.1-TOWER-SHADOW.1"></script>
++<script src="./r45-report-suite.js?v=R5.3.2.8.1-TOWER-SHADOW.1"></script>
++<script src="./teacher-three-pan-core.js?v=R5.3.2.8.1-TOWER-SHADOW.1"></script>
++<script src="./shitou-wave-core-v48.js?v=R5.3.2.8.1-TOWER-SHADOW.1"></script>
++<script src="./xiaomingdao-course-v52.js?v=R5.3.2.8.1-TOWER-SHADOW.1"></script>
++<script src="./strong-stock-filter-v47.js?v=R5.3.2.8.1-TOWER-SHADOW.1"></script>
++<script src="./strong-stock-ui-v47.js?v=R5.3.2.8.1-TOWER-SHADOW.1"></script>
++<script src="./shitou-wave-ui-v48.js?v=R5.3.2.8.1-TOWER-SHADOW.1"></script>
++<script src="./book-evidence-r495.js?v=R5.3.2.8.1-TOWER-SHADOW.1"></script>
++<script src="./shitou-v50-core.js?v=R5.3.2.8.1-TOWER-SHADOW.1"></script>
+ 
+ <script>
+ // ========================================================================
+@@ -34955,13 +34955,21 @@
+ })();
+ </script>
+ 
+-<script src="./report-layout-v563.js?v=R5.3.2.5.6.3.1-iphone12pm-fullscreen1"></script>
+-<script src="./shitou-v50-ui.js?v=R5.3.2.5.6.3.1"></script>
+-
+-<script src="./teacher-three-pan-ui.js?v=R5328-three-pan-watermark-20261005"></script>
+-<script src="./data/market/scan-exclusions.js?v=R5328-mobile-auto"></script>
+-<script src="./scan-report-rsi-v5328.js?v=R5328-mobile-auto"></script>
+-<script src="./stock-image-colors-v1.js?v=20261005-deeper1"></script>
++<script src="./report-layout-v563.js?v=R5.3.2.8.1-TOWER-SHADOW.1"></script>
++<script src="./shitou-v50-ui.js?v=R5.3.2.8.1-TOWER-SHADOW.1"></script>
++
++<script src="./teacher-three-pan-ui.js?v=R5.3.2.8.1-TOWER-SHADOW.1"></script>
++<script src="./data/market/scan-exclusions.js?v=R5.3.2.8.1-TOWER-SHADOW.1"></script>
++<script src="./scan-report-rsi-v5328.js?v=R5.3.2.8.1-TOWER-SHADOW.1"></script>
++<script src="./stock-image-colors-v1.js?v=R5.3.2.8.1-TOWER-SHADOW.1"></script>
++<script src="./tower-line-core.js?v=R5.3.2.8.1-TOWER-SHADOW.1"></script>
++<script src="./tower-risk-adapter.js?v=R5.3.2.8.1-TOWER-SHADOW.1"></script>
++<script src="./tower-trend-classifier.js?v=R5.3.2.8.1-TOWER-SHADOW.1"></script>
++<script src="./tower-gold-scanner.js?v=R5.3.2.8.1-TOWER-SHADOW.1"></script>
++<script src="./tower-report.js?v=R5.3.2.8.1-TOWER-SHADOW.1"></script>
++<script src="./tower-scan-export.js?v=R5.3.2.8.1-TOWER-SHADOW.1"></script>
++<script src="./tower-integration.js?v=R5.3.2.8.1-TOWER-SHADOW.1"></script>
+ </body>
+ 
+ </html>
++
+--- original/r45-integration.js
++++ shadow/r45-integration.js
+@@ -2,8 +2,8 @@
+ (function(){
+ 'use strict';
+ 
+-const RELEASE='石頭少爺 Agent V50 正式版｜R5.3.2.8｜七類排除與RSI 5T清晰報告版';
+-const FILE_VERSION='V50_R5.3.2.5.6.3.1_圖片統一排版完整版';
++const RELEASE=window.ShitouReleaseV50.release;
++const FILE_VERSION=window.ShitouReleaseV50.fileVersion;
+ const E=window.ShitouTechnicalEvidenceR45;
+ window.R45_RELEASE_LABEL=RELEASE;
+ window.R45_FILE_VERSION=FILE_VERSION;
+--- original/strong-stock-ui-v47.js
++++ shadow/strong-stock-ui-v47.js
+@@ -30,7 +30,7 @@
+   const isCpuError=value=>/exceeded\s*CPU|CPU\s*time\s*limit|CPU.*(?:超限|用量)|1102|script.*exceeded/i.test(String(value||''));
+   const isRetryable=value=>/CPU|1102|timeout|timed out|aborted|failed to fetch|network|HTTP\s*(?:429|5\d\d)|服務暫時|連線|逾時|分析未回傳/i.test(String(value||''));
+   const statusTitle=scan=>scan.fullMarketCertified?'完整市場驗證報告':'部分驗證報告｜非全市場完整排名';
+-  const RELEASE_R493='石頭少爺 Agent V50 正式版｜R5.3.2.8｜七類排除與RSI 5T清晰報告版';
++  const RELEASE_R493=root.ShitouReleaseV50.release;
+   const triggerMeta=c=>{
+     const close=F.number(c?.close),trigger=F.number(c?.trigger);
+     const crossed=close!==null&&trigger!==null&&close>=trigger;
+@@ -149,6 +149,7 @@
+     const report=x.data,returned=String(report.stock||report.code||x.code||'');
+     if(returned!==item.code)return {status:'DATA',reason:'回傳股票代號不符或缺失'};
+     const result=F.evaluate(report,marketDate,item.q);
++    if(root.ShitouTowerIntegration)result.towerShadow=root.ShitouTowerIntegration.get(result.report||report,{asOf:marketDate,completed:true});
+     if(result.eligible){result.code=item.code;result.name=LOCAL_NAME_MAP?.[item.code]||report.name||item.code;}
+     return result;
+   }
+@@ -197,6 +198,7 @@
+     if(scan.deferred)lines.push(`未深入分析：${scan.deferred} 檔，不能標記為不合格。`);
+     if(scan.pending)lines.push(`掃描停止或資源熔斷後未分析：${scan.pending} 檔。`);
+     lines.push(`END-OF-STRONG-STOCK-REPORT-R5327｜候選 ${scan.candidates.length}/${scan.candidates.length}`);
++    if(root.ShitouTowerIntegration)return root.ShitouTowerIntegration.appendScanText(lines.join('\n'),scan);
+     return lines.join('\n');
+   }
+   async function run(){
+--- original/version-v50.js
++++ shadow/version-v50.js
+@@ -1,10 +1,12 @@
+ 'use strict';
+ 
+ (function(root){
+-  const RELEASE='石頭少爺 Agent V50 正式版｜R5.3.2.8.1｜手機免CMD自動同步版';
+-  const FILE_VERSION='V50_R5.3.2.8.1_手機免CMD自動同步版';
++  const RELEASE='石頭少爺 Agent V50｜R5.3.2.8.1-TOWER-SHADOW.1｜寶塔線研究整合版';
++  const FILE_VERSION='V50_R5.3.2.8.1-TOWER-SHADOW.1_寶塔線研究整合版';
+   const VERSION=Object.freeze({
+     major:50,
++    baseRelease:'R5.3.2.8.1',
++    towerModel:'TOWER_OHLC_RANGE_SINGLE_COLOR_1.0.0',
+     release:RELEASE,
+     fileVersion:FILE_VERSION,
+     dataTiming:'POST_CLOSE_ONLY',

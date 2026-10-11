@@ -1,9 +1,9 @@
-/* V50 R5.3.2.8.1: 教材證據與明日開盤白話判讀；正式 Gate、分數與排名不變。 */
+/* V50 R5.3.2.5.6.3.1: 教材證據與明日開盤白話判讀；正式 Gate、分數與排名不變。 */
 (function(){
 'use strict';
 
-const RELEASE='石頭少爺 Agent V50 正式版｜R5.3.2.8.1｜手機免CMD自動同步版';
-const FILE_VERSION='V50_R5.3.2.8.1_手機免CMD自動同步版';
+const RELEASE=window.ShitouReleaseV50.release;
+const FILE_VERSION=window.ShitouReleaseV50.fileVersion;
 const E=window.ShitouTechnicalEvidenceR45;
 window.R45_RELEASE_LABEL=RELEASE;
 window.R45_FILE_VERSION=FILE_VERSION;

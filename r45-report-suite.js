@@ -1,9 +1,9 @@
-/* V50 R5.3.2.8.1: image-report layout consistency fix; stock logic is unchanged. */
+/* V50 R5.3.2.5.6.3.1: image-report layout consistency fix; stock logic is unchanged. */
 (function(){
 'use strict';
 
-const RELEASE=window.R45_RELEASE_LABEL||'石頭少爺 Agent V50 正式版｜R5.3.2.8.1｜手機免CMD自動同步版';
-const FILE_VERSION=window.R45_FILE_VERSION||'V50_R5.3.2.8.1_手機免CMD自動同步版';
+const RELEASE=window.R45_RELEASE_LABEL||'石頭少爺 Agent V50 正式版｜R5.3.2.7｜三盤量價與個股報告優化版';
+const FILE_VERSION=window.R45_FILE_VERSION||'V50_R5.3.2.5.6.3.1_圖片統一排版完整版';
 const E=window.ShitouTechnicalEvidenceR45;
 const DETAIL={width:1284,height:2778,top:92,bottom:70,side:22};
 const IPHONE_12_PRO_MAX={width:1284,height:2778,minReadableScale:.90};
@@ -650,8 +650,13 @@ function buildSummaryPages(scan,kind){
 
 async function setPreviewPage(index){
   if(!previewSet)return;
-  previewSet.index=Math.max(0,Math.min(index,previewSet.pages.length-1));
-  const page=previewSet.pages[previewSet.index],value=await blob(page);
+  const selected=previewSet;
+  selected.index=Math.max(0,Math.min(index,selected.pages.length-1));
+  const pageIndex=selected.index,imageAtStart=document.getElementById('imagePreviewImg'),sourceAtStart=imageAtStart?.src,ownerAtStart=window.ShitouReportPreviewEpoch;
+  const page=selected.pages[pageIndex],value=await blob(page);
+  // A single-report preview can open while the previous page is encoding.
+  // Never let that older result replace the new report image or filename.
+  if(previewSet!==selected||selected.index!==pageIndex||imageAtStart?.src!==sourceAtStart||window.ShitouReportPreviewEpoch!==ownerAtStart)return;
   if(previewUrl)URL.revokeObjectURL(previewUrl);previewUrl=URL.createObjectURL(value);
   const image=document.getElementById('imagePreviewImg'),link=document.getElementById('imageDownloadLink'),title=document.getElementById('imagePreviewTitle');
   if(image)image.src=previewUrl;if(link){link.href=previewUrl;link.download=previewSet.names[previewSet.index];}
@@ -686,7 +691,7 @@ async function showPages(pages,{title,prefix,date='latest',note='',kind='report'
   const iphoneSingle=pages.length===1&&pages[0]?.dataset?.iphoneFullScreen==='1284x2778';
   const names=pages.length===1?[safeName(`${prefix}_${iphoneSingle?'iPhone12ProMax_1284x2778_單張滿版':'單一張完整長圖'}_${date}_${FILE_VERSION}.png`)]:pages.map((_,index)=>safeName(`${prefix}_${String(index+1).padStart(2,'0')}-${pages.length}_${date}_${FILE_VERSION}.png`));
   previewSet={pages,names,title,index:0,zipName:safeName(`${prefix}_完整${pages.length}頁_${date}_${FILE_VERSION}.zip`),kind};
-  if(typeof original.show==='function')await original.show(pages[0],names[0],`${title}｜第 1/${pages.length} 頁`);
+  if(typeof original.show==='function'&&await original.show(pages[0],names[0],`${title}｜第 1/${pages.length} 頁`)===false)return previewSet;
   mountPreviewActions();await setPreviewPage(0);
   const element=document.getElementById('imagePreviewNote');if(element)element.textContent=pages.length===1?`${note}｜${pages[0]?.dataset?.iphoneFullScreen==='1284x2778'?'已輸出 1284×2778 單張滿版 PNG':'完整內容已合併為單一張 PNG'}，可直接預覽或下載。`:`${note}｜共 ${pages.length} 頁；可逐頁預覽／下載，或下載完整ZIP。`;
   return previewSet;

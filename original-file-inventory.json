@@ -1,0 +1,326 @@
+[
+  {
+    "file": ".github/workflows/update-market-snapshot.yml",
+    "bytes": 4245,
+    "sha256": "5ef76d8c1a947298260d5bbf9dfc1cb6f49cace1af03895aaf2c1056a34f9e48",
+    "modified": false
+  },
+  {
+    "file": ".github/workflows/update-scan-exclusions.yml",
+    "bytes": 1817,
+    "sha256": "486bc5511fc8c6c3f1653bce2f92f0f781a6e0ffccb18805477f579e22b661f1",
+    "modified": false
+  },
+  {
+    "file": "book-evidence-r494.js",
+    "bytes": 19064,
+    "sha256": "5ffb2924f2cd5dc1ded9903efb90e568cba80cd8b3f7bfdc500e157082f87ff9",
+    "modified": false
+  },
+  {
+    "file": "book-evidence-r495.js",
+    "bytes": 19252,
+    "sha256": "33a892c795364918cc94ec3f347c598f05ecbf05661dd9fa3101ea6905d49d42",
+    "modified": false
+  },
+  {
+    "file": "data/market/archive/2026-09-17.json",
+    "bytes": 582777,
+    "sha256": "c22d9611602ced6eacb1e8e8804523b36e2e5ad566fbc7b6d3af871fc7faf2cb",
+    "modified": false
+  },
+  {
+    "file": "data/market/archive/2026-09-18.json",
+    "bytes": 581922,
+    "sha256": "3558190c80245bb6c391746841fbd6562a23cf56cdcbd23ec480b48460a86a92",
+    "modified": false
+  },
+  {
+    "file": "data/market/archive/2026-09-21.json",
+    "bytes": 586402,
+    "sha256": "0b51dc0f53624559c4e7bba31ac2ecd71e6894352e6818e5b3a6b07579982840",
+    "modified": false
+  },
+  {
+    "file": "data/market/archive/2026-09-22.json",
+    "bytes": 585298,
+    "sha256": "5cf7df50bf69c51d8f24b0ac4f720349cedfa40fdca069a46e2ca8046e450335",
+    "modified": false
+  },
+  {
+    "file": "data/market/archive/2026-09-23.json",
+    "bytes": 583058,
+    "sha256": "0a35567e17f1e9f8012510e9e03e710806654575a39416a37bdd8bfe583f2f45",
+    "modified": false
+  },
+  {
+    "file": "data/market/archive/2026-09-24.json",
+    "bytes": 586228,
+    "sha256": "747e2a1a586cfec73ad39ca7e4f6f273259a5f954e169999bcc650ba3ef680f9",
+    "modified": false
+  },
+  {
+    "file": "data/market/archive/2026-09-29.json",
+    "bytes": 587638,
+    "sha256": "4ea235bea21c48893f6397614f4884a6138070c109d94362f2b59ba5f47713a8",
+    "modified": false
+  },
+  {
+    "file": "data/market/archive/2026-09-30.json",
+    "bytes": 590900,
+    "sha256": "722b5a7d65bda48d8c65375f3b32435c02693aabf1ac8ed08ecf9386dfb4f9d4",
+    "modified": false
+  },
+  {
+    "file": "data/market/archive/2026-10-01.json",
+    "bytes": 586757,
+    "sha256": "9123caa24a2b6f52cfa1c4550dcf63139144df3e534cd6e9e38606acca4b86a2",
+    "modified": false
+  },
+  {
+    "file": "data/market/archive/2026-10-02.json",
+    "bytes": 588584,
+    "sha256": "fad31fc5552f2c16807dbc190b4d688cd26e2d8e9609727ced953a3ba8b1a44e",
+    "modified": false
+  },
+  {
+    "file": "data/market/archive/2026-10-05.json",
+    "bytes": 591060,
+    "sha256": "1adc3b548e997a7a0906602c278eb0279c19055c80551d61d3b2cac3708a87a7",
+    "modified": false
+  },
+  {
+    "file": "data/market/archive/2026-10-06.json",
+    "bytes": 588895,
+    "sha256": "64f1b675685720056fd3c24e3dcccea68de6663e05674ff266f77c8e62ada945",
+    "modified": false
+  },
+  {
+    "file": "data/market/archive/2026-10-07.json",
+    "bytes": 588917,
+    "sha256": "07db23b7c3ac573923ad9156dab11ef1e496eadacbd4ec458c22af0cc64ba71d",
+    "modified": false
+  },
+  {
+    "file": "data/market/archive/2026-10-08.json",
+    "bytes": 587531,
+    "sha256": "1b7fb95b400bdd21741ba2331d828187603791da3f21eca824aa150774444033",
+    "modified": false
+  },
+  {
+    "file": "data/market/exclusions/2026-10-05.json",
+    "bytes": 500,
+    "sha256": "a0f834c02cdabe503c3cd9ac53f7a101fc43be2cbca3143a32a3d5d741189c92",
+    "modified": false
+  },
+  {
+    "file": "data/market/exclusions/2026-10-06.json",
+    "bytes": 500,
+    "sha256": "68ba73f863851636bdcc60be4479ca8475843b2dd9931ba003875b397942be5a",
+    "modified": false
+  },
+  {
+    "file": "data/market/exclusions/2026-10-07.json",
+    "bytes": 507,
+    "sha256": "edf47fe6c74f85c3a4bb092252ad037ca404fcdfb2be98f9d2e50461bb5401b2",
+    "modified": false
+  },
+  {
+    "file": "data/market/exclusions/2026-10-08.json",
+    "bytes": 507,
+    "sha256": "6ba75e1b6f0fc199a77a61e4afb84a8023ba90bfd5d981ca29663c0888c13ba6",
+    "modified": false
+  },
+  {
+    "file": "data/market/latest.json",
+    "bytes": 587531,
+    "sha256": "1b7fb95b400bdd21741ba2331d828187603791da3f21eca824aa150774444033",
+    "modified": false
+  },
+  {
+    "file": "data/market/scan-exclusions.js",
+    "bytes": 551,
+    "sha256": "cb2d7f31192d527c639ccf61c2a60abee83e2fbb2a75ae2d2f3a9f4ac72f04d3",
+    "modified": false
+  },
+  {
+    "file": "data/market/scan-exclusions.json",
+    "bytes": 507,
+    "sha256": "6ba75e1b6f0fc199a77a61e4afb84a8023ba90bfd5d981ca29663c0888c13ba6",
+    "modified": false
+  },
+  {
+    "file": "index.html",
+    "bytes": 1920398,
+    "sha256": "1045b1142c706788367446583593b147461ea8e14e9b9b9a78a971af3789d904",
+    "modified": true
+  },
+  {
+    "file": "industry-context-v47.js",
+    "bytes": 21845,
+    "sha256": "553be924798fed161cc03ebf0662dec1306f39b05ffc7ef0938e401dc2ea0c9a",
+    "modified": false
+  },
+  {
+    "file": "r45-integration.js",
+    "bytes": 10414,
+    "sha256": "96b2ec01f214c068a9b50a53b7b31f9d73671f2afad764cedd5cda4190b32db9",
+    "modified": false
+  },
+  {
+    "file": "r45-report-suite.js",
+    "bytes": 72141,
+    "sha256": "7847b0c11918f62bb6984b4a130cd1a2001f5b564d6b7ba2570f5ef26c08d484",
+    "modified": false
+  },
+  {
+    "file": "report-layout-v563.js",
+    "bytes": 24021,
+    "sha256": "d1f0a2cb18de907c70b221940d867e87cd0dd7efc0febcbc3f6f16979d78e7b9",
+    "modified": false
+  },
+  {
+    "file": "scan-exclusions-rsi-v5328.js",
+    "bytes": 10854,
+    "sha256": "e84c3d215386aa7bcbdc7d9fd60d9c61db5783f4972c74cd590e44df065f2c18",
+    "modified": false
+  },
+  {
+    "file": "scan-report-rsi-v5328.js",
+    "bytes": 14751,
+    "sha256": "72b5d0101de62c5ead609d01c67d7f66f159505359f59cdd983f6826a804e254",
+    "modified": false
+  },
+  {
+    "file": "scripts/update-market-snapshot.mjs",
+    "bytes": 32380,
+    "sha256": "2818acc90a6aee626424a9bd48d49e9bf052027baf637d69466893def313fe66",
+    "modified": false
+  },
+  {
+    "file": "scripts/update-scan-exclusions.mjs",
+    "bytes": 3285,
+    "sha256": "a18427b2a4d6a031f50849480f34b5279c091c249cec986cfeacc5e02512e91b",
+    "modified": false
+  },
+  {
+    "file": "shito-assistant-v47.js",
+    "bytes": 27989,
+    "sha256": "f6d967571ebf1d404aa5270b9ecc681c93b4df27d2ecb1cd94f1fffbafd0444d",
+    "modified": false
+  },
+  {
+    "file": "shitou-v50-core.js",
+    "bytes": 21058,
+    "sha256": "23d65f0a6a94334dbe75789abafbe2a3075f35f2465e75ffc0debbd35b8ddb03",
+    "modified": false
+  },
+  {
+    "file": "shitou-v50-ui.js",
+    "bytes": 52534,
+    "sha256": "2dab6aae8a36d321f4f0a3360704b68094e7bcf4d652cc3dd8e977ede5cc5cd1",
+    "modified": false
+  },
+  {
+    "file": "shitou-wave-core-v48.js",
+    "bytes": 11663,
+    "sha256": "29c38a1db496bdb487c6c0833ce4b06dedb73d1420a9ec67718c8abd1c91d5e2",
+    "modified": false
+  },
+  {
+    "file": "shitou-wave-ui-v48.js",
+    "bytes": 13692,
+    "sha256": "e91386496831eb779dc67524b1a2d15c4e78572129f674a7da7f621c83f321d3",
+    "modified": false
+  },
+  {
+    "file": "stock-image-colors-v1.js",
+    "bytes": 1586,
+    "sha256": "2495b3cad5f57df48bdfaa0f6db664c63f891ce9c05403e603c330a619efacd9",
+    "modified": false
+  },
+  {
+    "file": "strong-stock-filter-v47.js",
+    "bytes": 12084,
+    "sha256": "688037df4843231e5a9fb25ab606626449567297bc0cd99d5410c3f3ba6ec7a0",
+    "modified": false
+  },
+  {
+    "file": "strong-stock-ui-v47.js",
+    "bytes": 34840,
+    "sha256": "a443d80d8b30d453d811f96783e4c187c5bc90b8044612e6782e23d01677c6f3",
+    "modified": true
+  },
+  {
+    "file": "teacher-three-pan-core.js",
+    "bytes": 16435,
+    "sha256": "415b77b851c546603cd26fd443ca6212b804516ccad87809aba78794961c924e",
+    "modified": false
+  },
+  {
+    "file": "teacher-three-pan-ui.js",
+    "bytes": 22163,
+    "sha256": "4ccd04b685035382bd8cad1293f1794c0129bb4723ec33c52fd4c23db7f59468",
+    "modified": false
+  },
+  {
+    "file": "technical-evidence-r45.js",
+    "bytes": 11492,
+    "sha256": "80539cc55bb38be9e30701986946d0fa424e7572a39d1e2a04338e8d27cb54da",
+    "modified": false
+  },
+  {
+    "file": "tests/.gitkeep",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "modified": false
+  },
+  {
+    "file": "tests/strong-stock-browser-harness.js",
+    "bytes": 5534,
+    "sha256": "eefe74649567c74ec9bfd8b55c05e491fe110851ee94daf18db5dfb3dcf79960",
+    "modified": false
+  },
+  {
+    "file": "tests/strong-stock-browser.test.js",
+    "bytes": 2920,
+    "sha256": "6d0f7c2e8b16caed0441b10b59daa7183f8b19a5769f8b64f72cbe19f6da1f41",
+    "modified": false
+  },
+  {
+    "file": "tests/strong-stock-filter.test.js",
+    "bytes": 5586,
+    "sha256": "58a616a2e3d9455af86c7501900e9b0de86ea663b373590f8e8362baea886250",
+    "modified": false
+  },
+  {
+    "file": "tests/strong-stock-static.test.js",
+    "bytes": 2072,
+    "sha256": "f1601f879a91f9fbd5731589f74c83455d70db62b2db3e4b72c0b435b8e2bf5d",
+    "modified": false
+  },
+  {
+    "file": "tests/strong-stock-ui.test.js",
+    "bytes": 7705,
+    "sha256": "8baf45482ab50fa5e7f82f41a71a9c71febad1eb7b8d6bb8871eb990d28dd030",
+    "modified": false
+  },
+  {
+    "file": "update-market-snapshot.yml",
+    "bytes": 2038,
+    "sha256": "228865aa8386193d6d4a9e57466d79bf063f827fe6f5f524bd753728ef7c181f",
+    "modified": false
+  },
+  {
+    "file": "version-v50.js",
+    "bytes": 593,
+    "sha256": "9bb57341260a7d20ee485b9942160486e60cc495f4d909d369d2c86f46ac145d",
+    "modified": true
+  },
+  {
+    "file": "xiaomingdao-course-v52.js",
+    "bytes": 6050,
+    "sha256": "7b7a3b7d5512a8ee474cc44dcb5b3914da02c2badff002fe71a7d6d6bb894be4",
+    "modified": false
+  }
+]

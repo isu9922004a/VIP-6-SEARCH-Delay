@@ -1,0 +1,572 @@
+[
+  {
+    "file": "agent-v50-tower-shadow/.github/workflows/update-market-snapshot.yml",
+    "bytes": 4245,
+    "sha256": "5ef76d8c1a947298260d5bbf9dfc1cb6f49cace1af03895aaf2c1056a34f9e48"
+  },
+  {
+    "file": "agent-v50-tower-shadow/.github/workflows/update-scan-exclusions.yml",
+    "bytes": 1817,
+    "sha256": "486bc5511fc8c6c3f1653bce2f92f0f781a6e0ffccb18805477f579e22b661f1"
+  },
+  {
+    "file": "agent-v50-tower-shadow/book-evidence-r494.js",
+    "bytes": 19064,
+    "sha256": "5ffb2924f2cd5dc1ded9903efb90e568cba80cd8b3f7bfdc500e157082f87ff9"
+  },
+  {
+    "file": "agent-v50-tower-shadow/book-evidence-r495.js",
+    "bytes": 19252,
+    "sha256": "33a892c795364918cc94ec3f347c598f05ecbf05661dd9fa3101ea6905d49d42"
+  },
+  {
+    "file": "agent-v50-tower-shadow/data/market/archive/2026-09-17.json",
+    "bytes": 582777,
+    "sha256": "c22d9611602ced6eacb1e8e8804523b36e2e5ad566fbc7b6d3af871fc7faf2cb"
+  },
+  {
+    "file": "agent-v50-tower-shadow/data/market/archive/2026-09-18.json",
+    "bytes": 581922,
+    "sha256": "3558190c80245bb6c391746841fbd6562a23cf56cdcbd23ec480b48460a86a92"
+  },
+  {
+    "file": "agent-v50-tower-shadow/data/market/archive/2026-09-21.json",
+    "bytes": 586402,
+    "sha256": "0b51dc0f53624559c4e7bba31ac2ecd71e6894352e6818e5b3a6b07579982840"
+  },
+  {
+    "file": "agent-v50-tower-shadow/data/market/archive/2026-09-22.json",
+    "bytes": 585298,
+    "sha256": "5cf7df50bf69c51d8f24b0ac4f720349cedfa40fdca069a46e2ca8046e450335"
+  },
+  {
+    "file": "agent-v50-tower-shadow/data/market/archive/2026-09-23.json",
+    "bytes": 583058,
+    "sha256": "0a35567e17f1e9f8012510e9e03e710806654575a39416a37bdd8bfe583f2f45"
+  },
+  {
+    "file": "agent-v50-tower-shadow/data/market/archive/2026-09-24.json",
+    "bytes": 586228,
+    "sha256": "747e2a1a586cfec73ad39ca7e4f6f273259a5f954e169999bcc650ba3ef680f9"
+  },
+  {
+    "file": "agent-v50-tower-shadow/data/market/archive/2026-09-29.json",
+    "bytes": 587638,
+    "sha256": "4ea235bea21c48893f6397614f4884a6138070c109d94362f2b59ba5f47713a8"
+  },
+  {
+    "file": "agent-v50-tower-shadow/data/market/archive/2026-09-30.json",
+    "bytes": 590900,
+    "sha256": "722b5a7d65bda48d8c65375f3b32435c02693aabf1ac8ed08ecf9386dfb4f9d4"
+  },
+  {
+    "file": "agent-v50-tower-shadow/data/market/archive/2026-10-01.json",
+    "bytes": 586757,
+    "sha256": "9123caa24a2b6f52cfa1c4550dcf63139144df3e534cd6e9e38606acca4b86a2"
+  },
+  {
+    "file": "agent-v50-tower-shadow/data/market/archive/2026-10-02.json",
+    "bytes": 588584,
+    "sha256": "fad31fc5552f2c16807dbc190b4d688cd26e2d8e9609727ced953a3ba8b1a44e"
+  },
+  {
+    "file": "agent-v50-tower-shadow/data/market/archive/2026-10-05.json",
+    "bytes": 591060,
+    "sha256": "1adc3b548e997a7a0906602c278eb0279c19055c80551d61d3b2cac3708a87a7"
+  },
+  {
+    "file": "agent-v50-tower-shadow/data/market/archive/2026-10-06.json",
+    "bytes": 588895,
+    "sha256": "64f1b675685720056fd3c24e3dcccea68de6663e05674ff266f77c8e62ada945"
+  },
+  {
+    "file": "agent-v50-tower-shadow/data/market/archive/2026-10-07.json",
+    "bytes": 588917,
+    "sha256": "07db23b7c3ac573923ad9156dab11ef1e496eadacbd4ec458c22af0cc64ba71d"
+  },
+  {
+    "file": "agent-v50-tower-shadow/data/market/archive/2026-10-08.json",
+    "bytes": 587531,
+    "sha256": "1b7fb95b400bdd21741ba2331d828187603791da3f21eca824aa150774444033"
+  },
+  {
+    "file": "agent-v50-tower-shadow/data/market/exclusions/2026-10-05.json",
+    "bytes": 500,
+    "sha256": "a0f834c02cdabe503c3cd9ac53f7a101fc43be2cbca3143a32a3d5d741189c92"
+  },
+  {
+    "file": "agent-v50-tower-shadow/data/market/exclusions/2026-10-06.json",
+    "bytes": 500,
+    "sha256": "68ba73f863851636bdcc60be4479ca8475843b2dd9931ba003875b397942be5a"
+  },
+  {
+    "file": "agent-v50-tower-shadow/data/market/exclusions/2026-10-07.json",
+    "bytes": 507,
+    "sha256": "edf47fe6c74f85c3a4bb092252ad037ca404fcdfb2be98f9d2e50461bb5401b2"
+  },
+  {
+    "file": "agent-v50-tower-shadow/data/market/exclusions/2026-10-08.json",
+    "bytes": 507,
+    "sha256": "6ba75e1b6f0fc199a77a61e4afb84a8023ba90bfd5d981ca29663c0888c13ba6"
+  },
+  {
+    "file": "agent-v50-tower-shadow/data/market/latest.json",
+    "bytes": 587531,
+    "sha256": "1b7fb95b400bdd21741ba2331d828187603791da3f21eca824aa150774444033"
+  },
+  {
+    "file": "agent-v50-tower-shadow/data/market/scan-exclusions.js",
+    "bytes": 551,
+    "sha256": "cb2d7f31192d527c639ccf61c2a60abee83e2fbb2a75ae2d2f3a9f4ac72f04d3"
+  },
+  {
+    "file": "agent-v50-tower-shadow/data/market/scan-exclusions.json",
+    "bytes": 507,
+    "sha256": "6ba75e1b6f0fc199a77a61e4afb84a8023ba90bfd5d981ca29663c0888c13ba6"
+  },
+  {
+    "file": "agent-v50-tower-shadow/index.html",
+    "bytes": 1956121,
+    "sha256": "cd6924c7d3d4bef57440001712ae26de06a98ada0850520f5f47ba49e7970fa0"
+  },
+  {
+    "file": "agent-v50-tower-shadow/industry-context-v47.js",
+    "bytes": 21845,
+    "sha256": "553be924798fed161cc03ebf0662dec1306f39b05ffc7ef0938e401dc2ea0c9a"
+  },
+  {
+    "file": "agent-v50-tower-shadow/Preview.cmd",
+    "bytes": 227,
+    "sha256": "5195c25cb1631e7d8a97047aff7eeae0ba086adcd80c10f462fad52165f117cd"
+  },
+  {
+    "file": "agent-v50-tower-shadow/r45-integration.js",
+    "bytes": 10346,
+    "sha256": "83370eb88d0c8248c432b54833384e017a3fd57a4e435eb0fe7b4e80f40e8d4b"
+  },
+  {
+    "file": "agent-v50-tower-shadow/r45-report-suite.js",
+    "bytes": 72141,
+    "sha256": "7847b0c11918f62bb6984b4a130cd1a2001f5b564d6b7ba2570f5ef26c08d484"
+  },
+  {
+    "file": "agent-v50-tower-shadow/report-layout-v563.js",
+    "bytes": 24021,
+    "sha256": "d1f0a2cb18de907c70b221940d867e87cd0dd7efc0febcbc3f6f16979d78e7b9"
+  },
+  {
+    "file": "agent-v50-tower-shadow/scan-exclusions-rsi-v5328.js",
+    "bytes": 10854,
+    "sha256": "e84c3d215386aa7bcbdc7d9fd60d9c61db5783f4972c74cd590e44df065f2c18"
+  },
+  {
+    "file": "agent-v50-tower-shadow/scan-report-rsi-v5328.js",
+    "bytes": 14751,
+    "sha256": "72b5d0101de62c5ead609d01c67d7f66f159505359f59cdd983f6826a804e254"
+  },
+  {
+    "file": "agent-v50-tower-shadow/scripts/tower-backtest-cli.cjs",
+    "bytes": 1150,
+    "sha256": "5025c53403977b59afeb0793e7468b4e57c7658de9d04fc519e2cc27a5b136bb"
+  },
+  {
+    "file": "agent-v50-tower-shadow/scripts/tower-preview.cjs",
+    "bytes": 921,
+    "sha256": "0c981ec4fa09a3a4e4316002c5a7cee0a2bcea35616312357978e69a1481bf6a"
+  },
+  {
+    "file": "agent-v50-tower-shadow/scripts/update-market-snapshot.mjs",
+    "bytes": 32380,
+    "sha256": "2818acc90a6aee626424a9bd48d49e9bf052027baf637d69466893def313fe66"
+  },
+  {
+    "file": "agent-v50-tower-shadow/scripts/update-scan-exclusions.mjs",
+    "bytes": 3285,
+    "sha256": "a18427b2a4d6a031f50849480f34b5279c091c249cec986cfeacc5e02512e91b"
+  },
+  {
+    "file": "agent-v50-tower-shadow/shito-assistant-v47.js",
+    "bytes": 27989,
+    "sha256": "f6d967571ebf1d404aa5270b9ecc681c93b4df27d2ecb1cd94f1fffbafd0444d"
+  },
+  {
+    "file": "agent-v50-tower-shadow/shitou-v50-core.js",
+    "bytes": 21058,
+    "sha256": "23d65f0a6a94334dbe75789abafbe2a3075f35f2465e75ffc0debbd35b8ddb03"
+  },
+  {
+    "file": "agent-v50-tower-shadow/shitou-v50-ui.js",
+    "bytes": 52534,
+    "sha256": "2dab6aae8a36d321f4f0a3360704b68094e7bcf4d652cc3dd8e977ede5cc5cd1"
+  },
+  {
+    "file": "agent-v50-tower-shadow/shitou-wave-core-v48.js",
+    "bytes": 11663,
+    "sha256": "29c38a1db496bdb487c6c0833ce4b06dedb73d1420a9ec67718c8abd1c91d5e2"
+  },
+  {
+    "file": "agent-v50-tower-shadow/shitou-wave-ui-v48.js",
+    "bytes": 13692,
+    "sha256": "e91386496831eb779dc67524b1a2d15c4e78572129f674a7da7f621c83f321d3"
+  },
+  {
+    "file": "agent-v50-tower-shadow/stock-image-colors-v1.js",
+    "bytes": 1586,
+    "sha256": "2495b3cad5f57df48bdfaa0f6db664c63f891ce9c05403e603c330a619efacd9"
+  },
+  {
+    "file": "agent-v50-tower-shadow/strong-stock-filter-v47.js",
+    "bytes": 12084,
+    "sha256": "688037df4843231e5a9fb25ab606626449567297bc0cd99d5410c3f3ba6ec7a0"
+  },
+  {
+    "file": "agent-v50-tower-shadow/strong-stock-ui-v47.js",
+    "bytes": 35038,
+    "sha256": "bfcdde14b054452484f6f2a0cd48119ae42cb50949e78a050487e07e9e756442"
+  },
+  {
+    "file": "agent-v50-tower-shadow/teacher-three-pan-core.js",
+    "bytes": 16435,
+    "sha256": "415b77b851c546603cd26fd443ca6212b804516ccad87809aba78794961c924e"
+  },
+  {
+    "file": "agent-v50-tower-shadow/teacher-three-pan-ui.js",
+    "bytes": 22163,
+    "sha256": "4ccd04b685035382bd8cad1293f1794c0129bb4723ec33c52fd4c23db7f59468"
+  },
+  {
+    "file": "agent-v50-tower-shadow/technical-evidence-r45.js",
+    "bytes": 11492,
+    "sha256": "80539cc55bb38be9e30701986946d0fa424e7572a39d1e2a04338e8d27cb54da"
+  },
+  {
+    "file": "agent-v50-tower-shadow/tests/.gitkeep",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "file": "agent-v50-tower-shadow/tests/strong-stock-browser-harness.js",
+    "bytes": 5534,
+    "sha256": "eefe74649567c74ec9bfd8b55c05e491fe110851ee94daf18db5dfb3dcf79960"
+  },
+  {
+    "file": "agent-v50-tower-shadow/tests/strong-stock-browser.test.js",
+    "bytes": 2920,
+    "sha256": "6d0f7c2e8b16caed0441b10b59daa7183f8b19a5769f8b64f72cbe19f6da1f41"
+  },
+  {
+    "file": "agent-v50-tower-shadow/tests/strong-stock-filter.test.js",
+    "bytes": 5586,
+    "sha256": "58a616a2e3d9455af86c7501900e9b0de86ea663b373590f8e8362baea886250"
+  },
+  {
+    "file": "agent-v50-tower-shadow/tests/strong-stock-static.test.js",
+    "bytes": 2072,
+    "sha256": "f1601f879a91f9fbd5731589f74c83455d70db62b2db3e4b72c0b435b8e2bf5d"
+  },
+  {
+    "file": "agent-v50-tower-shadow/tests/strong-stock-ui.test.js",
+    "bytes": 7705,
+    "sha256": "8baf45482ab50fa5e7f82f41a71a9c71febad1eb7b8d6bb8871eb990d28dd030"
+  },
+  {
+    "file": "agent-v50-tower-shadow/tests/tower-core.test.js",
+    "bytes": 11256,
+    "sha256": "a83d203fcbf8301b713e446fb1bb8d6339e83a027ca7f804eda93b9c9cb903fd"
+  },
+  {
+    "file": "agent-v50-tower-shadow/tower-backtest.js",
+    "bytes": 5634,
+    "sha256": "f08d887ecac98bb675d9530ea97078fe2b197f98eb839aa749addfe0f64994ae"
+  },
+  {
+    "file": "agent-v50-tower-shadow/tower-gold-scanner.js",
+    "bytes": 6318,
+    "sha256": "a227181a14feba6dbfeca3e8ab5460515264319de8f677ed9f81e66af39d33e6"
+  },
+  {
+    "file": "agent-v50-tower-shadow/tower-integration.js",
+    "bytes": 12803,
+    "sha256": "ea95cf859408c8d6d43f71caca9e17a228ca0c132bb7e7090a2c47bb2484a170"
+  },
+  {
+    "file": "agent-v50-tower-shadow/tower-line-core.js",
+    "bytes": 7472,
+    "sha256": "d85a0c3939637915a9c94a5578adf80b3164f23dc3c2ae443d8576d336034d40"
+  },
+  {
+    "file": "agent-v50-tower-shadow/tower-report.js",
+    "bytes": 8834,
+    "sha256": "1c8d394b8e2b925a33e54bba08231a683d9953bb387c3528b8b07e9d26726e70"
+  },
+  {
+    "file": "agent-v50-tower-shadow/tower-risk-adapter.js",
+    "bytes": 6827,
+    "sha256": "0d524aaa0f926bbd98407f0b6e0f08fab8ef2f5ae674780ccbe09a60162a7976"
+  },
+  {
+    "file": "agent-v50-tower-shadow/tower-scan-export.js",
+    "bytes": 4133,
+    "sha256": "2377a5eaf02fc9f9b35b1503c1ff753bbdfdfc93ca12d0660758a22d2e0ae0a4"
+  },
+  {
+    "file": "agent-v50-tower-shadow/tower-trend-classifier.js",
+    "bytes": 5428,
+    "sha256": "253b51fe907b66c1b9ac07d5197c93d362f25df896fd59e794c51845f428bcc5"
+  },
+  {
+    "file": "agent-v50-tower-shadow/update-market-snapshot.yml",
+    "bytes": 2038,
+    "sha256": "228865aa8386193d6d4a9e57466d79bf063f827fe6f5f524bd753728ef7c181f"
+  },
+  {
+    "file": "agent-v50-tower-shadow/version-v50.js",
+    "bytes": 710,
+    "sha256": "fafce6fe09da7b68de6e6e06ba4ab83b906f61d30e194175b6e84994099b0503"
+  },
+  {
+    "file": "agent-v50-tower-shadow/xiaomingdao-course-v52.js",
+    "bytes": 6050,
+    "sha256": "7b7a3b7d5512a8ee474cc44dcb5b3914da02c2badff002fe71a7d6d6bb894be4"
+  },
+  {
+    "file": "book-image-manifest.json",
+    "bytes": 92821,
+    "sha256": "1d7296ba0ed330881bc58dc9d793cbab7c6c66b80bfce0f09c62f2afe7a6333f"
+  },
+  {
+    "file": "changes.patch",
+    "bytes": 7626,
+    "sha256": "315e43ea4c02c54a3a15e7ed6cf1880f0081c281c6284bc0b8d9f1bded1435e3"
+  },
+  {
+    "file": "function-override-inventory.json",
+    "bytes": 221715,
+    "sha256": "2f9d7c5f992951414e8871c2f89775c7bc080edcd1ef412b5ed8245f2eb51310"
+  },
+  {
+    "file": "historical-data-audit.json",
+    "bytes": 4591,
+    "sha256": "876b5ed187d2d6b4325506ab5fc81e840b0dd7fc67606572a352dfd746a39d1e"
+  },
+  {
+    "file": "integrity-check.json",
+    "bytes": 1059,
+    "sha256": "a1ffc1c49591e2c44e7d7076824de260cc291e3c50e33338908c2f767797c443"
+  },
+  {
+    "file": "modified-files.json",
+    "bytes": 17464,
+    "sha256": "3b7d5937eaeb2370797f2dbb732ee165563b1f84c7cedf9d241b80c27b7bff6c"
+  },
+  {
+    "file": "original-file-inventory.json",
+    "bytes": 9916,
+    "sha256": "fd78fd623e114e77ba13c34331c9f998735619ea0c5d949a2994bf10e45ac172"
+  },
+  {
+    "file": "original-master.zip",
+    "bytes": 2143153,
+    "sha256": "23d6547b2b3e4fd3df629329825dd207e673101cff18ebe3c371d71a0ac8a66d"
+  },
+  {
+    "file": "Restore-Original.cmd",
+    "bytes": 100,
+    "sha256": "b23e70d2da18611d2734f0e34c2a037e93173cae64a3a9901f5c3999b167bab6"
+  },
+  {
+    "file": "Restore-Original.ps1",
+    "bytes": 1501,
+    "sha256": "98908558d7ab74630733afcd4b252450af4c8fa41f47a19d8c0d47e2fc8e53c0"
+  },
+  {
+    "file": "START_HERE.md",
+    "bytes": 4412,
+    "sha256": "08b6ad6b9670c3091b0287eb479f33459eb44ea02c4a4c55321659a539fd72d7"
+  },
+  {
+    "file": "verification/archive-backtest-input.json",
+    "bytes": 2832,
+    "sha256": "b49285dbf1cd6249df521429f568f9f248776b6d5090fb006369192ffd629254"
+  },
+  {
+    "file": "verification/archive-backtest-result.json",
+    "bytes": 2082,
+    "sha256": "54025bab32c921ead70c1c4eea2569d51a67bf66ee86da90733c74ba5e32429e"
+  },
+  {
+    "file": "verification/baseline-tests.txt",
+    "bytes": 4251,
+    "sha256": "85dacccdb16df82bf3753a929881a0e0f7db1a0ab1f442741e0fa36eea3fefa5"
+  },
+  {
+    "file": "verification/black-to-red.json",
+    "bytes": 6414,
+    "sha256": "a8fefabf5a329d29537c966bbaf610f5d311cdecc15082d7e5e237493e749910"
+  },
+  {
+    "file": "verification/black-to-red.png",
+    "bytes": 4584527,
+    "sha256": "f1745eca8008610de4f8e840d9105fe78b348f37f909524183295a3a3c3ca6d0"
+  },
+  {
+    "file": "verification/browser-qa.cjs",
+    "bytes": 10812,
+    "sha256": "02c705605a39f9ccd22dcfbd0e1e61429dac41a4f055c1871f4cdb2681a99f1c"
+  },
+  {
+    "file": "verification/browser-results.json",
+    "bytes": 12350,
+    "sha256": "0e25de756ee49f24ff5f9ec091e6525b437452a60e4dbb71937b03ad8c27cced"
+  },
+  {
+    "file": "verification/browser-run.txt",
+    "bytes": 12856,
+    "sha256": "7cad4f879547c1facb6509ea02fab5eeca55ede8490510ff65ea752cc6111917"
+  },
+  {
+    "file": "verification/choppy.json",
+    "bytes": 6572,
+    "sha256": "af3e24041f96621fc7ba1e3754a9126fb0a1c6d6c1a752b8518be39038107e5d"
+  },
+  {
+    "file": "verification/choppy.png",
+    "bytes": 4637383,
+    "sha256": "23e972642b2988e9abd05c17ba2e6e43bfb98a72a7ddef7ed04454b0e262cd94"
+  },
+  {
+    "file": "verification/climax.json",
+    "bytes": 6620,
+    "sha256": "003971add0d808ccbca3640924034f13c02c04cd9013024edb17fee391013316"
+  },
+  {
+    "file": "verification/climax.png",
+    "bytes": 4539947,
+    "sha256": "3973bff2b313ad63e29259da56322b727418e2039260080993b20d12407d318f"
+  },
+  {
+    "file": "verification/fourth-export-9-synthetic.zip",
+    "bytes": 6554922,
+    "sha256": "cd226e8c11077868b37b871c89050a7af02acb9413a1eb511eb6b8db1f34629a"
+  },
+  {
+    "file": "verification/fourth-zip-verification.json",
+    "bytes": 919,
+    "sha256": "e29659656f9b9550b6e15ab90571aec0ca7cadb9e8e6e36855cd342a0fa28752"
+  },
+  {
+    "file": "verification/full-scan-151-synthetic.txt",
+    "bytes": 149355,
+    "sha256": "c1718136aae98afb8df1e4de5a7f43e54adae674dc072567549c22d54dc61074"
+  },
+  {
+    "file": "verification/healthy-bottom.png",
+    "bytes": 866419,
+    "sha256": "2f068c2d7e3bb40664805e69b48979b907e5721db873b521f1a05fabde0f56ee"
+  },
+  {
+    "file": "verification/healthy-middle.png",
+    "bytes": 848295,
+    "sha256": "74ec94188c1a0b50188dd6d8806d2458bc1ca3cbe45015942ad67cb4ba59458c"
+  },
+  {
+    "file": "verification/healthy-top.png",
+    "bytes": 602768,
+    "sha256": "cd43c6b6de2e4c0a693708684367fe710d24787cec129141068b8396ee4a2075"
+  },
+  {
+    "file": "verification/healthy.json",
+    "bytes": 6575,
+    "sha256": "c9a98e8a0908de235875452d2c766b99fe9525f53c89164b18d3e38311373c68"
+  },
+  {
+    "file": "verification/healthy.png",
+    "bytes": 4537546,
+    "sha256": "0a429b8d35944c393adb4109b0a0b65ceabae6fcb204e36b7f2c9184d87b6574"
+  },
+  {
+    "file": "verification/missing-data.json",
+    "bytes": 6444,
+    "sha256": "ecae16338a3901b96dcf5681a7f78d3dcf9980b3c84b496f6aed83127dff41de"
+  },
+  {
+    "file": "verification/missing-data.png",
+    "bytes": 3708499,
+    "sha256": "da56cbc23837a5eacdd64d95c9135cbdac5737abc09df09137c731fc20046291"
+  },
+  {
+    "file": "verification/mobile-viewport.png",
+    "bytes": 677761,
+    "sha256": "2573c76b6fb1fd8c6c3fffe8ac21e04c739efaf786458c898e07ecd63944d1c4"
+  },
+  {
+    "file": "verification/monthly-unconfirmed.json",
+    "bytes": 6604,
+    "sha256": "0b2804e8460d7d53ed82aa583adeaae8484955545cb383c8626bbfd5ca1ceaa1"
+  },
+  {
+    "file": "verification/monthly-unconfirmed.png",
+    "bytes": 4533105,
+    "sha256": "77f831ecfe6d185c8e9f09b4ae8bf2e4a9655e2f99021df7995535baecb85530"
+  },
+  {
+    "file": "verification/red-to-black.json",
+    "bytes": 6625,
+    "sha256": "b61bdf6b54b224d78e488673ddd4277fcfc6351202853cad4b644e08e4ebeb37"
+  },
+  {
+    "file": "verification/red-to-black.png",
+    "bytes": 4605634,
+    "sha256": "d74f227ef8cd629763fc04d9aeb754a5ea2bea2732b9ddb242dcc86f8b3c4f82"
+  },
+  {
+    "file": "verification/rollback-test.json",
+    "bytes": 4624,
+    "sha256": "3f231a00c1a0ec191c4a0740cb13e0aa7d9f411643ce383c19378fb50b245726"
+  },
+  {
+    "file": "verification/T3-T5-conflict.json",
+    "bytes": 6573,
+    "sha256": "342d4b2a6b50c14284df38627e6e7a8cbab640b3d269f9a675671ce9f343f1cd"
+  },
+  {
+    "file": "verification/T3-T5-conflict.png",
+    "bytes": 4620095,
+    "sha256": "2fb0aa3c3f026332e8f5865feff07ab12a06db5c4051e635875215d78fb70ceb"
+  },
+  {
+    "file": "verification/tower-core-tests.txt",
+    "bytes": 2326,
+    "sha256": "ee0ba2947dfc91abf9eda01eb9cd073b582f4dd5aa8553cc064fb396c10391b9"
+  },
+  {
+    "file": "使用教學與資料契約.md",
+    "bytes": 4948,
+    "sha256": "8daba65fe3864a5a2183613e0e006b10185328d322e2653f6c9b784e48f568d5"
+  },
+  {
+    "file": "書籍逐圖稽核.csv",
+    "bytes": 22992,
+    "sha256": "773332b366b1102f6580090dc50fd6d8d7cc88e00a67fed4a5b7f2b16b8c0609"
+  },
+  {
+    "file": "書籍閱讀與規則稽核.md",
+    "bytes": 6649,
+    "sha256": "e5a7b87b8e0716b3699c1aa89fef2ff5bb10735d601cc55af29018cdf4f52054"
+  },
+  {
+    "file": "歷史回測與資料缺口.md",
+    "bytes": 3324,
+    "sha256": "a149c1328cd577afa8732fd64d5dc7ea0355f137fbe3e0803c85cb95d7df74a3"
+  },
+  {
+    "file": "測試與正式部署前驗收.md",
+    "bytes": 6697,
+    "sha256": "2d2847e563dc3617dcd3a6db64a829621f98f008468d8fea422e80ebc9774e0d"
+  },
+  {
+    "file": "程式呼叫路徑與修改差異.md",
+    "bytes": 5482,
+    "sha256": "47b788434d8af2096c9afad78645a1a5585289ecd98b26348bec018b99fef296"
+  }
+]

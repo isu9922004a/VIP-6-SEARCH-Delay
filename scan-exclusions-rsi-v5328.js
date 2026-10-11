@@ -1,7 +1,7 @@
 /* Three scanners share product/industry/status exclusions. RSI is display-only. */
 (function(root,factory){const api=factory();if(root)root.ShitouScanPolicy5328=api;if(typeof module==='object'&&module.exports)module.exports=api;})(typeof globalThis!=='undefined'?globalThis:this,function(){
 'use strict';
-const RULE=Object.freeze({minVolume:150000,minTradeValue:15000000,version:'R5.3.2.8.1'});
+const RULE=Object.freeze({minVolume:150000,minTradeValue:15000000,version:'R5.3.2.8'});
 const LABELS=Object.freeze({FULL_DELIVERY:'全額交割／變更交易排除',DR:'DR類股排除',SPECIAL:'ETF／ETN／受益證券／特殊商品排除',FINANCIAL:'金融排除',BIOTECH:'生技排除',CONSTRUCTION:'營建排除',ILLIQUID:'低流動性排除',UNKNOWN:'產業分類不足',STATUS_UNKNOWN:'全額交割狀態未核對'});
 const number=v=>v===null||v===undefined||String(v).trim()===''?null:Number.isFinite(Number(String(v).replace(/,/g,'')))?Number(String(v).replace(/,/g,'')):null;
 function date(v){const s=String(v??'').replace(/\D/g,'');const t=s.length===7?String(Number(s.slice(0,3))+1911)+s.slice(3):s;if(t.length!==8)return null;const out=t.slice(0,4)+'-'+t.slice(4,6)+'-'+t.slice(6);const d=new Date(out+'T00:00:00Z');return Number.isFinite(d.getTime())&&d.toISOString().slice(0,10)===out?out:null;}

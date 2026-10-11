@@ -1,0 +1,3099 @@
+[
+  {
+    "id": 1,
+    "file": "2026-10-10 13-51-32.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "0613c85e3d8185da0f5dc66b36a6fb796159c028d777bf1ae9619224a4f70a30",
+    "readingRotation": 90,
+    "printedPages": null,
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 0,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 2,
+    "file": "2026-10-10 21-24-19.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "fd66d92b7b79ca22392570fca40f52be8030a14a0863068a9f12777117995be4",
+    "readingRotation": 90,
+    "printedPages": [
+      16,
+      17
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 326,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": true,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 3,
+    "file": "2026-10-10 21-24-27.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "afd280935a2e5e068b9f0af8c31ce8cc6acb94da0969474a6c74422786db14c4",
+    "readingRotation": 90,
+    "printedPages": [
+      18,
+      19
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 370,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 4,
+    "file": "2026-10-10 21-24-38.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "add5dce5761ee3cb4d05abd7354bd129da4b044409f5dcf54b54ac8e3976a02d",
+    "readingRotation": 90,
+    "printedPages": [
+      20,
+      21
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 0,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 5,
+    "file": "2026-10-10 23-06-32.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "6bfcef55dd3dd63e6180fb5e593152fc36a2e566a90f8ded648c3a654abd4618",
+    "readingRotation": 90,
+    "printedPages": [
+      22,
+      23
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 507,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": true,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "key visual source verified"
+  },
+  {
+    "id": 6,
+    "file": "2026-10-10 23-06-41.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "e55964e56acca04f3abb67d234930dd8bd00269659dc74d9a9020ad1c423ffb8",
+    "readingRotation": 90,
+    "printedPages": [
+      24,
+      25
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 602,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": true,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "key visual source verified"
+  },
+  {
+    "id": 7,
+    "file": "2026-10-10 23-06-48.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "20d3ea79f20c1feead7d1e9b2dad4186169f3d6ba64baf0e539b5e243f37dcf4",
+    "readingRotation": 90,
+    "printedPages": [
+      26,
+      27
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 367,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": true,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "key visual source verified"
+  },
+  {
+    "id": 8,
+    "file": "2026-10-10 23-07-00.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "13397c2ef109c03e49cd86f6cf0ba9140305e650138ef9562403316787a4fb5f",
+    "readingRotation": 90,
+    "printedPages": [
+      28,
+      29
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 563,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 9,
+    "file": "2026-10-10 23-07-17.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "380697e347cd9d38574f214ef3199abb790ef4661541c44e3aa3b09db5e3ffa8",
+    "readingRotation": 90,
+    "printedPages": [
+      30,
+      31
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 966,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 10,
+    "file": "2026-10-10 23-07-25.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "83d82dbaaba1b62629cad90f609502e9a426fe71f0f80c2a369fef4779e3b572",
+    "readingRotation": 90,
+    "printedPages": [
+      32,
+      33
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 677,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 11,
+    "file": "2026-10-10 23-07-33.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "d0702d7308596d24e3ebca148ca6347a21623ccc1713593839f9e2adb44eae43",
+    "readingRotation": 90,
+    "printedPages": [
+      34,
+      35
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 580,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 12,
+    "file": "2026-10-10 23-07-42.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "56ced64e737a117360f8db5b0d2a0c8089e1ddf98d8802e5cd695fc3c89381a8",
+    "readingRotation": 90,
+    "printedPages": [
+      36,
+      37
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 951,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 13,
+    "file": "2026-10-10 23-07-51.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "0fefbb2d46d2d948fa16c6af5b9a0777b78ff6c3042a6c63f36c6ca38757f688",
+    "readingRotation": 90,
+    "printedPages": [
+      38,
+      39
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 311,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 14,
+    "file": "2026-10-10 23-08-00.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "65d8b57d32708b1faee3fd1cce5153cd650064189fedd04ec50d9ee983ec4ff5",
+    "readingRotation": 90,
+    "printedPages": [
+      40,
+      41
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 614,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 15,
+    "file": "2026-10-10 23-08-07.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "2e0870833cea143e1bde15faf7d19b1601adbaa20d9392700c65818831c490d3",
+    "readingRotation": 90,
+    "printedPages": [
+      42,
+      43
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 737,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 16,
+    "file": "2026-10-10 23-08-14.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "82c723254d92f3ced8d03c2b99cdd433ef4fef499bae2e821851febfbf82fb2c",
+    "readingRotation": 90,
+    "printedPages": [
+      44,
+      45
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 388,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 17,
+    "file": "2026-10-10 23-08-23.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "815712c8fc96330d9a9939d984c270bb8a1493067cf749117a2f20810b6982d5",
+    "readingRotation": 90,
+    "printedPages": [
+      46,
+      47
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 641,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 18,
+    "file": "2026-10-10 23-08-30.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "0fddd5ce33257bc2cabff8163908ef54a144e0a01bd7ee1de8d9fb936d7a75a4",
+    "readingRotation": 90,
+    "printedPages": [
+      48,
+      49
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 11,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": true,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 19,
+    "file": "2026-10-10 23-08-39.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "48ab4f1a1f919e5a1abadd4ca16f9315215bce1431547f0a5978e78c5d26ac64",
+    "readingRotation": 90,
+    "printedPages": [
+      50,
+      51
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 588,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": true,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 20,
+    "file": "2026-10-10 23-18-19.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "54e1770bd1d1823e88c99a4639b504bea527e76551665e948759d396a31e44e7",
+    "readingRotation": 90,
+    "printedPages": [
+      52,
+      53
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 599,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": true,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "key visual source verified"
+  },
+  {
+    "id": 21,
+    "file": "2026-10-10 23-18-28.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "5786b95bc556161316cb03f9f9504525aa3fb8df149effa72eee4429d9f97c99",
+    "readingRotation": 90,
+    "printedPages": [
+      54,
+      55
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 420,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": true,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "key visual source verified"
+  },
+  {
+    "id": 22,
+    "file": "2026-10-10 23-18-36.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "0e40db7fb2eb5ee759ef31634a03d946b925f7bf3ecbcf6a75cb099fe9df94d3",
+    "readingRotation": 90,
+    "printedPages": [
+      56,
+      57
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 653,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 23,
+    "file": "2026-10-10 23-18-45.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "f7cc67abd46bffa393bb0ea74bd72684dcfbb8719f5df60331d5782dbca83581",
+    "readingRotation": 90,
+    "printedPages": [
+      58,
+      59
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 669,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 24,
+    "file": "2026-10-10 23-18-55.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "639e41665564717f0fe5b5e3d7a6bcc7ab677d06b2f262a13e9e05061749c3fd",
+    "readingRotation": 90,
+    "printedPages": [
+      60,
+      61
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 649,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 25,
+    "file": "2026-10-10 23-19-04.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "ab33939430ec77330a4496550f86f080ace5451ca8e62015192fd0672191a02e",
+    "readingRotation": 90,
+    "printedPages": [
+      62,
+      63
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 546,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 26,
+    "file": "2026-10-10 23-19-12.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "f566e507e8fddaf73655b692d991e49679bd22f4a65c48de25a43f8353699e3e",
+    "readingRotation": 90,
+    "printedPages": [
+      64,
+      65
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 576,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 27,
+    "file": "2026-10-10 23-19-21.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "69868f407ab9379ebbcd30371ceac65fbe8c4a35bc8c021b8868bdfa9dfaaf0d",
+    "readingRotation": 90,
+    "printedPages": [
+      66,
+      67
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 270,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 28,
+    "file": "2026-10-10 23-19-30.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "10f1d81aff52eb8122f1185f34cbb3e2459d43b66a70b838dc5490b60fa96fc0",
+    "readingRotation": 90,
+    "printedPages": [
+      68,
+      69
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 694,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 29,
+    "file": "2026-10-10 23-19-40.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "280559a08df8a291c7abbeff79c34779c63c8b842779432f7ba926e60de3b0df",
+    "readingRotation": 90,
+    "printedPages": [
+      70,
+      71
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 913,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 30,
+    "file": "2026-10-10 23-19-51.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "eda88877dc5ff4e222639b6d64384e6dba7230ba01f898057e6cc170f9fb9b41",
+    "readingRotation": 90,
+    "printedPages": [
+      72,
+      73
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 771,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": true,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "key visual source verified"
+  },
+  {
+    "id": 31,
+    "file": "2026-10-10 23-20-02.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "b7a5bef699511dc048c389d120dfb4cbabbb2a3a65640afeff0d02455b16fcda",
+    "readingRotation": 90,
+    "printedPages": [
+      74,
+      75
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 534,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 32,
+    "file": "2026-10-10 23-20-11.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "84da70681ae9b3c9e16b40d86f37f38dbe0f2b5b44a21e4e0035d556c7b9d9ba",
+    "readingRotation": 90,
+    "printedPages": [
+      76,
+      77
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 881,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 33,
+    "file": "2026-10-10 23-20-20.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "4e2b28176cd57bd5a3538b6f824590ae82922b95d89c2690d32303809f76831f",
+    "readingRotation": 90,
+    "printedPages": [
+      78,
+      79
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 559,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 34,
+    "file": "2026-10-10 23-20-27.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "780ef161a3035e9ee754773db41fe40c9eb8cd6cb39d903f9050aed7be042572",
+    "readingRotation": 90,
+    "printedPages": [
+      80,
+      81
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 843,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 35,
+    "file": "2026-10-10 23-20-37.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "697441497e43bfe47c765e6e3d493c1244cec2b010a2468e49ff2c32889589c3",
+    "readingRotation": 90,
+    "printedPages": [
+      82,
+      83
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 577,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 36,
+    "file": "2026-10-10 23-20-48.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "df07a559908ae197405bb6213a98ccf796af43702707583b7d2ec42dd5ab201a",
+    "readingRotation": 90,
+    "printedPages": [
+      84,
+      85
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 456,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 37,
+    "file": "2026-10-10 23-20-57.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "19cb3a161bec985ecf85bfbe47f7432f477e0f3ef9b564c445c219fd1ad74388",
+    "readingRotation": 90,
+    "printedPages": [
+      86,
+      87
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 714,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 38,
+    "file": "2026-10-10 23-21-06.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "2814b4670d89dd20ed63745d592270c53fbe15914a35a67b1f3ff968264f103c",
+    "readingRotation": 90,
+    "printedPages": [
+      88,
+      89
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 238,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 39,
+    "file": "2026-10-10 23-21-16.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "fa5190b75bd509317a68ee0fc2b1573182e80c72c130019bbf6bfe6817f59847",
+    "readingRotation": 90,
+    "printedPages": [
+      90,
+      91
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 231,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 40,
+    "file": "2026-10-10 23-21-27.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "735ec0b83311c4b7eff9b95d92bbc21ad0d0f1cbb3ec98a036aae44af79851c9",
+    "readingRotation": 90,
+    "printedPages": [
+      92,
+      93
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 634,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 41,
+    "file": "2026-10-10 23-21-38.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "da2c8efbb97efcd574109fc5203e559027c868d1292f43e825d5baa7f477a499",
+    "readingRotation": 90,
+    "printedPages": [
+      94,
+      95
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 552,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 42,
+    "file": "2026-10-10 23-22-23.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "4047759c82a1dd8cc391656c001ac85d7e00cf798fba96b0a69cf0708a9e2b18",
+    "readingRotation": 90,
+    "printedPages": [
+      96,
+      97
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 723,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 43,
+    "file": "2026-10-10 23-22-31.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "a004f4ee23c466694214f10bfcbaaf7694b6da3ddbaa11822cf6792753f010b4",
+    "readingRotation": 90,
+    "printedPages": [
+      98,
+      99
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 934,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 44,
+    "file": "2026-10-10 23-22-44.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "454050f1e445cab21b78529f7b32816b782b5fdb773bdaee52f0b236db9f8023",
+    "readingRotation": 270,
+    "printedPages": [
+      100,
+      101
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 143,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 45,
+    "file": "2026-10-10 23-26-27.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "2c72d7cf1a33b0adf6a8147b69c7095e18221413cb111fe88e5d956e00e90511",
+    "readingRotation": 90,
+    "printedPages": [
+      102,
+      103
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 557,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 46,
+    "file": "2026-10-10 23-26-37.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "fbf0c641afa5ffb9789d42324bfb3e29b78db6b6d8375351aa5b2d227c188584",
+    "readingRotation": 90,
+    "printedPages": [
+      104,
+      105
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 924,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 47,
+    "file": "2026-10-10 23-26-47.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "ec406cabda715aba6cc0d197b6572a2d1d1740ece7e3b67948d1c1a5bf688e17",
+    "readingRotation": 90,
+    "printedPages": [
+      106,
+      107
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 312,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 48,
+    "file": "2026-10-10 23-26-56.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "0d3e0612e68b242c03c3050b7914d901e974b719137e361c6aaedc01051c097a",
+    "readingRotation": 90,
+    "printedPages": [
+      108,
+      109
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 432,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 49,
+    "file": "2026-10-10 23-27-03.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "e7d8d8236446c08d3eaa67e45b217c87d9823487cc03d6005d0e0563cdc33792",
+    "readingRotation": 90,
+    "printedPages": [
+      110,
+      111
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 625,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 50,
+    "file": "2026-10-10 23-27-11.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "2f0aaae27f5d64da4048e741f31d42dcd4152a528bb78085969c409ceb4d703f",
+    "readingRotation": 90,
+    "printedPages": [
+      112,
+      113
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 625,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 51,
+    "file": "2026-10-10 23-27-19.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "0608ee2a81d7ccd56838ed9440a0bdbf81c4950963da5be5db627deb1a2491fa",
+    "readingRotation": 90,
+    "printedPages": [
+      114,
+      115
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 30,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": true,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "key visual source verified"
+  },
+  {
+    "id": 52,
+    "file": "2026-10-10 23-28-44.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "f98559a849c0be4bebdaee6bf792f579da10bc625fa7e4e1d8261b83a578f9a8",
+    "readingRotation": 90,
+    "printedPages": [
+      116,
+      117
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 10,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": true,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 53,
+    "file": "2026-10-10 23-28-54.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "20ee2039b51ab6b9dfb685227b2f5e605536815325ff3c1c3fe6f681d244d587",
+    "readingRotation": 90,
+    "printedPages": [
+      118,
+      119
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 652,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 54,
+    "file": "2026-10-10 23-29-07.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "eeb5c3e65b087b08fa725a420415b74a297b2c63f319f91ecd85af4840d8f43c",
+    "readingRotation": 90,
+    "printedPages": [
+      120,
+      121
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 652,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 55,
+    "file": "2026-10-10 23-29-34.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "bff7dce9bf8f84e1f8dcd9314e73c01adc9d049168805fc0d1e104a8a2cd4498",
+    "readingRotation": 270,
+    "printedPages": [
+      122,
+      123
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 414,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 56,
+    "file": "2026-10-10 23-30-27.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "4ab00dc452c2dda60f2e425b2329a0522eb57aed796a1d1af9de0ba130e11b79",
+    "readingRotation": 270,
+    "printedPages": [
+      124,
+      125
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 441,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 57,
+    "file": "2026-10-10 23-30-35.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "5164103bf59665ee6c563aeae57a782e1268da31415db034627a289414757ddd",
+    "readingRotation": 270,
+    "printedPages": [
+      126,
+      127
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 673,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 58,
+    "file": "2026-10-10 23-31-03.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "6b94986d96e28e755f1e9b503f14f5902a5094e0c4f4ebb959cb87cee6d71c23",
+    "readingRotation": 270,
+    "printedPages": [
+      128,
+      129
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 353,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 59,
+    "file": "2026-10-10 23-31-14.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "181024e00e8c965f12e7306e2044ac2e08f4fe79504a48eaeb08e391643fa9fd",
+    "readingRotation": 270,
+    "printedPages": [
+      130,
+      131
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 791,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 60,
+    "file": "2026-10-10 23-31-24.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "8b37653a221e623815af7dae6aa12fceb87c9a36c84d9247e4ab9b448ff78de4",
+    "readingRotation": 270,
+    "printedPages": [
+      132,
+      133
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 227,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 61,
+    "file": "2026-10-10 23-31-47.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "ddf3ca38ea0a6c6211f6283792349bc82318d423b18bb2660dc120f3ac3c5c16",
+    "readingRotation": 90,
+    "printedPages": [
+      134,
+      135
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 676,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 62,
+    "file": "2026-10-10 23-31-57.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "ff5ed4c1e41f79a50784d0e231d2944bac04c0aa420075e6f2938d7328b55313",
+    "readingRotation": 270,
+    "printedPages": [
+      136,
+      137
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 500,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 63,
+    "file": "2026-10-10 23-32-07.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "5d49ae6ed46ae1396ce2e753408cf01c8ecc08c6c90eed2fe978236512e574d0",
+    "readingRotation": 270,
+    "printedPages": [
+      138,
+      139
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 518,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 64,
+    "file": "2026-10-10 23-32-19.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "1533a3051fdb6404083147ca6d38b99350bbf04896f45d410d31d8652cd18f12",
+    "readingRotation": 270,
+    "printedPages": [
+      140,
+      141
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 181,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 65,
+    "file": "2026-10-10 23-32-29.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "eb657b0c1dd62cc6d6868dd7305c22777d7f15136060edfcd3cb170e85d678fa",
+    "readingRotation": 270,
+    "printedPages": [
+      142,
+      143
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 282,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 66,
+    "file": "2026-10-10 23-32-41.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "e5a72a4f60ada88c0828bc25eec0439b28293b329106cf26746951e755deaf90",
+    "readingRotation": 270,
+    "printedPages": [
+      144,
+      145
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 490,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 67,
+    "file": "2026-10-10 23-32-57.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "7f436f9df36d789cf7b50d0980005c5b791f6701339f6b2b67ae811929cb71e1",
+    "readingRotation": 270,
+    "printedPages": [
+      146,
+      147
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 781,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 68,
+    "file": "2026-10-10 23-33-09.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "fa93fe4a8eff42a2bb128554f00c162504e7f1a75b0dbf63005334bd6b61d69e",
+    "readingRotation": 270,
+    "printedPages": [
+      148,
+      149
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 369,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 69,
+    "file": "2026-10-10 23-33-28.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "6ff9653e400fe37cb4406ad7349382b8d0ed795952e9f416d6b258efc782ace2",
+    "readingRotation": 270,
+    "printedPages": [
+      150,
+      151
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 517,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 70,
+    "file": "2026-10-10 23-33-38.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "5db70ef2d4805c8ae39e17f76005376f0ea2b28ac58b42eb86cf4ce30fddc58b",
+    "readingRotation": 270,
+    "printedPages": [
+      152,
+      153
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 684,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 71,
+    "file": "2026-10-10 23-33-48.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "dcc74e05606f4c04bcc15e2b8627165c167b4f6fe084bb8de8a325ef329ce351",
+    "readingRotation": 270,
+    "printedPages": [
+      154,
+      155
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 418,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 72,
+    "file": "2026-10-10 23-34-32.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "00e31aa2c5f9919ace8ee0705ba2fc9cc1055c49f0a092ae35adb2d7eebd01f9",
+    "readingRotation": 90,
+    "printedPages": [
+      156,
+      157
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 727,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 73,
+    "file": "2026-10-10 23-34-44.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "93fcd8b139c98b6357b5ed095ac365ebf15a10bd03c398e615f40321931623fd",
+    "readingRotation": 90,
+    "printedPages": [
+      158,
+      159
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 128,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 74,
+    "file": "2026-10-10 23-34-52.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "65aa01530b351c30feb6be90f28bf745ce947a7b827d40c5fff05f8bb378ff12",
+    "readingRotation": 90,
+    "printedPages": [
+      160,
+      161
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 7,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": true,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 75,
+    "file": "2026-10-10 23-35-04.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "66f28a7a7ed3e6fc3cc03723f28744f59098336b1ad2590af2e865179a5a2e07",
+    "readingRotation": 90,
+    "printedPages": [
+      162,
+      163
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 563,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 76,
+    "file": "2026-10-10 23-35-26.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "4e26c73c8a96ee47b5173614f8162d199c937167dc2fb34a25a24aa4f3606dcc",
+    "readingRotation": 90,
+    "printedPages": [
+      164,
+      165
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 33,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": true,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "key visual source verified"
+  },
+  {
+    "id": 77,
+    "file": "2026-10-10 23-35-40.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "afcb772e1eb10d386f2273e63ea29f3ac356d25e53280346d677a70ebf177c79",
+    "readingRotation": 90,
+    "printedPages": [
+      166,
+      167
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 294,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 78,
+    "file": "2026-10-10 23-35-50.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "bfda526da5949aa403b911ded90c5e1eeec47ec293d3d9a4c1984da0fd7d631d",
+    "readingRotation": 90,
+    "printedPages": [
+      168,
+      169
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 543,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 79,
+    "file": "2026-10-10 23-36-01.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "e95e341d17f9bb918f07b5404cff50d7ba93358adc53b1e1dbccf859751ec1ad",
+    "readingRotation": 90,
+    "printedPages": [
+      170,
+      171
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 409,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 80,
+    "file": "2026-10-10 23-36-12.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "ef0023750f0b1a1f545f40a3b0e6adc8842fd91999d393e17b2dcb541b48cd25",
+    "readingRotation": 90,
+    "printedPages": [
+      172,
+      173
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 354,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 81,
+    "file": "2026-10-10 23-36-22.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "432f6e8ac877956600c02f94a34453d45acc8ee086d851d124c2624728ec5c15",
+    "readingRotation": 90,
+    "printedPages": [
+      174,
+      175
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 278,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 82,
+    "file": "2026-10-10 23-36-33.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "e5bc21b101623ec883831a3da47529c077452f529482975ab79e1ce9e9d9ad47",
+    "readingRotation": 90,
+    "printedPages": [
+      176,
+      177
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 490,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 83,
+    "file": "2026-10-10 23-36-44.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "836105a469055a10508bb8e6556bebd5a70dd967469745caccadb4f4c5c52d6b",
+    "readingRotation": 90,
+    "printedPages": [
+      178,
+      179
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 447,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 84,
+    "file": "2026-10-10 23-36-56.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "f465bcc84baaa039693c9466d59aee2096d82b015c39aa93c757a32e86a7616b",
+    "readingRotation": 90,
+    "printedPages": [
+      180,
+      181
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 442,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 85,
+    "file": "2026-10-10 23-37-08.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "6be7d862d3491041a39c441d1f6db47b5162d00db37bf1ee6a2bfbb2610152bd",
+    "readingRotation": 90,
+    "printedPages": [
+      182,
+      183
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 135,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 86,
+    "file": "2026-10-10 23-37-17.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "b7c0ba718880e9fd27b1309c653d281d2e093266f32b002bcb081bab92952a3c",
+    "readingRotation": 90,
+    "printedPages": [
+      184,
+      185
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 9,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": true,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 87,
+    "file": "2026-10-10 23-46-46.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "b76e0f7f17a84e87202a810792cf1f96b62bfa9ba384491dd443c07b4f7e9884",
+    "readingRotation": 90,
+    "printedPages": [
+      186,
+      187
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 451,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 88,
+    "file": "2026-10-10 23-46-59.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "82e48cbb00432cdf2d76498b89c09b87372f926cad6792c892765ac3b131f666",
+    "readingRotation": 90,
+    "printedPages": [
+      188,
+      189
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 310,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 89,
+    "file": "2026-10-10 23-47-14.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "607a2fe1810f69e9b76a67fbb9357decf0fc4870925d91946feb3f7ecd24342f",
+    "readingRotation": 90,
+    "printedPages": [
+      190,
+      191
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 184,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 90,
+    "file": "2026-10-10 23-47-25.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "ec1c5c7db8070a88153f896c219fc1037c86615c47fa1068136fd1e1671beb1c",
+    "readingRotation": 90,
+    "printedPages": [
+      192,
+      193
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 491,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 91,
+    "file": "2026-10-10 23-47-34.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "9cd9f7b5938ee89d6fb7b62813d70683b441666c026b341e9fa8f7e7253d1bc6",
+    "readingRotation": 90,
+    "printedPages": [
+      194,
+      195
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 466,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 92,
+    "file": "2026-10-10 23-47-45.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "40a2c33844212c8f05b31a853d1001a1157ec1c6256186a1e0ff15d9abe77de8",
+    "readingRotation": 90,
+    "printedPages": [
+      196,
+      197
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 460,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 93,
+    "file": "2026-10-10 23-47-56.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "55d896507fc539c70e731a6e526ce9419aebd3ff8b3b8037e268d3c579b1e26f",
+    "readingRotation": 90,
+    "printedPages": [
+      198,
+      199
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 345,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 94,
+    "file": "2026-10-10 23-48-06.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "4546f2145f5cfafe8be2889231bfdd9644aa8ce2f1e6261fb65ea35d5bc5f20a",
+    "readingRotation": 90,
+    "printedPages": [
+      200,
+      201
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 513,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 95,
+    "file": "2026-10-10 23-48-19.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "2964b7f1deb2b0237141197ca28465907062376e993c2f1fa328a6f66a0a9c9e",
+    "readingRotation": 90,
+    "printedPages": [
+      202,
+      203
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 437,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 96,
+    "file": "2026-10-10 23-48-30.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "917d041e706c7ddfbf01b3733ec75a2473b70ecbd05d34d7cbdaa5a31691bfb3",
+    "readingRotation": 90,
+    "printedPages": [
+      204,
+      205
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 526,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 97,
+    "file": "2026-10-10 23-48-40.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "ad7e29ac7c484f9105ea3b7db6ac2673ebd582cda458d33b0f40ff762ca93039",
+    "readingRotation": 90,
+    "printedPages": [
+      206,
+      207
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 517,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 98,
+    "file": "2026-10-10 23-48-49.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "f953a142b0c2d187268308e6b06e3a7865c8e43b6264cb5016fa95ecdc98aaa5",
+    "readingRotation": 90,
+    "printedPages": [
+      208,
+      209
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 437,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 99,
+    "file": "2026-10-10 23-48-59.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "0b513a0cf0a1bda512f4d91b3f7dbd4a9d0297e100ab3b79f90d9e7284b1472d",
+    "readingRotation": 90,
+    "printedPages": [
+      210,
+      211
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 457,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 100,
+    "file": "2026-10-10 23-49-09.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "7012d3a6d1ed3535748084a7fd23d73a114d37e91cc2dbd86a25ea473e9e8add",
+    "readingRotation": 90,
+    "printedPages": [
+      212,
+      213
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 330,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 101,
+    "file": "2026-10-10 23-49-20.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "b7f1ff9b7f1cee5fc659a40b6487e7b3034f1226b8c5ad50328812af6908849b",
+    "readingRotation": 90,
+    "printedPages": [
+      214,
+      215
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 497,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 102,
+    "file": "2026-10-10 23-49-30.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "d99f4ddbad66a31263ef7dd2999526910f875aa0cd9b12b666a7143d48c860dd",
+    "readingRotation": 90,
+    "printedPages": [
+      216,
+      217
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 466,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 103,
+    "file": "2026-10-10 23-49-44.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "51f67f8c59b6d77024dd13f09de9fc50b3bf15decc1225fc33262d523a293460",
+    "readingRotation": 90,
+    "printedPages": [
+      218,
+      219
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 437,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 104,
+    "file": "2026-10-10 23-49-53.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "bc78aff9607ead4f4fe5df0fb5b38b59a0664d1b12850a6dd67b43bcf760fe9f",
+    "readingRotation": 90,
+    "printedPages": [
+      220,
+      221
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 460,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 105,
+    "file": "2026-10-10 23-50-05.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "b49587d2fb6f153725cb9194dd0371c6e71bbfb60a5f002e1e80d56a1d45c754",
+    "readingRotation": 270,
+    "printedPages": [
+      222,
+      223
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 17,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": true,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "key visual source verified"
+  },
+  {
+    "id": 106,
+    "file": "2026-10-10 23-50-16.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "33a2a5033734eb7973e5519c1c2d90338ed65e1a8fe752c5e1e6ddf11a3244a3",
+    "readingRotation": 270,
+    "printedPages": [
+      224,
+      225
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 16,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": true,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 107,
+    "file": "2026-10-10 23-50-25.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "4e52737637b41a8bd83e93071dd72611b2200e8a58582cf351ec1a61143d047c",
+    "readingRotation": 270,
+    "printedPages": [
+      226,
+      227
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 339,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 108,
+    "file": "2026-10-10 23-50-39.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "656d77b7a1c89e6527da3c6b6598e123bad56a0c31ac25454571f1a86e7b907c",
+    "readingRotation": 270,
+    "printedPages": [
+      228,
+      229
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 534,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 109,
+    "file": "2026-10-10 23-50-48.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "2f355b8907ec3d2cbdbeb0da3d27dd777ea902979ca48ebf6689c605dc076b11",
+    "readingRotation": 270,
+    "printedPages": [
+      230,
+      231
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 122,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 110,
+    "file": "2026-10-10 23-51-04.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "e001ba68c2a051e16dba182e42c5e6675fcd79a8cb237339daef7bf4a44fc030",
+    "readingRotation": 270,
+    "printedPages": [
+      232,
+      233
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 521,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 111,
+    "file": "2026-10-10 23-51-13.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "e65ba87c3067c97560655fac230842e69010f60ec5bfed79c32ee4cd531190a6",
+    "readingRotation": 270,
+    "printedPages": [
+      234,
+      235
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 629,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 112,
+    "file": "2026-10-10 23-51-23.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "eb54fc0c662e9399f708c86b869c4c931821db0f18eedeac5952669848861c8c",
+    "readingRotation": 270,
+    "printedPages": [
+      236,
+      237
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 489,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 113,
+    "file": "2026-10-10 23-51-33.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "6f8e78498e90652ebd7f0079404f04b5af2d5ae30c3550ffd9d9380e80db9c26",
+    "readingRotation": 270,
+    "printedPages": [
+      238,
+      239
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 251,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 114,
+    "file": "2026-10-10 23-51-43.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "2874406aab1258d54d06e0cba38582989664ea6ec33f875a511e3801d02d770f",
+    "readingRotation": 270,
+    "printedPages": [
+      240,
+      241
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 441,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 115,
+    "file": "2026-10-10 23-51-53.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "f55afe074ccbc02884d2a4d869c4cf7bbb511a15f73d5a8eb0c5234607ce116e",
+    "readingRotation": 270,
+    "printedPages": [
+      242,
+      243
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 468,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 116,
+    "file": "2026-10-10 23-52-03.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "3b35463feee34c223195abd5d5a07d939f0853415ee1ae9291e70819c34aad7e",
+    "readingRotation": 270,
+    "printedPages": [
+      244,
+      245
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 521,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 117,
+    "file": "2026-10-10 23-52-14.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "aee270c62a1ba88020e730d0bf14d2d9763f96099f14e5c564cd99dd8288de04",
+    "readingRotation": 270,
+    "printedPages": [
+      246,
+      247
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 355,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 118,
+    "file": "2026-10-10 23-52-23.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "21beacbcb16a2aa52af54442b9c64a8bd8c3f45fde99db9dd9adbfb0431cddf2",
+    "readingRotation": 270,
+    "printedPages": [
+      248,
+      249
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 297,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 119,
+    "file": "2026-10-10 23-52-32.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "7f4b15fc4a71a26d67195eb5d2c43835459d1f1381b0674d1cb2a4432217890d",
+    "readingRotation": 270,
+    "printedPages": [
+      250,
+      251
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 545,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 120,
+    "file": "2026-10-10 23-52-41.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "d1e23ef8837e74fde6646a4a760d5b722385f880e6473dc40736391e007c0947",
+    "readingRotation": 270,
+    "printedPages": [
+      252,
+      253
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 817,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 121,
+    "file": "2026-10-10 23-52-52.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "8dcd8eeee71d0fe9e0e7ed92a3b03263c85bee2e1a7ddfa559a72fc0fb210636",
+    "readingRotation": 270,
+    "printedPages": [
+      254,
+      255
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 307,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 122,
+    "file": "2026-10-10 23-53-03.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "1129894abd1643de6a05a45cc7a8942d4082e2605f0b34f4d66247e3d4ecaa73",
+    "readingRotation": 270,
+    "printedPages": [
+      256,
+      257
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 326,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 123,
+    "file": "2026-10-10 23-53-15.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "3b794205bfd489adcff553a7e9f25ae6ef358fc4e20dd1eaa20eb80c7f12b7b6",
+    "readingRotation": 270,
+    "printedPages": [
+      258,
+      259
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 293,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  },
+  {
+    "id": 124,
+    "file": "2026-10-10 23-53-26.jpeg",
+    "originalSize": [
+      2268,
+      4032
+    ],
+    "readingSize": [
+      2400,
+      1350
+    ],
+    "sha256": "799abe8cbc76c47b7e0734bf6c8ba93f589a75a85f6da2511d11a278c0486ef6",
+    "readingRotation": 270,
+    "printedPages": [
+      260,
+      261
+    ],
+    "printedPagesStatus": "sequence-derived; verify against image",
+    "ocrExtracted": true,
+    "ocrCJKCount": 375,
+    "review": "full OCR content reviewed; key algorithm images visually checked; chart numeric labels not all transcribed",
+    "visualKeyReview": false,
+    "allChartNumbersVerified": false,
+    "pageMappingStatus": "sequence-derived; not all printed page numbers manually verified"
+  }
+]

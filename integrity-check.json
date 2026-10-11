@@ -1,0 +1,33 @@
+{
+  "release": "R5.3.2.8.1-TOWER-SHADOW.1",
+  "sourceMasterSha256": "23d6547b2b3e4fd3df629329825dd207e673101cff18ebe3c371d71a0ac8a66d",
+  "backupMasterSha256": "23d6547b2b3e4fd3df629329825dd207e673101cff18ebe3c371d71a0ac8a66d",
+  "bookZipSha256": "7f6936e6c8f7b8af97d292a94a8a1aa2f1bbd754d87744267b38bdea6fbbbfec",
+  "originalFiles": 54,
+  "baselineHashesStillMatch": true,
+  "inlineScriptsUnchanged": true,
+  "inlineCount": 12,
+  "modifiedExisting": [
+    "index.html",
+    "r45-integration.js",
+    "strong-stock-ui-v47.js",
+    "version-v50.js"
+  ],
+  "newFiles": [
+    "Preview.cmd",
+    "scripts/tower-backtest-cli.cjs",
+    "scripts/tower-preview.cjs",
+    "tests/tower-core.test.js",
+    "tower-backtest.js",
+    "tower-gold-scanner.js",
+    "tower-integration.js",
+    "tower-line-core.js",
+    "tower-report.js",
+    "tower-risk-adapter.js",
+    "tower-scan-export.js",
+    "tower-trend-classifier.js"
+  ],
+  "unchangedExistingCount": 50,
+  "originalStrategyLogicModulesUnchanged": true,
+  "deploymentTouched": false
+}
