@@ -8,7 +8,7 @@
   const BATCH=8,REQUEST_GAP=250,CPU_RETRY_GAP=1800,RETRY_GAP=800;
   const DAILY_BATCH_TIMEOUT_MS=32000;
   const CACHE_KEY='SHITOU_STRONG_STOCK_TEACHER_R5328';
-  const CACHE_REV='TEACHER_V1_CANONICAL_VOLUME_EXCLUSIONS_RSI5';
+  const CACHE_REV='TEACHER_V1_CANONICAL_VOLUME_EXCLUSIONS_RSI5_HEALTH_GUARD';
   const CPU_BREAKER_CONSECUTIVE=4;
   const FAILURE_WINDOW_SIZE=16;
   const MARKET_ENDPOINT_R49=(typeof MARKET_API_BASE_URL!=='undefined'&&MARKET_API_BASE_URL)?MARKET_API_BASE_URL:'https://shitou-taiwanmarket-api.d318426.workers.dev';
@@ -83,9 +83,10 @@
     return true;
   }
   const marketHintOf=item=>String(item?.q?.market||'').toUpperCase()==='TPEX'?'TPEX':'TWSE';
-  async function fetchDailyBatchRawR49(items){
+  async function fetchDailyBatchRawR49(items,options={}){
     const codes=items.map(x=>x.code).join(','),markets=items.map(marketHintOf).join(',');
-    const url=`${MARKET_ENDPOINT_R49}/?market=DEEP_SCAN&profile=DAILY_ONLY&codes=${encodeURIComponent(codes)}&markets=${encodeURIComponent(markets)}`;
+    const extra=options.refresh?`&_deep_guard_refresh=${encodeURIComponent(String(Date.now()))}`:'';
+    const url=`${MARKET_ENDPOINT_R49}/?market=DEEP_SCAN&profile=DAILY_ONLY&codes=${encodeURIComponent(codes)}&markets=${encodeURIComponent(markets)}${extra}`;
     const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),DAILY_BATCH_TIMEOUT_MS);
     try{
       const res=await fetch(url,{headers:{Accept:'application/json'},cache:'no-store',signal:controller.signal});
@@ -100,7 +101,7 @@
     const outcomes=new Map();let pending=[...items],requests=0;
     for(let attempt=1;attempt<=2&&pending.length&&!stopped;attempt++){
       let payload=null,batchError=null;requests++;
-      try{payload=await fetchDailyBatchRawR49(pending);}catch(error){batchError=error;}
+      try{payload=await fetchDailyBatchRawR49(pending,{refresh:attempt>1});}catch(error){batchError=error;}
       const retry=[];
       for(const item of pending){
         let outcome;
@@ -109,7 +110,7 @@
           const result=(payload.results||[]).find(x=>String(x.code||x.data?.stock||x.data?.code||'')===item.code);
           outcome=evaluateResponse(item,result,marketDate);
         }
-        if(outcome.status==='FAILED'&&attempt<2&&isRetryable(outcome.reason)){retry.push(item);}
+        if(attempt<2&&((outcome.status==='FAILED'&&isRetryable(outcome.reason))||(outcome.status==='DATA'&&/資料日期不一致/.test(outcome.reason||'')))){retry.push(item);}
         else outcomes.set(item.code,{...outcome,attempts:attempt});
       }
       pending=retry;
@@ -217,12 +218,15 @@
       if(!market.ok)throw new Error(`${market.reason}${marketDateDiagnostic(meta)}｜本次未進行選股；請等待官方資料更新並確認 Market Worker 已同步後重試。`);
       const pool=marketPool(bundle,limit?.value||'140'),total=pool.deep.length;
       if(!total)throw new Error('無有效深度分析範圍；請檢查市場及產業資料');
+      const health=root.ShitouDeepScanHealthV1;
+      if(!health)throw new Error('DEEP_SCAN 健康檢查模組未載入，停止全市場掃描');
+      await health.preflight({items:pool.deep,targetDate:market.date,fetcher:(items,options)=>fetchDailyBatchRawR49(items,options),onUpdate:note});
       const cache=recoverCache(snapshotFingerprint(bundle,market.date),market.date);
       // Failed stocks from a previous attempt move to the end, rather than permanently
       // blocking new stocks behind the same four CPU failures. No stock is discarded.
       const queue=[...pool.deep.filter(x=>!cache.failed.has(x.code)),...pool.deep.filter(x=>cache.failed.has(x.code))];
       const candidates=[],issues=[];
-      let done=0,data=0,failed=0,rejected=0,cacheHits=0,retries=0,cpuFailed=0,consecutiveCpu=0,breaker=null;
+      let done=0,data=0,failed=0,rejected=0,cacheHits=0,retries=0,cpuFailed=0,consecutiveCpu=0,consecutiveStale=0,breaker=null;
       const recent=[],startedAt=Date.now();
       for(let from=0;from<total&&!stopped;from+=BATCH){
         const batch=queue.slice(from,from+BATCH);
@@ -247,12 +251,14 @@
           else if(c.status==='REJECT')rejected++;
           else{data++;issues.push({code:item.code,name:item.name,status:'DATA',reason:'未識別的策略狀態，未計入淘汰'});}
           if(c.status==='FAILED')cache.failed.add(item.code);else cache.failed.delete(item.code);
+          const stale=c.status==='DATA'&&/資料日期不一致/.test(c.reason||'');
+          consecutiveStale=stale?consecutiveStale+1:0;
           const cpu=c.status==='FAILED'&&isCpuError(c.reason);
           if(cpu){cpuFailed++;consecutiveCpu++;}else consecutiveCpu=0;
           recent.push(cpu?'CPU':c.status==='FAILED'?'FAILED':'OK');if(recent.length>FAILURE_WINDOW_SIZE)recent.shift();
           progress(done,total,candidates.length,candidates.length+rejected,cacheHits,startedAt);
         }
-        breaker=breakerReason(recent,consecutiveCpu);
+        breaker=consecutiveStale>=BATCH?`連續 ${consecutiveStale} 檔個股日K與市場日期不一致；疑似 Worker 整批日K未更新，請修復上游資料或快取`:breakerReason(recent,consecutiveCpu);
         if(breaker){stopped=true;break;}
         if(!stopped&&done<total&&remote.length)await sleep(REQUEST_GAP);
       }
@@ -271,7 +277,7 @@
         scopeFinished:done===total});
       render(last);
       if(breaker){const pt=id('ProgressText');if(pt)pt.textContent=`⏸ 已暫停於 ${done}/${total}｜${breaker}｜剩餘 ${last.pending} 檔尚未分析；已完成結果已保存，再按查詢會重用。`;}
-      if(!last.fullMarketCertified)displayError(`⚠️ 部分驗證／非全市場完整排名：已處理 ${done}/${total}，有效判讀 ${verified}，範圍外 ${last.deferred}，未處理 ${last.pending}，CPU 超限 ${cpuFailed}，其他服務失敗 ${failed-cpuFailed}，資料不足 ${data}。${breaker?`已安全暫停：${breaker}。`:''}同一快照再次查詢會重用已完成與可確定的資料不足結果，只重試暫時失敗項目。`,'warn');
+      if(!last.fullMarketCertified)displayError(`⚠️ 部分驗證／非全市場完整排名：已處理 ${done}/${total}，有效判讀 ${verified}，範圍外 ${last.deferred}，未處理 ${last.pending}，CPU 超限 ${cpuFailed}，其他服務失敗 ${failed-cpuFailed}，資料不足 ${data}。${breaker?`已安全暫停：${breaker}。`:''}同一快照再次查詢會重用已確認判讀結果；過期日期資料不會快取，重新查詢會再驗證 Worker。`,'warn');
       else if(err){err.style.display='none';}
       note(`${last.fullMarketCertified?'完整市場驗證':'⚠️ 部分驗證，非全市場排名'}｜快照 ${last.dataDate}｜重用 ${cacheHits} 檔｜文字、圖片共用本次結果。`);
       return last;
