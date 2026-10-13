@@ -29,32 +29,99 @@ function render(scan){const summary=by('towerSummary'),list=by('towerList');if(s
  if(list)list.innerHTML=V.cards(scan);V.summary(scan);
  if(scan.fastAudit&&summary)summary.textContent+='｜⚠️ 加速研究版：未全量FULL等價認證';by('towerReportText').textContent=scan.text;by('towerCopy').disabled=false;by('towerDownload').disabled=false;by('towerImage').disabled=!scan.candidates.length;by('towerZip').disabled=!scan.candidates.length;
 }
-async function fetchBatch(items,profile,options={}){const endpoint=typeof MARKET_API_BASE_URL!=='undefined'?MARKET_API_BASE_URL:'https://shitou-taiwanmarket-api.d318426.workers.dev',controller=new AbortController(),timer=setTimeout(()=>controller.abort(),32000);
- try{const codes=items.map(i=>i.code).join(','),markets=items.map(i=>String(i.q?.market).toUpperCase()==='TPEX'?'TPEX':'TWSE').join(','),extra=options.refresh?`&_deep_guard_refresh=${encodeURIComponent(String(Date.now()))}`:'',res=await fetch(`${endpoint}/?market=DEEP_SCAN&profile=${profile}&codes=${encodeURIComponent(codes)}&markets=${encodeURIComponent(markets)}${extra}`,{cache:'no-store',headers:{Accept:'application/json'},signal:controller.signal});if(!res.ok)throw Error('Worker HTTP '+res.status);const p=await res.json();if(p.type!=='MOMENTUM_DEEP_SCAN'||!Array.isArray(p.results))throw Error('深掃格式錯誤');return p;}finally{clearTimeout(timer);}}
-// TOWER-PREFLIGHT-2X2.1: only fourth-strategy health probes; no quote, scoring or scan gate changes.
-async function fetchTowerPreflightBatch(items,profile,options={}){
- if(items.length<=2)return fetchBatch(items,profile,options);
- const results=[];
- for(let offset=0;offset<items.length;offset+=2){
-  const part=items.slice(offset,offset+2),payload=await fetchBatch(part,profile,options);
-  for(const item of part){
-   const matches=payload.results.filter(x=>String(x?.code||x?.data?.stock||x?.data?.code||'')===String(item.code));
-   let record=matches.length===1?matches[0]:null;
-   if(!record?.ok||!record?.data){
-    // Retry only a SERVICE-shaped failure in isolation; keep normal health validators strict.
-    const retry=await fetchBatch([item],profile,{...options,refresh:true});
-    const retryMatches=retry.results.filter(x=>String(x?.code||x?.data?.stock||x?.data?.code||'')===String(item.code));
-    record=retryMatches.length===1?retryMatches[0]:null;
+// TOWER-NETWORK-RETRY.1: only the fourth strategy's data transport and health probes.
+// This does not alter the stock universe, score/rank calculations, day-K values or gates.
+const towerPause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const towerTransientError=e=>!/Worker HTTP (?:400|401|403|404|405|410|422)\b|深掃格式錯誤/i.test(String(e?.message||e));
+async function fetchBatch(items,profile,options={}){
+ const endpoint=typeof MARKET_API_BASE_URL!=='undefined'?MARKET_API_BASE_URL:'https://shitou-taiwanmarket-api.d318426.workers.dev';
+ const timeoutMs=Number.isFinite(Number(options.timeoutMs))?Math.max(4000,Math.min(45000,Number(options.timeoutMs))):32000;
+ const controller=new AbortController();let timedOut=false;
+ const timer=setTimeout(()=>{timedOut=true;controller.abort();},timeoutMs);
+ try{
+  const codes=items.map(i=>i.code).join(','),markets=items.map(i=>String(i.q?.market).toUpperCase()==='TPEX'?'TPEX':'TWSE').join(',');
+  const extra=options.refresh?`&_deep_guard_refresh=${encodeURIComponent(String(Date.now()))}`:'';
+  const res=await fetch(`${endpoint}/?market=DEEP_SCAN&profile=${profile}&codes=${encodeURIComponent(codes)}&markets=${encodeURIComponent(markets)}${extra}`,{cache:'no-store',headers:{Accept:'application/json'},signal:controller.signal});
+  if(!res.ok)throw Error('Worker HTTP '+res.status);
+  const p=await res.json();
+  if(p.type!=='MOMENTUM_DEEP_SCAN'||!Array.isArray(p.results))throw Error('深掃格式錯誤');
+  return p;
+ }catch(e){
+  if(options.towerNetworkDiagnostic&&(timedOut||e?.name==='AbortError'))throw Error('TOWER_REQUEST_TIMEOUT：'+profile+'，請求超過 '+Math.ceil(timeoutMs/1000)+' 秒');
+  if(options.towerNetworkDiagnostic&&/Failed to fetch|NetworkError|Load failed|fetch failed/i.test(String(e?.message||e)))throw Error('TOWER_NETWORK_ERROR：'+profile+'，網路、跨網域連線或 Worker 暫時無法回應');
+  throw e;
+ }finally{clearTimeout(timer);}
+}
+function towerSingleRecord(items,payload,item){
+ if(!Array.isArray(payload?.results))return null;
+ const matches=payload.results.filter(x=>String(x?.code||x?.data?.stock||x?.data?.code||'')===String(item.code));
+ return matches.length===1?matches[0]:null;
+}
+function towerServiceRecord(item,reason){return {code:String(item.code),ok:false,error:'TOWER_SERVICE_UNAVAILABLE：'+String(reason||'行情服務回應不足')};}
+// Fail closed: never synthesize or modify OHLCV. Failed single-stock requests stay ok:false.
+async function fetchTowerReliableBatch(items,profile,options={}){
+ const deadline=Number(options.deadline)||Date.now()+90000;
+ const stage=options.stage||'SCAN';
+ const problems=[];
+ const request=async(part,attempts=1)=>{
+  let err=null;
+  for(let n=1;n<=attempts;n++){
+   const timeLeft=deadline-Date.now();
+   if(timeLeft<4500)return {payload:null,error:'TOWER_REQUEST_BUDGET_EXCEEDED：'+stage+'，重試時間預算已用盡'};
+   try{
+    const timeoutMs=Math.min(stage==='PREFLIGHT'?36000:32000,timeLeft-1200);
+    const payload=await fetchBatch(part,profile,{refresh:options.refresh||n>1,timeoutMs,towerNetworkDiagnostic:true});
+    return {payload,error:null};
+   }catch(e){
+    err=String(e?.message||e);problems.push(err);
+    if(!towerTransientError(e))break;
+    if(n<attempts)await towerPause(350*n);
    }
-   if(record)results.push(record);
+  }
+  return {payload:null,error:err||'Worker 無法回傳'};
+ };
+ const first=items.length>2&&stage==='PREFLIGHT'?{payload:null,error:'PREFLIGHT_2X2_SPLIT'}:await request(items,1);
+ const out=[];
+ const getSolo=async(item,precedingError)=>{
+  const one=await request([item],2);
+  const record=towerSingleRecord([item],one.payload,item);
+  if(record?.ok&&record.data)return record;
+  return towerServiceRecord(item,record?.error||one.error||precedingError);
+ };
+ if(first.payload){
+  for(const item of items){
+   const r=towerSingleRecord(items,first.payload,item);
+   if(r?.ok&&r.data)out.push(r);
+   else out.push(await getSolo(item,r?.error||'Worker 遺漏個股回應'));
+  }
+ }else{
+  // A transport failure must not abort all four probes or eight scan stocks.
+  // Split into two-stock requests first, and then isolate only unresolved stocks.
+  if(items.length>2){
+   for(let i=0;i<items.length;i+=2){
+    const part=items.slice(i,i+2),sub=await request(part,1);
+    for(const item of part){
+     const r=towerSingleRecord(part,sub.payload,item);
+     out.push(r?.ok&&r.data?r:await getSolo(item,r?.error||sub.error||first.error));
+    }
+   }
+  }else{
+   for(const item of items)out.push(await getSolo(item,first.error));
   }
  }
- return {type:'MOMENTUM_DEEP_SCAN',results};
+ if(out.length!==items.length||new Set(out.map(r=>String(r.code))).size!==items.length)throw Error('TOWER_RESPONSE_INTEGRITY：回傳代號數量不一致');
+ if(out.some(x=>!x.ok)&&typeof options.onFailure==='function')options.onFailure({stage,profile,errors:[...new Set(problems)].slice(-4),failed:out.filter(x=>!x.ok).map(x=>x.code)});
+ return {type:'MOMENTUM_DEEP_SCAN',results:out};
+}
+// Single shared time budget across the health checker’s two validation rounds.
+async function fetchTowerPreflightBatch(items,profile,options={}){
+ return fetchTowerReliableBatch(items,profile,{...options,stage:'PREFLIGHT'});
 }
 async function exportImages(all){const scan=last;if(!scan?.candidates?.length)return;const buttons=[by('towerImage'),by('towerZip')];buttons.forEach(b=>b.disabled=true);try{if(all){const result=await root.ShitouTowerScanExport.zip(scan,(i,n)=>by('towerSummary').textContent=`完整圖片打包 ${i}/${n} 頁`),url=URL.createObjectURL(result.blob),a=document.createElement('a');a.href=url;a.download=`TOWER_GOLD_${scan.date}_${C.RELEASE}_完整PNG.zip`;a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);by('towerSummary').textContent=`已打包 ${scan.candidates.length} 檔／${result.audits.length+result.overviewAudits.length} 頁，含總覽、完整診斷、TXT與數量核對。`;}else await root.ShitouTowerScanExport.preview(scan);}catch(e){by('towerSummary').textContent='圖片未完成：'+e.message;}finally{buttons.forEach(b=>b.disabled=false);}}
 async function run(){if(running||root.dayTradeScanRunningV1||root.momentumScanRunningV3762||by('strongStockScanButton')?.disabled)return;running=true;stopped=false;last=null;V.reset();by('towerList').innerHTML='';by('towerReportText').textContent='';by('towerCopy').disabled=true;by('towerDownload').disabled=true;by('towerImage').disabled=true;by('towerZip').disabled=true;
  const buttons=['towerRun','momentumScanButton','dayTradeScanButton','strongStockScanButton'].map(by).filter(Boolean),prior=buttons.map(b=>b.disabled);buttons.forEach(b=>b.disabled=true);by('towerSummary').textContent='核對完整市場與上市上櫃日期…';
- try{const bundle=await root.loadDayTradeMarketBundleV377736(),market=root.ShitouStrongStockFilterV47.validateMarket(bundle.meta,bundle.snapshotRows);if(!market.ok)throw Error(market.reason);const pool=strong.marketPool(bundle,'all'),health=root.ShitouDeepScanHealthV1;if(!health)throw Error('深掃健康檢查模組未載入');by('towerSummary').textContent='核對深掃個股日K日期…';await health.preflight({items:pool.deep,targetDate:market.date,fetcher:(items,options)=>fetchTowerPreflightBatch(items,by('towerProfile').value==='FAST_A'?'DAILY_ONLY':by('towerProfile').value,options),onUpdate:message=>{by('towerSummary').textContent=message;}});if(by('towerProfile').value==='FAST_A'&&!root.ShitouTowerFastA)throw Error('方案A模組未載入，不可降級為FULL或默默換模式');const excluded=Object.values(pool.audit).reduce((a,b)=>a+b,0);last=await (by('towerProfile').value==='FAST_A'?root.ShitouTowerFastA.scan:S.scan)({items:pool.deep,universe:bundle.snapshotRows,parsed:bundle.map.size,excluded,date:market.date,fetchBatch,subset:by('towerSubset').value,profile:by('towerProfile').value,marketTower:marketTower?.date===market.date?marketTower:null,shouldStop:()=>stopped,onProgress:s=>{if(s.phase){V.progress({attempted:s.processed,planned:s.planned});by('towerSummary').textContent=`方案A ${s.phase==='FAST'?'輕量初篩':'FULL覆核'} ${s.processed}/${s.planned}｜初篩排除${s.fastRejected}｜待FULL${s.fullNeeded}`;}else{V.progress(s);by('towerSummary').textContent=`深掃 ${s.attempted}/${s.planned}｜成功${s.success}／失敗${s.failed}／資料不足${s.dataUnavailable}`;}}});render(last);}catch(e){by('towerSummary').textContent='掃描未完成：'+e.message;}finally{running=false;buttons.forEach((b,i)=>b.disabled=prior[i]);}}
+ let towerStage='市場完整快照',towerFailures=[];const healthDeadline=Date.now()+110000;
+ try{const bundle=await root.loadDayTradeMarketBundleV377736(),market=root.ShitouStrongStockFilterV47.validateMarket(bundle.meta,bundle.snapshotRows);if(!market.ok)throw Error(market.reason);const pool=strong.marketPool(bundle,'all'),health=root.ShitouDeepScanHealthV1;if(!health)throw Error('深掃健康檢查模組未載入');towerStage='DEEP_SCAN 完成日K健康檢查';by('towerSummary').textContent='核對深掃個股日K日期…';await health.preflight({items:pool.deep,targetDate:market.date,fetcher:(items,options)=>fetchTowerPreflightBatch(items,by('towerProfile').value==='FAST_A'?'DAILY_ONLY':by('towerProfile').value,{...options,deadline:healthDeadline,onFailure:f=>{towerFailures.push(f);by('towerSummary').textContent='健康檢查服務重試中｜'+f.failed.join('、');}}),onUpdate:message=>{by('towerSummary').textContent=message;}});if(by('towerProfile').value==='FAST_A'&&!root.ShitouTowerFastA)throw Error('方案A模組未載入，不可降級為FULL或默默換模式');towerStage='第四套全量日K資料取得';const excluded=Object.values(pool.audit).reduce((a,b)=>a+b,0);last=await (by('towerProfile').value==='FAST_A'?root.ShitouTowerFastA.scan:S.scan)({items:pool.deep,universe:bundle.snapshotRows,parsed:bundle.map.size,excluded,date:market.date,fetchBatch:(items,profile,opts={})=>fetchTowerReliableBatch(items,profile,{...opts,stage:'SCAN'}),subset:by('towerSubset').value,profile:by('towerProfile').value,marketTower:marketTower?.date===market.date?marketTower:null,shouldStop:()=>stopped,onProgress:s=>{if(s.phase){V.progress({attempted:s.processed,planned:s.planned});by('towerSummary').textContent=`方案A ${s.phase==='FAST'?'輕量初篩':'FULL覆核'} ${s.processed}/${s.planned}｜初篩排除${s.fastRejected}｜待FULL${s.fullNeeded}`;}else{V.progress(s);by('towerSummary').textContent=`深掃 ${s.attempted}/${s.planned}｜成功${s.success}／失敗${s.failed}／資料不足${s.dataUnavailable}`;}}});render(last);}catch(e){const hint=towerFailures.length?'｜已嘗試拆批／逐檔重試，仍失敗：'+towerFailures.at(-1).failed.join('、')+'（'+(towerFailures.at(-1).errors.at(-1)||'資料服務異常')+'）':'';by('towerSummary').textContent='掃描未完成（'+towerStage+'）：'+String(e?.message||e)+hint;}finally{running=false;buttons.forEach((b,i)=>b.disabled=prior[i]);}}
 function download(){if(!last)return;const url=URL.createObjectURL(new Blob([last.text],{type:'text/plain;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download=`TOWER_GOLD_${last.date}_${C.RELEASE}.txt`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 function install(){const host=by('strongStockShortcut')||by('strongStockResult');const panel=document.createElement('section');panel.id='towerGoldPanel';panel.className='strong-stock-shortcut tower-gold-control';panel.innerHTML=V.controls();if(host)host.insertAdjacentElement('afterend',panel);else (document.querySelector('main')||document.body).appendChild(panel);by('towerRun').onclick=run;by('towerStop').onclick=()=>{stopped=true;};by('towerCopy').onclick=async()=>{try{if(last)await navigator.clipboard.writeText(last.text);}catch(e){by('towerSummary').textContent='剪貼簿不可用；請下載TXT。';}};by('towerDownload').onclick=download;by('towerImage').onclick=()=>exportImages(false);by('towerZip').onclick=()=>exportImages(true);
  panel.addEventListener('click',e=>{const code=e.target.dataset?.towerCode;if(code){const input=by('stockInput');if(input){input.value=code;input.dispatchEvent(new Event('input',{bubbles:true}));input.scrollIntoView({behavior:'smooth'});if(typeof root.analyzeStock==='function')root.analyzeStock();}}});
