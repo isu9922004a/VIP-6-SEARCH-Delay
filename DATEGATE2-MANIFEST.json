@@ -1,0 +1,46 @@
+{
+  "release": "石頭少爺 Agent V50｜R5.3.2.8.1-TOWER-SHADOW.5.1-DATEGATE.2",
+  "base_zip": "VIP-BOWTOWER-4-SEARCH-main(3).zip",
+  "scope": "GitHub frontend only; Cloudflare Workers untouched",
+  "files": [
+    {
+      "path": "index.html",
+      "sha256_before": "26a6dcab95d613cc05d10a9d9e482df6769751af93a08b44d3fa4fcd1cb794c3",
+      "sha256_after": "b4cffe9dacffc71fd576b33a60aead6667c5e029a880527a1d4d5041d8a8161a",
+      "bytes_after": 1927831
+    },
+    {
+      "path": "shito-assistant-v47.js",
+      "sha256_before": "f6d967571ebf1d404aa5270b9ecc681c93b4df27d2ecb1cd94f1fffbafd0444d",
+      "sha256_after": "64d56449a9f704dbf24bc4f548ed7d82f15ee9a2de7a8da68bb0657baf115f68",
+      "bytes_after": 27768
+    },
+    {
+      "path": "tower-trend-classifier.js",
+      "sha256_before": "fa4e416918af18007b3cc8ff3707b9c5ef852372d1ed792bdaba32f1f06284a3",
+      "sha256_after": "4075ac594e5416fb1da06fcc05c96924c98c73da7db754a277b9ee9412711a93",
+      "bytes_after": 6461
+    },
+    {
+      "path": "version-v50.js",
+      "sha256_before": "acaafa795bba356a7fdca486ca363e50ab5db80413010a017ef22e874fc5cdb7",
+      "sha256_after": "2efac6f960a7509bf21d174b95b215d0f720aa176cfeaf64f18107833ce15f70",
+      "bytes_after": 832
+    }
+  ],
+  "modified_file_count": 4,
+  "source_file_count": 67,
+  "missing_in_uploaded_source": [
+    "data/market/scan-exclusions.js",
+    ".github/workflows/update-market-snapshot.yml"
+  ],
+  "deployment_note": "do not delete other files in live repository; verify these dependencies in existing live repository before publishing",
+  "tests": {
+    "node_js_syntax": 47,
+    "html_inline_script_syntax": 12,
+    "monthly_cases": 10,
+    "expansion_decision_cases": 8,
+    "full_remote_integration": "not run",
+    "historical_trading_backtest": "not run"
+  }
+}
