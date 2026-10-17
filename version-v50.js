@@ -1,14 +1,14 @@
 'use strict';
 
 (function(root){
-  const CODE='R5.3.2.8.1-TOWER-SHADOW.5.1';
+  const CODE='R5.3.2.8.1-TOWER-SHADOW.5.1-DATEGATE.1';
   const RELEASE=`石頭少爺 Agent V50｜${CODE}｜寶塔價位溯源與風險分層版`;
   const FILE_VERSION=`V50_${CODE}_寶塔價位溯源與風險分層版`;
   const VERSION=Object.freeze({
     major:50,
     baseRelease:'R5.3.2.8.1',
     code:CODE,
-    displayCode:'R5.3.2.8.1｜寶塔更新5.1｜深掃資料健康檢查',
+    displayCode:'R5.3.2.8.1｜寶塔更新5.1｜DATEGATE.1 日期防失真',
     towerModel:'TOWER_OHLC_RANGE_SINGLE_COLOR_1.0.0',
     release:RELEASE,
     fileVersion:FILE_VERSION,
