@@ -54,13 +54,13 @@ async function scan({items,universe,parsed=universe,excluded=0,date,fetchBatch,s
  }
  const fullIssues=verify.issues.filter(x=>!issues.some(y=>y.code===x.code));issues.push(...fullIssues);
  const fullRequired=needFull.length,actualFull=verified.size,fastRejected=lightRejected.size;
- const success=results.filter(a=>a.tower.ok&&a.risk.ok).length,failed=issues.length;
+ const success=results.filter(a=>a.tower.ok&&a.risk.ok&&a.status!=='DATA_UNAVAILABLE').length,failed=items.length-results.length;
  const dataUnavailable=results.length-success;
  const result={date,model:C.MODEL,release:C.RELEASE,universe,parsed,excluded,quick:items.length,planned:items.length,requestedMode,actualMode:'all',profile:'FAST_A_SHADOW',subset,attempted:items.length,success,failed,dataUnavailable,pending:0,results,issues,
   complete:fastRejected===0&&failed===0&&dataUnavailable===0&&quickBalanced(universe,parsed,excluded,items.length)&&results.length===items.length,
   fullMarketCertified:false,
   fastAudit:{mode:'SHADOW_NOT_FULL_PARITY_CERTIFIED',dailyScanned:items.length,fastRejected,fullRequired,fullAudit:audits.length,fullReceived:actualFull,fullSignalMatched:true,note:'抽樣一致不代表全母體與FULL等價；僅正式候選由FULL複驗，不宣稱全市場FULL完整排名。'}};
- result.candidates=result.results.filter(r=>r.type&&(subset==='ALL'||subset===r.type)).sort(S.compare);
+ result.candidates=result.results.filter(r=>r.type&&['FORMAL_CANDIDATE','CONDITIONAL_WATCH'].includes(r.status)&&(subset==='ALL'||subset===r.type)).sort(S.compare);result.riskCandidates=result.results.filter(r=>r.type&&['NO_CHASE','REJECT','DATA_UNAVAILABLE'].includes(r.status)&&(subset==='ALL'||subset===r.type)).sort(S.compare);
  result.text=S.buildText(result)+'\n【方案A雙階段加速實驗附錄】\n'+`輕量檢查 ${items.length}｜FULL必驗 ${fullRequired}｜額外FULL抽核 ${audits.length}｜輕量排除 ${fastRejected}｜FULL結果 ${actualFull}`+'\n注意：未對每檔輕量排除股票執行FULL，本次不可宣稱與原版FULL全量結果完全相同；正式全量認證必須使用原FULL模式。';
  return result;
 }

@@ -1,6 +1,5 @@
 'use strict';
-/* R1.1: second scanner FULL enrichment scheduling ONLY.
- * Candidate scores, all risk gates, the market snapshot and report renderers are unchanged.
+/* R1.1 scheduling with REVIEW.2 canonical DAILY_ONLY alignment before FULL decisions.
  * Request concurrency and a single run deadline keep 140/140 from appearing frozen forever.
  */
 (function(root){
@@ -57,6 +56,9 @@
         if(ctl.signal.aborted)throw e;
         throw new Error('FULL 回傳資料不是有效 JSON');
       }
+      const common=root.ShitouSelectionDataV2;if(!common)throw Error('共用日K模組未載入');
+      if(data?.type==='MOMENTUM_DEEP_SCAN'){const request=common.fromUrl(url);return await common.harmonize(request.items,data,request.profile);}
+      if(data?.stock||data?.code){const code=String(data.stock||data.code),p=await common.harmonize([{code}],{type:'MOMENTUM_DEEP_SCAN',results:[{code,ok:true,data}]},'FULL'),x=p.results.find(x=>x.code===code);if(!x?.ok)throw Error(x?.error||'單檔共用行情驗證失敗');return x.data;}
       return data;
     }catch(e){
       if(ctl.signal.aborted&&!cancelled())throw new Error('完整資料請求逾時');

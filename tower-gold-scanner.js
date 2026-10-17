@@ -1,8 +1,8 @@
 (function(root,factory){const N=typeof module==='object'&&module.exports,api=factory(N?require('./tower-trend-classifier.js'):root.ShitouTowerTrend,N?require('./tower-line-core.js'):root.ShitouTowerCore);if(N)module.exports=api;else root.ShitouTowerScanner=api;})(typeof globalThis!=='undefined'?globalThis:this,function(A,C){
 'use strict';
-const compare=(a,b)=>(b.quality?.value??-1)-(a.quality?.value??-1)||a.code.localeCompare(b.code);
+const compare=(a,b)=>(a.selectionDecision?.rank??9)-(b.selectionDecision?.rank??9)||(b.quality?.value??-1)-(a.quality?.value??-1)||a.code.localeCompare(b.code);
 function buildText(scan){
- const a=scan.results.filter(r=>r.type==='A').sort(compare),b=scan.results.filter(r=>r.type==='B').sort(compare),line=r=>`${r.name}（${r.code}）｜${r.subtype||'無訊號'} ${r.status}｜收盤 ${r.tower.bars?.at(-1)?.close??'-'}｜品質 ${r.quality?.value??'-'}/100（非勝率）｜${r.trend.label}｜T3 ${r.tower.states[3]?.color||'不足'}／T5 ${r.tower.states[5]?.color||'不足'}｜連紅 ${r.tower.states[3]?.redDays??'-'} 日／翻紅 ${r.tower.states[3]?.lastRedDate||'-'}｜月線 ${r.monthly.status}｜${r.reasonCodes.join('、')}\n  支撐 ${r.risk.levels?.support??'不足'}／壓力 ${r.risk.levels?.resistance??'無可靠目標'}／失效 ${r.risk.levels?.invalidation??'不足'}\n  續強：${r.scenarios.bull}；失效：${r.scenarios.weak}\n  ${globalThis.ShitouSelectionEvidenceV1?.describe(r.selectionEvidence)||(typeof require==='function'?require('./selection-evidence-v1.js').describe(r.selectionEvidence):'共用研究檢查未載入')}`;
+ const a=scan.results.filter(r=>r.type==='A'&&['FORMAL_CANDIDATE','CONDITIONAL_WATCH'].includes(r.status)).sort(compare),b=scan.results.filter(r=>r.type==='B'&&['FORMAL_CANDIDATE','CONDITIONAL_WATCH'].includes(r.status)).sort(compare),line=r=>`${r.name}（${r.code}）｜${r.subtype||'無訊號'} ${r.status}｜收盤 ${r.tower.bars?.at(-1)?.close??'-'}｜品質 ${r.quality?.value??'-'}/100（非勝率）｜${r.trend.label}｜T3 ${r.tower.states[3]?.color||'不足'}／T5 ${r.tower.states[5]?.color||'不足'}｜連紅 ${r.tower.states[3]?.redDays??'-'} 日／翻紅 ${r.tower.states[3]?.lastRedDate||'-'}｜月線 ${r.monthly.status}｜${r.reasonCodes.join('、')}\n  支撐 ${r.risk.levels?.support??'不足'}／壓力 ${r.risk.levels?.resistance??'無可靠目標'}／失效 ${r.risk.levels?.invalidation??'不足'}\n  續強：${r.scenarios.bull}；失效：${r.scenarios.weak}\n  ${globalThis.ShitouSelectionDecisionV2?.describe(r.selectionDecision)||(typeof require==='function'?require('./selection-decision-v2.js').describe(r.selectionDecision):'')}\n  ${globalThis.ShitouSelectionEvidenceV1?.describe(r.selectionEvidence)||(typeof require==='function'?require('./selection-evidence-v1.js').describe(r.selectionEvidence):'共用研究檢查未載入')}`;
  const breadth=A.breadth(scan.results,scan.date,scan.universe);
  return [C.RELEASE+'｜④ 寶塔線點金術｜SHADOW研究報告',`第一節：市場概況｜資料 ${scan.date}｜有效 ${breadth.valid}／觀測 ${breadth.observed}／原始母體 ${breadth.universe}｜红 ${breadth.red}／黑 ${breadth.black}／今日黑翻紅 ${breadth.blackToRed}｜${breadth.scope}`,
  '第二節：紅線恆強候選排行',...(a.length?a.map(line):['無已驗證A訊號']), '第三節：今日黑翻紅候選排行',...(b.length?b.map(line):['無已驗證B訊號']),
@@ -20,13 +20,13 @@ async function scan({items,universe,parsed=universe,excluded=0,date,fetchBatch,s
   for(let attempt=0;attempt<2&&!shouldStop();attempt++){try{payload=await fetchBatch(batch,profile);error=null;break;}catch(e){error=e;}}
   if(shouldStop())break;
   for(const item of batch){result.attempted++;const matches=payload?.results?.filter(x=>String(x.code||x.data?.stock||x.data?.code||'')===item.code)||[],x=matches.length===1?matches[0]:null;
-   if(error||!x?.ok||!x.data){result.failed++;result.issues.push({code:item.code,reason:String(error?.message||x?.error||(matches.length>1?'重複回傳':'未回傳該股行情'))});continue;}
+   if(error||!x?.ok||!x.data){if(x?.dataUnavailable===true)result.dataUnavailable++;else result.failed++;result.issues.push({code:item.code,reason:String(error?.message||x?.error||(matches.length>1?'重複回傳':'未回傳該股行情'))});continue;}
    const report=x.data;if(String(report.stock||report.code||'')!==item.code){result.dataUnavailable++;result.issues.push({code:item.code,reason:'回傳股票代號不符／缺失'});continue;}
    const q=item.q,last=(report.canonicalBars||report.dailySeries)?.at(-1);
    if(q&&(!last||C.date(q.quoteDate)!==date||C.date(last.date)!==date||Math.abs(Number(q.close)-Number(last.close))>Math.max(.02,Number(q.close)*.0001)||!(Number(q.volume)>0)||!(Number(last.volume)>0)||Math.abs(Number(q.volume)-Number(last.volume))/Number(q.volume)>.2)){result.dataUnavailable++;result.issues.push({code:item.code,reason:'市場快照與日K同日同價同量未核對'});continue;}
    const rows=(report.canonicalBars||report.dailySeries)?.map(r=>({...r}));if(q&&rows?.length)rows.at(-1).volume=Number(q.volume);
    const a=A.analyze({...report,name:item.name||report.name,canonicalBars:rows},{asOf:date,completed:true,marketTower});
-   if(!a.tower.ok||!a.risk.ok){result.dataUnavailable++;result.issues.push({code:item.code,reason:a.trend.plain});}else result.success++;
+   if(!a.tower.ok||!a.risk.ok||a.status==='DATA_UNAVAILABLE'){result.dataUnavailable++;result.issues.push({code:item.code,reason:a.trend.plain});}else result.success++;
    result.results.push(a);
   }
   result.pending=result.planned-result.attempted;onProgress(result);
@@ -35,7 +35,7 @@ async function scan({items,universe,parsed=universe,excluded=0,date,fetchBatch,s
  const balanced=result.attempted===result.success+result.failed+result.dataUnavailable&&result.quick+result.excluded===result.parsed&&result.parsed===result.universe;
  result.complete=balanced&&result.pending===0&&result.failed===0&&result.dataUnavailable===0;
  result.fullMarketCertified=result.complete&&requestedMode==='all'&&result.results.every(a=>a.tower.calendarVerified&&a.tower.basisVerified&&a.tower.basis!=='UNKNOWN');
- result.candidates=result.results.filter(r=>r.type&&(subset==='ALL'||subset===r.type)).sort(compare);
+ result.candidates=result.results.filter(r=>r.type&&['FORMAL_CANDIDATE','CONDITIONAL_WATCH'].includes(r.status)&&(subset==='ALL'||subset===r.type)).sort(compare);result.riskCandidates=result.results.filter(r=>r.type&&['NO_CHASE','REJECT','DATA_UNAVAILABLE'].includes(r.status)&&(subset==='ALL'||subset===r.type)).sort(compare);
  result.text=buildText(result);return result;
 }
 return Object.freeze({scan,compare,buildText});

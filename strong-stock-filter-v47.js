@@ -3,6 +3,7 @@
 (function(root,factory){const api=factory(root?.ShitouWaveCoreV48,root?.ShitouXiaoMingDaoV52);if(typeof module==='object'&&module.exports){let W=null,X=null;try{W=require('./shitou-wave-core-v48.js');}catch(_){}try{X=require('./xiaomingdao-course-v52.js');}catch(_){}module.exports=factory(W,X);}else if(root)root.ShitouStrongStockFilterV47=api;})(typeof globalThis!=='undefined'?globalThis:null,function(W,X){
 'use strict';
 const E=typeof module==='object'&&module.exports?require('./selection-evidence-v1.js'):globalThis.ShitouSelectionEvidenceV1;
+const G=typeof module==='object'&&module.exports?require('./selection-decision-v2.js'):globalThis.ShitouSelectionDecisionV2;
 const MODEL='STRONG_STOCK_FILTER_V50_WAVE_FIB';
 const RULE=Object.freeze({minTradeValue:10000000,maxGap21Pct:18,minBars:60});
 const invalid=reason=>({status:'DATA',eligible:false,reason});
@@ -71,8 +72,20 @@ function executionQuality(found,volumeAudit){
   if(volumeAudit?.confidence==='HIGH')q+=5;else if(volumeAudit?.confidence==='MEDIUM')q+=1;else if(volumeAudit?.confidence==='LOW')q-=7;
   return Math.round(Math.max(0,Math.min(100,q)));
 }
-function evaluate(report,marketDate,quote){const verified=normalize(report,marketDate,quote);if(verified.status!=='OK')return verified;report={...report,dailySeries:verified.rows,canonicalBars:verified.rows,marketDate:verified.date,volumeAudit:verified.volumeAudit};const P=globalThis.ShitouScanPolicy5328||(typeof require==='function'?require('./scan-exclusions-rsi-v5328.js'):null),liquid=P?.liquidity(report);if(liquid?.known&&!liquid.ok)return {status:'REJECT',eligible:false,reason:liquid.reason,volumeAudit:verified.volumeAudit};const found=detect(verified.rows);if(!found.eligible)return {...found,volumeAudit:verified.volumeAudit||null};const eq=executionQuality(found,verified.volumeAudit),course=X?.analyze?X.analyze(report,found.wave):null;return {selectionEvidence:E.evaluate(report,{asOf:verified.date,bars:verified.rows,quote,completed:true}),...found,model:MODEL,date:verified.date,code:String(report.stock||report.code||''),name:String(report.name||report.stock||report.code||''),report,volumeAudit:verified.volumeAudit||null,dataConfidence:verified.volumeAudit?.confidence||'UNKNOWN',executionQuality:eq,courseV52:course,courseSuitabilityScore:course?.score??null};}
-function compare(a,b){const pri={S:0,A:1,B:2};const confidence={HIGH:0,MEDIUM:1,LOW:2};return (confidence[a.dataConfidence]??3)-(confidence[b.dataConfidence]??3)||(pri[a.status]??9)-(pri[b.status]??9)||(b.courseSuitabilityScore??-1)-(a.courseSuitabilityScore??-1)||b.score-a.score||(b.executionQuality??-1)-(a.executionQuality??-1)||((b.wave?.volumeStart?1:0)-(a.wave?.volumeStart?1:0))||a.code.localeCompare(b.code);}
+function evaluate(report,marketDate,quote){
+ const verified=normalize(report,marketDate,quote);if(verified.status!=='OK')return verified;
+ report={...report,dailySeries:verified.rows,canonicalBars:verified.rows,marketDate:verified.date,volumeAudit:verified.volumeAudit};
+ const P=globalThis.ShitouScanPolicy5328||(typeof require==='function'?require('./scan-exclusions-rsi-v5328.js'):null),liquid=P?.liquidity(report);
+ if(liquid?.known&&!liquid.ok)return {status:'REJECT',eligible:false,reason:liquid.reason,volumeAudit:verified.volumeAudit};
+ const found=detect(verified.rows);if(!found.eligible)return {...found,volumeAudit:verified.volumeAudit||null};
+ const selectionEvidence=E.evaluate(report,{asOf:verified.date,bars:verified.rows,quote,completed:true}),selectionDecision=G.evaluate('STRONG',selectionEvidence,{formal:true});
+ const eq=executionQuality(found,verified.volumeAudit),course=X?.analyze?X.analyze(report,found.wave):null;
+ const result={...found,selectionEvidence,selectionDecision,model:MODEL,date:verified.date,code:String(report.stock||report.code||''),name:String(report.name||report.stock||report.code||''),report,volumeAudit:verified.volumeAudit||null,dataConfidence:verified.volumeAudit?.confidence||'UNKNOWN',executionQuality:eq,courseV52:course,courseSuitabilityScore:course?.score??null};
+ if(selectionDecision.state==='DATA')return {...result,eligible:false,status:'DATA',reason:G.describe(selectionDecision)};
+ if(['NO_CHASE','EXCLUDE'].includes(selectionDecision.state))return {...result,originalGrade:result.status,eligible:false,status:'REJECT',selectionParked:true,reason:G.describe(selectionDecision)};
+ return result;
+}
+function compare(a,b){const decision=(a.selectionDecision?.rank??9)-(b.selectionDecision?.rank??9);if(decision)return decision;const pri={S:0,A:1,B:2};const confidence={HIGH:0,MEDIUM:1,LOW:2};return (confidence[a.dataConfidence]??3)-(confidence[b.dataConfidence]??3)||(pri[a.status]??9)-(pri[b.status]??9)||(b.courseSuitabilityScore??-1)-(a.courseSuitabilityScore??-1)||b.score-a.score||(b.executionQuality??-1)-(a.executionQuality??-1)||((b.wave?.volumeStart?1:0)-(a.wave?.volumeStart?1:0))||a.code.localeCompare(b.code);}
 function backtest(bars,signalIndex,horizon=5){if(!Array.isArray(bars)||signalIndex<2||signalIndex>=bars.length-1||!(horizon>0))return {status:'UNAVAILABLE',reason:'缺少下一交易日開盤價'};if(signalIndex+1+horizon-1>=bars.length)return {status:'UNFINISHED',reason:'後續完整交易日未達觀察期間'};const entry=number(bars[signalIndex+1]?.open),exit=number(bars[signalIndex+horizon]?.close);if(!(entry>0&&exit>0))return {status:'UNAVAILABLE',reason:'進出場量價缺失'};return {status:'COMPLETE',entryDate:date(bars[signalIndex+1].date),entry,exit,horizon,returnPct:(exit/entry-1)*100,method:'訊號次一交易日開盤→第N交易日收盤；未含成本與滑價'};}
 return Object.freeze({MODEL,RULE,number,date,validateMarket,marketClosedStateV49,officialIndustry,normalize,detect,evaluate,compare,backtest});
 });

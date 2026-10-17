@@ -4,14 +4,14 @@ if(!C||!A||!S||!R)throw Error('寶塔線相依模組未載入');
 let last=null,running=false,stopped=false,marketTower=null,verifiedDate=null,verifiedSnapshot=null;
 const by=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function completed(report){if(report.completed===false||report.isComplete===false)return false;const d=C.date(report.closeDate||report.dataDate);if(d&&d===verifiedDate)return true;if(report.completed===true||report.dataTiming==='POST_CLOSE_ONLY')return true;return false;}
-function get(report,extra={}){let r=report?.report||report||{};const date=C.date(extra.asOf||r.marketDate||r.closeDate||r.dataDate),q=verifiedSnapshot?.map?.get(String(r.stock||r.code||''));
+function get(report,extra={}){let r=report?.report||report||{};try{if(root.ShitouSelectionDataV2?.get(String(r.stock||r.code||'')))r=root.ShitouSelectionDataV2.apply(r,String(r.stock||r.code||''));}catch(e){return A.analyze({...r,completed:false},{completed:false,asOf:extra.asOf||r.closeDate});}const date=C.date(extra.asOf||r.marketDate||r.closeDate||r.dataDate),q=verifiedSnapshot?.map?.get(String(r.stock||r.code||''));
  if(!extra.isIndex&&q&&date===verifiedDate){const last=(r.canonicalBars||r.dailySeries)?.at(-1);if(!last||C.date(q.quoteDate)!==date||Math.abs(Number(q.close)-Number(last.close))>Math.max(.02,Number(q.close)*.0001)||!(Number(q.volume)>0)||!(Number(last.volume)>0)||Math.abs(Number(q.volume)-Number(last.volume))/Number(q.volume)>.2)return A.analyze({...r,completed:false},{asOf:date,completed:false,...extra});const rows=(r.canonicalBars||r.dailySeries).map(b=>({...b}));rows.at(-1).volume=Number(q.volume);r={...r,canonicalBars:rows};}
  return A.analyze(r,{asOf:date,completed:completed(r),marketTower:marketTower?.date===date?marketTower:null,...extra});}
 function mount(report,id,hostId,extra={}){const host=by(hostId);if(!host)return;let box=by(id);if(!box){box=document.createElement('div');box.id=id;host.appendChild(box);}box.innerHTML=R.html(get(report,extra));}
 function wrap(name,fn){const old=root[name];if(typeof old==='function')root[name]=function(...args){return fn.call(this,old,...args);};}
 function appendScanText(text,scan){const list=scan?.candidates||[],results=list.filter(c=>c.report).map(c=>get(c.report));return text+'\n\n【寶塔線SHADOW觀察層｜原資格、計分与排名保留】\n'+results.map(a=>`${a.name}（${a.code}） ${a.trend.label}／${a.status}｜${a.reasonCodes.join('、')}｜日期 ${a.date}｜${C.RELEASE}`).join('\n');}
 function mountScan(scan,hostId){const host=by(hostId);if(!host)return;let box=by(hostId+'TowerShadow');if(!box){box=document.createElement('section');box.id=hostId+'TowerShadow';host.appendChild(box);}box.innerHTML='<h3>寶塔線SHADOW觀察層｜原排序保留</h3>'+(scan?.candidates||[]).filter(c=>c.report).map(c=>R.html(get(c.report))).join('');}
-wrap('loadDayTradeMarketBundleV377736',async function(old,...args){const b=await old.apply(this,args),v=root.ShitouStrongStockFilterV47.validateMarket(b.meta,b.snapshotRows);if(v.ok){verifiedDate=v.date;verifiedSnapshot=b;}return b;});
+for(const loader of ['loadDayTradeMarketBundleV377736','loadMomentumMarketBundleV377737'])wrap(loader,async function(old,...args){const b=await old.apply(this,args),v=root.ShitouStrongStockFilterV47.validateMarket(b.meta,b.snapshotRows);if(v.ok){verifiedDate=v.date;verifiedSnapshot=b;}return b;});
 wrap('analyzeStock',async function(old,...args){try{await root.loadDayTradeMarketBundleV377736();}catch(_){verifiedDate=null;verifiedSnapshot=null;}return old.apply(this,args);});
 for(const name of ['momentumCandidateV3768','dayTradeCandidateV1'])wrap(name,function(old,report,...args){const c=old.call(this,report,...args);if(c&&typeof c==='object')c.towerShadow=get(report);return c;});
 for(const name of ['buildMomentumScanTextReportV3763','buildMomentumScanCompactTextReportV377713','buildDayTradeTextReportV1'])wrap(name,function(old,scan,...args){return appendScanText(old.call(this,scan,...args),scan);});
@@ -25,9 +25,10 @@ wrap('renderMarketInfographicV3328',function(old,report,...args){return R.extend
 const strong=root.STRONG_STOCK_TEST_API_V47;if(strong){root.STRONG_STOCK_TEST_API_V47=Object.freeze({...strong,evaluateResponse(item,x,date){const c=strong.evaluateResponse(item,x,date);if(c?.report)c.towerShadow=get(c.report,{asOf:date,completed:true});return c;},buildText(scan){return appendScanText(strong.buildText(scan),scan);}});}
 // The third UI owns private closures. Modify its existing evaluate/text sites separately
 // so real scan output receives the same shadow data, not only the test API.
+function exportText(scan){return root.ShitouTowerScanCopy?.format?root.ShitouTowerScanCopy.format(scan):scan.text;}
 function render(scan){const summary=by('towerSummary'),list=by('towerList');if(summary)summary.textContent=`${scan.complete?'處理完成':'部分處理／尚未完整'}｜${scan.date}｜原始${scan.universe}／快篩${scan.quick}／深掃${scan.attempted}/${scan.planned}｜成功${scan.success}／失敗${scan.failed}／資料不足${scan.dataUnavailable}｜${scan.fullMarketCertified?'完整市場資料認證':'非全市場完整排名'}｜SHADOW未啟用交易`;
  if(list)list.innerHTML=V.cards(scan);V.summary(scan);
- if(scan.fastAudit&&summary)summary.textContent+='｜⚠️ 加速研究版：未全量FULL等價認證';by('towerReportText').textContent=scan.text;by('towerCopy').disabled=false;by('towerDownload').disabled=false;by('towerImage').disabled=!scan.candidates.length;by('towerZip').disabled=!scan.candidates.length;
+ if(scan.fastAudit&&summary)summary.textContent+='｜⚠️ 加速研究版：未全量FULL等價認證';by('towerReportText').textContent=exportText(scan);by('towerCopy').disabled=false;by('towerDownload').disabled=false;by('towerImage').disabled=!scan.candidates.length;by('towerZip').disabled=!scan.candidates.length;
 }
 // TOWER-NETWORK-RETRY.1: only the fourth strategy's data transport and health probes.
 // This does not alter the stock universe, score/rank calculations, day-K values or gates.
@@ -45,7 +46,7 @@ async function fetchBatch(items,profile,options={}){
   if(!res.ok)throw Error('Worker HTTP '+res.status);
   const p=await res.json();
   if(p.type!=='MOMENTUM_DEEP_SCAN'||!Array.isArray(p.results))throw Error('深掃格式錯誤');
-  return p;
+  return root.ShitouSelectionDataV2.harmonize(items,p,profile);
  }catch(e){
   if(options.towerNetworkDiagnostic&&(timedOut||e?.name==='AbortError'))throw Error('TOWER_REQUEST_TIMEOUT：'+profile+'，請求超過 '+Math.ceil(timeoutMs/1000)+' 秒');
   if(options.towerNetworkDiagnostic&&/Failed to fetch|NetworkError|Load failed|fetch failed/i.test(String(e?.message||e)))throw Error('TOWER_NETWORK_ERROR：'+profile+'，網路、跨網域連線或 Worker 暫時無法回應');
@@ -85,13 +86,13 @@ async function fetchTowerReliableBatch(items,profile,options={}){
  const getSolo=async(item,precedingError)=>{
   const one=await request([item],2);
   const record=towerSingleRecord([item],one.payload,item);
-  if(record?.ok&&record.data)return record;
+  if(record?.dataUnavailable===true||record?.ok&&record.data)return record;
   return towerServiceRecord(item,record?.error||one.error||precedingError);
  };
  if(first.payload){
   for(const item of items){
    const r=towerSingleRecord(items,first.payload,item);
-   if(r?.ok&&r.data)out.push(r);
+   if(r?.dataUnavailable===true||r?.ok&&r.data)out.push(r);
    else out.push(await getSolo(item,r?.error||'Worker 遺漏個股回應'));
   }
  }else{
@@ -102,7 +103,7 @@ async function fetchTowerReliableBatch(items,profile,options={}){
     const part=items.slice(i,i+2),sub=await request(part,1);
     for(const item of part){
      const r=towerSingleRecord(part,sub.payload,item);
-     out.push(r?.ok&&r.data?r:await getSolo(item,r?.error||sub.error||first.error));
+     out.push(r?.dataUnavailable===true||r?.ok&&r.data?r:await getSolo(item,r?.error||sub.error||first.error));
     }
    }
   }else{
@@ -122,8 +123,8 @@ async function run(){if(running||root.dayTradeScanRunningV1||root.momentumScanRu
  const buttons=['towerRun','momentumScanButton','dayTradeScanButton','strongStockScanButton'].map(by).filter(Boolean),prior=buttons.map(b=>b.disabled);buttons.forEach(b=>b.disabled=true);by('towerSummary').textContent='核對完整市場與上市上櫃日期…';
  let towerStage='市場完整快照',towerFailures=[];const healthDeadline=Date.now()+110000;
  try{const bundle=await root.loadDayTradeMarketBundleV377736(),market=root.ShitouStrongStockFilterV47.validateMarket(bundle.meta,bundle.snapshotRows);if(!market.ok)throw Error(market.reason);const pool=strong.marketPool(bundle,'all'),health=root.ShitouDeepScanHealthV1;if(!health)throw Error('深掃健康檢查模組未載入');towerStage='DEEP_SCAN 完成日K健康檢查';by('towerSummary').textContent='核對深掃個股日K日期…';await health.preflight({items:pool.deep,targetDate:market.date,fetcher:(items,options)=>fetchTowerPreflightBatch(items,by('towerProfile').value==='FAST_A'?'DAILY_ONLY':by('towerProfile').value,{...options,deadline:healthDeadline,onFailure:f=>{towerFailures.push(f);by('towerSummary').textContent='健康檢查服務重試中｜'+f.failed.join('、');}}),onUpdate:message=>{by('towerSummary').textContent=message;}});if(by('towerProfile').value==='FAST_A'&&!root.ShitouTowerFastA)throw Error('方案A模組未載入，不可降級為FULL或默默換模式');towerStage='第四套全量日K資料取得';const excluded=Object.values(pool.audit).reduce((a,b)=>a+b,0);last=await (by('towerProfile').value==='FAST_A'?root.ShitouTowerFastA.scan:S.scan)({items:pool.deep,universe:bundle.snapshotRows,parsed:bundle.map.size,excluded,date:market.date,fetchBatch:(items,profile,opts={})=>fetchTowerReliableBatch(items,profile,{...opts,stage:'SCAN'}),subset:by('towerSubset').value,profile:by('towerProfile').value,marketTower:marketTower?.date===market.date?marketTower:null,shouldStop:()=>stopped,onProgress:s=>{if(s.phase){V.progress({attempted:s.processed,planned:s.planned});by('towerSummary').textContent=`方案A ${s.phase==='FAST'?'輕量初篩':'FULL覆核'} ${s.processed}/${s.planned}｜初篩排除${s.fastRejected}｜待FULL${s.fullNeeded}`;}else{V.progress(s);by('towerSummary').textContent=`深掃 ${s.attempted}/${s.planned}｜成功${s.success}／失敗${s.failed}／資料不足${s.dataUnavailable}`;}}});render(last);}catch(e){const hint=towerFailures.length?'｜已嘗試拆批／逐檔重試，仍失敗：'+towerFailures.at(-1).failed.join('、')+'（'+(towerFailures.at(-1).errors.at(-1)||'資料服務異常')+'）':'';by('towerSummary').textContent='掃描未完成（'+towerStage+'）：'+String(e?.message||e)+hint;}finally{running=false;buttons.forEach((b,i)=>b.disabled=prior[i]);}}
-function download(){if(!last)return;const url=URL.createObjectURL(new Blob([last.text],{type:'text/plain;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download=`TOWER_GOLD_${last.date}_${C.RELEASE}.txt`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
-function install(){const host=by('strongStockShortcut')||by('strongStockResult');const panel=document.createElement('section');panel.id='towerGoldPanel';panel.className='strong-stock-shortcut tower-gold-control';panel.innerHTML=V.controls();if(host)host.insertAdjacentElement('afterend',panel);else (document.querySelector('main')||document.body).appendChild(panel);by('towerRun').onclick=run;by('towerStop').onclick=()=>{stopped=true;};by('towerCopy').onclick=async()=>{try{if(last)await navigator.clipboard.writeText(last.text);}catch(e){by('towerSummary').textContent='剪貼簿不可用；請下載TXT。';}};by('towerDownload').onclick=download;by('towerImage').onclick=()=>exportImages(false);by('towerZip').onclick=()=>exportImages(true);
+function download(){if(!last)return;const url=URL.createObjectURL(new Blob([exportText(last)],{type:'text/plain;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download=`TOWER_GOLD_${last.date}_${C.RELEASE}.txt`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+function install(){const host=by('strongStockShortcut')||by('strongStockResult');const panel=document.createElement('section');panel.id='towerGoldPanel';panel.className='strong-stock-shortcut tower-gold-control';panel.innerHTML=V.controls();if(host)host.insertAdjacentElement('afterend',panel);else (document.querySelector('main')||document.body).appendChild(panel);by('towerRun').onclick=run;by('towerStop').onclick=()=>{stopped=true;};by('towerCopy').onclick=async()=>{try{if(last)await navigator.clipboard.writeText(exportText(last));}catch(e){by('towerSummary').textContent='剪貼簿不可用；請下載TXT。';}};by('towerDownload').onclick=download;by('towerImage').onclick=()=>exportImages(false);by('towerZip').onclick=()=>exportImages(true);
  panel.addEventListener('click',e=>{const code=e.target.dataset?.towerCode;if(code){const input=by('stockInput');if(input){input.value=code;input.dispatchEvent(new Event('input',{bubbles:true}));input.scrollIntoView({behavior:'smooth'});if(typeof root.analyzeStock==='function')root.analyzeStock();}}});
 
 }

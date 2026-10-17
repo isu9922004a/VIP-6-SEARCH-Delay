@@ -3,7 +3,7 @@
  */
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.ShitouSelectionEvidenceV1=api;})(typeof globalThis!=='undefined'?globalThis:this,function(){
 'use strict';
-const MODEL='SELECTION_EVIDENCE_RESEARCH_1';
+const MODEL='SELECTION_EVIDENCE_2';
 const LABELS=Object.freeze({DATA:'資料不足',CAUTION:'新買風險提醒',WATCH:'等待條件確認',OBSERVE:'續強條件觀察'});
 const n=v=>v===null||v===undefined||String(v).trim()===''?null:Number.isFinite(Number(v))?Number(v):null;
 const avg=a=>a.length?a.reduce((s,v)=>s+v,0)/a.length:null;
@@ -12,7 +12,7 @@ function normalize(source,asOf){
  if(!Array.isArray(source)||source.length<26)return {ok:false,reason:'需至少26根完成日K；不補齊缺漏'};
  const bars=[];let last='';
  for(const row of source){const d=date(row.date),b={date:d};for(const k of ['open','high','low','close','volume'])b[k]=n(row[k]);
-  if(!d||d<=last||d>asOf||row.completed===false||row.isComplete===false||['open','high','low','close'].some(k=>!(b[k]>0))||b.volume===null||b.volume<0||b.high<Math.max(b.open,b.close,b.low)||b.low>Math.min(b.open,b.close,b.high))return {ok:false,reason:'日K日期、順序、完成狀態或OHLCV無效；不排序、不刪錯誤列'};
+  if(row.suspended===true||!d||d<=last||d>asOf||row.completed===false||row.isComplete===false||['open','high','low','close'].some(k=>!(b[k]>0))||b.volume===null||b.volume<0||b.high<Math.max(b.open,b.close,b.low)||b.low>Math.min(b.open,b.close,b.high))return {ok:false,reason:'日K日期、順序、完成狀態或OHLCV無效；不排序、不刪錯誤列'};
   bars.push(b);last=d;
  }
  return last===asOf?{ok:true,bars}:{ok:false,reason:'最後完成日K與目標交易日不一致'};
@@ -32,7 +32,7 @@ function relativeStrength(bars,benchmark,market){
  out.winningDays20=window.slice(1).filter((b,i)=>b.close/window[i].close>map.get(b.date).close/map.get(window[i].date).close).length;
  return out;
 }
-function monthly(report){return report.officialMonthlyUnavailable===true?'UNAVAILABLE':report.entry===true&&report.startMonthConfirmed===true&&report.monthlyPass!==false?'PASS':report.monthlyPass===false?'NOT_PASS':'UNCONFIRMED';}
+function monthly(r={}){if(r.monthlyReviewV2){const x=r.monthlyReviewV2;return x.verified===true&&['PASS','NOT_PASS','UNCONFIRMED','UNAVAILABLE'].includes(x.status)?x.status:'UNAVAILABLE';}if(r.officialMonthlyUnavailable===true)return 'UNAVAILABLE';if(r.monthlyPass===false)return 'NOT_PASS';if(r.entry===true&&r.startMonthConfirmed===true)return 'PASS';if(r.monthlyPass===true)return r.startMonthConfirmed===true?'PASS':'UNCONFIRMED';return 'UNCONFIRMED';}
 function evaluate(input,options={}){
  const report=input?.report||input||{},asOf=date(options.asOf||report.marketDate||report.closeDate||report.dataDate);
  const base={model:MODEL,date:asOf,dataTiming:'POST_CLOSE_ONLY',role:'RESEARCH_ONLY',affectsEligibility:false,affectsScore:false,affectsRanking:false,executionAllowed:false,monthlyStatus:monthly(report),brokerEvidence:'未接分點與持股原始資料；CMF與OBV只是日K量價統計'};
@@ -81,7 +81,7 @@ function evaluate(input,options={}){
  const warnings=[];
  if(report.priceAdjustment?.verified!==true)warnings.push('歷史價格調整基準未驗證，結果只供研究');
  if(!Array.isArray(calendar))warnings.push('未附交易日曆，無法證實觀察期間沒有漏日');
- if(base.monthlyStatus!=='PASS')warnings.push('月線尚未驗證；日K條件不能替代月20MA資格');
+ if(base.monthlyStatus!=='PASS')warnings.push(base.monthlyStatus==='NOT_PASS'?'月線條件未通過':'月線尚未驗證；日K條件不能替代月20MA資格');
  const market=String(options.market||q?.market||report.market||'').toUpperCase();
  const relative=relativeStrength(b,options.benchmark,market);
  if(!relative.available)warnings.push(relative.reason);
@@ -92,7 +92,7 @@ function evaluate(input,options={}){
   meaning:'原訊號與新買風險分開；不重複加分，不代表勝率或可直接買進'};
 }
 const fmt=v=>n(v)===null?'資料不足':Number(v).toFixed(2);
-function describe(e){if(!e)return '四策略共用研究檢查：尚未執行';return `新買條件研究｜${e.label}｜${e.date||'日期不足'}${e.anchor?`｜前20日最大量日 ${e.anchor.date} 高${fmt(e.anchor.high)}／低${fmt(e.anchor.low)}`:''}${e.features?`｜CMF20 ${fmt(e.features.cmf20)}｜OBV20日新高 ${e.features.obvNewHigh20?'是':'否'}`:''}｜${e.reasons.join('；')}｜月線 ${e.monthlyStatus}${e.warnings.length?'｜'+e.warnings.join('；'):''}｜研究檢查不改原資格、分數與排名，非進場許可。`;}
+function describe(e){if(!e)return '四策略共用研究檢查：尚未執行';return `新買條件研究｜${e.label}｜${e.date||'日期不足'}${e.anchor?`｜前20日最大量日 ${e.anchor.date} 高${fmt(e.anchor.high)}／低${fmt(e.anchor.low)}`:''}${e.features?`｜CMF20 ${fmt(e.features.cmf20)}｜OBV20日新高 ${e.features.obvNewHigh20?'是':'否'}`:''}｜${e.reasons.join('；')}｜月線 ${e.monthlyStatus}${e.warnings.length?'｜'+e.warnings.join('；'):''}｜量價證據交由正式篩選層分類；條件分不是勝率，非直接進場許可。`;}
 function attach(candidate,report,options){if(candidate&&typeof candidate==='object')candidate.selectionEvidence=evaluate(report||candidate,options);return candidate;}
 return Object.freeze({MODEL,LABELS,date,normalize,cmf,rsi,monthly,relativeStrength,evaluate,attach,describe});
 });

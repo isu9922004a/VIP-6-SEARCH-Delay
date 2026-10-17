@@ -4,6 +4,7 @@
  else{root.ShitouTowerScanCopy=api;api.install(root);}
 })(typeof globalThis!=='undefined'?globalThis:this,function(V){'use strict';
 const VERSION=V.code;
+const E=typeof module==='object'&&module.exports?require('./selection-evidence-v1.js'):globalThis.ShitouSelectionEvidenceV1,G=typeof module==='object'&&module.exports?require('./selection-decision-v2.js'):globalThis.ShitouSelectionDecisionV2;
 const stateLabels={FORMAL_CANDIDATE:'技術候選',CONDITIONAL_WATCH:'條件觀察',NO_CHASE:'追價風險高',REJECT:'風險排除',DATA_UNAVAILABLE:'資料不足'};
 const trendLabels={STRONG_BULL:'強勢多頭',BULL_CONTINUATION:'偏多續強',EARLY_STRENGTH:'初步轉強',RANGE:'盤整震盪',EARLY_WEAKNESS:'初步轉弱',BEAR:'空頭偏弱',DATA:'資料不足'};
 const monthLabels={PASS:'月線通過',UNCONFIRMED:'月線尚未確認',NOT_PASS:'月線未通過',UNAVAILABLE:'月線資料不足'};
@@ -60,7 +61,9 @@ function stockLines(a,index,date,shared=[]){
   `股價：${price(t.bars?.at(-1)?.close)} 元｜向上轉強：${up!==null&&up>0?'收盤 > '+price(up)+' 元':'資料不足'}｜向下轉弱：${down!==null&&down>0?'收盤 < '+price(down)+' 元':'資料不足'}`,
   `整理觀察：${zone}`,
   `寶塔：3日${valid?color(s.color):'未確認'}／5日${valid?color(five.color):'未確認'}｜${run}｜${event}｜${monthLabels[a.monthly?.status]||'月線尚未提供確認'}`,
-  `留意：${note}`
+  `留意：${note}`,
+  `正式篩選：${G.describe(a.selectionDecision)}`,
+  `${E.describe(a.selectionEvidence)}`
  ];
 }
 function successLines(scan){
@@ -86,15 +89,17 @@ function successLines(scan){
 }
 function format(scan){
  if(!scan)return '請先完成寶塔線點金術掃描。';
- const list=Array.isArray(scan.candidates)?scan.candidates:[],date=clean(scan.date)||'未確認';
+ const raw=Array.isArray(scan.candidates)?scan.candidates:[],list=raw.filter(a=>['FORMAL_CANDIDATE','CONDITIONAL_WATCH'].includes(a.status)),parked=[...(scan.riskCandidates||[]),...raw.filter(a=>!list.includes(a))].filter((a,i,all)=>all.findIndex(x=>x.code===a.code)===i),date=clean(scan.date)||'未確認';
  const shared=sharedDataCodes.filter(code=>list.length&&list.every(a=>codes(a).includes(code)));
  const lines=['④ 寶塔線點金術｜選股排名戰報',`版本：${V.displayCode}`,
   `資料日：${date}｜本次排名 ${list.length} 檔｜研究觀察版`,
   `深掃：${count(scan.attempted)}／${count(scan.planned)}｜成功 ${count(scan.success)}｜失敗 ${count(scan.failed)}｜資料不足 ${count(scan.dataUnavailable)}｜未處理 ${count(scan.pending)}`,
   `${scan.complete?'本次掃描已處理完成':'本次掃描尚未完整完成'}；${scan.fullMarketCertified?'原完整市場資料認證通過':'僅列已掃描樣本，非全市場完整排名'}。`,
-  '沿用畫面原排名；研究品質分不是勝率。',''];
+  `正式 ${list.filter(a=>a.selectionDecision?.state==='READY').length}｜等待 ${list.filter(a=>a.selectionDecision?.state!=='READY').length}｜不追價／排除 ${parked.length}`,
+  '候選依新買分類後排序；品質分不是勝率。',''];
  if(!list.length)lines.push('本次沒有可列出的候選；缺資料、失敗或未處理者不能視為已排除。',...successLines(scan),'');
  list.forEach((a,i)=>lines.push(...stockLines(a,i,scan.date,shared),''));
+ if(parked.length){lines.push('【不追價／風險排除／資料不足｜不列候選排名】');for(const a of parked)lines.push(`${clean(a.name)}（${clean(a.code)}）｜${G.describe(a.selectionDecision)}｜${E.describe(a.selectionEvidence)}`);}
  if(shared.length)lines.push('共同資料提醒：'+shared.map(chineseReason).join('；')+'。');
  lines.push('價位以完成收盤確認；大於才轉強、小於才轉弱，相等仍觀察。整理區間僅表示尚無新翻轉，不等於已確認盤整。',
   '突破後仍須確認量能；盤後名單不是直接進場訊號。');
