@@ -34,6 +34,9 @@ function validateMarket(meta,marketRowCount,now=new Date()){
   const closed=marketClosedStateV49(meta,today);
   if(today===target&&minutes<17*60+35&&!closed.closed)return {ok:false,reason:'當日盤後資料整理期間；建議 17:35 後再查詢'};
   if(target>today)return {ok:false,reason:'市場快照日期在未來'};
+  // Backend must attest the most recent completed trading session; otherwise fail closed.
+  const expected=date(meta.expectedTradeDate);
+  if(meta.snapshotTimelinessReady!==true||!expected||target!==expected)return {ok:false,reason:`市場資料不符合最新已完成交易日：快照 ${target}／預期 ${expected||'未確認'}；請先更新市場 Worker`};
   // The same validator treats 17:35 as the end of the official post-close
   // preparation window. Do not demand today's snapshot at 15:00 while that
   // window is still open; the last fully aligned completed snapshot remains

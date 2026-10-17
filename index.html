@@ -27396,11 +27396,10 @@ function dayTradeDataCheckV377739(report,bars,quote){
   if(!closeDate||dayTradeDateV377739(latest?.date)!==closeDate)return "個股收盤日期與日K最後日期不一致或缺漏";
   const quoteDate=dayTradeDateV377739(quote?.quoteDate);
   if(quote?.quoteDate&&!quoteDate)return "市場快照日期無效";
-  // 市場快照只負責第一階段快篩；個股完整日K才是深入分析的權威日期。
-  // 快照較舊時，後續會停用快照成交金額／相對市場比較並改用個股日K估算，
-  // 不再把完整且已更新的個股資料誤判為「資料不足」。反之，個股資料
-  // 落後於市場快照仍屬真正的資料風險，必須擋下。
-  if(quoteDate&&quoteDate>closeDate)return `個股資料尚未更新：市場 ${quoteDate}／個股 ${closeDate}`;
+  // DATA-GATE：盤後候選必須使用同一天的完整市場快照與個股日K。
+  // 此處寧可標示資料不足，不把混日資料列入正式當沖候選。
+  if(!quoteDate)return "缺少個股市場快照日期，停止當沖正式判讀";
+  if(quoteDate!==closeDate)return `市場快照與個股完整日K不同交易日：市場 ${quoteDate}／個股 ${closeDate}；本檔標記資料不足`;
   const reportClose=dayTradePositiveV377736(report?.close),quoteClose=dayTradePositiveV377736(quote?.close);
   if(reportClose!==null&&Math.abs(reportClose-latest.close)>dayTradeTaiwanTickV41(latest.close)/2+0.011)return "個股收盤價與日K最後收盤價不一致";
   const consistency=dayTradeQuoteConsistencyV41(report,bars,quote);
@@ -28332,6 +28331,12 @@ async function runDayTradeScanV1(){
     const bundle=await loadDayTradeMarketBundleV377736();
     if(bundle.meta?.marketCoverageReady!==true)throw new Error("市場完整性檢查未通過，請先確認 TWSE／TPEx 行情完整。");
     if(bundle.meta?.industryCoverageReady!==true&&(DAYTRADE_EXCLUDE_FINANCIAL_V1||DAYTRADE_EXCLUDE_BIOTECH_V1))throw new Error("產業資料不足，無法確認金融／生技排除條件。");
+    const m=bundle.meta||{};
+    const dates=[m.targetTradeDate,m.completedTradeDate,m.twseQuoteDate,m.tpexQuoteDate,m.expectedTradeDate].map(dayTradeDateV377739);
+    if(m.snapshotTimelinessReady!==true||dates.some(x=>!x)||new Set(dates).size!==1)
+      throw new Error(`當沖掃描已停止：最新已完成交易日驗證不通過（市場 ${dates[0]||'-'}／上市 ${dates[2]||'-'}／上櫃 ${dates[3]||'-'}／預期 ${dates[4]||'-'}）。請先更新 Cloudflare 市場 Worker 與快照。`);
+    if(!Number.isFinite(Number(m.total))||Number(m.total)<1000||Number(m.total)!==bundle.map.size)
+      throw new Error(`當沖掃描已停止：全市場快照筆數不符（宣告 ${m.total||'-'}／實際 ${bundle.map.size}）。`);
     const p1=buildDayTradePhase1PoolV1(bundle,deepLimit),total=p1.deep.length,outcomes=new Map(),retryQueue=[],retryCodeSet=new Set();
     let retryRecovered=0,consecutiveResourceFailures=0,maxResourceFailureStreak=0,directFallbackUsed=0;
     let resourcePaused=false,resourcePauseReason="",resourceProtectionTriggered=false,resourceCooldownCount=0,resourceCooldownRequested=false,deepRetryRoundsUsed=0;
@@ -34754,7 +34759,7 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 <script src="./teacher-three-pan-core.js?v=R5.3.2.8.1-TOWER-SHADOW.5.1"></script>
 <script src="./shitou-wave-core-v48.js?v=R5.3.2.8.1-TOWER-SHADOW.5.1"></script>
 <script src="./xiaomingdao-course-v52.js?v=R5.3.2.8.1-TOWER-SHADOW.5.1"></script>
-<script src="./strong-stock-filter-v47.js?v=R5.3.2.8.1-TOWER-SHADOW.5.1"></script>
+<script src="./strong-stock-filter-v47.js?v=R5.3.2.8.1-TOWER-SHADOW.5.1-DATEGATE.1"></script>
 <script src="./deep-scan-health-v1.js?v=R5.3.2.8.1-TOWER-SHADOW.5.1"></script>
 <script src="./strong-stock-ui-v47.js?v=R5.3.2.8.1-TOWER-SHADOW.5.1"></script>
 <script src="./shitou-wave-ui-v48.js?v=R5.3.2.8.1-TOWER-SHADOW.5.1"></script>
