@@ -5,7 +5,7 @@
   if(root)root.ShitouDeepScanHealthV1=api;
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
 'use strict';
-const normalizeDate=v=>{const m=String(v??'').trim().match(/^(\d{4})[-/]?(\d{2})[-/]?(\d{2})$/);return m?`${m[1]}-${m[2]}-${m[3]}`:null;};
+const normalizeDate=v=>{const m=String(v??'').trim().match(/^(\d{4})[-/]?(\d{2})[-/]?(\d{2})$/);if(!m)return null;const out=`${m[1]}-${m[2]}-${m[3]}`,d=new Date(out+'T00:00:00Z');return Number.isFinite(d.getTime())&&d.toISOString().slice(0,10)===out?out:null;};
 const market=item=>String(item?.q?.market||item?.market||'').toUpperCase()==='TPEX'?'TPEX':'TWSE';
 function sample(items,maxPerMarket=2){
   const selected=[],used=new Set();

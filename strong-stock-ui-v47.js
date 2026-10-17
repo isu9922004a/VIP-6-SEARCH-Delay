@@ -8,7 +8,7 @@
   const BATCH=8,REQUEST_GAP=250,CPU_RETRY_GAP=1800,RETRY_GAP=800;
   const DAILY_BATCH_TIMEOUT_MS=32000;
   const CACHE_KEY='SHITOU_STRONG_STOCK_TEACHER_R5328';
-  const CACHE_REV='TEACHER_V1_CANONICAL_VOLUME_EXCLUSIONS_RSI5_HEALTH_GUARD';
+  const CACHE_REV='TEACHER_V1_CANONICAL_VOLUME_EXCLUSIONS_RSI5_HEALTH_GUARD_SELECTION_RESEARCH_1';
   const CPU_BREAKER_CONSECUTIVE=4;
   const FAILURE_WINDOW_SIZE=16;
   const MARKET_ENDPOINT_R49=(typeof MARKET_API_BASE_URL!=='undefined'&&MARKET_API_BASE_URL)?MARKET_API_BASE_URL:'https://shitou-taiwanmarket-api.d318426.workers.dev';
@@ -171,6 +171,7 @@
       if(!scan.candidates.length){list.textContent=scan.fullMarketCertified?'全市場通過驗證且未找到符合新版三盤＋量價＋均線條件的股票；不代表隔日不會上漲。':'目前沒有已驗證候選；尚有未分析或資料異常股票，不能視為全市場零候選。';}
       else list.innerHTML=scan.candidates.map((c,i)=>{const t=triggerMeta(c),course=c.courseV52;return `<div class="rule strong-stock-row"><div><strong>${scan.fullMarketCertified?'#':'暫列 #'}${i+1}　${html(c.name)}（${html(c.code)}）｜${html(c.status)} ${html(c.label)}</strong><br>收盤 <b>${fmt(c.close)}</b>｜教材條件覆蓋 <b>${fmt(c.courseSuitabilityScore,0)}/100</b>（非勝率）｜量價條件分 ${fmt(c.score,0)}｜${html(c.date)}｜<b>${html(root.ShitouScanPolicy5328.rsiText(c,true))}</b><br>${html(root.ShitouScanPolicy5328.volumeText(c))}<br><b>${t.icon} ${html(t.label)} ${fmt(c.trigger)}</b>｜<b>🛡️ 防守參考 ${fmt(c.support)}</b>｜今日量／前5日均量 ${fmt(c.wave?.threePanVolumeRatio)} 倍｜距強弱分界線 ${fmt(c.ma21GapPct??c.ma20GapPct)}%</div><div class="meta"><strong>${html(course?.threePan?.icon||'⚪')} 三盤白話：</strong>${html(course?.threePan?.plain||'資料不足')}<br>${html(c.phaseLabel||'量價階段待確認')}｜${html(c.reason)}<br><strong>價格三線：</strong>${html(c.maText||'資料不足')}<br><strong>量能三線：</strong>${html(c.mvText||'資料不足')}<br><strong>${html(fibLine(c))}</strong><br><strong>資料校正：</strong>${html(confidenceText(c))}<br>${scan.fullMarketCertified?'':'僅為已驗證樣本內排序，非全市場排名。'}教材條件覆蓋是條件完整度，不是上漲機率；仍須核對量價與防守。</div></div>`;}).join('');
     }
+    if(list&&scan.candidates.length){const evidence=document.createElement('section');evidence.className='rule';const title=document.createElement('h3');title.textContent='四策略共用｜新買條件研究檢查（原分數與排序保留）';evidence.appendChild(title);for(const c of scan.candidates){const row=document.createElement('p');row.textContent=`${c.name}（${c.code}）｜${root.ShitouSelectionEvidenceV1.describe(c.selectionEvidence)}`;evidence.appendChild(row);}list.appendChild(evidence);}
     const top=id('TopImage'),all=id('AllImage');if(top)top.disabled=!scan.candidates.length;if(all)all.disabled=!scan.candidates.length;
   }
   function buildText(scan){
@@ -198,6 +199,7 @@
     scan.issues.forEach(x=>lines.push(`${x.code} ${x.name}｜${x.status}｜${x.reason}`));
     if(scan.deferred)lines.push(`未深入分析：${scan.deferred} 檔，不能標記為不合格。`);
     if(scan.pending)lines.push(`掃描停止或資源熔斷後未分析：${scan.pending} 檔。`);
+    lines.push('【四策略共用｜新買條件研究檢查】',...scan.candidates.map(c=>`${c.name}（${c.code}）｜${root.ShitouSelectionEvidenceV1.describe(c.selectionEvidence)}`));
     lines.push(`END-OF-STRONG-STOCK-REPORT-R5327｜候選 ${scan.candidates.length}/${scan.candidates.length}`);
     if(root.ShitouTowerIntegration)return root.ShitouTowerIntegration.appendScanText(lines.join('\n'),scan);
     return lines.join('\n');
