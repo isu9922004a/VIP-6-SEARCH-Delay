@@ -161,6 +161,8 @@
     const b=id('ProgressBar');if(b)b.style.width=`${total?Math.floor(done/total*100):0}%`;
   };
   function render(scan){
+    const shadowRun=root.ShitouIndicatorShadow?.capture("STRONG",scan);
+    if(shadowRun)setTimeout(()=>root.ShitouIndicatorShadow?.mount(shadowRun,"strongStockResult"),0);
     const target=id('Result'),meta=id('Meta'),summary=id('Summary'),list=id('List');if(target)target.style.display='block';
     if(meta)meta.textContent=`${statusTitle(scan)}｜市場日期 ${scan.dataDate}｜產生 ${scan.createdAt}｜來源：完整市場快照＋DAILY_ONLY 輕量完成日K｜掃描範圍 ${scan.total} 檔`;
     if(summary){
@@ -203,8 +205,8 @@
     lines.push('【四策略正式篩選｜共用日K與新買決策】',...scan.candidates.map(c=>`${c.name}（${c.code}）｜${root.ShitouSelectionDecisionV2.describe(c.selectionDecision)+'｜'+root.ShitouSelectionEvidenceV1.describe(c.selectionEvidence)}`));
     lines.push('【本次新買風險移出名單】',...(scan.selectionParked||[]).map(c=>`${c.name}（${c.code}）｜${root.ShitouSelectionDecisionV2.describe(c.selectionDecision)}｜原量價條件分 ${c.score}`));
     lines.push(`END-OF-STRONG-STOCK-REPORT-R5327｜候選 ${scan.candidates.length}/${scan.candidates.length}`);
-    if(root.ShitouTowerIntegration)return root.ShitouTowerIntegration.appendScanText(lines.join('\n'),scan);
-    return lines.join('\n');
+    const originalText=root.ShitouTowerIntegration?root.ShitouTowerIntegration.appendScanText(lines.join('\n'),scan):lines.join('\n');
+    return root.ShitouIndicatorShadow?.appendText(originalText,'STRONG',scan)??originalText;
   }
   async function run(){
     if(running||dayTradeScanRunningV1||momentumScanRunningV3762){displayError('已有選股任務執行中，請勿同時掃描。');return;}

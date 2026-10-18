@@ -25,9 +25,11 @@ wrap('renderMarketInfographicV3328',function(old,report,...args){return R.extend
 const strong=root.STRONG_STOCK_TEST_API_V47;if(strong){root.STRONG_STOCK_TEST_API_V47=Object.freeze({...strong,evaluateResponse(item,x,date){const c=strong.evaluateResponse(item,x,date);if(c?.report)c.towerShadow=get(c.report,{asOf:date,completed:true});return c;},buildText(scan){return appendScanText(strong.buildText(scan),scan);}});}
 // The third UI owns private closures. Modify its existing evaluate/text sites separately
 // so real scan output receives the same shadow data, not only the test API.
-function exportText(scan){return root.ShitouTowerScanCopy?.format?root.ShitouTowerScanCopy.format(scan):scan.text;}
+function exportText(scan){const text=root.ShitouTowerScanCopy?.format?root.ShitouTowerScanCopy.format(scan):scan.text;return root.ShitouIndicatorShadow?.appendText(text,'TOWER',scan)??text;}
 function render(scan){const summary=by('towerSummary'),list=by('towerList');if(summary)summary.textContent=`${scan.complete?'處理完成':'部分處理／尚未完整'}｜${scan.date}｜原始${scan.universe}／快篩${scan.quick}／深掃${scan.attempted}/${scan.planned}｜成功${scan.success}／失敗${scan.failed}／資料不足${scan.dataUnavailable}｜${scan.fullMarketCertified?'完整市場資料認證':'非全市場完整排名'}｜SHADOW未啟用交易`;
  if(list)list.innerHTML=V.cards(scan);V.summary(scan);
+ const shadowRun=root.ShitouIndicatorShadow?.capture('TOWER',scan);
+ if(shadowRun){root.ShitouIndicatorShadow.mount(shadowRun,'towerList');scan.text=root.ShitouIndicatorShadow.appendText(scan.text,'TOWER',scan);}
  if(scan.fastAudit&&summary)summary.textContent+='｜⚠️ 加速研究版：未全量FULL等價認證';by('towerReportText').textContent=exportText(scan);by('towerCopy').disabled=false;by('towerDownload').disabled=false;by('towerImage').disabled=!scan.candidates.length;by('towerZip').disabled=!scan.candidates.length;
 }
 // TOWER-NETWORK-RETRY.1: only the fourth strategy's data transport and health probes.
