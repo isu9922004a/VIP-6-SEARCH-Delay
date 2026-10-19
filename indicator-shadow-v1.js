@@ -92,8 +92,8 @@ function volumeContext(report,bars,asOf){
 }
 function strategyContext(e,kind='STOCK',subtype=''){
  const v=e?.volume,level=v?.levels,has=e?.status!=='DATA'&&v?.available;
- const aims={STOCK:'趨勢強度與新買風險分開',MAIN:'主升突破／延續／回測分開',DAYTRADE:'盤前適配與次日開收表現分開',STRONG:'強勢排名與追價風險分開',TOWER:subtype==='B'?'B 黑翻紅：早期轉折觀察':subtype==='A'?'A 紅線續強：延續觀察':'寶塔A／B型態尚未提供'};
- const notes={STOCK:'日K條件不能替代月線資格。',MAIN:'今日突破不等於隔日已站穩。',DAYTRADE:'隔日跳空與盤中流動性未知；日K不能確認當沖進場。',STRONG:'RSI高值不直接降級；乖離與弱收盤另列。',TOWER:subtype==='B'?'不要求RSI已連續五天高於50，避免改變早期轉折目的。':'寶塔原翻色與失效價位仍依原模型；量能關卡另列，不互相取代。'};
+ const aims={RESTAURANT:'餐廳量價觀察：原圖主力／JMA需另核對',STOCK:'趨勢強度與新買風險分開',MAIN:'主升突破／延續／回測分開',DAYTRADE:'盤前適配與次日開收表現分開',STRONG:'強勢排名與追價風險分開',TOWER:subtype==='B'?'B 黑翻紅：早期轉折觀察':subtype==='A'?'A 紅線續強：延續觀察':'寶塔A／B型態尚未提供'};
+ const notes={RESTAURANT:'餐廳訊號日低點以第五濾網報告為準；此處量能關卡另列，推估漲停與SMA20不等同原圖已驗證。',STOCK:'日K條件不能替代月線資格。',MAIN:'今日突破不等於隔日已站穩。',DAYTRADE:'隔日跳空與盤中流動性未知；日K不能確認當沖進場。',STRONG:'RSI高值不直接降級；乖離與弱收盤另列。',TOWER:subtype==='B'?'不要求RSI已連續五天高於50，避免改變早期轉折目的。':'寶塔原翻色與失效價位仍依原模型；量能關卡另列，不互相取代。'};
  return {kind,subtype,aim:aims[kind]||aims.STOCK,state:has?v.state:'DATA',label:has?v.label:'資料不足',
   continuation:has?`下一完成收盤高於量能高點 ${fmt(v.anchor.high)}，僅續列延續觀察。`:'缺少可驗證日K／量能關卡，不提供續強門檻。',
   invalidation:has?`完成收盤 < ${fmt(level.invalidation)}：此量價觀察失效（${level.source} ${v.anchor.date}）。`:'量價失效參考：資料不足。',note:notes[kind]||notes.STOCK,rankingChanged:false,eligibilityChanged:false};

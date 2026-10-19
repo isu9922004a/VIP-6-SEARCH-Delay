@@ -1,0 +1,92 @@
+/* Restaurant 1: transparent long-side adaptation of the supplied screenshot.
+ * It is not a reproduction of the source's JMA or proprietary main-broker data.
+ */
+(function(root,factory){const N=typeof module==='object'&&module.exports,api=factory(N?require('./selection-evidence-v1.js'):root.ShitouSelectionEvidenceV1,N?require('./indicator-shadow-v1.js'):root.ShitouIndicatorShadowCore,N?require('./scan-exclusions-rsi-v5328.js'):root.ShitouScanPolicy5328);if(N)module.exports=api;else root.ShitouRestaurantCore=api;})(globalThis,function(E,I,P){
+'use strict';
+const MODEL='RESTAURANT_BALANCED_1',RULE=Object.freeze({eventWindow:3,minBars:26,volumeSoftMax:1.2,belowMAWatchPct:3,lateGapPct:15,lateReturn10Pct:30,extremeGapPct:20,extremeReturn10Pct:35,exhaustionVolume:3,exhaustionShadow:.35,weakClose:.4,rankPreferred:100,priceTrend:'SMA20_NOT_JMA',ranking:'RISK_THEN_FIT_NO_WEIGHT_SEARCH'});
+const number=v=>v===null||v===undefined||v===''||typeof v==='boolean'||typeof v==='object'?null:Number.isFinite(Number(v))?Number(v):null;
+const mean=a=>a.reduce((s,v)=>s+v,0)/a.length;
+const LABELS=Object.freeze({CANDIDATE:'均衡量價候選',WATCH:'附警訊觀察',NO_CHASE:'高風險旁列',NO_SIGNAL:'未見近期訊號',DATA:'資料不足',EXCLUDED:'共用排除'});
+function tick(p){return p<10?.01:p<50?.05:p<100?.1:p<500?.5:p<1000?1:5;}
+function estimatedUpper(reference){if(!(reference>=1))return null;const raw=reference*1.1,t=tick(raw);return Math.round(Math.floor((raw+1e-9)/t)*t*100)/100;}
+const equal=(a,b)=>Math.abs(a-b)<=1e-6;
+function windowSize(v){return [1,3,5].includes(Number(v))?Number(v):RULE.eventWindow;}
+function supplemental(record,report,asOf){return record?.verified===true&&E.date(record.date)===asOf&&String(record.code)===String(report.stock||report.code)&&String(record.market).toUpperCase()===String(report.market).toUpperCase()&&typeof record.source==='string'&&record.source.trim().length>0;}
+function limitAt(report,bars,index){
+ const bar=bars[index],prior=bars[index-1];if(!prior)return {kind:'UNKNOWN',date:bar.date};
+ const evidence=report.restaurantEvidence||{},records=Array.isArray(evidence.limits)?evidence.limits:[];
+ const hits=records.filter(r=>E.date(r.date)===bar.date&&supplemental(r,report,bar.date));
+ if(hits.length>1)return {kind:'UNKNOWN',date:bar.date,reason:'官方漲停欄位重複'};
+ const official=hits[0];
+ if(official?.noPriceLimit===true)return {kind:'NO_LIMIT',date:bar.date};
+ if(official&&number(official.limitUpPrice)>0){const price=number(official.limitUpPrice);if(bar.high>price+1e-6)return {kind:'UNKNOWN',date:bar.date,reason:'日K超過提供的漲停價'};return {kind:'OFFICIAL',date:bar.date,price,closed:equal(bar.close,price),touched:equal(bar.high,price),source:official.source};}
+ if(report.noPriceLimit===true||report.noDailyLimit===true||(report.corporateActions||[]).some(e=>!E.date(e.date)||E.date(e.date)===bar.date))return {kind:'UNKNOWN',date:bar.date,reason:'公司行動或無漲跌幅限制，不以前收推估'};
+ const price=estimatedUpper(prior.close);if(!price||bar.high>price+1e-6)return {kind:'UNKNOWN',date:bar.date,reason:'非標準10%範圍或參考價不足'};
+ return {kind:'ESTIMATED',date:bar.date,price,closed:equal(bar.close,price),touched:equal(bar.high,price),source:'前收×1.1依普通股升降單位向下取整；非官方競價基準'};
+}
+function evaluate(report,options={}){
+ const asOf=E.date(options.asOf),code=String(report?.stock||report?.code||''),q=options.quote,window=windowSize(options.eventWindow);
+ const base={model:MODEL,code,name:report?.name||code,date:asOf,status:'DATA',eligible:false,sourceMatch:null,sourceCheckState:'UNVERIFIED',monthlyStatus:E.monthly(report||{}),reasons:[],warnings:[],riskCodes:[],rule:{...RULE,eventWindow:window},score:null};
+ const missing=reason=>({...base,label:LABELS.DATA,reasons:[reason]});
+ if(!report||!asOf||!q)return missing('缺少目標交易日或同日市場報價');
+ if(report.completed===false||report.isComplete===false||!(report.completed===true||report.isComplete===true||report.dataTiming==='POST_CLOSE_ONLY'))return missing('完成盤後狀態未確認');
+ if(String(options.code||code)!==code||!/^\d{4}$/.test(code))return missing('個股代號不符或非普通股代號');
+ if(String(report.market).toUpperCase()!==String(q.market).toUpperCase()||!['TWSE','TPEX'].includes(String(report.market).toUpperCase()))return missing('市場別不符／未提供');
+ const decision=P.classify(code,q,options.sector||{},options.meta||{});
+ if(decision.excluded)return {...base,status:'EXCLUDED',label:LABELS.EXCLUDED,reasons:[decision.reason]};
+ const indicator=I.evaluate(report,{asOf});if(indicator.status==='DATA')return missing(indicator.reasons.join('；'));
+ const check=E.normalize(report.canonicalBars||report.dailySeries,asOf);if(!check.ok)return missing(check.reason);
+ const b=check.bars,last=b.at(-1),prev=b.at(-2);
+ if(E.date(q.quoteDate)!==asOf||['open','high','low','close'].some(k=>!(number(q[k])>0)||Math.abs(q[k]-last[k])>Math.max(.02,last[k]*.0001))||!(number(q.volume)>0)||Math.abs(q.volume-last.volume)/q.volume>.2)return missing('市場與日K日期、OHLC或量未對齊');
+ const liquid=P.liquidity(report);if(!liquid.known)return missing(liquid.reason);if(!liquid.ok)return {...base,status:'EXCLUDED',label:LABELS.EXCLUDED,reasons:[liquid.reason]};
+ const ma20=mean(b.slice(-20).map(x=>x.close)),v5=mean(b.slice(-6,-1).map(x=>x.volume)),v20=mean(b.slice(-21,-1).map(x=>x.volume));
+ if(!(v5>0&&v20>0))return missing('歷史成交量分母不足');
+ const volume5=last.volume/v5,volume20=last.volume/v20,range=last.high-last.low,pos=range?(last.close-last.low)/range:.5,shadow=range?(last.high-Math.max(last.open,last.close))/range:0;
+ const gap=(last.close/ma20-1)*100,return10=(last.close/b.at(-11).close-1)*100,cmf20=E.cmf(b),priorHigh=Math.max(...b.slice(-21,-1).map(x=>x.high));
+ const trail=b.slice(-5).map((_,j)=>{const i=b.length-5+j;return {...limitAt(report,b,i),index:i,low:b[i].low,high:b[i].high};});
+ const events=trail.slice(-window).filter(x=>x.closed),event=events.at(-1),opened=trail.at(-1).touched&&!trail.at(-1).closed;
+ let streak=0;for(let i=trail.length-1;i>=0&&trail[i].closed;i--)streak++;
+ const main=report.restaurantEvidence?.mainNetBuyShare,jma=report.restaurantEvidence?.jma20;
+ const mainValid=supplemental(main,report,asOf)&&main.definition==='MAIN_NET_BUY_VOLUME_OVER_TOTAL_VOLUME'&&number(main.valuePct)!==null&&Math.abs(main.valuePct)<=100;
+ const jmaValid=supplemental(jma,report,asOf)&&jma.period===20&&number(jma.value)>0&&typeof jma.formulaId==='string'&&jma.formulaId.trim();
+ const rankKnown=options.valueRankVerified===true&&Number.isInteger(options.valueRank)&&options.valueRank>0;
+ const checks=[{key:'TODAY_LIMIT',label:'圖片：今日至少1天漲停',pass:trail.at(-1).kind==='OFFICIAL'?trail.at(-1).closed:null,note:trail.at(-1).kind==='OFFICIAL'?'已提供官方漲停價':'未取得官方漲停價；推估不算原條件驗證'},
+  {key:'MAIN',label:'圖片：主力買超占量 >5%',pass:mainValid?main.valuePct>5:null,note:mainValid?`${main.valuePct}%｜${main.source}`:'未提供同日可驗證的原始主力定義資料；OBV／CMF不替代'},
+  {key:'VOLUME',label:'今日量 < 前5日均量',pass:volume5<1,note:'比較均量排除今日；與來源平台窗口口徑尚未核對'},
+  {key:'JMA',label:'圖片：收盤 > JMA20',pass:jmaValid?last.close>jma.value:null,note:jmaValid?`${jma.formulaId}｜${jma.source}`:'未取得原公式／值；本版趨勢另用SMA20，不冒稱JMA'},
+  {key:'VALUE',label:'上市櫃普通股成交值前100',pass:rankKnown?options.valueRank<=100:null,note:rankKnown?`同日完整市場普通股序位 ${options.valueRank}`:'完整排名母體或成交值不足'},
+  {key:'CMF',label:'CMF20 >0',pass:cmf20===null?null:cmf20>0,note:'20根日K收盤位置乘成交量的統計，不是主力身分'}];
+ const unknown=checks.filter(x=>x.pass===null).map(x=>x.key),failed=checks.filter(x=>x.pass===false).map(x=>x.key),risks=[],hard=[],warnings=[...indicator.warnings];
+ if(!event)return {...base,status:'NO_SIGNAL',label:LABELS.NO_SIGNAL,reasons:[`近${window}根完成日K未見收盤漲停／推估漲停事件`],checks,indicator,event:null,sourceCheckState:unknown.length?'UNVERIFIED':failed.length?'NOT_MATCH':'VERIFIED_MATCH',sourceMatch:failed.length?false:unknown.length?null:true};
+ const age=b.length-1-event.index;
+ if(event.kind!=='OFFICIAL')warnings.push('漲停事件採前收與普通股升降單位推估，尚未官方確認');
+ if(unknown.length)warnings.push('圖片原條件尚未完整驗證：'+unknown.map(k=>({TODAY_LIMIT:'官方漲停價',MAIN:'主力買超',JMA:'JMA20',VALUE:'完整成交值排名',CMF:'CMF20'}[k]||k)).join('／'));
+ if(last.close<event.low)hard.push('EVENT_LOW_BROKEN');
+ if(last.high>priorHigh&&last.close<priorHigh&&volume20>=1.5&&pos<RULE.weakClose)hard.push('BREAKOUT_FAILED_WEAK_CLOSE');
+ if(volume20>=RULE.exhaustionVolume&&shadow>=RULE.exhaustionShadow&&pos<=RULE.weakClose)hard.push('EXHAUSTION_WEAK_CLOSE');
+ if(gap>RULE.extremeGapPct&&(return10>RULE.extremeReturn10Pct||streak>=3))hard.push('EXTREME_EXTENSION');
+ if(gap<-RULE.belowMAWatchPct)hard.push('BELOW_MA20_3PCT');
+ if(gap>RULE.lateGapPct)risks.push('EXTENDED_MA20');
+ if(return10>RULE.lateReturn10Pct)risks.push('FAST_RISE_10D');
+ if(trail.filter(x=>x.closed).length>=3)risks.push('MANY_LIMIT_EVENTS');
+ if(volume5>RULE.volumeSoftMax)risks.push('NOT_CONTRACTING');
+ if(last.close<ma20)risks.push('BELOW_MA20');
+ if(cmf20===null||cmf20<=0)risks.push('CMF_NOT_POSITIVE');
+ if(mainValid&&main.valuePct<=5)risks.push('MAIN_NOT_CONFIRMED');
+ if(jmaValid&&last.close<=jma.value)risks.push('BELOW_JMA20');
+ if(pos<.5)risks.push('WEAK_CLOSE');
+ if(opened)risks.push('LIMIT_OPENED');
+ if(indicator.obv?.state==='PRICE_HIGH_NOT_CONFIRMED')risks.push('OBV_DIVERGENCE');
+ const status=hard.length?'NO_CHASE':risks.length?'WATCH':'CANDIDATE';
+ const riskTexts={EVENT_LOW_BROKEN:'收盤跌破最近訊號日低點',BREAKOUT_FAILED_WEAK_CLOSE:'放量越過前20日高點後，收盤退回且偏弱',EXHAUSTION_WEAK_CLOSE:'量達前20日均量3倍，長上影且弱收盤',EXTREME_EXTENSION:'乖離逾20%，且短期急漲／連續訊號，末升段風險偏高',BELOW_MA20_3PCT:'收盤低於SMA20超過3%',EXTENDED_MA20:'離SMA20逾15%，追價距離偏大',FAST_RISE_10D:'10日漲幅逾30%',MANY_LIMIT_EVENTS:'近5根至少3次漲停／推估漲停，留意末升段',NOT_CONTRACTING:'量／前5日均量大於1.2倍，尚非量縮整理',BELOW_MA20:'尚未站回SMA20',CMF_NOT_POSITIVE:'CMF20未偏正',WEAK_CLOSE:'收盤在日內區間下半部',LIMIT_OPENED:'今日觸及漲停／推估上限，收盤未鎖住',OBV_DIVERGENCE:'股價創高而OBV未確認',MAIN_NOT_CONFIRMED:'已提供的主力買超占量未超過5%',BELOW_JMA20:'已提供的JMA20條件尚未站上'};
+ const localFit=[volume5<1,last.close>ma20,cmf20>0,rankKnown&&options.valueRank<=100].filter(Boolean).length;
+ return {...base,status,label:LABELS[status],eligible:status==='CANDIDATE'||status==='WATCH',sourceMatch:failed.length?false:unknown.length?null:true,sourceCheckState:unknown.length?'UNVERIFIED':failed.length?'NOT_MATCH':'VERIFIED_MATCH',
+  reasons:[`近${window}根內${event.kind==='OFFICIAL'?'官方':'推估'}收盤漲停事件 ${event.date}（距今${age}根）`,...[...hard,...risks].map(k=>riskTexts[k])],warnings,checks,riskCodes:[...hard,...risks],hardRiskCodes:hard,indicator,event:{...event,age,streak},
+  features:{ma20,gap20Pct:gap,return10Pct:return10,volumeRatio5:volume5,volumeRatio20:volume20,closePosition:pos,upperShadow:shadow,cmf20,valueRank:rankKnown?options.valueRank:null,valueRankVerified:rankKnown,tradeValue:q.tradeValue,localFit,sourcePassed:checks.filter(x=>x.pass===true).length,sourceUnknown:unknown.length},
+  levels:{support:event.low,invalidation:event.low,pressure:Math.max(event.high,priorHigh),source:`最近訊號日 ${event.date} 低點；與SMA20分開`},
+  report:{...report,canonicalBars:b,dailySeries:b},meaning:'多方均衡觀察版；原圖主力與JMA若未驗證，不宣稱原策略成立。風險規則不能消除末升段或假突破。'};
+}
+function compare(a,b){const order={CANDIDATE:0,WATCH:1,NO_CHASE:2,NO_SIGNAL:3,DATA:4,EXCLUDED:5};return (order[a.status]??9)-(order[b.status]??9)||(a.riskCodes?.length??99)-(b.riskCodes?.length??99)||(a.event?.kind==='OFFICIAL'?0:1)-(b.event?.kind==='OFFICIAL'?0:1)||(b.features?.localFit??-1)-(a.features?.localFit??-1)||(a.event?.age??99)-(b.event?.age??99)||Math.abs(a.features?.gap20Pct??999)-Math.abs(b.features?.gap20Pct??999)||(a.features?.valueRank??99999)-(b.features?.valueRank??99999)||a.code.localeCompare(b.code);}
+function lines(c){const f=c.features,fmt=v=>number(v)===null?'資料不足':Number(v).toFixed(2);return [`${c.name}（${c.code}）｜${c.label}｜原圖核對：${({UNVERIFIED:'尚未完整核對',NOT_MATCH:'條件不完全符合',VERIFIED_MATCH:'六項輸入核對符合'})[c.sourceCheckState]||'資料不足'}`, ...c.reasons,c.monthlyStatus==='PASS'?'月線明示通過':c.monthlyStatus==='NOT_PASS'?'月線條件未通過；本濾網僅列當沖量價觀察':'月線尚未驗證；日SMA20不替代月20MA資格',...(f?[`收盤 ${fmt(c.report.close)}｜SMA20 ${fmt(f.ma20)}｜乖離 ${fmt(f.gap20Pct)}%｜10日 ${fmt(f.return10Pct)}%`,`量／前5均量 ${fmt(f.volumeRatio5)}｜量／前20均量 ${fmt(f.volumeRatio20)}｜CMF20 ${fmt(f.cmf20)}`,`支撐／量價失效 < ${fmt(c.levels.invalidation)}｜壓力 ${fmt(c.levels.pressure)}｜${c.levels.source}`,`下一交易日：收盤維持訊號日低點上方、觀察能否站穩壓力；盤中進場與跳空尚未確認。`]:[]),...(c.checks||[]).map(x=>`${x.pass===null?'未驗證':x.pass?'符合':'不符合'}｜${x.label}｜${x.note}`),...c.warnings,'風險排序不是上漲機率；收盤鎖漲停不代表隔日買得到。'];}
+return Object.freeze({MODEL,RULE,LABELS,number,tick,estimatedUpper,windowSize,limitAt,evaluate,compare,lines});
+});
