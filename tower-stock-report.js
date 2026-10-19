@@ -117,7 +117,10 @@ function renderAnalysis(a,input){
   `資料${t.ok?'有效':'不足'}；價位為候選關卡，不是明日買點。`
  ],'blue',{size:26,min:23,titleSize:28,titleH:34,pad:16});
  ctx.fillStyle='#15344e';ctx.fillRect(0,2704,WIDTH,74);
- fit(ctx,`石頭少爺｜${RELEASE}｜${a.date||'不足'}`,M,2724,W,34,25,22,'#d9e7f1');mark('footer',2704,2778);
+ // Full release identifiers now span two readable lines. Keep the original
+ // safety guard; use the footer's actual available height instead of one line.
+ const footerText=`石頭少爺｜${RELEASE}｜${a.date||'不足'}`,footerUsed=fit(ctx,footerText,M,2712,W,62,25,22,'#d9e7f1');mark('footer',2704,2778);
+ canvas.dataset.towerFooterAudit=JSON.stringify({text:footerText,top:2712,bottom:2712+footerUsed,safeBottom:2778,minFont:22,completeVersion:true,noOverlap:2712+footerUsed<=2778});
  canvas.dataset.reportMode='tower-stock';canvas.dataset.iphoneFullScreen='1284x2778';canvas.dataset.release=RELEASE;canvas.dataset.dataDate=a.date||'UNAVAILABLE';canvas.dataset.reportText=textFrom(a,input);
  canvas.dataset.towerAnalysis=encodeURIComponent(JSON.stringify(a));canvas.dataset.layoutAudit=encodeURIComponent(JSON.stringify({size:'1284x2778',fullBleed:true,noOverlap:sections.every((s,i)=>!i||s.top>=sections[i-1].bottom),textOverflowCount:0,sections,dataBlocked:!t.ok||!a.risk.ok}));return canvas;
 }

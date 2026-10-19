@@ -8,9 +8,22 @@ const num=E? v=>v===null||v===undefined||v===''?null:Number.isFinite(Number(v))?
 const fail=reason=>{throw Error('資料不足｜共用日K：'+reason);};
 const market=v=>String(v||'').toUpperCase()==='TPEX'?'TPEX':String(v||'').toUpperCase()==='TWSE'?'TWSE':null;
 function fingerprint(rows){const text=JSON.stringify(rows);let h=2166136261;for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619);}return rows.length+'-'+(h>>>0).toString(16);}
-function bind(bundle){
+function inspectSnapshot(bundle){
  const meta=bundle?.meta||{},dates=[meta.targetTradeDate,meta.completedTradeDate,meta.expectedTradeDate,meta.twseQuoteDate,meta.tpexQuoteDate].map(E.date);
- if(meta.marketCoverageReady!==true||meta.industryCoverageReady!==true||meta.snapshotTimelinessReady!==true||dates.some(d=>!d)||new Set(dates).size!==1||!(bundle.map instanceof Map)||num(meta.total)!==num(bundle.snapshotRows??bundle.map.size)||bundle.map.size>num(meta.total)||bundle.map.size===0)fail('市場快照完整性、最新交易日或筆數未通過');
+ const issues=[],names=['目標交易日','完成交易日','預期交易日','上市報價日','上櫃報價日'],isMap=bundle?.map instanceof Map,total=num(meta.total),rows=num(bundle?.snapshotRows??bundle?.map?.size);
+ if(meta.marketCoverageReady!==true)issues.push('上市／上櫃完整性未通過');
+ if(meta.industryCoverageReady!==true)issues.push('產業覆蓋未通過');
+ if(meta.snapshotTimelinessReady!==true)issues.push('最新交易日核對未通過（snapshotTimelinessReady）');
+ dates.forEach((d,i)=>{if(!d)issues.push(names[i]+'缺失或無效');});
+ if(dates.every(Boolean)&&new Set(dates).size!==1)issues.push('交易日不一致：'+dates.join('／'));
+ if(!isMap)issues.push('市場快照Map未提供');
+ if(total!==rows)issues.push(`原始快照筆數不符：宣告 ${meta.total??'未提供'}／收到 ${rows??'未提供'}`);
+ if(isMap&&(bundle.map.size>total||bundle.map.size===0))issues.push(`有效快照筆數異常：${bundle.map.size}／${meta.total??'未提供'}`);
+ return {ok:issues.length===0,date:dates[0],issues,source:meta.source||bundle?.source||'未提供',total,rows,parsed:isMap?bundle.map.size:null};
+}
+function bind(bundle){
+ const audit=inspectSnapshot(bundle);if(!audit.ok)fail('市場快照完整性、最新交易日或筆數未通過｜'+audit.issues.join('；'));
+ const meta=bundle.meta,dates=[audit.date];
  const map=new Map();for(const [code,q] of bundle.map){const m=market(q.market);if(!m)fail('市場別缺失 '+code);if(q.quoteDate&&E.date(q.quoteDate)!==dates[0])fail('市場報價日期衝突 '+code);map.set(String(code),{...q,market:m,quoteDate:dates[0],volumeUnit:'shares'});}
  if(snapshot?.date!==dates[0]){cache.clear();pending.clear();months.clear();}
  snapshot={date:dates[0],map,meta};return {...bundle,map};
@@ -67,5 +80,5 @@ async function harmonize(items,payload,profile='FULL'){
  return {...payload,results};
 }
 function fromUrl(url){const u=new URL(url,'https://local.invalid'),codes=(u.searchParams.get('codes')||'').split(',').filter(Boolean);return {items:codes.map(code=>({code,q:snapshot?.map.get(code)})),profile:u.searchParams.get('profile')||'FULL'};}
-return Object.freeze({MODEL,bind,context,get,validate,remember,ensure,apply,harmonize,fromUrl,fingerprint,setFetcher:f=>{fetcher=f;},getSnapshot:()=>snapshot,reset:()=>{snapshot=null;cache.clear();pending.clear();months.clear();}});
+return Object.freeze({MODEL,inspectSnapshot,bind,context,get,validate,remember,ensure,apply,harmonize,fromUrl,fingerprint,setFetcher:f=>{fetcher=f;},getSnapshot:()=>snapshot,reset:()=>{snapshot=null;cache.clear();pending.clear();months.clear();}});
 });

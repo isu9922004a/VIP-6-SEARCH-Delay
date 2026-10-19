@@ -14,7 +14,28 @@ function taipeiClock(){
 function snapshotDateCompact(s){return String(s?.tradeDate||s?.tradeDateIso||'').replace(/\D/g,'');}
 function validMarketSnapshot(s){
  const total=Number(s?.counts?.totalRows),rows=Array.isArray(s?.rows)?s.rows:[];
- return s?.marketCoverageReady===true&&/^\d{8}$/.test(snapshotDateCompact(s))&&rows.length>=1000&&Number.isFinite(total)&&total===rows.length;
+ const d=P.date(snapshotDateCompact(s)),twse=rows.filter(q=>q.market==='TWSE').length,tpex=rows.filter(q=>q.market==='TPEX').length;
+ return s?.marketCoverageReady===true&&!!d&&(!s.tradeDateIso||P.date(s.tradeDateIso)===d)&&rows.length>=1000&&Number.isFinite(total)&&total===rows.length&&twse>0&&tpex>0&&twse===Number(s.counts.twseRows)&&tpex===Number(s.counts.tpexRows)&&twse+tpex===total&&new Set(rows.map(q=>String(q.code))).size===total&&rows.every(q=>P.date(q.quoteDate)===d)&&['twseQuotes','tpexQuotes'].every(k=>!s.sourceMeta?.[k]?.finalDate||P.date(s.sourceMeta[k].finalDate)===d);
+}
+// Derive the expected session from the Taipei clock and the trusted snapshot's
+// official calendar, independently of the snapshot's own tradeDate.
+function expectedSnapshotDate(s){
+ const clock=taipeiClock(),today=P.date(clock.compact),cal=s.marketCalendar||{},closures=Array.isArray(cal.closures)?cal.closures:[],special=Array.isArray(cal.specialTradingDates)?cal.specialTradingDates:[];
+ const dates=[...closures,...special].map(x=>P.date(x?.date)),calendarReady=cal.ready===true&&/^https:\/\/openapi\.twse\.com\.tw\/v1\/holidaySchedule\/holidaySchedule\/?$/.test(cal.source||'')&&dates.length>0&&dates.every(Boolean);
+ const closed=new Set(closures.map(x=>P.date(x.date))),opened=new Set(special.map(x=>P.date(x.date))),years=new Set(dates.filter(Boolean).map(d=>d.slice(0,4)));
+ if([...closed].some(d=>opened.has(d)))throw Error('備援交易日曆的開休市日期衝突');
+ if(!calendarReady){
+  const weekday=new Date(today+'T00:00:00Z').getUTCDay();
+  if(clock.minutes>=17*60+35&&weekday>=1&&weekday<=5&&P.date(snapshotDateCompact(s))===today)return {date:today,basis:'今日17:35後，兩市場同日完整報價',clock};
+  throw Error('備援缺少可核對的官方交易日曆，無法確認最新完成交易日');
+ }
+ const cursor=new Date(today+'T00:00:00Z');if(clock.minutes<17*60+35)cursor.setUTCDate(cursor.getUTCDate()-1);
+ for(let i=0;i<32;i++,cursor.setUTCDate(cursor.getUTCDate()-1)){
+  const d=cursor.toISOString().slice(0,10),weekday=cursor.getUTCDay();
+  if(!years.has(d.slice(0,4)))throw Error('備援交易日曆未涵蓋所需年度 '+d.slice(0,4));
+  if(opened.has(d)||weekday>=1&&weekday<=5&&!closed.has(d))return {date:d,basis:'臺北17:35完成窗口＋官方開休市日曆',clock};
+ }
+ throw Error('備援交易日曆無法確認最近完成交易日');
 }
 function shouldRequireToday(s){
  const t=taipeiClock(),closures=Array.isArray(s?.marketCalendar?.closures)?s.marketCalendar.closures:[],special=Array.isArray(s?.marketCalendar?.specialTradingDates)?s.marketCalendar.specialTradingDates:[];
@@ -24,6 +45,8 @@ function shouldRequireToday(s){
  return t.minutes>=17*60+35;
 }
 function snapshotBundle(s,url){
+ if(!validMarketSnapshot(s))throw Error('備援市場筆數、兩市場日期或重複代號核對未通過');
+ const timing=expectedSnapshotDate(s);if(P.date(snapshotDateCompact(s))!==timing.date)throw Error(`備援快照日期不符：收到 ${P.date(snapshotDateCompact(s))}／預期 ${timing.date}`);
  const d=snapshotDateCompact(s),iso=d.slice(0,4)+'-'+d.slice(4,6)+'-'+d.slice(6),rows=s.rows||[];
  const map=new Map(rows.map(q=>[String(q.code),{...q,quoteDate:P.date(q.quoteDate||d)||iso}]));
  const sectorMap=new Map(rows.map(q=>[String(q.code),{industry:q.industry||q.industryName||'',industryCode:q.industryCode||'',industryName:q.industryName||q.industry||''}]));
@@ -32,15 +55,18 @@ function snapshotBundle(s,url){
   map,sectorMap,snapshotRows:total,snapshotDropped:0,exclusionStatus:s.exclusionStatus||null,
   meta:{
    marketCoverageReady:true,
+   quoteSourcesReady:{twse:true,tpex:true},
    industryCoverageReady:industryReady>=Math.max(1000,total-20),
-   targetTradeDate:iso,completedTradeDate:iso,twseQuoteDate:iso,tpexQuoteDate:iso,total,
+   targetTradeDate:iso,completedTradeDate:iso,expectedTradeDate:timing.date,snapshotTimelinessReady:true,twseQuoteDate:iso,tpexQuoteDate:iso,total,
+   timelinessEvidence:{source:'TRUSTED_GITHUB_SNAPSHOT_ADAPTER',basis:timing.basis,expectedTradeDate:timing.date,taipeiDate:P.date(timing.clock.compact),taipeiMinutes:timing.clock.minutes,cutoff:'17:35'},
    marketCalendar:s.marketCalendar||null,
    snapshotUrl:url,
    snapshotContentSha256:s.contentSha256||null,
    snapshotGeneratedAt:s.generatedAt||null,
    source:'GITHUB_SNAPSHOT_FALLBACK',
    twseRows:Number(s?.counts?.twseRows||0),
-   tpexRows:Number(s?.counts?.tpexRows||0)
+   tpexRows:Number(s?.counts?.tpexRows||0),
+   twseQuotes:Number(s?.counts?.twseRows||0),tpexQuotes:Number(s?.counts?.tpexRows||0)
   }
  };
 }
@@ -53,17 +79,17 @@ async function fetchSnapshotCandidate(url){
  return {snapshot:s,url};
 }
 async function freshGithubBundleFallback(originalError){
+ const diagnostics=[];
  for(let i=0;i<FRESHNESS_RETRY_DELAYS.length;i++){
   const delay=FRESHNESS_RETRY_DELAYS[i];if(delay)await new Promise(resolve=>setTimeout(resolve,delay));
   for(const url of [CANONICAL_MARKET_BASE+'latest.json',LOCAL_MARKET_LATEST]){
    try{
     const hit=await fetchSnapshotCandidate(url);if(!hit)continue;
-    const required=shouldRequireToday(hit.snapshot),today=taipeiClock().compact,current=snapshotDateCompact(hit.snapshot);
-    if(required&&current!==today)continue;
     return snapshotBundle(hit.snapshot,hit.url);
-   }catch(_){/* 下一來源／下一輪 */}
+   }catch(e){diagnostics.push(String(e?.message||e));/* 下一來源／下一輪 */}
   }
  }
+ if(diagnostics.length)throw Error(String(originalError?.message||originalError)+'｜市場備援未通過：'+[...new Set(diagnostics)].join('；'));
  throw originalError;
 }
 function remoteStatusUrls(bundle,d){
@@ -108,7 +134,7 @@ async function statusFor(bundle){
 const loader=root.loadMarketBundleFromWorkerV3766;
 if(typeof loader==='function')root.loadMarketBundleFromWorkerV3766=async function(...args){
  let b;
- try{b=await loader.apply(this,args);}
+ try{b=await loader.apply(this,args);const audit=root.ShitouSelectionDataV2?.inspectSnapshot?.(b);if(audit&&!audit.ok)throw Error('Worker快照交接未通過：'+audit.issues.join('；'));}
  catch(error){b=await freshGithubBundleFallback(error);}
  try{
   const meta=b?.meta||{},target=P.date(meta.targetTradeDate||meta.completedTradeDate),today=P.date(taipeiClock().compact);
