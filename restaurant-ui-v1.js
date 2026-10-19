@@ -85,7 +85,7 @@ function install(){
  const tower=document.getElementById('towerGoldPanel'),footer=document.querySelector('footer');if(tower)tower.insertAdjacentElement('afterend',panel);else if(footer)footer.before(panel);else document.body.appendChild(panel);
  by('Run').onclick=run;by('Stop').onclick=stop;by('Copy').onclick=copy;
  by('Text').onclick=()=>{try{const s=content();download(new Blob([text()],{type:'text/plain;charset=utf-8'}),'餐廳擠不進去_'+s.date+'_'+root.ShitouReleaseV50.code+'.txt');}catch(e){note(e.message);}};
- by('JSON').onclick=()=>{try{const s=content();download(new Blob([JSON.stringify({release:root.ShitouReleaseV50.code,exportedAt:new Date().toISOString(),scan:s},null,2)],{type:'application/json'}),'餐廳擠不進去_'+s.date+'.json');}catch(e){note(e.message);}};
+ by('JSON').onclick=()=>{try{const s=content();download(new Blob([JSON.stringify({release:root.ShitouReleaseV50.code,exportedAt:new Date().toISOString(),scan:s,rsiObservations:root.ShitouIndicatorShadow?.capture('RESTAURANT',s)?.rows||[]},null,2)],{type:'application/json'}),'餐廳擠不進去_'+s.date+'.json');}catch(e){note(e.message);}};
  for(const [key,all] of [['Image',false],['AllImages',true]])by(key).onclick=()=>{try{root.ShitouRestaurantReport.preview(content(),all).catch(e=>note('圖片未完成：'+e.message));}catch(e){note(e.message);}};
  const nav=document.getElementById('towerGoldShortcut')?.parentElement;if(nav){const a=el('a','⑤ 餐廳擠不進去');a.href='#restaurantPanel';a.className='restaurant-shortcut';nav.appendChild(a);}
  const style=el('style');style.textContent=`

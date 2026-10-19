@@ -1,5 +1,5 @@
 /* OBSERVE.2 — deterministic, prefix-only research. No scores, gates or ranking. */
-(function(root,factory){const E=typeof module==='object'&&module.exports?require('./selection-evidence-v1.js'):root.ShitouSelectionEvidenceV1;const api=factory(E);if(typeof module==='object'&&module.exports)module.exports=api;else root.ShitouIndicatorShadowCore=api;})(globalThis,function(E){
+(function(root,factory){const E=typeof module==='object'&&module.exports?require('./selection-evidence-v1.js'):root.ShitouSelectionEvidenceV1;const X=typeof module==='object'&&module.exports?require('./rsi-extended-v1.js'):root.ShitouRsiExtended;const api=factory(E,X);if(typeof module==='object'&&module.exports)module.exports=api;else root.ShitouIndicatorShadowCore=api;})(globalThis,function(E,X){
 'use strict';
 const MODEL='RSI_VOLUME_CONTEXT_SHADOW_2';
 const POLICY=Object.freeze({rsiPeriod:14,rsiWindow:10,rsiHighWindow:20,rsiStreakThreshold:50,rsiStreakStrict:true,obvWindow:20,sarStep:0.02,sarMax:0.2,sarWarmup:60,contextMA:20,volumeWindow:20,pullbackRule:'DOWN_CLOSE_VOLUME_LT1_ABOVE_PRIOR20_MAX_VOLUME_HIGH',weights:null,rankingChanged:false});
@@ -29,8 +29,8 @@ function rsiPersistence(series){
  const prior=series.slice(-21,-1),available=prior.length===20&&prior.every(v=>n(v)!==null);
  return {persistenceAvailable:true,consecutiveAbove50:count,streakLowerBound:count>0&&(i<0||n(series[i])===null),newHigh20Available:available,prior20RsiMax:available?Math.max(...prior):null,newHigh20:available?value>Math.max(...prior):null};
 }
-function rsi(bars){
- const series=rsiSeries(bars),persistence=rsiPersistence(series),values=series.slice(-POLICY.rsiWindow);if(values.length<POLICY.rsiWindow||values.some(v=>v===null))return {...persistence,available:false,reason:'RSI14需至少24根日K供最近10值比較'};
+function rsi(bars,series=rsiSeries(bars)){
+ const persistence=rsiPersistence(series),values=series.slice(-POLICY.rsiWindow);if(values.length<POLICY.rsiWindow||values.some(v=>v===null))return {...persistence,available:false,reason:'RSI14需至少24根日K供最近10值比較'};
  const value=values.at(-1),previous=values.at(-2),above50=values.filter(v=>v>=50).length/POLICY.rsiWindow;
  let crosses50=0;for(let i=1;i<values.length;i++)if((values[i]>=50)!==(values[i-1]>=50))crosses50++;
  const ma20=mean(bars.slice(-20).map(b=>b.close)),old20=mean(bars.slice(-21,-1).map(b=>b.close)),last=bars.at(-1);
@@ -101,7 +101,7 @@ function strategyContext(e,kind='STOCK',subtype=''){
 function evaluate(input,options={}){
  const report=input?.report||input||{},asOf=date(options.asOf||report.marketDate||report.closeDate||report.dataDate||report.date);
  const base={model:MODEL,policy:POLICY,date:asOf,status:'DATA',available:false,reasons:[],warnings:[],scoreChanged:false,rankingChanged:false,eligibilityChanged:false};
- const missing=reason=>({...base,reasons:[reason]});
+ const missing=reason=>({...base,reasons:[reason],rsiExtended:X.unavailable(reason,{date:asOf})});
  if(!asOf)return missing('缺明確目標交易日');
  if(report.canonicalError)return missing(report.canonicalError);
  if(report.completed===false||report.isComplete===false||options.completed===false)return missing('上游明示行情尚未完成');
@@ -119,12 +119,13 @@ function evaluate(input,options={}){
   if(dates.some((d,i)=>!d||(i&&d<=dates[i-1]))||bars.some(b=>!dates.includes(b.date))||dates.some(d=>d>=bars[0].date&&d<=asOf&&!actual.has(d)))return missing('日K與交易日曆不符／漏日');
  }
  if(Array.isArray(report.corporateActions)&&report.priceAdjustment?.verified!==true&&report.corporateActions.some(e=>!date(e.date)||(date(e.date)>=bars[0].date&&date(e.date)<=asOf)))return missing('歷史公司行動調整未確認');
- const r=rsi(bars),o=obv(bars),s=sar(bars),v=volumeContext(report,bars,asOf),warnings=[];
+ const values=X.series(bars,rsiSeries,fingerprint),r=rsi(bars,values[14]),o=obv(bars),s=sar(bars),v=volumeContext(report,bars,asOf),warnings=[];
  if(!Array.isArray(calendar))warnings.push('交易日曆未驗證');
  if(report.priceAdjustment?.verified!==true)warnings.push('歷史調整口徑未驗證');
  if(bars.some(b=>b.volume===0))warnings.push('歷史含零量日');
  const available=r.available&&o.available&&s.available;
- return {...base,status:available?'OK':'PARTIAL',available,rowsUsed:bars.length,historyFingerprint:fingerprint(bars),signalBar:{...last},calendarVerified:Array.isArray(calendar),basisVerified:report.priceAdjustment?.verified===true,warnings,rsi:r,obv:o,sar:s,volume:v,reasons:[r,o,s].filter(x=>!x.available).map(x=>x.reason)};
+ const extended=X.build(report,{bars,values,date:asOf,fingerprint:fingerprint(bars),calendarVerified:Array.isArray(calendar),basisVerified:report.priceAdjustment?.verified===true,rsi14:r});
+ return {...base,status:available?'OK':'PARTIAL',available,rowsUsed:bars.length,historyFingerprint:fingerprint(bars),signalBar:{...last},calendarVerified:Array.isArray(calendar),basisVerified:report.priceAdjustment?.verified===true,warnings,rsi:r,rsiExtended:extended,obv:o,sar:s,volume:v,reasons:[r,o,s].filter(x=>!x.available).map(x=>x.reason)};
 }
 const fmt=(v,d=2)=>n(v)===null?'不足':Number(v).toFixed(d);
 function lines(e){
@@ -137,7 +138,7 @@ function lines(e){
  e.sar?.available?`${e.sar.label} ${fmt(e.sar.value)}｜近20日翻轉 ${e.sar.flips20} 次；非明日價格預測`:`SAR：${e.sar?.reason||'不足'}`,
  ...(v?.available?[`量價：${v.label}｜量／前20日均量 ${fmt(v.features.volumeRatio20)} 倍`,`收盤位置 ${fmt(v.features.closePosition*100,0)}%｜上影 ${fmt(v.features.upperShadow*100,0)}%｜MA20乖離 ${fmt(v.features.gap20Pct)}%`,
  `量能關卡 ${v.anchor.date} 高 ${fmt(v.anchor.high)}／低 ${fmt(v.anchor.low)}｜今日未納入選取`,...v.reasons]:['量價：'+(v?.reason||'資料不足')]),
- '分時／實際持股：此層未提供；量價代理不等於主力進場',...(e.warnings.length?[e.warnings.join('；')]:[]),'僅並行記錄，不影響原名次、原分數及資格'];
+ '分時／實際持股：此層未提供；量價代理不等於主力進場',...(e.warnings.length?[e.warnings.join('；')]:[]),...X.lines(e.rsiExtended),'僅並行記錄，不影響原名次、原分數及資格'];
 }
 function contextLines(e,kind,subtype){const c=strategyContext(e,kind,subtype);return [c.aim+'｜'+c.label,c.continuation,c.invalidation,c.note];}
 function nextOutcome(observation,input){
@@ -163,11 +164,17 @@ function nextOutcome(observation,input){
  if(!(next.volume>0))return unavailable('NOT_TRADABLE','次一交易日零量，不推論可成交');
  return {status:'COMPLETE',date:next.date,evaluatedAsOf:asOf,closeToClosePct:(next.close/old.close-1)*100,openToCloseGrossPct:(next.close/next.open-1)*100,signalClose:old.close,nextOpen:next.open,nextClose:next.close,nextHigh:next.high,nextLow:next.low,openToLowGrossPct:(next.low/next.open-1)*100,openToHighGrossPct:(next.high/next.open-1)*100,executionVerified:false,meaning:'歷史價差觀測；未驗證可成交、未扣稅費與滑價，不是實盤報酬'};
 }
-function summary(observations,topN=10){
+function summaryOne(observations,topN=10){
  const seen=new Set(),ordered=observations.slice().sort((a,b)=>String(a.capturedAt).localeCompare(String(b.capturedAt))),rows=ordered.filter(r=>{const key=[r.strategy,r.date,r.code,r.subtype||''].join('|');if(seen.has(key)||r.origin!=='LIVE_CAPTURE'||!Number.isFinite(Date.parse(r.capturedAt)))return false;seen.add(key);return r.baselineRank>=1&&r.baselineRank<=topN&&r.outcome?.status==='COMPLETE'&&r.evidence?.model===MODEL&&r.evidence?.available&&r.evidence?.calendarVerified===true&&r.evidence?.basisVerified===true&&Date.parse(r.capturedAt)<Date.parse(r.outcome.date+'T09:00:00+08:00');});
  const tests=[['BASELINE','原榜同一TopN全部',()=>true,()=>true],['RSI','RSI偏多情境',r=>r.evidence.rsi.state==='UP_CONTEXT',r=>r.evidence.rsi.available],['RSI_STREAK5','RSI14嚴格>50連續至少5根',r=>r.evidence.rsi.consecutiveAbove50>=5,r=>r.evidence.rsi.persistenceAvailable],['RSI_HIGH20','RSI14自身前20值新高',r=>r.evidence.rsi.newHigh20,r=>r.evidence.rsi.newHigh20Available],['OBV','OBV20正規化>0',r=>r.evidence.obv.normalized20>0,r=>r.evidence.obv.available],['SAR','SAR多方狀態',r=>r.evidence.sar.side==='BULL',r=>r.evidence.sar.available],['PULLBACK','量縮回檔且守住量能高點',r=>r.evidence.volume.state==='PULLBACK_HOLD',r=>r.evidence.volume?.available],['VOLUME_CAUTION','量價轉弱警訊',r=>r.evidence.volume.state==='CAUTION',r=>r.evidence.volume?.available]];
  const stats=list=>({n:list.length,dates:new Set(list.map(r=>r.date)).size,upRate:list.length?list.filter(r=>r.outcome.closeToClosePct>0).length/list.length:null,meanCloseToClosePct:mean(list.map(r=>r.outcome.closeToClosePct)),meanOpenToCloseGrossPct:mean(list.map(r=>r.outcome.openToCloseGrossPct)),meanOpenToLowGrossPct:mean(list.map(r=>r.outcome.openToLowGrossPct).filter(v=>n(v)!==null)),meanOpenToHighGrossPct:mean(list.map(r=>r.outcome.openToHighGrossPct).filter(v=>n(v)!==null))});
  return {model:MODEL,topN,design:'原榜固定TopN；逐項條件分組，不改排序；同策略同日同股採最早前瞻紀錄',caveat:'描述性分組，非因果增益或樣本外勝率認證；不同策略／寶塔A與B需分開比較。未確認成交、未扣成本。',groups:tests.map(([key,label,test,valid])=>{const eligible=rows.filter(valid);return {key,label,excludedData:rows.length-eligible.length,match:stats(eligible.filter(test)),other:key==='BASELINE'?null:stats(eligible.filter(r=>!test(r)))};})};
 }
-return Object.freeze({MODEL,POLICY,date,normalize,fingerprint,rsiSeries,rsiPersistence,obvSeries,sarSeries,evaluate,lines,contextLines,strategyContext,nextOutcome,summary});
+function summary(observations,topN=10){
+ const cohorts=new Map();for(const r of observations){const x=r.evidence?.rsiExtended,m=x?.metadata||{},key=[r.strategy,r.subtype||'',r.baselineModel||'',r.baselineRelease||'',r.strategyEvidence?.rule?.eventWindow??'',x?.model||'NOT_COMPUTED',m.market||'',m.rows??'',m.seed||'',m.adjustmentBasis||'UNKNOWN'].join('|');if(!cohorts.has(key))cohorts.set(key,[]);cohorts.get(key).push(r);}
+ const parts=[...cohorts].map(([cohort,rows])=>({cohort,...summaryOne(rows,topN)}));
+ if(!parts.length)return summaryOne([],topN);
+ return {model:MODEL,topN,cohorts:parts,design:'依策略／子型態／原模型／窗口／新情境版本／市場／初始化／調整基準分組；每組固定原榜TopN',caveat:parts[0].caveat,groups:parts.flatMap(p=>p.groups.map(g=>({...g,cohort:p.cohort,label:(parts.length>1?'['+p.cohort+'] ':'')+g.label})))};
+}
+return Object.freeze({MODEL,POLICY,date,normalize,fingerprint,rsiSeries,rsiPersistence,obvSeries,sarSeries,evaluate,lines,contextLines,strategyContext,nextOutcome,summary,extended:X});
 });
