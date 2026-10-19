@@ -338,6 +338,7 @@
     const scan=ensure();if(!scan.candidates.length)throw new Error('沒有候選可以產圖');
     if(document.fonts?.ready)await document.fonts.ready;
     const pages=images(scan,all);if(watermark)pages.forEach(p=>applyAntiTheftWatermarkV3761(p,'all'));
+    pages.push(...(root.ShitouIndicatorShadow?.pagesForScan('STRONG',scan,{limit:all?undefined:8,watermark})||[]));
     const title=`強勢飆股濾網｜${scan.fullMarketCertified?'完整市場':'部分驗證非全市場排名'}｜${all?'全部候選圖片':'前8檔圖片'}`;
     await root.strongStockShowPagesV47(pages,{title,prefix:`強勢飆股濾網_${scan.fullMarketCertified?'完整市場':'部分驗證'}_${all?'全部候選':'前8檔'}${watermark?'_浮水印':''}`,date:scan.dataDate.replace(/\D/g,''),note:`同一份盤後快照｜${pages.length}頁｜本次已驗證候選 ${all?scan.candidates.length:Math.min(8,scan.candidates.length)} 檔｜${scan.fullMarketCertified?'完整市場驗證':'未分析／失敗檔尚未判讀，並非全市場完整排名'}`,kind:'strong-stock'});
     note(`✅ 已產生 ${pages.length} 頁，含 ${all?scan.candidates.length:Math.min(8,scan.candidates.length)} 檔。${scan.fullMarketCertified?'':'⚠️ 部分驗證，非全市場排名。'}${pages.length>1?'預覽視窗可下載全部 ZIP。':'可預覽或儲存 PNG。'}`);

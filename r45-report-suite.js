@@ -687,7 +687,7 @@ function mountPreviewActions(){
 
 async function showPages(pages,{title,prefix,date='latest',note='',kind='report'}={}){
   if(!Array.isArray(pages)||!pages.length)throw new Error('沒有可預覽的頁面');
-  if(kind==='stock'&&window.ShitouStockImageColors)pages.forEach(page=>window.ShitouStockImageColors.enhance(page));
+  if(kind==='stock'&&window.ShitouStockImageColors)pages.filter(page=>!page.dataset?.indicatorShadowAudit).forEach(page=>window.ShitouStockImageColors.enhance(page));
   const iphoneSingle=pages.length===1&&pages[0]?.dataset?.iphoneFullScreen==='1284x2778';
   const names=pages.length===1?[safeName(`${prefix}_${iphoneSingle?'iPhone12ProMax_1284x2778_單張滿版':'單一張完整長圖'}_${date}_${FILE_VERSION}.png`)]:pages.map((_,index)=>safeName(`${prefix}_${String(index+1).padStart(2,'0')}-${pages.length}_${date}_${FILE_VERSION}.png`));
   previewSet={pages,names,title,index:0,zipName:safeName(`${prefix}_完整${pages.length}頁_${date}_${FILE_VERSION}.zip`),kind};
@@ -726,7 +726,8 @@ async function generateStock(mode='beginner',withWatermark=false){
     result={pages:[source],segments:[[0,source.height]],sourceHeight:source.height,size:`${source.width}x${source.height}`,singleLong:true,professionalFull:professional,iphoneFullScreen:source.dataset?.iphoneFullScreen==='1284x2778',fullBleed:source.dataset?.iphoneFullScreen==='1284x2778',fitScale:1};
   }else result=fitIphoneStockReport(source,{title:`${report.name||report.code}（${report.code||report.stock||'-'}）個股新手報告`,date:report.closeDate,watermark:withWatermark});
   const layoutNote=result.iphoneFullScreen?'iPhone 12 Pro Max 1284×2778 單張滿版；A～F 僅重排版、不改分析內容':source.dataset?.unifiedReport==='true'?'統一版面單張長圖；高度隨完整內容調整':professional?'專業完整內容保留為單張長圖，避免縮小文字或裁切證據':'內容無法在可讀比例下單頁容納，已安全分頁';
-  await showPages(result.pages,{title:`${report.name||report.code} 個股圖片報告`,prefix:`石頭少爺_${report.name||report.code}_${report.code||report.stock}_${professional?'專業完整':'新手'}個股圖片報告${withWatermark?'_防盜浮水印':''}`,date:dateOf(report.closeDate),note:`${layoutNote}；新手結論與專業證據分區呈現，價位不是自動買點`,kind:'stock'});
+  result.pages.push(...(window.ShitouIndicatorShadow?.pagesForStock(report,{watermark:withWatermark})||[]));
+  await showPages(result.pages,{title:`${report.name||report.code} 個股圖片報告`,prefix:`石頭少爺_${report.name||report.code}_${report.code||report.stock}_${professional?'專業完整':'新手'}個股圖片報告${withWatermark?'_防盜浮水印':''}`,date:dateOf(report.closeDate),note:`${layoutNote}；新增動能量價補充分頁，價位不是自動買點`,kind:'stock'});
   return result;
 }
 
@@ -752,7 +753,8 @@ async function generateDetailed(kind,withWatermark=false){
   const title=kind==='momentum'?'主升段前八名詳細圖片':'當沖前八名詳細圖片';
   const page=buildTop8IphoneReport(scan,kind);if(withWatermark&&typeof original.watermark==='function')original.watermark(page,'all');
   const result={pages:[page],segments:[[0,IPHONE_12_PRO_MAX.height]],sourceHeight:IPHONE_12_PRO_MAX.height,size:'1284x2778',singleLong:true,iphoneFullScreen:true,fullBleed:true,fitScale:1,scaleX:1,scaleY:1};
-  await showPages(result.pages,{title,prefix:`石頭少爺_${kind==='momentum'?'主升段':'當沖'}_前八名_iPhone12ProMax滿版${withWatermark?'_防盜浮水印':''}`,date:dateOf(scan.dataDate||scan.createdAt),note:`沿用原始展示順序 ${candidates.length} 檔；原生 1284×2778 單頁滿版；EMA、KD、RSI5 已整合到每檔卡片，底部重複證據區已移除`,kind});
+  result.pages.push(...(window.ShitouIndicatorShadow?.pagesForScan(kind==='momentum'?'MAIN':'DAYTRADE',scan,{limit:(typeof candidates!=='undefined'?8:undefined),watermark:withWatermark})||[]));
+  await showPages(result.pages,{title,prefix:`石頭少爺_${kind==='momentum'?'主升段':'當沖'}_前八名_iPhone12ProMax滿版${withWatermark?'_防盜浮水印':''}`,date:dateOf(scan.dataDate||scan.createdAt),note:`沿用原始展示順序 ${candidates.length} 檔；原生 1284×2778 單頁滿版；EMA、KD、RSI5 已整合到每檔卡片，另附逐檔動能量價分頁`,kind});
   return result;
 }
 
@@ -763,7 +765,8 @@ async function generateSummary(kind,withWatermark=false){
   const result=buildSummaryPages(scan,kind);if(!result.ok)throw new Error(`摘要名單核對失敗：預期 ${result.rows.length}，實際 ${result.rendered.length}`);
   if(withWatermark&&typeof original.watermark==='function')result.pages.forEach(page=>original.watermark(page,'all'));
   const title=kind==='momentum'?'主升段全部結果摘要':'當沖全部結果摘要';
-  await showPages(result.pages,{title,prefix:`石頭少爺_${kind==='momentum'?'主升段':'當沖'}_全部結果摘要${withWatermark?'_防盜浮水印':''}`,date:dateOf(scan.dataDate||scan.createdAt),note:`1284×2778 iPhone 12 Pro Max 滿版分頁；原始入列 ${result.rows.length} 檔，實際輸出 ${result.rendered.length} 檔，沒有遺漏或重複`,kind});
+  result.pages.push(...(window.ShitouIndicatorShadow?.pagesForScan(kind==='momentum'?'MAIN':'DAYTRADE',scan,{limit:(typeof candidates!=='undefined'?8:undefined),watermark:withWatermark})||[]));
+  await showPages(result.pages,{title,prefix:`石頭少爺_${kind==='momentum'?'主升段':'當沖'}_全部結果摘要${withWatermark?'_防盜浮水印':''}`,date:dateOf(scan.dataDate||scan.createdAt),note:`1284×2778 iPhone 12 Pro Max 滿版分頁；原始入列 ${result.rows.length} 檔，實際輸出 ${result.rendered.length} 檔，另附原候選動能量價分頁`,kind});
   return result;
 }
 
