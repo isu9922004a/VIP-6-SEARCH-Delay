@@ -8,7 +8,7 @@ function pool(bundle,limit=300){
  const exclusions={},items=[],invalid=[];
  for(const [raw,q] of bundle.map){const code=String(raw),sector=bundle.sectorMap?.get(code)||{},d=P.classify(code,q,sector,bundle.meta);if(d.excluded){exclusions[d.key]=(exclusions[d.key]||0)+1;continue;}
   if(!['TWSE','TPEX'].includes(String(q.market).toUpperCase())||P.date(q.quoteDate)!==date||['open','high','low','close','volume'].some(k=>!(C.number(q[k])>0))){invalid.push({code,reason:'快照量價／日期／市場別無效'});continue;}
-  items.push({code,name:q.name||code,q,sector,valueRank:rankVerified?ranks.get(code):null,valueRankVerified:rankVerified});
+  const naming=C.nameInfo(code,q);items.push({code,name:naming.name,nameSource:naming.source,nameFallback:naming.fallback,nameZhTW:naming.fallback?null:naming.name,q,sector,valueRank:rankVerified?ranks.get(code):null,valueRankVerified:rankVerified});
  }
  items.sort((a,b)=>(C.number(b.q.pct)>=9?1:0)-(C.number(a.q.pct)>=9?1:0)||(a.valueRank??99999)-(b.valueRank??99999)||(b.q.tradeValue||0)-(a.q.tradeValue||0)||a.code.localeCompare(b.code));
  const count=limit==='all'?items.length:[100,300].includes(Number(limit))?Number(limit):300;
@@ -36,8 +36,8 @@ async function scan({pool:plan,meta,fetchBatch,eventWindow=3,requestedMode='300'
   try{payload=await fetchBatch(part);if(payload?.type!=='MOMENTUM_DEEP_SCAN'||!Array.isArray(payload.results))throw Error('深掃回傳格式錯誤');}catch(e){error=String(e?.message||e);}
   if(shouldStop()){result.stopped=true;break;}
   for(const item of part){result.attempted++;const matches=(payload?.results||[]).filter(x=>String(x.code||x.data?.stock||x.data?.code||'')===item.code),r=matches.length===1?matches[0]:null;
-   if(error||!r?.ok||!r.data){const data=r?.dataUnavailable===true;result.issues.push({code:item.code,kind:data?'DATA':'SERVICE',reason:error||r?.error||'未回傳唯一有效個股'});result.results.push({model:C.MODEL,code:item.code,name:item.name,date:plan.date,status:'DATA',label:C.LABELS.DATA,eligible:false,serviceFailure:!data,reasons:[error||r?.error||'未回傳唯一有效個股'],warnings:[],riskCodes:[]});consecutiveService=data?0:consecutiveService+1;continue;}
-   let c;try{c=C.evaluate({...r.data,name:r.data.name||item.name},{asOf:plan.date,code:item.code,quote:item.q,sector:item.sector,meta,valueRank:item.valueRank,valueRankVerified:item.valueRankVerified,eventWindow:result.eventWindow});}catch(e){c={model:C.MODEL,code:item.code,name:item.name,date:plan.date,status:'DATA',label:C.LABELS.DATA,eligible:false,reasons:['個股判讀未完成：'+String(e.message||e)],warnings:[],riskCodes:[]};}
+   if(error||!r?.ok||!r.data){const data=r?.dataUnavailable===true;result.issues.push({code:item.code,kind:data?'DATA':'SERVICE',reason:error||r?.error||'未回傳唯一有效個股'});result.results.push({model:C.MODEL,code:item.code,name:C.displayName(item.code,item),nameSource:item.nameSource,nameFallback:item.nameFallback,date:plan.date,status:'DATA',label:C.LABELS.DATA,eligible:false,serviceFailure:!data,reasons:[error||r?.error||'未回傳唯一有效個股'],warnings:[],riskCodes:[]});consecutiveService=data?0:consecutiveService+1;continue;}
+   let c;try{c=C.evaluate({...r.data,name:item.name,nameZhTW:item.nameZhTW||r.data.nameZhTW},{asOf:plan.date,code:item.code,quote:item.q,sector:item.sector,meta,valueRank:item.valueRank,valueRankVerified:item.valueRankVerified,eventWindow:result.eventWindow});}catch(e){c={model:C.MODEL,code:item.code,name:C.displayName(item.code,item),nameSource:item.nameSource,nameFallback:item.nameFallback,date:plan.date,status:'DATA',label:C.LABELS.DATA,eligible:false,reasons:['個股判讀未完成：'+String(e.message||e)],warnings:[],riskCodes:[]};}
    result.results.push(c);consecutiveService=0;
   }
   finish(result);onProgress(result);

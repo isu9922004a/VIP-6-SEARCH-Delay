@@ -7,6 +7,30 @@ const MODEL='RESTAURANT_BALANCED_1',RULE=Object.freeze({eventWindow:3,minBars:26
 const number=v=>v===null||v===undefined||v===''||typeof v==='boolean'||typeof v==='object'?null:Number.isFinite(Number(v))?Number(v):null;
 const mean=a=>a.reduce((s,v)=>s+v,0)/a.length;
 const LABELS=Object.freeze({CANDIDATE:'均衡量價候選',WATCH:'附警訊觀察',NO_CHASE:'高風險旁列',NO_SIGNAL:'未見近期訊號',DATA:'資料不足',EXCLUDED:'共用排除'});
+// Display names only: no changes to qualification, risk rules or comparison.
+let nameDirectory=null;
+const nameKeys=['name','stockName','companyName','shortName','nameZhTW','nameZh','name_zh_tw'];
+function setNameDirectory(directory){nameDirectory=Object.assign(Object.create(null),directory?.byCode||directory||{});}
+function chineseName(value,allowSuffix=false){
+ if(typeof value!=='string'||/[\u0000-\u001f\u007f]/.test(value))return null;
+ let text=value.trim().normalize('NFKC');
+ if(allowSuffix)text=text.replace(/[-－]?(?:KY|DR)(?:\*)?$/i,'').trim();
+ return text&&/[\u3400-\u9fff]/.test(text)&&!/[\p{Script=Latin}]/u.test(text)&&!/[<>]/.test(text)?text:null;
+}
+function nameInfo(code,record={}){
+ code=String(code||'').replace(/[^0-9]/g,'');
+ const entry=nameDirectory?.[code],mapped=typeof entry==='string'?entry:entry?.name;
+ const local=chineseName(mapped,true);
+ if(local)return {name:local,source:'TRADITIONAL_DIRECTORY',fallback:false};
+ if(['TRADITIONAL_DIRECTORY','EXPLICIT_ZH_TW','CHINESE_INPUT'].includes(record?.nameSource)&&record.nameFallback!==true){const trusted=chineseName(record.name);if(trusted)return {name:trusted,source:record.nameSource,fallback:false};}
+ for(const key of ['nameZhTW','name_zh_tw']){const value=chineseName(record?.[key]);if(value)return {name:value,source:'EXPLICIT_ZH_TW',fallback:false};}
+ // Standalone core callers may already supply Chinese test/source names. In the
+ // app, unindexed generic names are not presumed to be Traditional Chinese.
+ if(nameDirectory===null){for(const key of nameKeys){const value=chineseName(record?.[key]);if(value)return {name:value,source:'CHINESE_INPUT',fallback:false};}}
+ return {name:'股票'+code,source:'CODE_ONLY',fallback:true};
+}
+function displayName(code,record){return nameInfo(code,record).name;}
+function namedReport(report,name){const copy={...report,name};for(const key of nameKeys)if(Object.hasOwn(copy,key))copy[key]=name;for(const key of ['englishName','nameEn','name_en','companyNameEn','stockNameEn'])delete copy[key];return copy;}
 function tick(p){return p<10?.01:p<50?.05:p<100?.1:p<500?.5:p<1000?1:5;}
 function estimatedUpper(reference){if(!(reference>=1))return null;const raw=reference*1.1,t=tick(raw);return Math.round(Math.floor((raw+1e-9)/t)*t*100)/100;}
 const equal=(a,b)=>Math.abs(a-b)<=1e-6;
@@ -26,7 +50,8 @@ function limitAt(report,bars,index){
 }
 function evaluate(report,options={}){
  const asOf=E.date(options.asOf),code=String(report?.stock||report?.code||''),q=options.quote,window=windowSize(options.eventWindow);
- const base={model:MODEL,code,name:report?.name||code,date:asOf,status:'DATA',eligible:false,sourceMatch:null,sourceCheckState:'UNVERIFIED',monthlyStatus:E.monthly(report||{}),reasons:[],warnings:[],riskCodes:[],rule:{...RULE,eventWindow:window},score:null};
+ const naming=nameInfo(code,report);
+ const base={model:MODEL,code,name:naming.name,nameSource:naming.source,nameFallback:naming.fallback,date:asOf,status:'DATA',eligible:false,sourceMatch:null,sourceCheckState:'UNVERIFIED',monthlyStatus:E.monthly(report||{}),reasons:[],warnings:[],riskCodes:[],rule:{...RULE,eventWindow:window},score:null};
  const missing=reason=>({...base,label:LABELS.DATA,reasons:[reason]});
  if(!report||!asOf||!q)return missing('缺少目標交易日或同日市場報價');
  if(report.completed===false||report.isComplete===false||!(report.completed===true||report.isComplete===true||report.dataTiming==='POST_CLOSE_ONLY'))return missing('完成盤後狀態未確認');
@@ -84,9 +109,9 @@ function evaluate(report,options={}){
   reasons:[`近${window}根內${event.kind==='OFFICIAL'?'官方':'推估'}收盤漲停事件 ${event.date}（距今${age}根）`,...[...hard,...risks].map(k=>riskTexts[k])],warnings,checks,riskCodes:[...hard,...risks],hardRiskCodes:hard,indicator,event:{...event,age,streak},
   features:{ma20,gap20Pct:gap,return10Pct:return10,volumeRatio5:volume5,volumeRatio20:volume20,closePosition:pos,upperShadow:shadow,cmf20,valueRank:rankKnown?options.valueRank:null,valueRankVerified:rankKnown,tradeValue:q.tradeValue,localFit,sourcePassed:checks.filter(x=>x.pass===true).length,sourceUnknown:unknown.length},
   levels:{support:event.low,invalidation:event.low,pressure:Math.max(event.high,priorHigh),source:`最近訊號日 ${event.date} 低點；與SMA20分開`},
-  report:{...report,canonicalBars:b,dailySeries:b},meaning:'多方均衡觀察版；原圖主力與JMA若未驗證，不宣稱原策略成立。風險規則不能消除末升段或假突破。'};
+  report:{...namedReport(report,base.name),canonicalBars:b,dailySeries:b},meaning:'多方均衡觀察版；原圖主力與JMA若未驗證，不宣稱原策略成立。風險規則不能消除末升段或假突破。'};
 }
 function compare(a,b){const order={CANDIDATE:0,WATCH:1,NO_CHASE:2,NO_SIGNAL:3,DATA:4,EXCLUDED:5};return (order[a.status]??9)-(order[b.status]??9)||(a.riskCodes?.length??99)-(b.riskCodes?.length??99)||(a.event?.kind==='OFFICIAL'?0:1)-(b.event?.kind==='OFFICIAL'?0:1)||(b.features?.localFit??-1)-(a.features?.localFit??-1)||(a.event?.age??99)-(b.event?.age??99)||Math.abs(a.features?.gap20Pct??999)-Math.abs(b.features?.gap20Pct??999)||(a.features?.valueRank??99999)-(b.features?.valueRank??99999)||a.code.localeCompare(b.code);}
-function lines(c){const f=c.features,fmt=v=>number(v)===null?'資料不足':Number(v).toFixed(2);return [`${c.name}（${c.code}）｜${c.label}｜原圖核對：${({UNVERIFIED:'尚未完整核對',NOT_MATCH:'條件不完全符合',VERIFIED_MATCH:'六項輸入核對符合'})[c.sourceCheckState]||'資料不足'}`, ...c.reasons,c.monthlyStatus==='PASS'?'月線明示通過':c.monthlyStatus==='NOT_PASS'?'月線條件未通過；本濾網僅列當沖量價觀察':'月線尚未驗證；日SMA20不替代月20MA資格',...(f?[`收盤 ${fmt(c.report.close)}｜SMA20 ${fmt(f.ma20)}｜乖離 ${fmt(f.gap20Pct)}%｜10日 ${fmt(f.return10Pct)}%`,`量／前5均量 ${fmt(f.volumeRatio5)}｜量／前20均量 ${fmt(f.volumeRatio20)}｜CMF20 ${fmt(f.cmf20)}`,`支撐／量價失效 < ${fmt(c.levels.invalidation)}｜壓力 ${fmt(c.levels.pressure)}｜${c.levels.source}`,`下一交易日：收盤維持訊號日低點上方、觀察能否站穩壓力；盤中進場與跳空尚未確認。`]:[]),...(c.checks||[]).map(x=>`${x.pass===null?'未驗證':x.pass?'符合':'不符合'}｜${x.label}｜${x.note}`),...c.warnings,'風險排序不是上漲機率；收盤鎖漲停不代表隔日買得到。'];}
-return Object.freeze({MODEL,RULE,LABELS,number,tick,estimatedUpper,windowSize,limitAt,evaluate,compare,lines});
+function lines(c){const f=c.features,fmt=v=>number(v)===null?'資料不足':Number(v).toFixed(2);return [`${displayName(c.code,c)}（${c.code}）｜${c.label}｜原圖核對：${({UNVERIFIED:'尚未完整核對',NOT_MATCH:'條件不完全符合',VERIFIED_MATCH:'六項輸入核對符合'})[c.sourceCheckState]||'資料不足'}`, ...c.reasons,...(c.nameFallback?['名稱索引尚無可核對的繁體中文名，暫以股票代號識別；不自行翻譯。']:[]),c.monthlyStatus==='PASS'?'月線明示通過':c.monthlyStatus==='NOT_PASS'?'月線條件未通過；本濾網僅列當沖量價觀察':'月線尚未驗證；日SMA20不替代月20MA資格',...(f?[`收盤 ${fmt(c.report.close)}｜SMA20 ${fmt(f.ma20)}｜乖離 ${fmt(f.gap20Pct)}%｜10日 ${fmt(f.return10Pct)}%`,`量／前5均量 ${fmt(f.volumeRatio5)}｜量／前20均量 ${fmt(f.volumeRatio20)}｜CMF20 ${fmt(f.cmf20)}`,`支撐／量價失效 < ${fmt(c.levels.invalidation)}｜壓力 ${fmt(c.levels.pressure)}｜${c.levels.source}`,`下一交易日：收盤維持訊號日低點上方、觀察能否站穩壓力；盤中進場與跳空尚未確認。`]:[]),...(c.checks||[]).map(x=>`${x.pass===null?'未驗證':x.pass?'符合':'不符合'}｜${x.label}｜${x.note}`),...c.warnings,'風險排序不是上漲機率；收盤鎖漲停不代表隔日買得到。'];}
+return Object.freeze({MODEL,RULE,LABELS,number,tick,estimatedUpper,windowSize,limitAt,evaluate,compare,lines,setNameDirectory,nameInfo,displayName});
 });
