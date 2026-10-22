@@ -13,7 +13,7 @@ function loadNames(){
  const directory={...embedded};for(const [code,record] of Object.entries(official)){const name=String(record?.name||'').replace(/[-－]?(?:KY|DR)(?:\*)?$/i,'');if(/[\u3400-\u9fff]/.test(name)&&!/[\p{Script=Latin}]/u.test(name))directory[code]=record;}
  C.setNameDirectory(directory);
 }
-function render(scan){last=scan;const host=by('Result');if(!host)return;host.replaceChildren();by('ReportPanel').hidden=false;
+function render(scan){S.assertSnapshot(scan);last=scan;const host=by('Result');if(!host)return;host.replaceChildren();by('ReportPanel').hidden=false;
  const title=el('div','⑤ 餐廳擠不進去｜候選觀察排行');title.className='section-title';host.appendChild(title);
  const meta=el('div',`${scan.date}｜處理 ${scan.attempted}/${scan.planned}｜待處理 ${scan.pending}｜未深掃 ${scan.deferred}｜${scan.complete?'本輪處理完成':'未完整完成'}｜${scan.fullMarketCertified?'完整市場資料認證':'非全市場完整排名'}`);meta.className='meta';host.appendChild(meta);
  const grid=el('div');grid.className='momentum-summary-grid';
@@ -58,7 +58,7 @@ async function run(){
   render(result);note(result.breaker||`${result.stopped?'已停止':'本輪完成'}｜候選 ${result.candidates.length}｜原圖完整核對符合 ${result.sourceVerifiedMatches}｜資料缺口明示；未驗證績效。`);
  }catch(e){const message='第五濾網未完成：'+String(e.message||e);by('Error').textContent=message;note(message);}finally{running=false;controllers.forEach(c=>c.abort());controllers.clear();originalButtons.forEach((b,i)=>b.disabled=prior[i]);by('Run').disabled=false;by('Stop').disabled=true;by('Window').disabled=false;by('Limit').disabled=false;finishUI();}
 }
-function content(){if(!last)throw Error('請先完成第五濾網查詢');return last;}
+function content(){if(!last)throw Error('請先完成第五濾網查詢');return S.assertSnapshot(last);}
 function download(blob,name){const u=URL.createObjectURL(blob),a=el('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),10000);}
 function text(){const s=content();return root.ShitouIndicatorShadow?.appendText(s.text,'RESTAURANT',s)||s.text;}
 async function copy(){try{await navigator.clipboard.writeText(text());note('已複製完整第五濾網文字；包含原圖未驗證項目。');}catch(e){note('複製未完成，請改下載文字檔：'+String(e.message||e));}}

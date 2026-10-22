@@ -1,5 +1,23 @@
-(function(root,factory){const N=typeof module==='object'&&module.exports,api=factory(N?require('./restaurant-filter-v1.js'):root.ShitouRestaurantCore,N?require('./scan-exclusions-rsi-v5328.js'):root.ShitouScanPolicy5328);if(N)module.exports=api;else root.ShitouRestaurantScanner=api;})(globalThis,function(C,P){
+(function(root,factory){const N=typeof module==='object'&&module.exports,api=factory(N?require('./restaurant-filter-v1.js'):root.ShitouRestaurantCore,N?require('./scan-exclusions-rsi-v5328.js'):root.ShitouScanPolicy5328,N?require('./version-v50.js'):root.ShitouReleaseV50);if(N)module.exports=api;else root.ShitouRestaurantScanner=api;})(globalThis,function(C,P,R){
 'use strict';
+// Freeze a detached completed run, so later market binds cannot rewrite reports.
+function deepFreeze(value){if(value&&typeof value==='object'&&!Object.isFrozen(value)){Object.values(value).forEach(deepFreeze);Object.freeze(value);}return value;}
+function snapshot(scan){
+ const copy=JSON.parse(JSON.stringify(scan));delete copy.snapshotId;
+ copy.revision=C.REVISION;
+ copy.release=R.code;
+ copy.text=text(copy);copy.snapshotId=C.fingerprint(copy);
+ return deepFreeze(copy);
+}
+function assertSnapshot(scan){
+ const {snapshotId,...body}=scan||{};
+ if(!snapshotId||body.revision!==C.REVISION||snapshotId!==C.fingerprint(body))throw Error('資料不足｜餐廳結果快照缺失或已變動，請重新掃描');
+ for(const c of [...(scan.candidates||[]),...(scan.riskCandidates||[])]){
+  const v=c.validation,{id,...audit}=v||{};
+  if(!v||id!==C.fingerprint(audit)||v.date!==scan.date||v.code!==c.code||v.historyFingerprint!==C.fingerprint(c.report?.canonicalBars)||v.quoteFingerprint!==C.fingerprint(v.quote)||v.invalidation.close!==c.report?.close||v.invalidation.threshold!==c.levels?.invalidation)throw Error('資料不足｜餐廳候選與驗證資料不同，請重新掃描');
+ }
+ return scan;
+}
 function pool(bundle,limit=300){
  if(!(bundle?.map instanceof Map))throw Error('沒有完整市場快照');
  const date=P.date(bundle.meta?.targetTradeDate||bundle.meta?.completedTradeDate),ordinary=[...bundle.map].filter(([code,q])=>/^[1-9]\d{3}$/.test(String(code))&&!q.isSpecialProduct&&!/^91\d{2}$/.test(String(code))&&!/ETF|ETN|DR|WARRANT|PREFERRED|BOND|FUND/.test(String(q.securityType||q.productType||'').toUpperCase())&&!/受益證券|權證|特別股|基金/.test(String(q.name||'')));
@@ -44,9 +62,9 @@ async function scan({pool:plan,meta,fetchBatch,eventWindow=3,requestedMode='300'
   if(consecutiveService>=8){result.breaker='連續8檔行情服務未完成，停止本輪並保留部分結果';break;}
  }
  if(shouldStop())result.stopped=true;
- finish(result);result.text=text(result);return result;
+ finish(result);return snapshot(result);
 }
-function text(scan){return ['石頭少爺｜⑤ 餐廳擠不進去｜均衡量價觀察版',`版本 ${C.MODEL}｜行情 ${scan.date}｜事件窗口 ${scan.eventWindow} 根完成日K`,
+function text(scan){return ['石頭少爺｜⑤ 餐廳擠不進去｜均衡量價觀察版',`版本 ${scan.release||C.REVISION}｜模型 ${C.MODEL}｜行情 ${scan.date}｜事件窗口 ${scan.eventWindow} 根完成日K`,
  '圖片主力買超與JMA需獨立資料；未提供時保持未驗證。趨勢採SMA20，漲停可為明示的推估訊號。',
  `市場 ${scan.universe}｜解析 ${scan.parsed}｜共用排除 ${Object.values(scan.exclusionCounts).reduce((s,n)=>s+n,0)}｜快照不足 ${scan.invalidPool}｜符合快篩 ${scan.eligiblePool}｜規劃 ${scan.planned}｜處理 ${scan.attempted}｜未處理 ${scan.pending}｜未深掃 ${scan.deferred}`,`本輪完成 ${scan.complete?'是':'否'}｜${scan.fullMarketCertified?'完整市場資料認證':'部分範圍／資料未全驗證，非全市場完整排名'}｜原圖完整核對符合 ${scan.sourceVerifiedMatches}`,
  '排序：風險層級→警訊數→漲停來源可信度→量縮/SMA20/CMF/成交值符合度→事件新近度→乖離→成交值序位→代號；沒有歷史最佳權重。',
@@ -54,5 +72,5 @@ function text(scan){return ['石頭少爺｜⑤ 餐廳擠不進去｜均衡量�
  '第二節：高風險旁列，不列入候選',...scan.riskCandidates.flatMap(C.lines),
  '第三節：未入選與資料不足',...scan.results.filter(c=>!c.eligible&&c.status!=='NO_CHASE').map(c=>`${c.code}｜${c.label}｜${c.reasons.join('；')}`),...scan.issues.map(x=>`${x.code}｜${x.kind}｜${x.reason}`),scan.breaker||'',
  '近漲停策略本身可能遇到末升段、假突破、隔日跳空及無法成交；上述規則只降低可觀察風險，沒有已驗證勝率。','END-RESTAURANT｜'+scan.attempted+'/'+scan.planned].filter(Boolean).join('\n');}
-return Object.freeze({pool,scan,finish,text});
+return Object.freeze({pool,scan,finish,text,snapshot,assertSnapshot});
 });
