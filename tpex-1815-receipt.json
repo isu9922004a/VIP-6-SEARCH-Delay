@@ -1,0 +1,38 @@
+{
+  "provider": "Taipei Exchange",
+  "url": "https://www.tpex.org.tw/www/zh-tw/afterTrading/tradingStock?code=1815&date=2026/10/21&response=json",
+  "retrievedAt": "2026-10-22",
+  "httpStatus": 200,
+  "fileSha256": "8a1bf072d0c265d9a12a8505c64ddf46aa906ac071fe482a1bce60a314e93aab",
+  "row": [
+    "115/10/21",
+    "139,936",
+    "21,019,396",
+    "158.00",
+    "158.50",
+    "145.00",
+    "147.00",
+    "-7.00",
+    "93,043"
+  ],
+  "fieldOrder": [
+    "日 期",
+    "成交張數",
+    "成交仟元",
+    "開盤",
+    "最高",
+    "最低",
+    "收盤",
+    "漲跌",
+    "筆數"
+  ],
+  "date": "2026-10-21",
+  "code": "1815",
+  "market": "TPEX",
+  "priceBasis": "同一官方日成交資訊原始列；未混用其他日期／還原價",
+  "midpoint": 151.75,
+  "close": 147,
+  "closeBelowMidpoint": true,
+  "position": 0.14814814814814814,
+  "scope": "證實官方同日日K應有下半部警訊；附件不含原掃描行情快照，不能反證當時每個上游欄位均完全相同"
+}

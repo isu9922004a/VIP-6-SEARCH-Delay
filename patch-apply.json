@@ -1,0 +1,23 @@
+{
+  "check": "PASS",
+  "apply": "PASS",
+  "modifiedFilesVerified": [
+    "index.html",
+    "indicator-shadow-ui-v1.js",
+    "restaurant-filter-v1.js",
+    "restaurant-report-v1.js",
+    "restaurant-scanner-v1.js",
+    "restaurant-ui-v1.js",
+    "version-v50.js"
+  ],
+  "newFilesVerified": [
+    "tests/fixtures.cjs",
+    "tests/restaurant-bugfix.test.cjs",
+    "tests/browser-bugfix.cjs",
+    "tests/README.md",
+    "verification/tpex-1815-202610.json",
+    "verification/tpex-1815-receipt.json",
+    "README-BUGFIX.1.md"
+  ],
+  "unchangedOriginalFiles": 72
+}
