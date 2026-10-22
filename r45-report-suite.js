@@ -659,6 +659,7 @@ async function setPreviewPage(index){
   if(previewSet!==selected||selected.index!==pageIndex||imageAtStart?.src!==sourceAtStart||window.ShitouReportPreviewEpoch!==ownerAtStart)return;
   if(previewUrl)URL.revokeObjectURL(previewUrl);previewUrl=URL.createObjectURL(value);
   const image=document.getElementById('imagePreviewImg'),link=document.getElementById('imageDownloadLink'),title=document.getElementById('imagePreviewTitle');
+  const modal=document.getElementById('imagePreviewModal');if(modal)modal.dataset.reportFullBleed=page.dataset?.fullBleed==='true'?'true':'false'; // RESTAURANT_FULLBLEED_1
   if(image)image.src=previewUrl;if(link){link.href=previewUrl;link.download=previewSet.names[previewSet.index];}
   if(title)title.textContent=previewSet.pages.length===1?`🖼️ ${previewSet.title}｜單一張完整長圖`:`🖼️ ${previewSet.title}｜第 ${previewSet.index+1}/${previewSet.pages.length} 頁`;
   const label=document.getElementById('r45PreviewPageLabel');if(label)label.textContent=previewSet.pages.length===1?'單一張完整長圖':`第 ${previewSet.index+1}／${previewSet.pages.length} 頁`;
