@@ -1,0 +1,12 @@
+{
+  "datasync-test.mjs": "7e54012a1fc07e5396b84e15043d3e7a4d0649b1e5b7e55a04a8b3e2fca15b98",
+  "先看這個－上傳說明.txt": "8afc289a2031f6b25ca7259511bfd05c64246a4cd3c3996ba6df0d733c7b2832",
+  "測試結果.json": "b2f9282d4e53bf4bed9e8d2c4d0a45c26a3c371fee9f79690cc03ea70859e498",
+  "前端網站\\index.html": "acc2e810edf1bfccadf5708c7aab43b32aa163baa66b1f94be410b938f649620",
+  "前端網站\\version-v50.js": "46e4414b6f92713f7e12f12d71d720d82906cb272151b037f0b621c8b330a60d",
+  "行情資料庫\\scan-exclusions-rsi-v5328.js": "35e4be1709333ec803319d62115f5747dc077410ab55548534582ec4ac3cd567",
+  "行情資料庫\\update-market-snapshot.yml": "e37af0c64ecde392bc2609c1ba146dfa8fd626b402d42149dcaef6f893502fbf",
+  "行情資料庫\\scripts\\update-market-snapshot.mjs": "fc929d9a1490f8ab9673d411684dea8e1e57464736f2d4c5387e8c33368fe96d",
+  "行情資料庫\\scripts\\update-scan-exclusions.mjs": "a18427b2a4d6a031f50849480f34b5279c091c249cec986cfeacc5e02512e91b",
+  "行情資料庫\\.github\\workflows\\update-market-snapshot.yml": "e37af0c64ecde392bc2609c1ba146dfa8fd626b402d42149dcaef6f893502fbf"
+}
