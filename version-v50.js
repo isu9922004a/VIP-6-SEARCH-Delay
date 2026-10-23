@@ -1,22 +1,2 @@
 'use strict';
-
-(function(root){
-  const CODE='R5.3.2.8.1-TOWER-SHADOW.5.1-DATEGATE.1-REVIEW.2-OBSERVE.2-RESTAURANT.2-RSICTX.1-TOP8.1-SNAPFIX.1-NOPARALLEL.1-BUGFIX.1-FULLBLEED.1-IPHONECARD.1-MOBILE-LINE.1-HEALTH.3-PACTX.1';
-  const RELEASE=`石頭少爺 Agent V50｜${CODE}｜位置量價確認暨反轉觀察版`;
-  const FILE_VERSION=`V50_${CODE}_位置量價確認暨反轉觀察版`;
-  const VERSION=Object.freeze({
-    major:50,
-    baseRelease:'R5.3.2.8.1',
-    code:CODE,
-    displayCode:'R5.3.2.8.1｜寶塔更新5.1｜DATEGATE.1｜REVIEW.2｜OBSERVE.2 動能量價情境｜RESTAURANT.2 第五濾網｜RSICTX.1 多週期觀察｜TOP8.1 餐廳單張總覽｜SNAPFIX.1 市場備援與圖片頁尾修正｜NOPARALLEL.1 移除獨立並行驗證區｜BUGFIX.1 餐廳比較與快照一致性｜FULLBLEED.1 iPhone滿寬長圖｜IPHONECARD.1 前八強滿版卡片｜MOBILE-LINE.1 圖片分享｜HEALTH.3 第三／第四套逐檔健康檢查｜PACTX.1 位置量價與反轉觀察',
-    towerModel:'TOWER_OHLC_RANGE_SINGLE_COLOR_1.0.0',
-    release:RELEASE,
-    fileVersion:FILE_VERSION,
-    dataTiming:'POST_CLOSE_ONLY',
-    researchRole:'SHADOW_ONLY'
-  });
-  root.ShitouReleaseV50=VERSION;
-  root.R50_RELEASE_LABEL=RELEASE;
-  root.R50_FILE_VERSION=FILE_VERSION;
-  if(typeof module!=='undefined'&&module.exports)module.exports=VERSION;
-})(typeof globalThis!=='undefined'?globalThis:this);
+(function(root){const CODE='R5.3.2.8.1-TOWER-SHADOW.5.1-DATEGATE.1-REVIEW.2-OBSERVE.2-RESTAURANT.2-RSICTX.1-TOP8.1-SNAPFIX.1-NOPARALLEL.1-BUGFIX.1-FULLBLEED.1-IPHONECARD.1-MOBILE-LINE.1-HEALTH.3-STRUCTURE.1-UNIFIEDUI.1',RELEASE='石頭少爺 Agent V50｜'+CODE+'｜第六套結構轉強暨手機統一版';const VERSION=Object.freeze({major:50,baseRelease:'R5.3.2.8.1',code:CODE,displayCode:CODE,towerModel:'TOWER_OHLC_RANGE_SINGLE_COLOR_1.0.0',release:RELEASE,fileVersion:'V50_'+CODE,dataTiming:'POST_CLOSE_ONLY',researchRole:'SHADOW_ONLY'});root.ShitouReleaseV50=VERSION;root.R50_RELEASE_LABEL=RELEASE;root.R50_FILE_VERSION=VERSION.fileVersion;if(typeof module!=='undefined'&&module.exports)module.exports=VERSION;})(globalThis);

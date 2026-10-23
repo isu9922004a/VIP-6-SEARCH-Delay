@@ -16,16 +16,17 @@ function clear(){
  const button=by('imageShareButton');if(button){button.disabled=true;button.style.display='inline-flex';button.textContent='圖片分享準備中…';}
  if(by('lineSharePanel')){by('lineSharePanel').hidden=true;by('lineShareImg').removeAttribute('src');by('lineShareSave').removeAttribute('href');}
 }
+function supported(file){try{return typeof navigator.share==='function'&&typeof navigator.canShare==='function'&&navigator.canShare({files:[file]});}catch(_){return false;}}
 function select(index){
  if(!state)return;state.index=Math.max(0,Math.min(index,state.files.length-1));
  const file=state.files[state.index],count=state.files.length;
  if(previewUrl)URL.revokeObjectURL(previewUrl);previewUrl=URL.createObjectURL(file);
  by('lineShareImg').src=previewUrl;const save=by('lineShareSave');save.href=previewUrl;save.download=file.name;
  by('lineSharePrev').disabled=state.index===0||sharing;by('lineShareNext').disabled=state.index===count-1||sharing;
- const supported=typeof navigator.share==='function'&&(!navigator.canShare||navigator.canShare({files:[file]}));
- const button=by('imageShareButton');button.disabled=sharing||!supported;
+ const canShare=supported(file);
+ const button=by('imageShareButton');button.disabled=sharing||!canShare;
  button.textContent=count>1?`📤 分享第 ${state.index+1}/${count} 段到 LINE`:'📤 分享目前圖片到 LINE';
- note(`${count>1?`完整長圖分成 ${count} 段，請逐段分享；目前 ${state.index+1}/${count}。`:'已備妥 JPG 分享圖片。'} ${file.size<1024*1024?Math.ceil(file.size/1024)+' KB':(file.size/1024/1024).toFixed(1)+' MB'}。${supported?'請在系統分享選單選 LINE。':'此瀏覽器無法直接分享圖片，請用 Safari／Chrome 開啟，或儲存 JPG 後從 LINE 相簿傳送。'}`);
+ note(`${count>1?`完整長圖分成 ${count} 段，請逐段分享；目前 ${state.index+1}/${count}。`:'已備妥 JPG 分享圖片。'} ${file.size<1024*1024?Math.ceil(file.size/1024)+' KB':(file.size/1024/1024).toFixed(1)+' MB'}。${canShare?'請在系統分享選單選 LINE。':'此瀏覽器無法直接分享圖片，請用 Safari／Chrome 開啟，或儲存 JPG 後從 LINE 相簿傳送。'}`);
 }
 function toBlob(canvas,quality){return new Promise((resolve,reject)=>canvas.toBlob(b=>b?.size?resolve(b):reject(Error('JPG轉換失敗')),'image/jpeg',quality));}
 async function prepare(canvas,{filename='report.png'}={}){
@@ -58,14 +59,14 @@ async function prepare(canvas,{filename='report.png'}={}){
 }
 async function shareCurrent(){
  if(sharing||!state)return;const file=state.files[state.index],selected=state;
- if(typeof navigator.share!=='function'){note('請儲存目前分享圖片，再到 LINE 相簿選取傳送。');return;}
+ if(!supported(file)){note('此瀏覽器未確認支援圖片檔案分享，請儲存 JPG 再到 LINE 相簿傳送。');return;}
  sharing=true;by('imageShareButton').disabled=true;
  try{
   // No encoding, fetch, timers, or await before invoking the native share sheet.
   const result=navigator.share({files:[file]});await result;
   if(state===selected)note('已交給系統分享；請到 LINE 確認是否送出。'+(state.files.length>1?' 尚有其他段落時，請按下一段再分享。':''));
  }catch(error){if(state===selected)note(error?.name==='AbortError'?'分享已取消，或接收 App 未完成；可以重試，或儲存 JPG 後從 LINE 相簿傳送。':`分享未完成（${error?.name||'Error'}）：${error?.message||'接收 App 無法處理'}。請儲存目前 JPG 後從 LINE 相簿傳送；在 LINE 內開網頁時可改用 Safari／Chrome。`);}
- finally{sharing=false;if(state){by('imageShareButton').disabled=typeof navigator.share!=='function';by('lineSharePrev').disabled=state.index===0;by('lineShareNext').disabled=state.index===state.files.length-1;}}
+ finally{sharing=false;if(state){by('imageShareButton').disabled=!supported(state.files[state.index]);by('lineSharePrev').disabled=state.index===0;by('lineShareNext').disabled=state.index===state.files.length-1;}}
 }
 root.ShitouImageShareV1=Object.freeze({prepare,clear,select,shareCurrent,getState:()=>state,limits:{width:MAX_WIDTH,height:MAX_HEIGHT,bytes:MAX_BYTES}});
 })(globalThis);
