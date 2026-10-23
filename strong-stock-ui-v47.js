@@ -179,6 +179,7 @@
   }
   function buildText(scan){
     const lines=[`${RELEASE_R493}｜第三套「強勢飆股濾網」${statusTitle(scan)}`,`市場交易日：${scan.dataDate}｜產生：${scan.createdAt}`,
+      ...(scan.healthAudit?.degraded?[`健康抽查曾有個別資料暫缺：${scan.healthAudit.issues.map(x=>x.code+' '+x.reason).join('；')}；最終以本次逐檔驗證與失敗統計為準。`]:[]),
       '先記分，再按查詢；請確認市場及個股日期一致。僅供下一交易日觀察，不是進場或獲利保證。',
       `全市場${scan.universe}｜快篩${scan.quick}｜規劃深入${scan.total}｜已處理${scan.done}｜有效判讀${scan.verified}｜同快照重用${scan.cacheHits}｜重試${scan.retries}｜範圍外${scan.deferred}｜停止或熔斷後${scan.pending}`,
       `金融排除${scan.audit.financial}｜生技排除${scan.audit.biotech}｜營建${scan.audit.construction||0}｜全額交割${scan.audit.fullDelivery||0}｜DR${scan.audit.dr||0}｜特殊商品${scan.audit.special||0}｜狀態未核${scan.audit.statusUnknown||0}｜產業不明${scan.audit.unknown}｜未解析行情${scan.unparsed}｜報價無效${scan.audit.invalidQuote}｜成交金額缺失${scan.audit.missingLiquidity}｜流動性不足${scan.audit.illiquid}`,
@@ -226,7 +227,7 @@
       if(!total)throw new Error('無有效深度分析範圍；請檢查市場及產業資料');
       const health=root.ShitouDeepScanHealthV1;
       if(!health)throw new Error('DEEP_SCAN 健康檢查模組未載入，停止全市場掃描');
-      await health.preflight({items:pool.deep,targetDate:market.date,fetcher:(items,options)=>fetchDailyBatchRawR49(items,options),onUpdate:note});
+      const healthAudit=await health.preflight({items:pool.deep,targetDate:market.date,fetcher:(items,options)=>fetchDailyBatchRawR49(items,options),onUpdate:note,allowPartialService:true,allowHistoricalZeroData:true,shouldStop:()=>stopped});
       const cache=recoverCache(snapshotFingerprint(bundle,market.date),market.date);
       // Failed stocks from a previous attempt move to the end, rather than permanently
       // blocking new stocks behind the same four CPU failures. No stock is discarded.
@@ -277,7 +278,7 @@
       const fullMarketCertified=completed&&pool.deferred.length===0&&snapshotDropped===0&&
         pool.audit.unknown===0&&pool.audit.invalidQuote===0&&pool.audit.missingLiquidity===0;
       if(done!==verified+data+failed)throw new Error('本次逐檔數量帳不平衡，停止產生報告');
-      last=Object.freeze({model:F.MODEL,profile:'DAILY_ONLY',dataDate:market.date,createdAt:taipeiStampV3762(),universe:bundle.snapshotRows,unparsed:snapshotDropped,
+      last=Object.freeze({model:F.MODEL,healthAudit,profile:'DAILY_ONLY',dataDate:market.date,createdAt:taipeiStampV3762(),universe:bundle.snapshotRows,unparsed:snapshotDropped,
         quick:pool.quick,total,done,deferred:pool.deferred.length,pending:total-done,audit:pool.audit,
         verified,cacheHits,retries,cpuFailed,breaker,data,failed,rejected,candidates,selectionParked,issues,counts,completed,fullMarketCertified,
         scopeFinished:done===total});

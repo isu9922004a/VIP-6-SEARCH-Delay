@@ -17,7 +17,6 @@ const original={
   watermark:window.applyAntiTheftWatermarkV3761
 };
 let previewSet=null;
-let previewUrl=null;
 
 function canvas(width,height,fill='#f3f6fa'){
   const out=document.createElement('canvas');out.width=width;out.height=height;
@@ -652,16 +651,11 @@ async function setPreviewPage(index){
   if(!previewSet)return;
   const selected=previewSet;
   selected.index=Math.max(0,Math.min(index,selected.pages.length-1));
-  const pageIndex=selected.index,imageAtStart=document.getElementById('imagePreviewImg'),sourceAtStart=imageAtStart?.src,ownerAtStart=window.ShitouReportPreviewEpoch;
-  const page=selected.pages[pageIndex],value=await blob(page);
-  // A single-report preview can open while the previous page is encoding.
-  // Never let that older result replace the new report image or filename.
-  if(previewSet!==selected||selected.index!==pageIndex||imageAtStart?.src!==sourceAtStart||window.ShitouReportPreviewEpoch!==ownerAtStart)return;
-  if(previewUrl)URL.revokeObjectURL(previewUrl);previewUrl=URL.createObjectURL(value);
-  const image=document.getElementById('imagePreviewImg'),link=document.getElementById('imageDownloadLink'),title=document.getElementById('imagePreviewTitle');
-  const modal=document.getElementById('imagePreviewModal');if(modal)modal.dataset.reportFullBleed=page.dataset?.fullBleed==='true'?'true':'false'; // RESTAURANT_FULLBLEED_1
-  if(image)image.src=previewUrl;if(link){link.href=previewUrl;link.download=previewSet.names[previewSet.index];}
-  if(title)title.textContent=previewSet.pages.length===1?`🖼️ ${previewSet.title}｜單一張完整長圖`:`🖼️ ${previewSet.title}｜第 ${previewSet.index+1}/${previewSet.pages.length} 頁`;
+  const pageIndex=selected.index,page=selected.pages[pageIndex];
+  // Keep the preview, download and native share attached to the same page.
+  if(typeof original.show!=='function')throw Error('圖片預覽模組未載入');
+  const shown=await original.show(page,selected.names[pageIndex],selected.pages.length===1?selected.title:(selected.title+'｜第 '+(pageIndex+1)+'/'+selected.pages.length+' 頁'));
+  if(shown===false||previewSet!==selected||selected.index!==pageIndex)return;
   const label=document.getElementById('r45PreviewPageLabel');if(label)label.textContent=previewSet.pages.length===1?'單一張完整長圖':`第 ${previewSet.index+1}／${previewSet.pages.length} 頁`;
   const prev=document.getElementById('r45PreviewPrev'),next=document.getElementById('r45PreviewNext');if(prev)prev.disabled=previewSet.index===0;if(next)next.disabled=previewSet.index===previewSet.pages.length-1;
 }
@@ -692,8 +686,8 @@ async function showPages(pages,{title,prefix,date='latest',note='',kind='report'
   const iphoneSingle=pages.length===1&&pages[0]?.dataset?.iphoneFullScreen==='1284x2778';
   const names=pages.length===1?[safeName(`${prefix}_${iphoneSingle?'iPhone12ProMax_1284x2778_單張滿版':'單一張完整長圖'}_${date}_${FILE_VERSION}.png`)]:pages.map((_,index)=>safeName(`${prefix}_${String(index+1).padStart(2,'0')}-${pages.length}_${date}_${FILE_VERSION}.png`));
   previewSet={pages,names,title,index:0,zipName:safeName(`${prefix}_完整${pages.length}頁_${date}_${FILE_VERSION}.zip`),kind};
-  if(typeof original.show==='function'&&await original.show(pages[0],names[0],`${title}｜第 1/${pages.length} 頁`)===false)return previewSet;
-  mountPreviewActions();await setPreviewPage(0);
+  const current=previewSet;mountPreviewActions();await setPreviewPage(0);
+  if(previewSet!==current)return current;
   const element=document.getElementById('imagePreviewNote');if(element)element.textContent=pages.length===1?`${note}｜${pages[0]?.dataset?.iphoneFullScreen==='1284x2778'?'已輸出 1284×2778 單張滿版 PNG':'完整內容已合併為單一張 PNG'}，可直接預覽或下載。`:`${note}｜共 ${pages.length} 頁；可逐頁預覽／下載，或下載完整ZIP。`;
   return previewSet;
 }

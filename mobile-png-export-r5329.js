@@ -8,6 +8,13 @@ function install(canvas,ops,bg){
  const proxy=new Proxy(probe,{get(t,k){if(k==='canvas')return canvas;const value=t[k];if(typeof value!=='function')return value;
    if(['measureText','getTransform','createLinearGradient','createRadialGradient','createPattern'].includes(k))return value.bind(t);
    return (...args)=>{commands.push({method:k,args});return value.apply(t,args);};},set(t,k,v){commands.push({property:k,value:v});t[k]=v;return true;}});
+ canvas.renderExportRegion=function({top=0,height=canvas.height,scale=1}={}){
+  const tile=document.createElement('canvas');tile.width=Math.max(1,Math.floor(canvas.width*scale));tile.height=Math.max(1,Math.floor(height*scale));
+  const ctx=tile.getContext('2d');if(!ctx)throw Error('裝置無法建立分享圖片');ctx.fillStyle='#fff';ctx.fillRect(0,0,tile.width,tile.height);
+  ctx.setTransform(scale,0,0,scale,0,-top*scale);ctx.fillStyle=bg;ctx.fillRect(0,top,canvas.width,height);for(const op of ops)op(ctx);
+  for(const c of commands){if(c.property)ctx[c.property]=c.value;else if(c.method==='resetTransform')ctx.setTransform(scale,0,0,scale,0,-top*scale);else if(c.method==='setTransform'&&c.args.length===6){const a=c.args.map(v=>v*scale);a[5]-=top*scale;ctx.setTransform(...a);}else ctx[c.method](...c.args);}
+  return tile;
+ };
  canvas.getContext=type=>type==='2d'?proxy:null;
  canvas.toBlob=function(callback,type='image/png'){
   if(type!=='image/png'){callback(null);return;}
