@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-// 石頭少爺 Agent R5.3.2.4.25-R4.9.2｜GitHub Actions 官方休市日曆修正版
+// 石頭少爺 Agent V50｜DATASYNC.1-CLOSE.1｜官方臨時休市保護修正版
 // 修正：交易日判斷改讀 TWSE 官方開休市日曆；休市日保留最近完成交易日，不再把星期一～五一律視為必須有當日行情。
 // 若官方日曆暫時抓取失敗，2026 年使用已核對的官方休市日備援；其他年份維持保守拒絕，不補造行情。
 import fs from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
@@ -12,6 +13,32 @@ const ROOT = process.cwd();
 const LATEST_PATH = path.join(ROOT, 'data/market/latest.json');
 const ARCHIVE_DIR = path.join(ROOT, 'data/market/archive');
 const MAX_ARCHIVES = 30;
+
+// The annual TWSE holiday API does not necessarily include an emergency
+// closure announced on the preceding day. Keep manually verified exceptions
+// separate from scheduled holidays; NEVER infer a closure from missing quotes.
+// A repository maintainer must add each new exceptional closure with an
+// independently verifiable TWSE/TPEx announcement URL.
+const EMERGENCY_CLOSURES_PATH = fileURLToPath(new URL('../config/verified-market-closures.json', import.meta.url));
+function readVerifiedEmergencyClosures() {
+  const entries = JSON.parse(readFileSync(EMERGENCY_CLOSURES_PATH, 'utf8'));
+  if (!Array.isArray(entries)) throw new Error('Verified emergency market closures must be a JSON array');
+  const dates = new Map();
+  for (const entry of entries) {
+    const date = String(entry?.date || '');
+    const name = String(entry?.name || '').trim();
+    const source = String(entry?.source || '').trim();
+    const iso = /^\d{8}$/.test(date) ? `${date.slice(0,4)}-${date.slice(4,6)}-${date.slice(6,8)}` : '';
+    const validDate = !!iso && !Number.isNaN(Date.parse(`${iso}T00:00:00Z`)) &&
+      new Date(`${iso}T00:00:00Z`).toISOString().slice(0,10) === iso;
+    if (!validDate || !name || !/^https:\/\//i.test(source) || dates.has(date)) {
+      throw new Error(`Invalid/duplicate verified emergency closure: ${date || '(empty)'}`);
+    }
+    dates.set(date, Object.freeze({ date, name, source }));
+  }
+  return dates;
+}
+const VERIFIED_EMERGENCY_CLOSURES = readVerifiedEmergencyClosures();
 
 export const SOURCES = Object.freeze({
   twseQuotes: 'https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL',
@@ -371,12 +398,21 @@ export function buildTwseMarketCalendar(rows, source=SOURCES.twseHolidaySchedule
     if(explicitTrading) specialTradingDates.push({date,name,description});
     else closures.push({date,name:name||'官方休市日',description});
   }
-  return {ready:closures.length>0,source,closures,specialTradingDates};
+  const officialReady=closures.length>0;
+  // Retain the announced emergency closures in the published metadata, too.
+  for (const entry of VERIFIED_EMERGENCY_CLOSURES.values()) {
+    const existing=closures.find(x=>x.date===entry.date);
+    if (existing) { existing.source=entry.source; continue; }
+    closures.push({...entry,description:'經交易所公開公告確認之臨時休市'});
+  }
+  return {ready:officialReady,source,closures,specialTradingDates};
 }
 export function marketCalendarClosure(calendar,date) {
   const d=normalizeMarketDate(date); if(!d) return null;
   const hit=(Array.isArray(calendar?.closures)?calendar.closures:[]).find(x=>normalizeMarketDate(x?.date)===d);
-  if(hit) return {date:d,name:String(hit.name||'官方休市日'),source:calendar?.source||SOURCES.twseHolidaySchedule};
+  if(hit) return {date:d,name:String(hit.name||'官方休市日'),source:hit.source||calendar?.source||SOURCES.twseHolidaySchedule};
+  const emergency=VERIFIED_EMERGENCY_CLOSURES.get(d);
+  if(emergency) return {...emergency};
   const fallback=FALLBACK_TWSE_CLOSED_2026[d];
   return fallback?{date:d,name:fallback,source:'TWSE 2026 官方休市日備援'}:null;
 }
@@ -465,6 +501,34 @@ function isoDate(ymd) {
 
 async function readJsonIfExists(file) {
   try { return JSON.parse(await fs.readFile(file, 'utf8')); } catch { return null; }
+}
+
+// Validate a persisted snapshot before reusing it on a confirmed closed day.
+// Do not mistake a JSON file with only a date label for genuine complete quotes.
+export function verifyMarketSnapshotCoverage(snapshot) {
+  const tradeDate=normalizeMarketDate(snapshot?.tradeDate);
+  const counts=snapshot?.counts;
+  if (!tradeDate || snapshot?.marketCoverageReady!==true || !counts ||
+      !Number.isInteger(counts.twseRows) || counts.twseRows<800 ||
+      !Number.isInteger(counts.tpexRows) || counts.tpexRows<600 ||
+      !Array.isArray(snapshot.rows) ||
+      snapshot.rows.length!==counts.totalRows ||
+      counts.totalRows!==counts.twseRows+counts.tpexRows) {
+    throw new Error('Snapshot market coverage incomplete; cannot reuse or publish');
+  }
+  let twseCount=0, tpexCount=0;
+  for (const quote of snapshot.rows) {
+    if (!isOrdinaryCode(quote?.code) || normalizeMarketDate(quote?.quoteDate)!==tradeDate) {
+      throw new Error(`Persisted stock quote date/code invalid: ${quote?.code||'unknown'}`);
+    }
+    if (quote.market==='TWSE') twseCount++;
+    else if (quote.market==='TPEX') tpexCount++;
+    else throw new Error(`Unknown quote market: ${quote?.market}`);
+  }
+  if (twseCount!==counts.twseRows || tpexCount!==counts.tpexRows) {
+    throw new Error('Persisted market counts do not agree with stock rows');
+  }
+  return {tradeDate,twseRows:twseCount,tpexRows:tpexCount};
 }
 
 // 防止 GitHub Actions「執行成功」卻只把上週五資料重新標為今天產出的檔案。
@@ -582,6 +646,25 @@ export async function buildSnapshot({twseQuoteRows,tpexQuoteRows,twseCompanyRows
 }
 
 export async function main() {
+  // When an already-published snapshot matches a confirmed closed-day
+  // expectation, avoid pointless network requests and preserve its bytes.
+  // This is ONLY safe after validating the previous snapshot's coverage.
+  const now=new Date();
+  const clock=taipeiMarketClock(now);
+  const prior=await readJsonIfExists(LATEST_PATH);
+  if (clock.marketClosed && prior) {
+    try {
+      verifyMarketSnapshotCoverage(prior);
+      const audit=verifySnapshotAdvancement(prior,null,now);
+      console.log(`CONFIRMED_MARKET_CLOSED: ${clock.today}｜${clock.officialClosure?.name || '週末'}｜保留已驗證 ${audit.tradeDate} 行情，不覆蓋也不補造`);
+      return;
+    } catch (error) {
+      console.log(`Existing snapshot not reusable: ${error?.message||error}. Re-fetching official data.`);
+    }
+  }
+  if (clock.officialClosure) {
+    console.log(`CONFIRMED_MARKET_CLOSED: ${clock.today}｜${clock.officialClosure.name}｜來源 ${clock.officialClosure.source}`);
+  }
   console.log('Fetching official TWSE / TPEx market snapshot...');
   const [twseLatest,tpexQuotes,twseCompanies,tpexCompanies] = await Promise.all([
     fetchJsonArray(SOURCES.twseQuotes, 'TWSE STOCK_DAY_ALL'),
