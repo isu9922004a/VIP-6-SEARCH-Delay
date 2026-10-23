@@ -3,7 +3,9 @@
  */
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.ShitouSelectionEvidenceV1=api;})(typeof globalThis!=='undefined'?globalThis:this,function(){
 'use strict';
-const MODEL='SELECTION_EVIDENCE_2';
+const MODEL='SELECTION_EVIDENCE_2_PACTX_1';
+const PA=typeof module==='object'&&module.exports?require('./price-action-context-v1.js'):globalThis.ShitouPriceActionV1;
+if(!PA)throw Error('位置量價確認核心未載入');
 const LABELS=Object.freeze({DATA:'資料不足',CAUTION:'新買風險提醒',WATCH:'等待條件確認',OBSERVE:'續強條件觀察'});
 const n=v=>v===null||v===undefined||String(v).trim()===''?null:Number.isFinite(Number(v))?Number(v):null;
 const avg=a=>a.length?a.reduce((s,v)=>s+v,0)/a.length:null;
@@ -54,6 +56,8 @@ function evaluate(input,options={}){
  if(n(report.close)!==null&&Math.abs(n(report.close)-last.close)>Math.max(.02,last.close*.0001))return missing('報告收盤價與完成日K不一致');
  if(q&&(date(q.quoteDate)!==asOf||!(n(q.close)>0)||Math.abs(n(q.close)-last.close)>Math.max(.02,last.close*.0001)))return missing('市場報價與個股同日同價未核對');
  if(last.volume<=0)return missing('最後完成日K無成交量，不推論可成交');
+ const priceAction=PA.evaluate(report,{asOf,bars:b,quote:q,completed:true});
+ if(priceAction.state==='DATA')return {...missing('位置量價確認：'+priceAction.reason),priceAction};
  const prior=b.slice(-21,-1),maxVolume=Math.max(...prior.map(x=>x.volume));
  if(!(maxVolume>0))return missing('前20日成交量不足，無法建立最大量日關卡');
  // Exclude the signal day. Equal-volume anchors use the latest date, explicitly.
@@ -74,7 +78,9 @@ function evaluate(input,options={}){
  if(failed)reasons.push('盤中越過最大量日高點，收盤未守在上方；不直接斷言是假突破');
  if(weakClimax)reasons.push('量達前20日均量3倍以上，且長上影、弱收盤同時出現');
  if(flowDivergence)reasons.push('收盤創20日新高，但OBV未創新高且CMF20<0；量價證據有分歧');
+ reasons.push(...priceAction.concerns);
  const caution=reasons.length>0;
+ reasons.push(...priceAction.waiting);
  if(phase==='BREAKOUT_TODAY')reasons.push('今天才收盤越過量能關卡，隔日站穩尚無證據');
  if(phase==='INSIDE_VOLUME_BAR')reasons.push('收盤仍在最大量日高低區間內，尚未站上其高點');
  if(cmf20===null||cmf20<=0)reasons.push('CMF20尚未偏正；只是收盤位置乘成交量的統計');
@@ -86,13 +92,13 @@ function evaluate(input,options={}){
  const relative=relativeStrength(b,options.benchmark,market);
  if(!relative.available)warnings.push(relative.reason);
  const state=caution?'CAUTION':reasons.length?'WATCH':'OBSERVE';
- return {...base,state,label:LABELS[state],reasons:reasons.length?reasons:['量能關卡已越過；仍只列下一交易日條件觀察'],warnings,relative,
+ return {...base,priceAction,state,label:LABELS[state],reasons:reasons.length?reasons:['量能關卡已越過；仍只列下一交易日條件觀察'],warnings,relative,
   anchor:{date:anchor.date,high:anchor.high,low:anchor.low,volume:anchor.volume,window:20,excludesSignalDay:true,tieRule:'相同最大量採最近日'},
   phase,features:{close:last.close,closePosition,upperShadow,volumeRatio5:ratio5,volumeRatio20:ratio20,cmf20,cmf20Prior,cmf20ThreeAgo,cmfRising3:cmf20!==null&&cmf20ThreeAgo!==null?cmf20>cmf20ThreeAgo:null,obvNewHigh20,newClosingHigh20,rsi5:rsi(b),failedVolumeHigh:failed,weakClimax,flowDivergence},
   meaning:'原訊號與新買風險分開；不重複加分，不代表勝率或可直接買進'};
 }
 const fmt=v=>n(v)===null?'資料不足':Number(v).toFixed(2);
-function describe(e){if(!e)return '四策略共用研究檢查：尚未執行';return `新買條件研究｜${e.label}｜${e.date||'日期不足'}${e.anchor?`｜前20日最大量日 ${e.anchor.date} 高${fmt(e.anchor.high)}／低${fmt(e.anchor.low)}`:''}${e.features?`｜CMF20 ${fmt(e.features.cmf20)}｜OBV20日新高 ${e.features.obvNewHigh20?'是':'否'}`:''}｜${e.reasons.join('；')}｜月線 ${e.monthlyStatus}${e.warnings.length?'｜'+e.warnings.join('；'):''}｜量價證據交由正式篩選層分類；條件分不是勝率，非直接進場許可。`;}
+function describe(e){if(!e)return '四策略共用研究檢查：尚未執行';return `新買條件研究｜${e.label}｜${e.date||'日期不足'}${e.anchor?`｜前20日最大量日 ${e.anchor.date} 高${fmt(e.anchor.high)}／低${fmt(e.anchor.low)}`:''}${e.features?`｜CMF20 ${fmt(e.features.cmf20)}｜OBV20日新高 ${e.features.obvNewHigh20?'是':'否'}`:''}｜${e.reasons.join('；')}｜月線 ${e.monthlyStatus}${e.warnings.length?'｜'+e.warnings.join('；'):''}｜量價證據交由正式篩選層分類；條件分不是勝率，非直接進場許可。${e.priceAction?'\n'+PA.describe(e.priceAction):''}`;}
 function attach(candidate,report,options){if(candidate&&typeof candidate==='object')candidate.selectionEvidence=evaluate(report||candidate,options);return candidate;}
 return Object.freeze({MODEL,LABELS,date,normalize,cmf,rsi,monthly,relativeStrength,evaluate,attach,describe});
 });
