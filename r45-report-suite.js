@@ -467,10 +467,10 @@ function top8Finite(...values){
   return null;
 }
 function top8Number(value,digits=2){
-  const number=Number(value);return Number.isFinite(number)?number.toLocaleString('zh-TW',{minimumFractionDigits:digits,maximumFractionDigits:digits}):'資料不足';
+  const number=value===null||value===undefined||value===''?NaN:Number(value);return Number.isFinite(number)?number.toLocaleString('zh-TW',{minimumFractionDigits:digits,maximumFractionDigits:digits}):'資料不足';
 }
 function top8Percent(value){
-  const number=Number(value);return Number.isFinite(number)?(number>=0?'+':'')+top8Number(number,1)+'%':'資料不足';
+  const number=value===null||value===undefined||value===''?NaN:Number(value);return Number.isFinite(number)?(number>=0?'+':'')+top8Number(number,1)+'%':'資料不足';
 }
 function top8Technical(candidate,kind){
   const info=evidenceFor(candidate,kind),evidence=info.evidence,values=evidence?.ema?.values||{};
@@ -504,6 +504,7 @@ function top8Price(report,candidate,...paths){
   for(const path of paths){
     let value=path==='close'?(report?.close??candidate?.close):path.split('.').reduce((object,key)=>object?.[key],candidate);
     if(value===null||value===undefined)value=path.split('.').reduce((object,key)=>object?.[key],report);
+    if(value===null||value===undefined||value==='')continue;
     value=Number(value);if(Number.isFinite(value))return top8Number(value,2)+' 元';
   }
   return '資料不足';
@@ -537,8 +538,11 @@ function drawTop8Card(context,candidate,index,kind,x,y,width,height){
   const close=candidateClose(candidate);fitText(context,close===null?'最新收盤 資料不足':'最新收盤 '+top8Number(close,2)+' 元',x+660,y+42,width-690,{max:29,min:18,weight:950,color:'#d42d3d'});
   const score=top8Finite(candidate?.score?.final,candidate?.score,candidate?.finalScore,candidate?.conditionScore,candidate?.launchScore,candidate?.actionGate?.score);
   drawTop8Badge(context,x+90,y+55,245,'條件 '+grade+'｜總分 '+(score===null?'依原報告':top8Number(score,0)),'#f8fbfd',accent);
-  drawTop8Badge(context,x+345,y+55,360,candidateQualification(candidate,kind),'#f7fbf8',accent);
-  drawTop8Badge(context,x+715,y+55,width-733,technical.phase,'#fbfaf3',accent);
+  const qualificationLabel=candidateQualification(candidate,kind),phaseLabel=String(technical.phase||'階段待確認');
+  drawTop8Badge(context,x+345,y+55,360,qualificationLabel,'#f7fbf8',accent);
+  // Keep both fields distinct: qualification often already embeds the exact phase.
+  const phaseBadge=qualificationLabel.includes(phaseLabel)||phaseLabel.includes(qualificationLabel)?'收盤與量能須再次確認':phaseLabel;
+  drawTop8Badge(context,x+715,y+55,width-733,phaseBadge,'#fbfaf3',accent);
   const metrics=kind==='momentum'?top8MomentumMetrics(candidate,report,technical):top8DaytradeMetrics(candidate,report,technical),metricY=y+100,gap=10,metricW=(width-56-gap*2)/3;
   metrics.forEach((metric,i)=>{const mx=x+18+i*(metricW+gap);rounded(context,mx,metricY,metricW,62,10,'#f3f6fa','#e0e7ee');fitText(context,metric[0],mx+12,metricY+22,metricW-24,{max:15,min:11,weight:850,color:'#52657a'});fitText(context,metric[1],mx+12,metricY+51,metricW-24,{max:24,min:14,weight:950,color:metric[2]});});
   const lines=[...top8CardLines(candidate,kind,technical),window.ShitouScanPolicy5328.volumeText(candidate)],lineY=[178,201,224,247,273];

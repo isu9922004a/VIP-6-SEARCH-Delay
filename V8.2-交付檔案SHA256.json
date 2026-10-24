@@ -1,0 +1,17 @@
+{
+  "version": "V8.2",
+  "base": "2026-10-24 17:03 uploaded ZIP",
+  "sha256": {
+    "index.html": "e248d29961c3cebc12cfb5f3388b283f546231cd65d9079c2fb908221cf4ab1a",
+    "stock-audit-alert-v82.js": "a0d2ab8b20e0618ffa73812ccead82af88d27aacd6bdff29b4755f488791ae29",
+    "selection-data-v2.js": "6bb2ea87d035c0595a7cd7d1b52ddcd7b58bab6f7e799eaa7c410eb8e20bf400",
+    "r45-report-suite.js": "abeb4527768ab2c7346b136753822bd501c3e34a059786618e81e14eaab08300",
+    "report-layout-v563.js": "55b090e3d2ae1001b9b7fc3bccfe05ebea26f67f71437c132d93474148f45a15",
+    "shitou-v50-ui.js": "5bc50ed8de4a7cf543fbcee999e1a4012a2bba076e608ee33f82dc9b9ea536d4",
+    "research-report-v1.js": "dc0c4aa5bcde42bb70ff0f4163f1dfc922da93161ecf2d0c30880ca8b4d0ed4c",
+    "research-integration-v1.js": "8bc67253991fcc22b6db945188522f30d8b04cfba353944fee757d392302cf86",
+    "version-v50.js": "01d3f81a4ed8b93f5f5763bb12dce04a7c914c16992d00ed4c82419d272b68b6",
+    "scripts/tests/stock-audit-alert-v82.test.mjs": "1cbf5a827cc3d6c4caa854b19af0cee59dcadeedbbd601d5af496d4fa0f5c958",
+    "V8.2-更新步驟與驗收結果.md": "bf052d630da6548c0e81431fa325a0c936dc0d21f834fb8c28b1585fa65b6d80"
+  }
+}

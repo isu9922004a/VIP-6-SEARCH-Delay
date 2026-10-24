@@ -133,7 +133,7 @@
     lineCard(226,`已持有：${plan.holder}`,'red','💼');
     lineCard(322,plan.today,plan.formalExecutionAllowed?'green':'yellow','●');
 
-    canvasFit(ctx,'明天只看三個數字',42,430,W-84,{max:30,min:24,weight:950,color:'#17324f'});
+    canvasFit(ctx,'下一交易日只看三個數字',42,430,W-84,{max:30,min:24,weight:950,color:'#17324f'});
     const keyCards=[
       {x:38,tone:'green',value:plan.turnText,label:'多空線',text:'收盤站上且量能確認，才轉強觀察。'},
       {x:404,tone:'red',value:plan.defenseText,label:'防守線',text:'跌破且收不回要小心，先管理風險。'},
@@ -141,7 +141,7 @@
     ];
     keyCards.forEach(card=>{const p=tones[card.tone];canvasRound(ctx,card.x,474,344,184,16,p.fill,p.stroke);canvasFit(ctx,card.value,card.x+20,493,304,{max:38,min:27,weight:1000,color:p.title});canvasFit(ctx,card.label,card.x+20,542,304,{max:24,min:19,weight:950,color:'#263f5a'});canvasWrap(ctx,card.text,card.x+20,579,304,{size:17,min:14,maxLines:3,weight:750,color:'#43566a'});});
 
-    canvasFit(ctx,'明天三種走法',42,687,W-84,{max:30,min:24,weight:950,color:'#17324f'});
+    canvasFit(ctx,'下一交易日三種走法',42,687,W-84,{max:30,min:24,weight:950,color:'#17324f'});
     plan.scenarios.forEach((item,index)=>{const x=38+index*366,p=tones[item.tone];canvasRound(ctx,x,731,344,178,16,p.fill,p.stroke);canvasFit(ctx,`${index+1}. ${item.title}`,x+20,751,304,{max:24,min:17,weight:950,color:p.title});canvasWrap(ctx,item.text,x+20,799,304,{size:18,min:14,maxLines:3,weight:800,color:'#334155'});});
 
     canvasFit(ctx,'最近 80 個交易日｜K 線＋成交量＋20 日均線',42,942,W-84,{max:28,min:21,weight:950,color:'#17324f'});
