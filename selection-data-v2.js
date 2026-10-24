@@ -6,6 +6,12 @@
 const MODEL='CANONICAL_DAILY_ONLY_REVIEW_2',cache=new Map(),pending=new Map(),months=new Map();let snapshot=null,fetcher=null;
 const num=E? v=>v===null||v===undefined||v===''?null:Number.isFinite(Number(v))?Number(v):null:()=>null;
 const fail=reason=>{throw Error('資料不足｜共用日K：'+reason);};
+function isDataFailure(record){
+ const reason=typeof record==='string'?record:String(record?.error||record?.reason||'');
+ return record?.dataUnavailable===true||/\b(?:DATA_HISTORY_GAP|HISTORY_AHEAD_OF_OFFICIAL_SNAPSHOT|HISTORY_TOO_SHORT|INSUFFICIENT_HISTORY|NO_HISTORY|DATA_UNAVAILABLE|HISTORY_GAP_[A-Z_]+|CLOSED_BAR_[A-Z_]+)\b|資料不足｜|共用日K[：:]/i.test(reason);
+}
+function failureRecord(record){return record&&!record.ok&&isDataFailure(record)?{...record,dataUnavailable:true,failureKind:'DATA',retryable:false}:record;}
+
 const market=v=>String(v||'').toUpperCase()==='TPEX'?'TPEX':String(v||'').toUpperCase()==='TWSE'?'TWSE':null;
 function fingerprint(rows){const text=JSON.stringify(rows);let h=2166136261;for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619);}return rows.length+'-'+(h>>>0).toString(16);}
 function inspectSnapshot(bundle){
@@ -76,12 +82,12 @@ async function harmonize(items,payload,profile='FULL'){
  if(!daily){try{await ensure(good);}catch(e){/* Keep per-stock DATA while retaining successfully verified peers. */}}
  const results=payload.results.filter(x=>!codes.includes(String(x.code||x.data?.stock||'')));
  for(const item of items){const found=payload.results.filter(x=>String(x.code||x.data?.stock||'')===String(item.code));const x=found.length===1?found[0]:null;
-  if(!x?.ok){results.push(x||{code:String(item.code),ok:false,error:'資料不足｜回傳缺失或重複'});continue;}
+  if(!x?.ok){results.push(failureRecord(x||{code:String(item.code),ok:false,error:'資料不足｜回傳缺失或重複'}));continue;}
   try{if(daily)remember(x.data,item.code);let aligned=apply(x.data,item.code);if(String(profile).toUpperCase()==='FULL'){months.set(context(item.code).key,{status:E.monthly({...x.data,monthlyReviewV2:undefined}),source:'FULL_EXPLICIT_FIELDS',verified:true,date:aligned.marketDate});aligned=apply(x.data,item.code);}results.push({...x,code:String(item.code),data:aligned});}catch(e){results.push({...x,ok:false,error:String(e.message||e),data:undefined,dataUnavailable:true});}
  }
  if(snapshot===requestedSnapshot)globalThis.ShitouPriceActionIntegration?.capture({snapshot,items,results});
  return {...payload,results};
 }
 function fromUrl(url){const u=new URL(url,'https://local.invalid'),codes=(u.searchParams.get('codes')||'').split(',').filter(Boolean);return {items:codes.map(code=>({code,q:snapshot?.map.get(code)})),profile:u.searchParams.get('profile')||'FULL'};}
-return Object.freeze({MODEL,inspectSnapshot,bind,context,get,validate,remember,ensure,apply,harmonize,fromUrl,fingerprint,setFetcher:f=>{fetcher=f;},getSnapshot:()=>snapshot,reset:()=>{snapshot=null;cache.clear();pending.clear();months.clear();globalThis.ShitouPriceActionIntegration?.bind(null);}});
+return Object.freeze({MODEL,isDataFailure,failureRecord,inspectSnapshot,bind,context,get,validate,remember,ensure,apply,harmonize,fromUrl,fingerprint,setFetcher:f=>{fetcher=f;},getSnapshot:()=>snapshot,reset:()=>{snapshot=null;cache.clear();pending.clear();months.clear();globalThis.ShitouPriceActionIntegration?.bind(null);}});
 });

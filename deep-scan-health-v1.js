@@ -1,5 +1,5 @@
 /* HEALTH.2: isolate failed probes; retain strict date, identity and price checks. */
-(function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;if(root)root.ShitouDeepScanHealthV1=api;})(typeof globalThis!=='undefined'?globalThis:this,function(){
+(function(root,factory){const api=factory(typeof module==='object'&&module.exports?require('./selection-data-v2.js'):root.ShitouSelectionDataV2);if(typeof module==='object'&&module.exports)module.exports=api;if(root)root.ShitouDeepScanHealthV1=api;})(typeof globalThis!=='undefined'?globalThis:this,function(D){
 'use strict';
 const normalizeDate=v=>{const m=String(v??'').trim().match(/^(\d{4})[-/]?(\d{2})[-/]?(\d{2})$/);if(!m)return null;const out=`${m[1]}-${m[2]}-${m[3]}`,d=new Date(out+'T00:00:00Z');return Number.isFinite(d.getTime())&&d.toISOString().slice(0,10)===out?out:null;};
 const market=item=>String(item?.q?.market||item?.market||'').toUpperCase()==='TPEX'?'TPEX':'TWSE';
@@ -10,7 +10,7 @@ function examine(items,payload,targetDate){
  if(payload?.type!=='MOMENTUM_DEEP_SCAN'||!Array.isArray(payload.results))throw Error('深掃健康檢查：Worker 回傳格式不正確');
  for(const item of items){
   const code=String(item.code),hits=payload.results.filter(x=>codeOf(x)===code),x=hits.length===1?hits[0]:null;
-  if(!x?.ok||!x?.data){issues.push({code,kind:x?.dataUnavailable===true?'DATA':'SERVICE',reason:hits.length!==1?'深掃股票未回傳或重複':String(x?.error||x?.reason||'Worker 未回傳有效個股行情')});continue;}
+  if(!x?.ok||!x?.data){issues.push({code,kind:D.isDataFailure(x)?'DATA':'SERVICE',reason:hits.length!==1?'深掃股票未回傳或重複':String(x?.error||x?.reason||'Worker 未回傳有效個股行情')});continue;}
   const r=x.data,returned=String(r.stock||r.code||code),b=Array.isArray(r.canonicalBars)&&r.canonicalBars.length?r.canonicalBars:Array.isArray(r.dailySeries)?r.dailySeries:[],last=b.at(-1);
   if(returned!==code||r.completed===false||r.isComplete===false){issues.push({code,kind:'DATA',reason:'回傳代號不符或上游明示尚未完成日K'});continue;}
   const stockDate=normalizeDate(r.closeDate),barDate=normalizeDate(last?.date),quoteDate=normalizeDate(item.q?.quoteDate);

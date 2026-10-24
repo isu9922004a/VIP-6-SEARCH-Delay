@@ -3,7 +3,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const statusCache=new Map(),pending=new Map();
 function validStatus(s,d){return s?.ready===true&&P.date(s.date)===d&&['twseCodes','tpexCodes','specialCodes'].every(k=>Array.isArray(s[k])&&s[k].every(c=>typeof c==='string'&&/^\d{4,6}$/.test(c)));}
 function embeddedStatus(){try{return JSON.parse(document.querySelector('meta[name="shitou-scan-exclusions"]')?.content||'null');}catch(_){return null;}}
-const CANONICAL_MARKET_BASE='https://raw.githubusercontent.com/isu9922004a/-VIP-AUTO-SEARCH-N-/main/data/market/';
+const CANONICAL_MARKET_BASE='https://raw.githubusercontent.com/isu9922004a/VIP-BOWTOWER-4-SEARCH/main/data/market/';
 const LOCAL_MARKET_LATEST='./data/market/latest.json';
 const FRESHNESS_RETRY_DELAYS=[0,10000,20000];
 
@@ -97,7 +97,7 @@ function remoteStatusUrls(bundle,d){
  const bases=[CANONICAL_MARKET_BASE];
  try{
   const u=new URL(bundle.meta?.snapshotUrl);
-  if(u.origin==='https://raw.githubusercontent.com'&&/^\/isu9922004a\/-VIP-AUTO-SEARCH-N-\/[^/]+\/data\/market\/latest\.json$/.test(u.pathname)){
+  if(u.origin==='https://raw.githubusercontent.com'&&/^\/isu9922004a\/VIP-BOWTOWER-4-SEARCH\/[^/]+\/data\/market\/latest\.json$/.test(u.pathname)){
    bases.unshift(new URL('./',u).href);
   }
  }catch(_){/* snapshotUrl 可省略；仍使用固定受信任 Repo */}
