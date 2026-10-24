@@ -76,10 +76,9 @@ function overview(scan,{watermark=false}={}){
  ].map(([text,y,size,color])=>({...fit(text,1228,size,size-2),y,color}));
  const audit={model:'RESTAURANT_TOP8_OVERVIEW_1',layout:'IPHONE_CARD_1284X2778_1',reference:'STRONG_STOCK_CARD_GEOMETRY',strategyModel:C.MODEL,width:WIDTH,height:HEIGHT,fullBleed:true,count:rows.length,codes:rows.map(c=>c.code),date:scan.date,fullDetails:false,snapshotId:scan.snapshotId,release:scan.release,validations:rows.map(c=>c.validation),blocks:plans.map(p=>({code:p.code,rank:p.rank,top:p.top,bottom:p.bottom,cells:p.cells.map(c=>[c.label.text,c.value.text]),lines:p.lines})),headerBottom:210,footerTop:FOOTER,summaryAbbreviated:plans.filter(p=>p.lines.some(l=>l.abbreviated)).map(p=>p.code)};
  const text=['⑤ 餐廳擠不進去｜前8強滿版總覽',`行情 ${scan.date}｜版本 ${scan.release}｜快照 ${scan.snapshotId}`,...rows.flatMap((c,i)=>[`觀察序 #${i+1}`,...C.lines(c)]),'五格指標只呈現原策略數據，不另計條件分或改排序。'];
- return [{width:WIDTH,height:HEIGHT,dataset:{fullBleed:'true',iphoneFullScreen:'1284x2778',iphoneFullWidth:'1284',restaurantOverviewAudit:JSON.stringify(audit),reportText:encodeURIComponent(JSON.stringify(text))},toBlob(callback,type='image/png'){
-  const canvas=document.createElement('canvas');canvas.width=WIDTH;canvas.height=HEIGHT;
-  if(/iPhone|iPad|iPod|Android/i.test(root.navigator?.userAgent||'')&&root.ShitouMobilePng5329)root.ShitouMobilePng5329.install(canvas,[],'#eef3f8');
-  const ctx=canvas.getContext('2d');ctx.textBaseline='alphabetic';ctx.fillStyle='#eef3f8';ctx.fillRect(0,0,WIDTH,HEIGHT);
+ function paintOverview(ctx){
+  if(!ctx)throw Error('無法建立第五濾網圖片繪圖工具');
+  ctx.textBaseline='alphabetic';ctx.fillStyle='#eef3f8';ctx.fillRect(0,0,WIDTH,HEIGHT);
   const draw=(plan,x,y,color=plan.color||'#18334d',align='left')=>{ctx.font=font(plan.size);ctx.textAlign=align;ctx.fillStyle=color;ctx.fillText(plan.text,x,y);ctx.textAlign='left';};
   ctx.fillStyle='#123a5a';ctx.fillRect(0,0,WIDTH,210);headings.forEach(l=>draw(l,l.x,l.y));
   version.forEach((text,i)=>draw({text,size:12},30,96+i*15,'#e5f4ff'));
@@ -90,9 +89,21 @@ function overview(scan,{watermark=false}={}){
    p.lines.forEach(l=>draw(l,x+25,y+l.y,l.color));
   });
   ctx.fillStyle='#123a5a';ctx.fillRect(0,FOOTER,WIDTH,HEIGHT-FOOTER);footers.forEach(l=>draw(l,28,l.y,l.color));
-  if(watermark&&root.applyAntiTheftWatermarkV3761)root.applyAntiTheftWatermarkV3761(canvas,'all');
-  canvas.toBlob(blob=>{canvas.width=canvas.height=0;callback(blob);},type);
- }}];
+}
+ // The preview descriptor is NOT a CanvasImageSource. Web Share needs a
+ // drawable canvas region to encode a standalone JPEG before the user taps.
+ return [{width:WIDTH,height:HEIGHT,dataset:{fullBleed:'true',iphoneFullScreen:'1284x2778',iphoneFullWidth:'1284',restaurantOverviewAudit:JSON.stringify(audit),reportText:encodeURIComponent(JSON.stringify(text))},renderExportRegion({top=0,height=HEIGHT,scale=1}={}){
+  if(!(Number.isFinite(top)&&Number.isFinite(height)&&Number.isFinite(scale))||top<0||height<=0||scale<=0||top+height>HEIGHT)throw Error('分享區段尺寸無效');
+  const tile=document.createElement('canvas');tile.width=Math.max(1,Math.floor(WIDTH*scale));tile.height=Math.max(1,Math.floor(height*scale));
+  const ctx=tile.getContext('2d');if(!ctx)throw Error('無法建立手機分享畫布');
+  ctx.setTransform(scale,0,0,scale,0,-top*scale);paintOverview(ctx);return tile;
+ },
+ toBlob(callback,type='image/png'){
+  const canvas=document.createElement('canvas');canvas.width=WIDTH;canvas.height=HEIGHT;
+  if(/iPhone|iPad|iPod|Android/i.test(root.navigator?.userAgent||'')&&root.ShitouMobilePng5329)root.ShitouMobilePng5329.install(canvas,[],'#eef3f8');
+  try{paintOverview(canvas.getContext('2d'));canvas.toBlob(blob=>{canvas.width=canvas.height=1;callback(blob);},type);}
+  catch(error){canvas.width=canvas.height=1;callback(null);}
+ } }];
 }
 function pages(scan,options={}){return options.limit==='all'?fullPages(scan,options):overview(scan,options);}
 async function preview(scan,all=false){if(!scan?.candidates?.length)throw Error('目前沒有候選可產圖');if(document.fonts?.ready)await document.fonts.ready;const out=pages(scan,{limit:all?'all':8});if(!root.strongStockShowPagesV47)throw Error('完整圖片預覽工具未載入');return root.strongStockShowPagesV47(out,{title:all?'⑤ 餐廳擠不進去｜逐檔完整明細':'⑤ 餐廳擠不進去｜前8強滿版卡片',prefix:(all?'RESTAURANT_FULL_':'RESTAURANT_TOP8_')+(root.ShitouReleaseV50?.code||C.MODEL),date:scan.date,kind:'restaurant',note:all?'全部候選逐檔完整分頁｜請下載完整ZIP保留全部頁面':'iPhone 12 Pro Max 1284×2778 單張滿版｜前8檔依原排序；全部警訊與核對明細請另開完整圖片報告'});}

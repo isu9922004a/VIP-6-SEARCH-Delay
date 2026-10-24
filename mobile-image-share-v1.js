@@ -43,8 +43,10 @@ async function prepare(canvas,{filename='report.png'}={}){
   for(let top=0;top<canvas.height;top+=span){
    if(token!==revision)return null;
    const height=Math.min(span,canvas.height-top);
-   const tile=typeof canvas.renderExportRegion==='function'?canvas.renderExportRegion({top,height,scale}):document.createElement('canvas');
-   if(typeof canvas.renderExportRegion!=='function'){
+   const regionSupported=typeof canvas.renderExportRegion==='function';
+   if(!regionSupported&&typeof canvas.getContext!=='function')throw Error('圖片模組缺少手機分享介接 renderExportRegion；請更新圖片程式');
+   const tile=regionSupported?canvas.renderExportRegion({top,height,scale}):document.createElement('canvas');
+   if(!regionSupported){
     tile.width=Math.max(1,Math.floor(canvas.width*scale));tile.height=Math.max(1,Math.floor(height*scale));const ctx=tile.getContext('2d');if(!ctx)throw Error('手機無法建立分享圖片');ctx.fillStyle='#fff';ctx.fillRect(0,0,tile.width,tile.height);ctx.drawImage(canvas,0,top,canvas.width,height,0,0,tile.width,tile.height);
    }
    let value;

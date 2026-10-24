@@ -67,10 +67,8 @@ function overview(scan,{mode='A',watermark=false}={}){
  const audit={model:'STRUCTURE_TOP8_OVERVIEW_1',mode,date:scan.date,release:scan.release,snapshotId:scan.id||scan.snapshotHash||null,width:WIDTH,height:HEIGHT,fullBleed:true,count:rows.length,codes:rows.map(c=>c.code),quality:rows.map(c=>c.quality),
   blocks:blocks.map(b=>({rank:b.rank,code:b.code,top:b.top,bottom:b.bottom,fields:b.fields.map(f=>[f.label.text,f.value.text]),lines:b.lines})),
   abbreviated:blocks.flatMap(b=>b.lines.filter(l=>l.abbreviated).map(l=>({code:b.code,key:l.key,fullText:l.fullText}))),noOverlap:blocks.every((b,i)=>i===0||b.top>=blocks[i-1].bottom),headerBottom:210,footerTop:FOOTER};
- return [{width:WIDTH,height:HEIGHT,dataset:{fullBleed:'true',iphoneFullScreen:'1284x2778',iphoneFullWidth:'1284',structureOverviewAudit:JSON.stringify(audit),reportText:encodeURIComponent(JSON.stringify(fullText))},toBlob(callback,type='image/png'){
-  const canvas=document.createElement('canvas');canvas.width=WIDTH;canvas.height=HEIGHT;
-  if(/iPhone|iPad|iPod|Android/i.test(r.navigator?.userAgent||'')&&r.ShitouMobilePng5329)r.ShitouMobilePng5329.install(canvas,[],'#eef3f8');
-  const ctx=canvas.getContext('2d');if(!ctx){callback(null);return;}
+ function paintOverview(ctx){
+  if(!ctx)throw Error('無法建立第六濾網圖片繪圖工具');
   ctx.textBaseline='alphabetic';ctx.fillStyle='#eef3f8';ctx.fillRect(0,0,WIDTH,HEIGHT);
   const draw=(plan,x,y,color=plan.color||'#18334d',align='left')=>{ctx.font=font(plan.size);ctx.textAlign=align;ctx.fillStyle=color;ctx.fillText(plan.text,x,y);ctx.textAlign='left';};
   ctx.fillStyle='#123a5a';ctx.fillRect(0,0,WIDTH,210);header.forEach(h=>draw(h,h.x,h.y));
@@ -80,9 +78,21 @@ function overview(scan,{mode='A',watermark=false}={}){
    b.lines.forEach(line=>draw(line,x+25,y+line.y,line.color));
   });
   ctx.fillStyle='#123a5a';ctx.fillRect(0,FOOTER,WIDTH,HEIGHT-FOOTER);footers.forEach(f=>draw(f,28,f.y,f.color));
-  if(watermark&&r.applyAntiTheftWatermarkV3761)r.applyAntiTheftWatermarkV3761(canvas,'all');
-  canvas.toBlob(blob=>{canvas.width=canvas.height=1;callback(blob);},type);
- }}];
+}
+ // The preview descriptor is NOT a CanvasImageSource. Web Share needs a
+ // drawable canvas region to encode a standalone JPEG before the user taps.
+ return [{width:WIDTH,height:HEIGHT,dataset:{fullBleed:'true',iphoneFullScreen:'1284x2778',iphoneFullWidth:'1284',structureOverviewAudit:JSON.stringify(audit),reportText:encodeURIComponent(JSON.stringify(fullText))},renderExportRegion({top=0,height=HEIGHT,scale=1}={}){
+  if(!(Number.isFinite(top)&&Number.isFinite(height)&&Number.isFinite(scale))||top<0||height<=0||scale<=0||top+height>HEIGHT)throw Error('分享區段尺寸無效');
+  const tile=document.createElement('canvas');tile.width=Math.max(1,Math.floor(WIDTH*scale));tile.height=Math.max(1,Math.floor(height*scale));
+  const ctx=tile.getContext('2d');if(!ctx)throw Error('無法建立手機分享畫布');
+  ctx.setTransform(scale,0,0,scale,0,-top*scale);paintOverview(ctx);return tile;
+ },
+ toBlob(callback,type='image/png'){
+  const canvas=document.createElement('canvas');canvas.width=WIDTH;canvas.height=HEIGHT;
+  if(/iPhone|iPad|iPod|Android/i.test(r.navigator?.userAgent||'')&&r.ShitouMobilePng5329)r.ShitouMobilePng5329.install(canvas,[],'#eef3f8');
+  try{paintOverview(canvas.getContext('2d'));canvas.toBlob(blob=>{canvas.width=canvas.height=1;callback(blob);},type);}
+  catch(error){canvas.width=canvas.height=1;callback(null);}
+ } }];
 }
 function pages(scan,{mode='A',kind='full',code}={}){if(kind==='top8')return overview(scan,{mode});S.assertSnapshot(scan);const data=scan.modeResults[mode],rows=kind==='stock'?data.ranked.filter(c=>c.code===code):kind==='top8'?data.top8:null;if(kind==='top8'&&rows.some(c=>!C.top8Decision(c).allowed))throw Error('前8強含未通過追價門檻的舊結果，請重掃');if(rows&&!rows.length)throw Error('此模式沒有對應的已確認候選；不補出股票');const probe=document.createElement('canvas').getContext('2d'),version=wrap(probe,scan.release,W-SAFE*2,23),layout={headingY:250+(version.length-1)*29+70,headerBottom:250+(version.length-1)*29+170,bodyStart:250+(version.length-1)*29+250},title='⑥ 結構轉強・反轉確認',subtitle=mode+'｜'+(mode==='A'?'強勢回測再轉強':'跌深反轉確認')+'｜'+({full:'完整分析',top8:'前8強觀察',stock:'個股結構分析'})[kind],capacity=Math.floor((END-layout.bodyStart)/LINE)+1,blocks=rows?rows.map((c,i)=>({name:`${kind==='stock'?'個股':'前8強 #'+(i+1)} ${c.name}（${c.code}）`,lines:C.lines(c)})):[{name:'全市場檢查與完整逐檔紀錄',lines:scan.text[mode].split('\n')}],plans=[];
  for(const block of blocks){const lines=block.lines.flatMap(t=>wrap(probe,t));for(let at=0;at<lines.length;at+=capacity){const heading=wrap(probe,block.name+(at>0?'（續）':''),W-SAFE*2,36);if(heading.length>2)throw Error('長股名需額外頁首空間');plans.push({name:block.name,heading,lines:lines.slice(at,at+capacity)});}}
