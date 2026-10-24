@@ -36,7 +36,7 @@ async function scan({items,universe,parsed=universe,excluded=0,date,fetchBatch,s
  result.complete=balanced&&result.pending===0&&result.failed===0&&result.dataUnavailable===0;
  result.fullMarketCertified=result.complete&&requestedMode==='all'&&result.results.every(a=>a.tower.calendarVerified&&a.tower.basisVerified&&a.tower.basis!=='UNKNOWN');
  result.candidates=result.results.filter(r=>r.type&&['FORMAL_CANDIDATE','CONDITIONAL_WATCH'].includes(r.status)&&(subset==='ALL'||subset===r.type)).sort(compare);result.riskCandidates=result.results.filter(r=>r.type&&['NO_CHASE','REJECT','DATA_UNAVAILABLE'].includes(r.status)&&(subset==='ALL'||subset===r.type)).sort(compare);
- result.text=buildText(result);return result;
+ result.text=globalThis.ShitouResearchIntegration?.appendScanText('TOWER',result,buildText(result))??buildText(result);return result;
 }
 return Object.freeze({scan,compare,buildText});
 });

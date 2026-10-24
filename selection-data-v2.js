@@ -33,7 +33,7 @@ function bind(bundle){
  const map=new Map();for(const [code,q] of bundle.map){const m=market(q.market);if(!m)fail('市場別缺失 '+code);if(q.quoteDate&&E.date(q.quoteDate)!==dates[0])fail('市場報價日期衝突 '+code);map.set(String(code),{...q,market:m,quoteDate:dates[0],volumeUnit:'shares'});}
  if(snapshot?.date!==dates[0]){cache.clear();pending.clear();months.clear();}
  const identity=dates[0]+'|'+fingerprint([...map].sort(([a],[b])=>a.localeCompare(b)).map(([code,q])=>[code,q.market,q.quoteDate,q.open,q.high,q.low,q.close,q.volume]));
- snapshot={date:dates[0],identity,map,meta};globalThis.ShitouPriceActionIntegration?.bind(snapshot);return {...bundle,map};
+ snapshot={date:dates[0],identity,map,meta};globalThis.ShitouPriceActionIntegration?.bind(snapshot);try{globalThis.ShitouResearchIntegration?.bind(snapshot);}catch(e){console.warn("研究快照未綁定",e);}return {...bundle,map};
 }
 function context(code){const q=snapshot?.map.get(String(code));if(!q)fail('尚未取得此股票同日市場快照 '+code);return {q,date:snapshot.date,key:[snapshot.date,String(code),q.market,q.open,q.high,q.low,q.close,q.volume].join('|')};}
 function get(code){try{return cache.get(context(code).key)||null;}catch{return null;}}
@@ -85,9 +85,9 @@ async function harmonize(items,payload,profile='FULL'){
   if(!x?.ok){results.push(failureRecord(x||{code:String(item.code),ok:false,error:'資料不足｜回傳缺失或重複'}));continue;}
   try{if(daily)remember(x.data,item.code);let aligned=apply(x.data,item.code);if(String(profile).toUpperCase()==='FULL'){months.set(context(item.code).key,{status:E.monthly({...x.data,monthlyReviewV2:undefined}),source:'FULL_EXPLICIT_FIELDS',verified:true,date:aligned.marketDate});aligned=apply(x.data,item.code);}results.push({...x,code:String(item.code),data:aligned});}catch(e){results.push({...x,ok:false,error:String(e.message||e),data:undefined,dataUnavailable:true});}
  }
- if(snapshot===requestedSnapshot)globalThis.ShitouPriceActionIntegration?.capture({snapshot,items,results});
+ if(snapshot===requestedSnapshot){globalThis.ShitouPriceActionIntegration?.capture({snapshot,items,results});try{globalThis.ShitouResearchIntegration?.capture({snapshot,items,results});}catch(e){console.warn("研究附層未完成，原結果保留",e);}}
  return {...payload,results};
 }
 function fromUrl(url){const u=new URL(url,'https://local.invalid'),codes=(u.searchParams.get('codes')||'').split(',').filter(Boolean);return {items:codes.map(code=>({code,q:snapshot?.map.get(code)})),profile:u.searchParams.get('profile')||'FULL'};}
-return Object.freeze({MODEL,isDataFailure,failureRecord,inspectSnapshot,bind,context,get,validate,remember,ensure,apply,harmonize,fromUrl,fingerprint,setFetcher:f=>{fetcher=f;},getSnapshot:()=>snapshot,reset:()=>{snapshot=null;cache.clear();pending.clear();months.clear();globalThis.ShitouPriceActionIntegration?.bind(null);}});
+return Object.freeze({MODEL,isDataFailure,failureRecord,inspectSnapshot,bind,context,get,validate,remember,ensure,apply,harmonize,fromUrl,fingerprint,setFetcher:f=>{fetcher=f;},getSnapshot:()=>snapshot,reset:()=>{snapshot=null;cache.clear();pending.clear();months.clear();globalThis.ShitouPriceActionIntegration?.bind(null);try{globalThis.ShitouResearchIntegration?.bind(null);}catch(_){}}});
 });

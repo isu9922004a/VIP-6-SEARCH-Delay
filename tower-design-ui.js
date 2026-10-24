@@ -22,7 +22,7 @@ function progress(s){const bar=document.getElementById('towerProgressBar'),track
 function summary(scan){const box=document.getElementById('towerResultOverview');if(!box)return;box.hidden=false;const candidates=scan.candidates,a=candidates.filter(x=>x.type==='A').length,b=candidates.filter(x=>x.type==='B').length;box.innerHTML=`<div class="tower-results-heading"><div><span class="tower-eyebrow">掃描結果</span><h3>寶塔線候選排行</h3></div><span class="tower-chip ${scan.fullMarketCertified?'tower-chip-blue':'tower-chip-warn'}">${scan.fullMarketCertified?'完整市場資料認證':'已驗證樣本 · 非全市場排名'}</span></div><div class="tower-scan-metrics">${metric('已驗證候選',candidates.length+' 檔')}${metric('A · 紅線恆強',a+' 檔')}${metric('B · 今日黑翻紅',b+' 檔')}${metric('深掃進度',scan.attempted+' / '+scan.planned)}</div>`;progress(scan);}
 function reset(){const box=document.getElementById('towerResultOverview');if(box){box.hidden=true;box.textContent='';}progress({attempted:0,planned:0});}
 function controls(){return `<div class="tower-control-heading"><div class="section-title">④ 寶塔線點金術 <span class="tower-heading-sub">（獨立策略）</span></div><span class="tower-chip tower-chip-blue">A ／ B 雙策略</span></div>
- <p class="tower-version">${esc(C.RELEASE)}｜寶塔獨立報告與排名戰報版</p>
+ <p class="tower-version">${esc(root.ShitouReleaseV50.displayCode)}｜寶塔獨立報告與排名戰報版</p>
  <p class="tower-intro">紅線恆強追蹤續強結構，今日黑翻紅觀察新轉強訊號。以完成日K檢查寶塔方向、量價風險與月線條件。</p>
  <div class="strong-stock-reminder tower-reminder">📌 名單是下一交易日的觀察順序，品質分不是勝率；盤後訊號不代表開盤買點。研究版，僅供盤後觀察。</div>
  <div class="tower-options"><div class="tower-field"><label for="towerSubset">子策略</label><select id="towerSubset"><option value="ALL">全部掃描 · A＋B</option><option value="A">A · 紅線恆強</option><option value="B">B · 今日黑翻紅</option></select></div><div class="tower-field"><label for="towerProfile">行情資料</label><select id="towerProfile"><option value="FULL">完整分析（含原月線欄位）</option><option value="DAILY_ONLY">日K觀察（月線缺失不列正式）</option><option value="FAST_A">方案A · 雙階段加速研究（候選FULL複驗，未認證全量等價）</option></select></div><p class="tower-options-note">全量深掃所有原快篩合格股票，不設TOP100／140截斷；失敗與缺資料不標記成功。</p></div>
@@ -31,6 +31,6 @@ function controls(){return `<div class="tower-control-heading"><div class="secti
  <p id="towerSummary" class="meta tower-progress-note" role="status">等待盤後查詢…</p>
  <div class="tower-export-actions"><button id="towerImage" class="copy-btn image-btn" disabled type="button">🖼 前8檔圖片報告</button><button id="towerZip" class="copy-btn image-btn" disabled type="button">🗂 全部候選圖片 ZIP</button><button id="towerCopy" class="copy-btn" disabled type="button">📋 複製完整戰報</button><button id="towerDownload" class="copy-btn" disabled type="button">📄 下載完整 TXT</button></div>
  <div id="towerResultOverview" hidden></div><div id="towerList" class="tower-candidate-list"></div>
- <details class="tower-full-report"><summary>完整文字戰報與掃描數量核對</summary><p class="tower-version">${esc(C.RELEASE)}｜研究版本</p><pre id="towerReportText"></pre></details>`;}
+ <details class="tower-full-report"><summary>完整文字戰報與掃描數量核對</summary><p class="tower-version">${esc(root.ShitouReleaseV50.displayCode)}｜研究版本</p><pre id="towerReportText"></pre></details>`;}
 root.ShitouTowerDesign=Object.freeze({controls,cards,card,summary,progress,reset,presentation,statusLabels,monthlyLabels,esc,fmt,version:'TOWER_DESIGN_1'});
 })(typeof window!=='undefined'?window:globalThis);

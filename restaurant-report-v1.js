@@ -66,7 +66,7 @@ function overview(scan,{watermark=false}={}){
   {text:`已處理 ${scan.attempted}/${scan.planned}｜本次候選 ${scan.candidates.length}｜本頁 ${rows.length}｜資料不足 ${scan.dataUnavailable??'待確認'}｜${scope}`,x:30,y:143,width:1224,max:20,min:17,color:'#fff4bb'},
   {text:'提醒：先看量價防守與警訊，再看量縮／CMF；原圖核對未驗證不算通過，排序非漲停機率。',x:30,y:183,width:1224,max:19,min:17,color:'#fff'}
  ].map(l=>({...l,...fit(l.text,l.width,l.max,l.min)}));
- const version=observer.wrapImageText(probe,`${scan.date}｜${scan.release}`,1224,12);
+ const version=observer.wrapImageText(probe,`${scan.date}｜${root.ShitouReleaseV50?.displayCode||"V8.1"}`,1224,26);
  if(version.length>2)throw Error('版本資訊超出圖片安全區');
  const footers=[
   ['訊號日低點是量價防守線，嚴格跌破才失效；日SMA20不替代月20MA資格。',2622,21,'#fff'],
@@ -81,7 +81,7 @@ function overview(scan,{watermark=false}={}){
   ctx.textBaseline='alphabetic';ctx.fillStyle='#eef3f8';ctx.fillRect(0,0,WIDTH,HEIGHT);
   const draw=(plan,x,y,color=plan.color||'#18334d',align='left')=>{ctx.font=font(plan.size);ctx.textAlign=align;ctx.fillStyle=color;ctx.fillText(plan.text,x,y);ctx.textAlign='left';};
   ctx.fillStyle='#123a5a';ctx.fillRect(0,0,WIDTH,210);headings.forEach(l=>draw(l,l.x,l.y));
-  version.forEach((text,i)=>draw({text,size:12},30,96+i*15,'#e5f4ff'));
+  version.forEach((text,i)=>draw({text,size:26},30,96+i*30,'#e5f4ff'));
   plans.forEach(p=>{
    const x=CARD.x,y=p.top;ctx.fillStyle='#fff';ctx.fillRect(x,y,CARD.width,CARD.height);ctx.fillStyle=p.col;ctx.fillRect(x,y,8,CARD.height);
    draw(p.name,x+24,y+39);draw(p.close,x+CARD.width-24,y+39,'#b52a34','right');
@@ -106,6 +106,6 @@ function overview(scan,{watermark=false}={}){
  } }];
 }
 function pages(scan,options={}){return options.limit==='all'?fullPages(scan,options):overview(scan,options);}
-async function preview(scan,all=false){if(!scan?.candidates?.length)throw Error('目前沒有候選可產圖');if(document.fonts?.ready)await document.fonts.ready;const out=pages(scan,{limit:all?'all':8});if(!root.strongStockShowPagesV47)throw Error('完整圖片預覽工具未載入');return root.strongStockShowPagesV47(out,{title:all?'⑤ 餐廳擠不進去｜逐檔完整明細':'⑤ 餐廳擠不進去｜前8強滿版卡片',prefix:(all?'RESTAURANT_FULL_':'RESTAURANT_TOP8_')+(root.ShitouReleaseV50?.code||C.MODEL),date:scan.date,kind:'restaurant',note:all?'全部候選逐檔完整分頁｜請下載完整ZIP保留全部頁面':'iPhone 12 Pro Max 1284×2778 單張滿版｜前8檔依原排序；全部警訊與核對明細請另開完整圖片報告'});}
+async function preview(scan,all=false){if(!scan?.candidates?.length)throw Error('目前沒有候選可產圖');if(document.fonts?.ready)await document.fonts.ready;const out=pages(scan,{limit:all?'all':8});if(!root.strongStockShowPagesV47)throw Error('完整圖片預覽工具未載入');return root.strongStockShowPagesV47(out,{title:all?'⑤ 餐廳擠不進去｜逐檔完整明細':'⑤ 餐廳擠不進去｜前8強滿版卡片',prefix:(all?'RESTAURANT_FULL_':'RESTAURANT_TOP8_')+(root.ShitouReleaseV50?.fileVersion||C.MODEL),date:scan.date,kind:'restaurant',note:all?'全部候選逐檔完整分頁｜請下載完整ZIP保留全部頁面':'iPhone 12 Pro Max 1284×2778 單張滿版｜前8檔依原排序；全部警訊與核對明細請另開完整圖片報告'});}
 root.ShitouRestaurantReport=Object.freeze({pages,fullPages,overview,preview});
 })(globalThis);

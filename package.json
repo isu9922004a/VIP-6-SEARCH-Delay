@@ -1,0 +1,11 @@
+{
+  "name": "shitou-research-v8",
+  "private": true,
+  "scripts": {
+    "test:research": "node --test scripts/tests/research-v8.test.cjs scripts/tests/research-provenance.test.mjs",
+    "test:existing": "node scripts/run-existing-tests.cjs",
+    "test:browser": "node scripts/tests/research-browser.cjs",
+    "research:validate": "node scripts/validate-research-v1.cjs"
+  },
+  "devDependencies": { "playwright-core": "1.56.1" }
+}

@@ -65,6 +65,7 @@ function capture(kind,scan){
  return {id,model:C.MODEL,release:VERSION,policy:C.POLICY,strategy:kind,date:asOf,capturedAt:now,scope,rows};
 }
 function appendText(base,kind,scan){
+ base=root.ShitouResearchIntegration?.appendScanText(kind,scan,base)??base;
  const marker='【RSI／OBV／SAR並行觀察｜不參與原排序】';if(typeof base!=='string'||base.includes(marker))return base;
  const run=capture(kind,scan);if(!run)return base;
  return base+'\n\n'+[marker,`模型 ${C.MODEL}｜版本 ${VERSION}｜交易日 ${run.date}`,`原候選 ${run.scope.candidateCount}｜風險旁列 ${run.scope.parkedCount}｜${run.scope.fullMarketCertified?'沿用原市場覆蓋認證':'非全市場完整排名'}`,'RSI5／10／14同源Wilder；來源原值另列／OBV20正規化／SAR 0.02–0.20；不新增權重，不改原分數、資格與名次。',...run.rows.flatMap(r=>[`${r.baselineRank?'原序 #'+r.baselineRank:'風險旁列'} ${r.name}（${r.code}）${r.subtype?'｜'+r.subtype:''}｜原分 ${r.baselineScore??r.baselineQuality??'未提供'}`,[...C.lines(r.evidence),...rowContext(r)].join('｜')]),'技術情境僅供當次報告參考；尚未驗證績效。'].join('\n');
@@ -100,7 +101,7 @@ function imagePages(run,rows=run.rows,options={}){
 function watermarkPage(page,kind){if(typeof page.getContext==='function'){root.applyAntiTheftWatermarkV3761(page,kind);return;}page.toBlob=function(callback,type){const lines=JSON.parse(decodeURIComponent(page.dataset.reportText)),audit=JSON.parse(page.dataset.indicatorShadowAudit),run={date:page.dataset.observationDate,strategy:page.dataset.observationStrategy},row={code:audit.codes[0]};const c=imagePage(run,[row],0,audit.page,audit.total,lines);root.applyAntiTheftWatermarkV3761(c,kind);c.toBlob(blob=>{c.width=c.height=0;callback(blob);},type||'image/png');};page.dataset.watermark='enabled';}
 function pagesForScan(kind,scan,options={}){
  const run=capture(kind,scan);if(!run)return [];const rows=run.rows.filter(r=>r.baselineRank!==null&&(options.limit===undefined||r.baselineRank<=options.limit));const pages=imagePages(run,rows,{lazy:true});pages.forEach(p=>Object.assign(p.dataset,{observationDate:run.date,observationStrategy:kind}));
- if(options.watermark&&typeof root.applyAntiTheftWatermarkV3761==='function')pages.forEach(p=>watermarkPage(p,'all'));return pages;
+ if(options.watermark&&typeof root.applyAntiTheftWatermarkV3761==='function')pages.forEach(p=>watermarkPage(p,'all'));pages.push(...(root.ShitouResearchIntegration?.pagesForScan(kind,scan,options)||[]));return pages;
 }
 function stockRow(input){const report=input?.report||input||{},asOf=C.date(report.marketDate||report.closeDate||report.dataDate);return makeRow(report,0,'STOCK',asOf,false,new Date().toISOString());}
 function pagesForStock(report,options={}){const row=stockRow(report),run={date:row.date||'日期不足',strategy:'STOCK',rows:[row]};const pages=imagePages(run);if(options.watermark&&typeof root.applyAntiTheftWatermarkV3761==='function')pages.forEach(p=>watermarkPage(p,'stock'));return pages;}
