@@ -9,10 +9,10 @@
   const MODEL='BOOK_EVIDENCE_R495_V1';
   const ROLE='EVIDENCE_ONLY';
   const DECISIONS=Object.freeze({
-    PRIORITY_WATCH:{key:'PRIORITY_WATCH',icon:'🟢',label:'明天開盤：可優先觀察，但不能直接追',colorRole:'positive'},
-    WAIT_CONFIRM:{key:'WAIT_CONFIRM',icon:'🟡',label:'明天開盤：先等確認，不急著進場',colorRole:'caution'},
-    AVOID:{key:'AVOID',icon:'🔴',label:'明天開盤：目前不適合進場',colorRole:'negative'},
-    DATA_INSUFFICIENT:{key:'DATA_INSUFFICIENT',icon:'⚪',label:'明天開盤：資料不足，先不要進場',colorRole:'unknown'}
+    PRIORITY_WATCH:{key:'PRIORITY_WATCH',icon:'🟢',label:'下一交易日開盤：可優先觀察，但不能直接追',colorRole:'positive'},
+    WAIT_CONFIRM:{key:'WAIT_CONFIRM',icon:'🟡',label:'下一交易日開盤：先等確認，不急著進場',colorRole:'caution'},
+    AVOID:{key:'AVOID',icon:'🔴',label:'下一交易日開盤：目前不適合進場',colorRole:'negative'},
+    DATA_INSUFFICIENT:{key:'DATA_INSUFFICIENT',icon:'⚪',label:'下一交易日開盤：資料不足，先不要進場',colorRole:'unknown'}
   });
 
   const number=value=>{const n=Number(value);return Number.isFinite(n)?n:null;};
@@ -171,7 +171,7 @@
 
   function textBlock(input){
     const evidence=input?.model===MODEL?input:analyze(input),lines=[
-      `【${evidence.decision.icon} 明天開盤行動判讀｜教材證據層】`,
+      `【${evidence.decision.icon} 下一交易日開盤行動判讀｜教材證據層】`,
       evidence.headline,
       `白話：${evidence.plainText}`
     ];
@@ -184,7 +184,7 @@
     return lines.join('\n');
   }
 
-  function cardHtml(input,title='📚 明天開盤行動判讀'){
+  function cardHtml(input,title='📚 下一交易日開盤行動判讀'){
     const e=input?.model===MODEL?input:analyze(input),levels=e.levels||{};
     const checks=e.available?`<div class="book-open-levels"><b>觀察價 ${price(levels.trigger)}</b><b>近支撐 ${price(levels.support)}</b><b>失效參考 ${price(levels.invalidation)}</b></div>`:'';
     const confirm=e.available?`<div class="book-open-check"><strong>開盤怎麼看：</strong>${e.confirmation.map(esc).join('；')}</div>`:'';
@@ -194,11 +194,11 @@
 
   function stage(input){
     const e=input?.model===MODEL?input:analyze(input),l=e.levels||{};
-    return {key:`BOOK_${e.decision.key}`,label:`${e.decision.icon} ${e.headline.replace('明天開盤：','')}`,headline:e.headline,plainText:e.plainText,colorRole:e.decision.colorRole,
+    return {key:`BOOK_${e.decision.key}`,label:`${e.decision.icon} ${e.headline.replace('下一交易日開盤：','')}`,headline:e.headline,plainText:e.plainText,colorRole:e.decision.colorRole,
       progressText:e.available?`觀察 ${price(l.trigger)}｜支撐 ${price(l.support)}｜失效 ${price(l.invalidation)}`:'完成日K不足60根',source:'兩本教材候選證據層｜不改Gate'};
   }
 
-  function insertCanvasCard(base,input,title='📚 明天開盤行動'){
+  function insertCanvasCard(base,input,title='📚 下一交易日開盤行動'){
     if(!base||typeof root.insertStageCanvasCardV53245!=='function')return base;
     const height=154,fallback=Math.min(210,Math.max(110,Math.round((base.height||0)*.055)));
     let insertY=fallback;
@@ -247,7 +247,7 @@
       const base=root.buildDayTradeTextReportV1;
       root.buildDayTradeTextReportV1=function(scan){
         const list=(scan?.candidates||[]).slice(0,8).map(attach),summary=list.length?list.map((candidate,index)=>`${index+1}. ${candidate?.report?.name||candidate?.name||candidate?.report?.code||candidate?.code||'-'}｜${candidate.bookEvidenceR495.headline}`).join('\n'):'本次沒有候選可建立開盤判讀。';
-        return `【📚 明天開盤白話總表｜不改原Gate】\n${summary}\n\n${base(scan)}`;
+        return `【📚 下一交易日開盤白話總表｜不改原Gate】\n${summary}\n\n${base(scan)}`;
       };
     }
     if(typeof root.renderDayTradeScanResultV1==='function'){
@@ -256,7 +256,7 @@
         (scan?.candidates||[]).forEach(attach);
         const result=base(scan),host=typeof document!=='undefined'?document.getElementById('dayTradeList'):null,cards=Array.from(host?.querySelectorAll?.('.momentum-card')||[]);
         (scan?.candidates||[]).slice(0,cards.length).forEach((candidate,index)=>{
-          if(!cards[index].querySelector('.book-open-card'))cards[index].insertAdjacentHTML('beforeend',cardHtml(candidate.bookEvidenceR495,'📚 明天開盤怎麼做'));
+          if(!cards[index].querySelector('.book-open-card'))cards[index].insertAdjacentHTML('beforeend',cardHtml(candidate.bookEvidenceR495,'📚 下一交易日開盤怎麼做'));
         });
         return result;
       };
@@ -274,7 +274,7 @@
     for(const name of ['renderStockInfographicV46','renderStockProfessionalInfographicV51']){
       if(typeof root[name]!=='function'||typeof root.insertStageCanvasCardV53245!=='function')continue;
       const base=root[name];
-      root[name]=function(report){return insertCanvasCard(base(report),report,'📚 明天開盤行動');};
+      root[name]=function(report){return insertCanvasCard(base(report),report,'📚 下一交易日開盤行動');};
     }
   }
 

@@ -14,7 +14,7 @@ function number(v){
  }
  return Number.isFinite(Number(v))?Number(v):null;
 }
-function price(v){const n=number(v);return n===null?'資料不足':Number(n.toFixed(2))===n?n.toFixed(2):String(n);}
+function price(v){const n=number(v);return n===null?'資料不足':n.toFixed(2);}
 function comparePrice(close,threshold){
  const lhs=number(close),rhs=number(threshold),ok=lhs>0&&rhs>0;
  return {key:'EVENT_LOW_BROKEN',operator:'<',close:lhs,threshold:rhs,status:ok?'OK':'DATA',breached:ok?lhs<rhs:null,relation:ok?(lhs<rhs?'<':lhs>rhs?'>':'='):null};
