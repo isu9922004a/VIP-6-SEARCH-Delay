@@ -38,11 +38,11 @@ function compactStateLabel(state){
  return state==='BREAKOUT_LAUNCH'?'突破發動':state==='HEALTHY_PULLBACK'?'健康回踩':state==='MOMENTUM_CONTINUATION'?'強勢延續':state==='FLOW_CONFIRMATION'?'資金確認':state==='OVEREXTENDED'?'短線過熱':state==='BREAKOUT_FAILURE'?'結構失敗':state==='INSUFFICIENT_DATA'?'資料不足':state==='DISABLED'?'已關閉':'觀察中';
 }
 function model(id,checks,extra){return {id,checks,status:status(checks),...extra};}
-function evaluate(r,options={}){r=structuredClone(r);
- const flags=U.flags(options.flags),n=U.validate(r),code=String(r.stock||r.code||''),displayName=resolveDisplayName(r,String(r.stock||r.code||''));
- if(!n.ok)return U.freeze({version:VERSION,code,name:displayName,date:r.marketDate||r.closeDate||r.dataDate,state:'INSUFFICIENT_DATA',compactStateLabel:compactStateLabel('INSUFFICIENT_DATA'),reason:n.reason,models:{},families:{},risks:[],dataQuality:{complete:false,missing:[n.reason]},originalB:U.num(r.originalB),originalInvalidation:U.num(r.originalInvalidation),researchOnly:true,flags});
+function evaluate(r,options={}){r=structuredClone(U.normalizeInput(r));
+ const flags=U.flags(options.flags),n=U.validate(r),validation=U.validationResult(r,n),code=String(r.stock||r.code||''),displayName=resolveDisplayName(r,String(r.stock||r.code||''));
+ if(!n.ok)return U.freeze({version:VERSION,code,name:displayName,date:r.marketDate||r.closeDate||r.dataDate,state:'INSUFFICIENT_DATA',compactStateLabel:'基礎資料待核驗',reason:n.reason,validation,models:{},families:{},risks:[],dataQuality:{complete:false,missing:[...validation.missingFields,...(r.researchAcquisitionError?[r.researchAcquisitionError]:[])]},originalB:U.num(r.originalB),originalInvalidation:U.num(r.originalInvalidation),researchOnly:true,flags});
  const b=n.bars,z=b.at(-1),p=b.at(-2),f=U.features(b),foundation=F.evaluate(r,{flags,features:f}),date=z.date;
- if(!flags.fourModelsEnabled)return U.freeze({version:VERSION,code,name:displayName,date,state:'DISABLED',compactStateLabel:compactStateLabel('DISABLED'),models:{},families:{},risks:[],foundation,flags,researchOnly:true});
+ if(!flags.fourModelsEnabled)return U.freeze({version:VERSION,code,name:displayName,date,state:'DISABLED',compactStateLabel:compactStateLabel('DISABLED'),validation,models:{},families:{},risks:[],foundation,flags,researchOnly:true});
  const weekly=U.weeks(b,r),volOld=b.length>=25?mean(b.slice(-25,-20).map(x=>x.volume)):null,volumeGrowth=volOld>0?f.volumeLatest5/volOld:null;
  const breakout=f.prior20High!==null&&z.close>f.prior20High,failed=f.prior20High!==null&&z.high>f.prior20High&&z.close<=f.prior20High;
  const previousBreak=b.length>=22&&p.close>Math.max(...b.slice(-22,-2).map(x=>x.high));
@@ -57,6 +57,7 @@ function evaluate(r,options={}){r=structuredClone(r);
  const supports=[5,10,20].map(n=>({period:n,value:ma(b,n,b.length-2)})).filter(x=>x.value!==null),touched=supports.filter(x=>p&&p.low<=x.value&&p.high>=x.value),held=touched.filter(x=>p.close>=x.value&&z.low>=x.value&&z.close>=x.value),reclaim=p?z.close>p.high:null;
  const up=f.ma[60].slope===null?null:f.ma[20].slope>0&&f.ma[60].slope>0,contract=b.length>=7?b.slice(-3,-1).every(x=>x.volume<f.volumePrior5):null,improve=p?z.volume>p.volume&&z.close>p.close:null;
  const supportBroken=ordered===true&&touched.length>0&&held.length===0;
+ if(supportBroken)risks.push('回踩支撐條件未通過');
  const B=model('BULL_PULLBACK_RECLAIM_V1',[
   check('B1',ordered),check('B2',up,'(MA[t]/MA[t-3]-1)*100'),check('B3',black,'前兩根任一：(close/open-1)*100 < -3'),check('B4',f.red,'close > open'),check('B5',f.volumePrior5===null?null:f.volumePrior5/1000>1000,'t-5..t-1，張'),check('B6',supports.length?held.length>0:null,'前日觸及前日MA；前日收盤、今日低點與收盤皆守住'),check('B7',contract===null?null:contract&&improve),check('B8',reclaim),check('B9',null,'UNVERIFIED：衝刺指標無正式公式')
  ],{label:f.ma[60].value!==null&&z.close<f.ma[60].value?'多頭趨勢已破壞':supportBroken?'回檔失效':held.length&&reclaim?'回踩支撐已確認':held.length?'回踩支撐但尚未再攻':f.red?'反彈未突破':'回踩待確認',supportLines:held,sprintStatus:'UNVERIFIED',crossDiagnosis:{threeDay:foundation.threeDayStructure?.state||'DISABLED',granville:foundation.granvilleContext?.signals.filter(x=>['G2','G3'].includes(x.code))||[]}});
@@ -79,7 +80,16 @@ function evaluate(r,options={}){r=structuredClone(r);
  const models={A,B,C,D},missing=Object.values(models).flatMap(m=>m.checks.filter(x=>x.status==='UNKNOWN').map(x=>m.id+':'+x.id));
  const stage=failed||supportBroken?'BREAKOUT_FAILURE':hot?'OVEREXTENDED':breakout?'BREAKOUT_LAUNCH':held.length&&reclaim?'HEALTHY_PULLBACK':red3&&breaks3?'MOMENTUM_CONTINUATION':D.status==='符合'?'FLOW_CONFIRMATION':b.length<60?'INSUFFICIENT_DATA':'OBSERVATION';
  const structureInvalidation=held.length?Math.max(...held.map(x=>x.value)):f.prior20Low;
- return U.freeze({version:VERSION,rankModel:RANK,parameterVersion:P.version,code,name:displayName,date,generatedAt:options.generatedAt||new Date().toISOString(),sourceSnapshotId:r.dailyBasisV2?.fingerprint||U.hash(b),dataSource:r.dailySeriesMeta?.source||n.source,sourceBars:b.slice(-20),state:stage,compactStateLabel:compactStateLabel(stage),models,features:f,families,risks:[...new Set(risks)],foundation,originalB:U.num(r.originalB),originalInvalidation:U.num(r.originalInvalidation),researchBreakoutPrice:f.prior20High,researchInvalidation:structureInvalidation,nextTradingDate:U.nextDate(r),dataQuality:{complete:missing.length===0&&!!n.basisVerified&&!!n.calendarVerified,missing,warnings:n.warnings||[]},researchOnly:true,affectsOriginalEligibility:false,affectsOriginalScore:false,affectsOriginalRanking:false,flags});
+ validation.externalEvidenceAvailable=D.verification.overall==='VERIFIED';
+ validation.externalEvidenceStatus=D.verification.overall;
+ for(const [id,value] of [['D3',rev],['D4',buy],['D5',branches]])if(value&&D.checks.find(c=>c.id===id)?.status!=='UNKNOWN')validation.verifiedDataSources.push({scope:id,source:value.source,sourceDate:value.asOf||value.period,formula:value.formula,publishedAt:value.publishedAt,conditionStatus:D.checks.find(c=>c.id===id).status});
+ validation.modelUnknownConditions=missing;
+ if(b.length>=60)validation.validationStatus=missing.length?'TECHNICAL_PARTIAL':'RESEARCH_COMPLETE';
+ const level=(value,formula,source,reason)=>({value,source,sourceDate:date,formula,verified:value!==null,unavailableReason:value===null?reason:null});
+ const priceLevels={originalB:level(U.num(r.originalB),'原策略獨立提供；不從研究突破價複製',r.originalBSource||'LEGACY_STRATEGY','原策略B價未提供／不適用'),originalInvalidation:level(U.num(r.originalInvalidation),'原策略獨立失效線',r.originalInvalidationSource||'LEGACY_STRATEGY','原策略失效線未提供'),researchBreakout:level(f.prior20High,'max(high[t-20..t-1])',n.source,'需至少21根完成日K'),researchInvalidation:level(structureInvalidation,held.length?'max(已守住的前日MA5/10/20)':'min(low[t-20..t-1])',n.source,'支撐尚未確認且完成日K不足21根')};
+ priceLevels.originalB.verified=r.originalBVerified===true&&priceLevels.originalB.value!==null;
+ priceLevels.originalInvalidation.verified=r.originalInvalidationVerified===true&&priceLevels.originalInvalidation.value!==null;
+ return U.freeze({version:VERSION,rankModel:RANK,parameterVersion:P.version,code,name:displayName,date,generatedAt:options.generatedAt||new Date().toISOString(),sourceSnapshotId:r.dailyBasisV2?.fingerprint||U.hash(b),dataSource:r.dailySeriesMeta?.source||n.source,sourceBars:b.slice(-20),state:stage,compactStateLabel:stage==='INSUFFICIENT_DATA'?`歷史日K不足（${b.length}/60根）`:compactStateLabel(stage),validation,priceLevels,models,features:f,families,risks:[...new Set(risks)],foundation,originalB:U.num(r.originalB),originalInvalidation:U.num(r.originalInvalidation),researchBreakoutPrice:f.prior20High,researchInvalidation:structureInvalidation,nextTradingDate:U.nextDate(r),dataQuality:{complete:missing.length===0&&!!n.basisVerified&&!!n.calendarVerified,missing:[...validation.missingFields,...missing],warnings:n.warnings||[]},researchOnly:true,affectsOriginalEligibility:false,affectsOriginalScore:false,affectsOriginalRanking:false,flags});
 }
 function candidate(a,kind='STRONG',enabledModels=FILTERS[kind]||FILTERS.STRONG){
  if(['DISABLED','INSUFFICIENT_DATA','BREAKOUT_FAILURE','OVEREXTENDED'].includes(a.state))return false;

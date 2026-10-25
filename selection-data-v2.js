@@ -43,7 +43,11 @@ function validate(report,code){
  if(report.completed===false||report.isComplete===false)fail('上游明示尚未收盤 '+code);
  if(report.market&&market(report.market)!==q.market)fail('個股市場別與快照不同 '+code);
  if(E.date(report.closeDate||report.dataDate)!==c.date)fail('股票與快照日期不一致 '+code);
+ if([report.marketDate,report.closeDate,report.dataDate].filter(Boolean).some(d=>E.date(d)!==c.date))fail('個股行情日期欄位衝突 '+code);
+ const unit=report.volumeUnit||report.dailySeriesMeta?.volumeUnit;
+ if(!['shares','股'].includes(unit)||report.dailySeriesMeta?.volumeUnit&&!['shares','股'].includes(report.dailySeriesMeta.volumeUnit))fail('DAILY_ONLY成交量單位未確認為股 '+code);
  const rows=Array.isArray(report.dailySeries)&&report.dailySeries.length?report.dailySeries:report.canonicalBars;
+ if(Array.isArray(rows)&&rows.some(b=>b.stock&&String(b.stock)!==String(code)||b.code&&String(b.code)!==String(code)||b.market&&market(b.market)!==q.market))fail('日K股票代號／市場別不符 '+code);
  const checked=E.normalize(rows,c.date);if(!checked.ok)fail(checked.reason+' '+code);
  const b=checked.bars;if(b.some(x=>x.volume===0))fail('日K含零量，不視為可成交歷史 '+code);const last=b.at(-1),eq=(a,b)=>num(a)!==null&&num(b)!==null&&Math.abs(Number(a)-Number(b))<=Math.max(.02,Number(b)*.0001);
  if(!eq(report.close,last.close)||!['open','high','low','close'].every(k=>eq(q[k],last[k])))fail('同日市場與日K的OHLC未對齊 '+code);
@@ -53,16 +57,18 @@ function validate(report,code){
 }
 function remember(report,code){const p=validate(report,code),old=cache.get(p.key);if(old&&old.fingerprint!==p.fingerprint)fail('同一快照收到不同歷史序列；請重新整理後統一重掃 '+code);cache.set(p.key,p);return p;}
 async function ensure(items){
+ const requestedIdentity=snapshot?.identity;
+ const assertCurrent=()=>{if(snapshot?.identity!==requestedIdentity)fail('取得日K期間市場快照已改變，請重新查詢');};
  const need=[];for(const i of items){const c=context(i.code);if((!cache.has(c.key)||cache.get(c.key)?.error)&&!pending.has(c.key))need.push({...i,q:c.q});}
  if(need.length){
   if(!fetcher)fail('共用DAILY_ONLY取得函式未載入');
   for(let start=0;start<need.length;start+=8){const part=need.slice(start,start+8),keys=part.map(i=>context(i.code).key);
-   const job=(async()=>{const p=await fetcher(part);if(p?.type!=='MOMENTUM_DEEP_SCAN'||!Array.isArray(p.results))fail('DAILY_ONLY格式錯誤');
+   const job=(async()=>{const p=await fetcher(part);assertCurrent();if(p?.type!=='MOMENTUM_DEEP_SCAN'||!Array.isArray(p.results))fail('DAILY_ONLY格式錯誤');
     for(const item of part){const found=p.results.filter(x=>String(x.code||x.data?.stock||'')===String(item.code));try{if(found.length!==1||!found[0]?.ok)fail(found[0]?.error||'未回傳唯一個股 '+item.code);remember(found[0].data,item.code);}catch(e){cache.set(context(item.code).key,{error:String(e.message||e)});}}
    })();keys.forEach(k=>pending.set(k,job));try{await job;}finally{keys.forEach(k=>pending.delete(k));}
   }
  }
- for(const item of items){const c=context(item.code);if(pending.has(c.key))await pending.get(c.key);const p=cache.get(c.key);if(!p||p.error)fail(p?.error||'尚未取得共用日K '+item.code);}
+ assertCurrent();for(const item of items){const c=context(item.code);if(pending.has(c.key))await pending.get(c.key);assertCurrent();const p=cache.get(c.key);if(!p||p.error)fail(p?.error||'尚未取得共用日K '+item.code);}
 }
 function apply(report,code){
  const c=context(code),p=cache.get(c.key);if(!p||p.error)fail(p?.error||'共用日K未完成 '+code);

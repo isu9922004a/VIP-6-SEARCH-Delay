@@ -2,10 +2,13 @@
   "name": "shitou-research-v8",
   "private": true,
   "scripts": {
-    "test:research": "node --test scripts/tests/research-v8.test.cjs scripts/tests/research-provenance.test.mjs",
+    "test:research": "node --test scripts/tests/research-v8.test.cjs scripts/tests/research-provenance.test.mjs scripts/tests/research-mobile-v821.test.cjs scripts/tests/research-v822.test.cjs",
     "test:existing": "node scripts/run-existing-tests.cjs",
     "test:browser": "node scripts/tests/research-browser.cjs",
-    "research:validate": "node scripts/validate-research-v1.cjs"
+    "research:validate": "node scripts/validate-research-v1.cjs",
+    "test:consistency": "node --test scripts/tests/research-v822.test.cjs"
   },
-  "devDependencies": { "playwright-core": "1.56.1" }
+  "devDependencies": {
+    "playwright-core": "1.56.1"
+  }
 }

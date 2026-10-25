@@ -11,15 +11,56 @@ const pct=(a,b)=>num(a)!==null&&b>0?(a/b-1)*100:null;
 const freeze=x=>{if(x&&typeof x==='object'&&!Object.isFrozen(x)){Object.values(x).forEach(freeze);Object.freeze(x);}return x;};
 function hash(x){const s=JSON.stringify(x);let h=2166136261;for(let i=0;i<s.length;i++)h=Math.imul(h^s.charCodeAt(i),16777619);return (h>>>0).toString(16);}
 const flags=x=>({...DEFAULTS,...x,directAlertIntegrationEnabled:false,webPushEnabled:false});
+// A scanner row is an envelope, not a replacement for its full report. RSI-only
+// observation objects must never take ownership of OHLCV or external evidence.
+function normalizeInput(input={}){
+ input=input||{};
+ const primary=input.report||input.researchSource||input,r={...primary},errors=[...(primary.researchInputErrors||[])];
+ const code=String(primary.stock||primary.code||'').trim();r.stock=code;
+ if(r.market)r.market=String(r.market).toUpperCase();
+ for(const k of ['marketDate','closeDate','dataDate'])if(r[k])r[k]=T.date(r[k])||r[k];
+ if(Array.isArray(r.canonicalBars)&&!r.canonicalBars.length&&Array.isArray(r.dailySeries)&&r.dailySeries.length)delete r.canonicalBars;
+ const date=r.marketDate||r.closeDate||r.dataDate;
+ if((input.report||input.researchSource)&&input.code&&String(input.code)!==code)errors.push('候選與報告股票代號不符');
+ if((input.report||input.researchSource)&&(input.date&&T.date(input.date)!==date||input.market&&r.market&&String(input.market).toUpperCase()!==r.market))errors.push('候選與報告市場／日期不符');
+ const observation=input.rsiObservationSource;
+ if(observation){
+  const id=String(observation.stock||observation.code||''),d=T.date(observation.marketDate||observation.closeDate||observation.dataDate);
+  if(id&&id!==code||d&&date&&d!==date||observation.market&&r.market&&observation.market!==r.market)errors.push('RSI觀察資料的代號／市場／日期不符');
+  else if(id===code&&d===date)for(const k of ['dailyRsi','dailyRsi5','rsiSourceAudit'])if(r[k]==null&&observation[k]!=null)r[k]=observation[k];
+ }
+ r.researchInputErrors=errors;
+ r.researchInputSources=primary.researchInputSources||{report:input.report?'report':input.researchSource?'researchSource':'input',history:Array.isArray(r.canonicalBars)&&r.canonicalBars.length?'canonicalBars':Array.isArray(r.dailySeries)&&r.dailySeries.length?'dailySeries':null,rsi:primary.dailyRsi!=null||primary.dailyRsi5!=null?'report':r.dailyRsi!=null||r.dailyRsi5!=null?'same-date observation':null,externalEvidence:r.researchSources?'report.researchSources':null};
+ return r;
+}
 function validate(r){
+ if(r.researchInputErrors?.length)return {ok:false,reason:r.researchInputErrors.join('；')};
+ const code=String(r.stock||r.code||'');
+ if(!/^\d{4,6}$/.test(code)||r.stock&&r.code&&String(r.stock)!==String(r.code))return {ok:false,reason:'股票代號缺失或衝突'};
+ if(!['TWSE','TPEX'].includes(r.market))return {ok:false,reason:'市場別未驗證（須為TWSE或TPEX）'};
+ const dates=[r.marketDate,r.closeDate,r.dataDate].filter(Boolean).map(T.date);
+ if(!dates.length||dates.some(d=>!d)||new Set(dates).size!==1)return {ok:false,reason:'行情日期缺失或不一致'};
  if(r.completed!==true||r.isComplete===false||r.suspended===true)return {ok:false,reason:'未確認已完成日K／停牌'};
+ if(r.expectedTradingDates&&!Array.isArray(r.expectedTradingDates))return {ok:false,reason:'交易日曆格式無效'};
+ const rows=r.canonicalBars||r.dailySeries;
+ if(Array.isArray(rows)&&rows.some(b=>b.stock&&String(b.stock)!==code||b.code&&String(b.code)!==code||b.market&&b.market!==r.market))return {ok:false,reason:'日K包含其他股票或市場資料'};
  const n=T.normalize(r,{asOf:r.marketDate||r.closeDate||r.dataDate,completed:true});if(!n.ok)return n;
  if(r.corporateActionUnresolved||r.priceAdjustmentConsistent===false)return {ok:false,reason:'價格還原口徑衝突'};
  const unit=r.volumeUnit||r.dailySeriesMeta?.volumeUnit;
  if(!['shares','lots','thousand_shares'].includes(unit))return {ok:false,reason:'成交量單位未驗證'};
  n.bars=n.bars.map(b=>({...b,volume:b.volume*(unit==='shares'?1:1000)}));
+ n.warnings=(n.warnings||[]).filter(w=>w!=='VOLUME_UNIT_ASSUMED_SHARES');
  if(n.bars.some(b=>b.volume<=0))return {ok:false,reason:'零量或停牌'};
  return n;
+}
+function validationResult(r,n){
+ const raw=r.canonicalBars||r.dailySeries,count=n.ok?n.bars.length:Array.isArray(raw)?raw.length:0;
+ const missing=[];
+ if(!n.ok)missing.push(n.reason);
+ if(count<60)missing.push(`完成日K ${count}/60 根；MA20需20根、前20日突破需21根、MA60斜率需63根`);
+ if(!r.researchSources?.revenues?.length)missing.push('營收證據未提供');
+ if(!r.researchSources?.mainBuy||!r.researchSources?.branchDifference)missing.push('主力／分公司籌碼證據未提供');
+ return {stockCode:String(r.stock||r.code||''),market:r.market||null,marketDate:r.marketDate||r.closeDate||r.dataDate||null,validationStatus:!n.ok?'BASE_DATA_INVALID':count<60?'HISTORY_INSUFFICIENT':'TECHNICAL_AVAILABLE',missingFields:missing,validationErrors:n.ok?[]:[n.reason],verifiedDataSources:n.ok?[{source:n.source,date:n.date,scope:'VALIDATED_DAILY_OHLCV',volumeUnit:'shares',calendarVerified:!!n.calendarVerified,priceBasisVerified:!!n.basisVerified}]:[],historyBarCount:count,technicalModelAvailable:!!n.ok,externalEvidenceAvailable:false,externalEvidenceStatus:'UNVERIFIED',inputSources:r.researchInputSources||null};
 }
 function rsi(b,n=14){if(b.length<=n)return null;let g=0,l=0;for(let i=1;i<=n;i++){const d=b[i].close-b[i-1].close;g+=Math.max(d,0);l+=Math.max(-d,0);}g/=n;l/=n;for(let i=n+1;i<b.length;i++){const d=b[i].close-b[i-1].close;g=(g*(n-1)+Math.max(d,0))/n;l=(l*(n-1)+Math.max(-d,0))/n;}return g===0&&l===0?50:l===0?100:100-100/(1+g/l);}
 function atr(b,n=14){if(b.length<=n)return null;const tr=[];for(let i=1;i<b.length;i++)tr.push(Math.max(b[i].high-b[i].low,Math.abs(b[i].high-b[i-1].close),Math.abs(b[i].low-b[i-1].close)));let v=mean(tr.slice(0,n));for(let i=n;i<tr.length;i++)v=(v*(n-1)+tr[i])/n;return v;}
@@ -40,5 +81,5 @@ function weeks(b,r){
  const rows=[];for(const [m,g] of groups){const dt=new Date(m+'T00:00:00Z');dt.setUTCDate(dt.getUTCDate()+4);const fri=dt.toISOString().slice(0,10);if(m<c.start||fri>c.end)continue;const expected=c.dates.filter(d=>d>=m&&d<=fri);if(expected.at(-1)>asOf)continue;if(!expected.length||JSON.stringify(expected)!==JSON.stringify(g.map(x=>x.date)))return {value:null,reason:'已完成週日K缺漏／與日曆不符',bars:[]};rows.push({week:m,end:g.at(-1).date,close:g.at(-1).close});}
  return {value:rows.length>=20?mean(rows.slice(-20).map(x=>x.close)):null,reason:rows.length<20?'已完成正式週K不足20週':null,bars:rows};
 }
-return Object.freeze({VERSION,DEFAULTS,PARAM,T,num,mean,ma,pct,freeze,hash,flags,validate,rsi,atr,tick,legal,step,geometry,features,cutoff,available,check,status,nextDate,weeks});
+return Object.freeze({VERSION,DEFAULTS,PARAM,T,num,mean,ma,pct,freeze,hash,flags,normalizeInput,validate,validationResult,rsi,atr,tick,legal,step,geometry,features,cutoff,available,check,status,nextDate,weeks});
 });
