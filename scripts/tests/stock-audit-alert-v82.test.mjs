@@ -37,12 +37,12 @@ test('V8.2 absence of a trustworthy source cannot be presented as certified',()=
  assert.equal(M.check(sample,{...snap,rows:[]}).status,'NOT_VERIFIED');
  assert.equal(M.alertPlan({turn:null,defense:undefined}).priceAbove.input,null);
 });
-test('V8.2 frontend/version preserves six-filter legacy entries',()=>{
+test('V8.2.1 frontend/version preserves six-filter legacy entries',()=>{
  const html=fs.readFileSync(new URL('../../index.html',import.meta.url),'utf8');
  const v=fs.readFileSync(new URL('../../version-v50.js',import.meta.url),'utf8');
  const t=fs.readFileSync(new URL('../../r45-report-suite.js',import.meta.url),'utf8');
- assert.match(html,/stock-audit-alert-v82\.js\?v=V8\.2/);
- assert.match(v,/DISPLAY='V8\.2'/);
+ assert.match(html,/stock-audit-alert-v82\.js\?v=V8\.2\.1/);
+ assert.match(v,/DISPLAY='V8\.2\.1'/);
  assert.match(t,/收盤與量能須再次確認/);
  for(const x of ['momentumScanButton','dayTradeScanButton','strongStockScanButton','towerGoldPanel','restaurant'])assert.ok(html.includes(x));
 });
