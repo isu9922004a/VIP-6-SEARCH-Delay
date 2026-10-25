@@ -56,11 +56,12 @@ function lines(a){
 function text(a){return lines(a).join('\n');}
 function wrap(ctx,s,width){const out=[];for(const p of String(s).split('\n')){let row='';for(const ch of p){if(row&&ctx.measureText(row+ch).width>width){out.push(row);row=ch;}else row+=ch;}out.push(row);}return out;}
 function roundRectPath(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
-function pages(a,{document:doc=globalThis.document,displayCode='V8.2.1',watermark=false}={}){
+function pages(a,{document:doc=globalThis.document,displayCode='V8.2.1',watermark=false,stockMetrics=null}={}){
  const W=1284,H=2778,M=54,FIELD_FONT=56,FIELD_LINE=77,LABEL_FONT=40,MAX_BOTTOM=2430;
  const ctx=doc.createElement('canvas').getContext('2d');
  if(!ctx)throw Error('Canvas 2D unavailable');
- const strings=lines(a),fields=strings.map(s=>s.match(/^【([^】]+)】(.*)$/)).filter(Boolean)
+ const sourceLines=lines(a),extra=stockMetrics?[`【個股收盤】${fmt(stockMetrics.close)} 元｜${stockMetrics.marketDate||'日期待核對'}`,`【日RSI5】${fmt(stockMetrics.rsi5)}`,`【日MA20】${fmt(stockMetrics.ma20)}｜資料不足不補值`,`【報價來源】${stockMetrics.source||'未標示'}`]:[];
+ const strings=[...sourceLines.slice(0,1),...extra,...sourceLines.slice(1)],fields=strings.map(s=>s.match(/^【([^】]+)】(.*)$/)).filter(Boolean)
   .filter(m=>!['現況','提醒設定'].includes(m[1]));
  function measuredWrap(value,font,width){
   ctx.font=font;
@@ -92,7 +93,7 @@ function pages(a,{document:doc=globalThis.document,displayCode='V8.2.1',watermar
  function paint(x,plan,index){
   x.fillStyle='#0f2032';x.fillRect(0,0,W,H);
   x.fillStyle='#173958';x.fillRect(0,0,W,210);
-  x.fillStyle='#fff';x.font='850 70px "Microsoft JhengHei",sans-serif';x.fillText('四策略研究｜現況摘要',M,96);
+  x.fillStyle='#fff';x.font='850 70px "Microsoft JhengHei",sans-serif';x.fillText(stockMetrics?'個股查詢｜研究摘要':'四策略研究｜現況摘要',M,96);
   x.font='650 38px "Microsoft JhengHei",sans-serif';x.fillStyle='#cae6fa';x.fillText(`${displayCode}｜${a.date||'日期待核對'}｜${index+1}/${plans.length}`,M,166);
   if(index===0){
    x.fillStyle='#fff';x.font='850 77px "Microsoft JhengHei",sans-serif';
@@ -118,12 +119,12 @@ function pages(a,{document:doc=globalThis.document,displayCode='V8.2.1',watermar
   x.fillStyle='#ffdf93';x.font='700 37px "Microsoft JhengHei",sans-serif';
   x.fillText('僅供盤後研究｜未證明隔日勝率',M,2605);
   x.fillStyle='#d1e5f5';x.font='650 34px "Microsoft JhengHei",sans-serif';
-  x.fillText('原榜、原分數與原資格維持不變',M,2671);
+  x.fillText(stockMetrics?'單股查詢不列入濾網排名':'原榜、原分數與原資格維持不變',M,2671);
   x.fillText('資料不足須核驗；價格提醒非買進訊號',M,2732);
  }
  return plans.map((plan,index)=>{
   const bodyBottom=plan.length?Math.max(...plan.map(x=>x.y+x.box.size)):0;
-  const dataset={researchAudit:JSON.stringify({code:a.code,date:a.date,sourceSnapshotId:a.sourceSnapshotId,originalB:a.originalB,alertPlan:a.foundation?.alertPlan,width:W,height:H,index:index+1,total:plans.length,minFont:FIELD_FONT,bodyBottom,noClipping:bodyBottom<=MAX_BOTTOM,summary:strings}),release:a.version,fullBleed:'true'};
+  const dataset={researchAudit:JSON.stringify({code:a.code,date:a.date,sourceSnapshotId:a.sourceSnapshotId,originalB:a.originalB,alertPlan:a.foundation?.alertPlan,width:W,height:H,index:index+1,total:plans.length,minFont:FIELD_FONT,bodyBottom,noClipping:bodyBottom<=MAX_BOTTOM,mode:stockMetrics?'SINGLE_STOCK':'FILTER_RESEARCH',summary:strings}),release:a.version,fullBleed:'true'};
   const render=({top=0,height=H,scale=1}={})=>{
    const c=doc.createElement('canvas');c.width=Math.floor(W*scale);c.height=Math.floor(height*scale);
    const x=c.getContext('2d');x.setTransform(scale,0,0,scale,0,-top*scale);paint(x,plan,index);
