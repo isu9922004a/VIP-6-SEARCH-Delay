@@ -1,3 +1,48 @@
 .research-inline{box-sizing:border-box;min-width:0;margin:16px 0;padding:18px;border:1px solid #385d7f;border-radius:14px;background:#101f30;color:#eef5fc;line-height:1.75;overflow-wrap:anywhere}
 .research-inline h3,.research-inline p,.research-inline summary,.research-inline pre{color:#eef5fc!important}.research-inline summary{cursor:pointer;font-weight:750}.research-inline pre{font:inherit;white-space:pre-wrap;overflow-wrap:anywhere}.research-inline details{padding:12px 0;border-top:1px solid #385d7f}.research-tools,.research-alerts{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}.research-inline button,.research-inline select,.research-inline a{font:inherit;min-height:48px;max-width:100%;border:1px solid #6b92b7;border-radius:10px;padding:10px 12px;background:#1b3a56;color:#fff;white-space:normal;text-decoration:none;overflow-wrap:anywhere}.research-inline button:disabled{opacity:.5}.research-inline label{display:flex;align-items:center;gap:10px}.research-inline input[type=checkbox]{width:24px;height:24px}.research-inline textarea{width:100%;min-height:100px;font:inherit}.version-pill{max-width:100%;white-space:normal!important;overflow-wrap:anywhere;font-size:15px!important;line-height:1.5!important}.release-details{font-size:14px;line-height:1.65;overflow-wrap:anywhere;max-width:100%;margin:8px 0}.release-details summary{cursor:pointer}.release-details code{white-space:normal;overflow-wrap:anywhere}
 @media(max-width:600px){html{width:100%;-webkit-text-size-adjust:100%}body{margin:0}.container{width:100%!important;max-width:100%!important;padding-left:max(8px,env(safe-area-inset-left))!important;padding-right:max(8px,env(safe-area-inset-right))!important}.research-inline{padding:16px 12px;border-radius:12px;font-size:16px;margin:12px 0}.research-tools,.research-alerts{display:grid;grid-template-columns:minmax(0,1fr)}.research-inline button,.research-inline select{width:100%;font-size:16px}.research-inline h3{font-size:20px}.research-inline .research-inline{padding:10px}.version-pill{padding:6px 10px!important}.release-details{font-size:14px}.tower-version{overflow-wrap:anywhere}}
+
+/* V8.2.1 - iPhone-friendly research cards. Only the research sidecar is restyled. */
+.research-inline{font-size:17px;line-height:1.65}
+.research-inline h3{font-size:clamp(23px,2.1vw,29px);font-weight:850;line-height:1.35;margin:0 0 14px}
+.research-inline>summary{font-size:20px;font-weight:800;line-height:1.45}
+.research-inline>p{font-size:17px;line-height:1.6;margin:10px 0 16px}
+.research-card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));gap:14px;min-width:0;margin:12px 0}
+.research-inline .research-stock-card{min-width:0;margin:0;border:1px solid #456f94;border-left:5px solid #59acdc;border-radius:16px;background:#192d42;padding:0;box-shadow:0 4px 16px rgba(0,0,0,.14);overflow:hidden}
+.research-inline .research-stock-card[open]{border-left-color:#79cbff}
+.research-inline .research-card-summary{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;column-gap:10px;row-gap:8px;padding:17px 15px 16px;cursor:pointer;list-style:none;min-width:0}
+.research-inline .research-card-summary::-webkit-details-marker{display:none}
+.research-inline .research-card-summary::marker{content:''}
+.research-inline .research-card-heading{display:flex;flex-wrap:wrap;align-items:baseline;min-width:0;column-gap:3px}
+.research-inline .research-card-name{font-weight:850;font-size:22px;line-height:1.4;color:#fff;overflow-wrap:anywhere}
+.research-inline .research-card-code{font-size:17px;color:#b5ccdf;white-space:nowrap;font-weight:700}
+.research-inline .research-card-stage{font-size:15px;font-weight:800;line-height:1.4;white-space:nowrap;padding:5px 9px;border-radius:30px;border:1px solid #7894ad;background:#29445c;color:#e6f1ff}
+.research-inline .research-card-stage-warn{background:#4b342e;border-color:#be9166;color:#fff2d7}
+.research-inline .research-card-glance{grid-column:1 / -1;color:#d6e8f5;font-size:17px;line-height:1.55;font-weight:600;overflow-wrap:anywhere}
+.research-inline .research-stock-card[open]>.research-card-summary{background:#24435f;border-bottom:1px solid #446987}
+.research-inline .research-card-body{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;padding:14px 15px 18px}
+.research-inline .research-card-field{display:grid;grid-template-columns:minmax(85px,30%) minmax(0,1fr);gap:10px;align-items:start;padding:8px 0;border-bottom:1px solid #3b556d;min-width:0}
+.research-inline .research-card-label{font-size:16px;font-weight:800;color:#98c9e9;line-height:1.55}
+.research-inline .research-card-value{font-size:18px;font-weight:650;color:#f4f9ff;line-height:1.55;overflow-wrap:anywhere;min-width:0}
+.research-inline .research-card-actions{margin-top:7px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.research-inline .research-card-actions>button{font-size:17px;font-weight:800;min-height:50px}
+.research-inline .research-card-actions .research-alerts{margin:4px 0}
+.research-inline .research-card-note{grid-column:1 / -1;font-size:16px;color:#c8dbe9!important;padding:0 5px;margin:4px 0}
+.research-inline button:focus-visible,.research-inline summary:focus-visible{outline:3px solid #9cd5ff;outline-offset:3px}
+@media(max-width:600px){
+ .research-inline{font-size:18px;padding:17px 12px}
+ .research-inline h3{font-size:26px;letter-spacing:.01em}
+ .research-inline>summary{font-size:22px}
+ .research-card-grid{grid-template-columns:minmax(0,1fr);gap:12px;margin:12px 0}
+ .research-inline .research-card-summary{padding:16px 13px 15px;grid-template-columns:minmax(0,1fr) auto}
+ .research-inline .research-card-name{font-size:clamp(21px,5.9vw,25px)}
+ .research-inline .research-card-code{font-size:18px}
+ .research-inline .research-card-stage{font-size:14px;white-space:normal;text-align:center;max-width:112px}
+ .research-inline .research-card-glance{font-size:18px;line-height:1.5}
+ .research-inline .research-card-body{padding:14px 13px 18px}
+ .research-inline .research-card-label{font-size:17px}
+ .research-inline .research-card-value{font-size:19px;line-height:1.5}
+ .research-inline .research-card-field{grid-template-columns:minmax(0,1fr);gap:2px;padding:7px 0}
+ .research-inline .research-card-actions>button{font-size:18px;min-height:54px}
+}
+@media(max-width:340px){.research-inline .research-card-summary{grid-template-columns:minmax(0,1fr)}.research-inline .research-card-stage{justify-self:start}.research-inline .research-card-name{font-size:21px}}

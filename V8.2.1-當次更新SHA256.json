@@ -1,0 +1,72 @@
+{
+  "release": "V8.2.1",
+  "previous": "V8.2.1-四策略研究中文精簡版",
+  "generatedAt": "2026-10-25",
+  "files": [
+    {
+      "path": "V8.2.1-手機卡片與摘要大字版-更新說明.md",
+      "sha256": "046090edd63e5450b341ba191e88e108695776063a9b3c63290fe4e262f61c62",
+      "bytes": 2600
+    },
+    {
+      "path": "four-models-research-v1.js",
+      "sha256": "ee7fd77456ce9a01765b2d4150ddc2d33be4ed0a23b297a54c9a35d9755fd8a8",
+      "bytes": 13411
+    },
+    {
+      "path": "index.html",
+      "sha256": "bb4c256b622030f489152745f65dcb90b4ceba6c633812d1ea6b96fed7801b1e",
+      "bytes": 1933844
+    },
+    {
+      "path": "release-compact-v1.js",
+      "sha256": "2cf053c3ca5c5ce0b472deb36fb9c4f61e481d340b354d112e19ab6a37891481",
+      "bytes": 1279
+    },
+    {
+      "path": "research-integration-v1.js",
+      "sha256": "ac547a1cae63c5131de83f102a60ba57be4c1da156473baef7e4eeb03dc1c831",
+      "bytes": 17426
+    },
+    {
+      "path": "research-mobile-v1.css",
+      "sha256": "0a9c709718ee12a4f6b1a551dd58ff9954e022e449ebe21a36ba52ddc631a4bb",
+      "bytes": 6492
+    },
+    {
+      "path": "research-report-v1.js",
+      "sha256": "13fb4992e09fcb414dfce0eb182562b4594bfa31f342f14ff2e3f6f321c3be31",
+      "bytes": 9337
+    },
+    {
+      "path": "restaurant-report-v1.js",
+      "sha256": "398c69dd1ff8de86087ddba7bbc7946df59f707227c20a80a7596730183012f2",
+      "bytes": 12510
+    },
+    {
+      "path": "scripts/tests/research-browser.cjs",
+      "sha256": "aca9467ec7ac03a3407be82659c75534bb8981eb4428c8cf5c4d9bffd56f62a3",
+      "bytes": 11293
+    },
+    {
+      "path": "scripts/tests/research-mobile-v821.test.cjs",
+      "sha256": "b0845de98a1b2be0dbb232fa252f2edf2ce6cc5ca01b11a177a824b9f07c78ce",
+      "bytes": 3531
+    },
+    {
+      "path": "scripts/tests/stock-audit-alert-v82.test.mjs",
+      "sha256": "ca79438500c568f766b2290b28ea4541bf06873c3059a887bf6cffbfe8edf2bf",
+      "bytes": 2964
+    },
+    {
+      "path": "structure-reversal-report-v1.js",
+      "sha256": "7cf298f5916452e88c6d9f1ae3943b6d9ac8345ccb8d553607097dd526dfd659",
+      "bytes": 16155
+    },
+    {
+      "path": "version-v50.js",
+      "sha256": "10f5e6411c50ecc792ad8fe9d9049ca3297b3af9ec4835fb84182e98908d306a",
+      "bytes": 1273
+    }
+  ]
+}

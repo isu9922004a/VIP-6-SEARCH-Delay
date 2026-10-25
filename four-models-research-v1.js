@@ -10,11 +10,11 @@ function resolveDisplayName(record,code){
   const fn=globalThis?.momentumSafeStockNameV377712;
   if(typeof fn==='function'){
    const name=String(fn({code,name:raw,report:record})||'').trim();
-   if(name)return name;
+   if(/[\u3400-\u9fff]/.test(name))return name;
   }
  }catch(_){}
  if(/[㐀-鿿]/.test(raw))return raw;
- return raw&&/^\d+$/.test(raw)?code:(raw||code);
+ return code?`股票${code}（名稱待核對）`:'名稱待核對';
 }
 function compactStateLabel(state){
  return state==='BREAKOUT_LAUNCH'?'突破發動':state==='HEALTHY_PULLBACK'?'健康回踩':state==='MOMENTUM_CONTINUATION'?'強勢延續':state==='FLOW_CONFIRMATION'?'資金確認':state==='OVEREXTENDED'?'短線過熱':state==='BREAKOUT_FAILURE'?'結構失敗':state==='INSUFFICIENT_DATA'?'資料不足':state==='DISABLED'?'已關閉':'觀察中';

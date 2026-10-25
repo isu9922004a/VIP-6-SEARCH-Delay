@@ -46,6 +46,8 @@ function lines(a){
   `【風險】${riskSummary(a)}`,
   `【研究A/B】${dualSummary(d)}`,
   `【到價提醒】${alertSummary(p)}`,
+  ...(p?[`【提醒設定】價格高於：${fmt(p.priceAbove?.input)}｜價格低於：${fmt(p.priceBelow?.input)}；僅供手動設定`,
+            ...(p.priceAbove?.alreadyCrossed||p.priceBelow?.alreadyCrossed?['【提醒狀態】盤後已越過原價位，請重新檢查通知門檻。']:[])]:[]),
   `【資料狀態】${dataSummary(a)}`,
   `【摘要結論】${actionSummary(a)}`,
   '原榜分數、資格與排序保留；本區僅提供研究摘要。'
@@ -54,13 +56,84 @@ function lines(a){
 function text(a){return lines(a).join('\n');}
 function wrap(ctx,s,width){const out=[];for(const p of String(s).split('\n')){let row='';for(const ch of p){if(row&&ctx.measureText(row+ch).width>width){out.push(row);row=ch;}else row+=ch;}out.push(row);}return out;}
 function roundRectPath(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
-function pages(a,{document:doc=globalThis.document,displayCode='V8.2',watermark=false}={}){
- const W=1284,H=2778,M=54,SIZE=48,LH=72,TOP=320,ctx=doc.createElement('canvas').getContext('2d');ctx.font=`600 ${SIZE}px "Microsoft JhengHei",sans-serif`;
- const strings=lines(a),plan=[];for(const s of strings)plan.push(...wrap(ctx,s,W-2*M-52));
- const dataset={researchAudit:JSON.stringify({code:a.code,date:a.date,width:W,height:H,summary:strings}),release:a.version,fullBleed:'true'};
- const paint=x=>{x.fillStyle='#0e1b2a';x.fillRect(0,0,W,H);x.fillStyle='#17344f';x.fillRect(0,0,W,220);x.fillStyle='#fff';x.font='800 56px "Microsoft JhengHei",sans-serif';x.fillText('四策略研究摘要',M,88);x.font='600 34px sans-serif';x.fillText(`${displayCode}｜${a.date||'日期待確認'}｜精簡版`,M,154);x.fillStyle='#214566';roundRectPath(x,M,250,W-2*M,2050,24);x.fill();x.font=`600 ${SIZE}px "Microsoft JhengHei",sans-serif`;plan.forEach((s,j)=>{x.fillStyle=s.startsWith('【')?'#9fd9ff':'#eef5fc';x.fillText(s,M+26,TOP+j*LH);});x.fillStyle='#17344f';x.fillRect(0,2580,W,198);x.fillStyle='#ffdf94';x.font='600 34px "Microsoft JhengHei",sans-serif';x.fillText('精簡摘要僅供研究觀察｜正式判斷仍看原榜',M,2652);x.fillStyle='#fff';x.fillText('原分數、原排序與原資格保留',M,2718);};
- const render=({top=0,height=H,scale=1}={})=>{const c=doc.createElement('canvas');c.width=Math.floor(W*scale);c.height=Math.floor(height*scale);const x=c.getContext('2d');x.setTransform(scale,0,0,scale,0,-top*scale);paint(x);Object.assign(c.dataset,dataset);return c;};
- return [{width:W,height:H,dataset,renderExportRegion:render,toBlob(callback,type='image/png'){const c=render();if(watermark&&globalThis.applyAntiTheftWatermarkV3761)globalThis.applyAntiTheftWatermarkV3761(c,'all');c.toBlob(b=>{c.width=c.height=1;callback(b);},type);}}];
+function pages(a,{document:doc=globalThis.document,displayCode='V8.2.1',watermark=false}={}){
+ const W=1284,H=2778,M=54,FIELD_FONT=56,FIELD_LINE=77,LABEL_FONT=40,MAX_BOTTOM=2430;
+ const ctx=doc.createElement('canvas').getContext('2d');
+ if(!ctx)throw Error('Canvas 2D unavailable');
+ const strings=lines(a),fields=strings.map(s=>s.match(/^【([^】]+)】(.*)$/)).filter(Boolean)
+  .filter(m=>!['現況','提醒設定'].includes(m[1]));
+ function measuredWrap(value,font,width){
+  ctx.font=font;
+  const fragments=String(value).split('｜').map(x=>x.trim()).filter(Boolean),out=[];
+  let line='';
+  for(const fragment of fragments){
+   const combined=line?line+'｜'+fragment:fragment;
+   if(ctx.measureText(combined).width<=width){line=combined;continue;}
+   if(line){out.push(line);line='';}
+   if(ctx.measureText(fragment).width<=width){line=fragment;continue;}
+   // Even a single logical fragment is too long: only then use character wrapping.
+   const inner=wrap(ctx,fragment,width);
+   out.push(...inner.slice(0,-1));line=inner.at(-1)||'';
+  }
+  if(line)out.push(line);
+  return out.length?out:['—'];
+ }
+ const boxes=fields.map(m=>{
+  const body=measuredWrap(m[2],`700 ${FIELD_FONT}px "Microsoft JhengHei",sans-serif`,W-2*M-82);
+  const size=47+body.length*FIELD_LINE+48;
+  return {title:m[1],body,size};
+ });
+ const plans=[];let items=[],y=630;
+ for(const box of boxes){
+  if(items.length&&y+box.size+12>MAX_BOTTOM){plans.push(items);items=[];y=365;}
+  items.push({box,y});y+=box.size+12;
+ }
+ if(items.length||!plans.length)plans.push(items);
+ function paint(x,plan,index){
+  x.fillStyle='#0f2032';x.fillRect(0,0,W,H);
+  x.fillStyle='#173958';x.fillRect(0,0,W,210);
+  x.fillStyle='#fff';x.font='850 70px "Microsoft JhengHei",sans-serif';x.fillText('四策略研究｜現況摘要',M,96);
+  x.font='650 38px "Microsoft JhengHei",sans-serif';x.fillStyle='#cae6fa';x.fillText(`${displayCode}｜${a.date||'日期待核對'}｜${index+1}/${plans.length}`,M,166);
+  if(index===0){
+   x.fillStyle='#fff';x.font='850 77px "Microsoft JhengHei",sans-serif';
+   let title=`${a.name||'名稱待核對'}（${a.code||'—'}）`;
+   while(title.length>2&&x.measureText(title).width>W-2*M)title=title.slice(0,-2)+'…';
+   x.fillText(title,M,322);
+   x.fillStyle='#245676';roundRectPath(x,M,382,W-2*M,144,23);x.fill();
+   x.fillStyle='#fff';x.font='850 60px "Microsoft JhengHei",sans-serif';x.fillText(`現況：${stageLabel(a)}`,M+29,476);
+  }else{
+   x.fillStyle='#fff';x.font='800 58px "Microsoft JhengHei",sans-serif';
+   x.fillText(`${a.name||'名稱待核對'}（${a.code||'—'}）｜續頁`,M,320);
+  }
+  for(const {box,y:top} of plan){
+   x.fillStyle='#1b364d';roundRectPath(x,M,top,W-2*M,box.size,18);x.fill();
+   x.fillStyle='#8dd4ff';x.fillRect(M,top+14,7,box.size-28);
+   x.font=`800 ${LABEL_FONT}px "Microsoft JhengHei",sans-serif`;
+   x.fillStyle='#9fdbff';x.fillText(box.title,M+33,top+53);
+   x.font=`700 ${FIELD_FONT}px "Microsoft JhengHei",sans-serif`;
+   x.fillStyle='#f4f8ff';
+   box.body.forEach((line,i)=>x.fillText(line,M+33,top+117+i*FIELD_LINE));
+  }
+  x.fillStyle='#173958';x.fillRect(0,2530,W,248);
+  x.fillStyle='#ffdf93';x.font='700 37px "Microsoft JhengHei",sans-serif';
+  x.fillText('僅供盤後研究｜未證明隔日勝率',M,2605);
+  x.fillStyle='#d1e5f5';x.font='650 34px "Microsoft JhengHei",sans-serif';
+  x.fillText('原榜、原分數與原資格維持不變',M,2671);
+  x.fillText('資料不足須核驗；價格提醒非買進訊號',M,2732);
+ }
+ return plans.map((plan,index)=>{
+  const bodyBottom=plan.length?Math.max(...plan.map(x=>x.y+x.box.size)):0;
+  const dataset={researchAudit:JSON.stringify({code:a.code,date:a.date,sourceSnapshotId:a.sourceSnapshotId,originalB:a.originalB,alertPlan:a.foundation?.alertPlan,width:W,height:H,index:index+1,total:plans.length,minFont:FIELD_FONT,bodyBottom,noClipping:bodyBottom<=MAX_BOTTOM,summary:strings}),release:a.version,fullBleed:'true'};
+  const render=({top=0,height=H,scale=1}={})=>{
+   const c=doc.createElement('canvas');c.width=Math.floor(W*scale);c.height=Math.floor(height*scale);
+   const x=c.getContext('2d');x.setTransform(scale,0,0,scale,0,-top*scale);paint(x,plan,index);
+   Object.assign(c.dataset,dataset);return c;
+  };
+  return {width:W,height:H,dataset,renderExportRegion:render,toBlob(callback,type='image/png'){
+   const c=render();if(watermark&&globalThis.applyAntiTheftWatermarkV3761)globalThis.applyAntiTheftWatermarkV3761(c,'all');
+   c.toBlob(b=>{c.width=c.height=1;callback(b);},type);
+  }};
+ });
 }
 function candlePage(a,{document:doc=globalThis.document}={}){return null;}
 return Object.freeze({fmt,STAGES,lines,text,wrap,pages,candlePage,STATES});

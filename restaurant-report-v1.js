@@ -66,7 +66,7 @@ function overview(scan,{watermark=false}={}){
   {text:`已處理 ${scan.attempted}/${scan.planned}｜本次候選 ${scan.candidates.length}｜本頁 ${rows.length}｜資料不足 ${scan.dataUnavailable??'待確認'}｜${scope}`,x:30,y:143,width:1224,max:20,min:17,color:'#fff4bb'},
   {text:'提醒：先看量價防守與警訊，再看量縮／CMF；原圖核對未驗證不算通過，排序非漲停機率。',x:30,y:183,width:1224,max:19,min:17,color:'#fff'}
  ].map(l=>({...l,...fit(l.text,l.width,l.max,l.min)}));
- const version=observer.wrapImageText(probe,`${scan.date}｜${root.ShitouReleaseV50?.displayCode||"V8.1"}`,1224,26);
+ const version=observer.wrapImageText(probe,`${scan.date}｜${root.ShitouReleaseV50?.displayCode||"V8.2.1"}`,1224,26);
  if(version.length>2)throw Error('版本資訊超出圖片安全區');
  const footers=[
   ['訊號日低點是量價防守線，嚴格跌破才失效；日SMA20不替代月20MA資格。',2622,21,'#fff'],
