@@ -96,9 +96,20 @@ function imagePage(run,rows,offset,page,total,prepared){
 function imagePages(run,rows=run.rows,options={}){
  const probe=document.createElement('canvas').getContext('2d'),plans=[];
  rows.forEach((r,index)=>{const lines=rowImageLines(r).flatMap(t=>wrapImageText(probe,t));for(let at=0;at<lines.length;at+=32)plans.push({row:r,offset:index,lines:lines.slice(at,at+32)});});
- return plans.map((p,i)=>{const render=()=>imagePage(run,[p.row],p.offset,i+1,plans.length,p.lines);if(!options.lazy)return render();return {width:1284,height:2778,dataset:{indicatorShadowAudit:JSON.stringify({model:C.MODEL,page:i+1,total:plans.length,codes:[p.row.code],lazy:true}),reportText:encodeURIComponent(JSON.stringify(p.lines))},toBlob(callback,type='image/png'){const c=render();c.toBlob(blob=>{c.width=c.height=0;callback(blob);},type);}};});
+ return plans.map((p,i)=>{
+  if(!options.lazy)return imagePage(run,[p.row],p.offset,i+1,plans.length,p.lines);
+  const render=()=>{const c=imagePage(run,[p.row],p.offset,i+1,plans.length,p.lines);if(page.dataset.watermark==='enabled'&&typeof root.applyAntiTheftWatermarkV3761==='function')root.applyAntiTheftWatermarkV3761(c,page.dataset.watermarkKind||'all');return c;};
+  const page={width:1284,height:2778,dataset:{indicatorShadowAudit:JSON.stringify({model:C.MODEL,page:i+1,total:plans.length,codes:[p.row.code],lazy:true}),reportText:encodeURIComponent(JSON.stringify(p.lines))},
+   renderExportRegion({top=0,height=2778,scale=1}={}){
+    if(![top,height,scale].every(Number.isFinite)||top<0||top>=2778||height<=0||scale<=0)throw Error('附圖分享區域尺寸無效');
+    const source=render(),tile=document.createElement('canvas');
+    try{const span=Math.min(height,2778-top);tile.width=Math.max(1,Math.floor(1284*scale));tile.height=Math.max(1,Math.floor(span*scale));const ctx=tile.getContext('2d');if(!ctx)throw Error('無法建立附圖分享圖片');ctx.drawImage(source,0,top,1284,span,0,0,tile.width,tile.height);return tile;}finally{source.width=source.height=0;}
+   },
+   toBlob(callback,type='image/png'){const c=render();c.toBlob(blob=>{c.width=c.height=0;callback(blob);},type);}
+  };return page;
+ });
 }
-function watermarkPage(page,kind){if(typeof page.getContext==='function'){root.applyAntiTheftWatermarkV3761(page,kind);return;}page.toBlob=function(callback,type){const lines=JSON.parse(decodeURIComponent(page.dataset.reportText)),audit=JSON.parse(page.dataset.indicatorShadowAudit),run={date:page.dataset.observationDate,strategy:page.dataset.observationStrategy},row={code:audit.codes[0]};const c=imagePage(run,[row],0,audit.page,audit.total,lines);root.applyAntiTheftWatermarkV3761(c,kind);c.toBlob(blob=>{c.width=c.height=0;callback(blob);},type||'image/png');};page.dataset.watermark='enabled';}
+function watermarkPage(page,kind){if(typeof page.getContext==='function'){root.applyAntiTheftWatermarkV3761(page,kind);return;}page.dataset.watermark='enabled';page.dataset.watermarkKind=kind;}
 function pagesForScan(kind,scan,options={}){
  const run=capture(kind,scan);if(!run)return [];const rows=run.rows.filter(r=>r.baselineRank!==null&&(options.limit===undefined||r.baselineRank<=options.limit));const pages=imagePages(run,rows,{lazy:true});pages.forEach(p=>Object.assign(p.dataset,{observationDate:run.date,observationStrategy:kind}));
  if(options.watermark&&typeof root.applyAntiTheftWatermarkV3761==='function')pages.forEach(p=>watermarkPage(p,'all'));pages.push(...(root.ShitouResearchIntegration?.pagesForScan(kind,scan,options)||[]));return pages;

@@ -41,6 +41,8 @@ function get(code){try{return cache.get(context(code).key)||null;}catch{return n
 // Project Worker daily-ohlcv-v1 uses explicit completion metadata, not a top-level
 // completed flag. FULL declares shares at volume.unit. Its R4.9.3 DAILY_ONLY
 // sibling declares the same shares field through the named source contract.
+// Its verified Worker branch also returns history alone when MIS is unavailable;
+// both branches use the same serializeDailySeriesForFrontend share-volume field.
 // The latter is accepted only after the independent same-day snapshot matches.
 // Unknown schemas, explicit conflicts, and generic missing units still fail.
 function normalizeWorkerReport(report,code){
@@ -60,7 +62,7 @@ function normalizeWorkerReport(report,code){
   if(!(latest>0&&official>0)||Math.abs(latest-official)/official>.2)
     fail('Worker已宣告股數，但日K與同日市場成交量無法交叉驗證 '+code);
  }else{
-  const c=context(code),last=rows.at(-1),known=r.dailyOnly===true&&r.scanMode==='DAILY_ONLY'&&meta.mode==='DAILY_ONLY'&&/^Yahoo Finance history \+ (?:TWSE|TPEx|TPEX) MIS latest completed daily \(R4\.9\.3 DAILY_ONLY\)$/.test(meta.source||'');
+  const c=context(code),last=rows.at(-1),known=r.dailyOnly===true&&r.scanMode==='DAILY_ONLY'&&meta.mode==='DAILY_ONLY'&&/^Yahoo Finance history(?: \+ (?:TWSE|TPEx|TPEX) MIS latest completed daily)? \(R4\.9\.3 DAILY_ONLY\)$/.test(meta.source||'');
   const volume=num(last.volume),quote=num(c.q.volume);
   const reasons=[];
   if(!known)reasons.push('未提供可識別的DAILY_ONLY股數來源契約（source='+String(meta.source||'缺失').slice(0,95)+'；scanMode='+String(r.scanMode||'缺失')+'；meta.mode='+String(meta.mode||'缺失')+'；dailyOnly='+String(r.dailyOnly??'缺失')+'）；請由Worker明示volume.unit=shares並提供來源證據');
