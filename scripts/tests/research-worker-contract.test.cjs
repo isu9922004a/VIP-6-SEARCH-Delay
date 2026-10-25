@@ -27,3 +27,7 @@ for(const [name,change] of [
 ])test(`Worker adapter never promotes ${name}`,()=>{bind();const r=clone(daily);change(r);assert.throws(()=>D.remember(r,'9933'));assert.equal(D.get('9933'),null);});
 test('generic reports cannot acquire units merely by resembling snapshot volume',()=>{bind();const r=clone(daily);delete r.dailySeriesMeta.schema;r.completed=true;assert.throws(()=>D.remember(r,'9933'),/單位/);});
 test('FULL may not borrow DAILY_ONLY unit contract when volume.unit is absent',()=>{bind();const r=clone(full);delete r.volume.unit;assert.throws(()=>D.remember(r,'9933'),/來源契約/);});
+test('same invalid data has identical missing reasons regardless of acquisition-error duplicate',()=>{
+ const r={stock:'2330',market:'TWSE',closeDate:'2026-10-22',researchInputErrors:['SAME_VERIFICATION_FAILURE']},a=C.evaluate(r),b=C.evaluate({...r,researchAcquisitionError:'SAME_VERIFICATION_FAILURE'});
+ assert.deepEqual(a.dataQuality,b.dataQuality);assert.equal(b.dataQuality.missing.filter(x=>x==='SAME_VERIFICATION_FAILURE').length,1);
+});
