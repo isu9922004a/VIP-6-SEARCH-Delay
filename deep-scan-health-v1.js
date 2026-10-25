@@ -20,6 +20,22 @@ function examine(items,payload,targetDate){
  }
  return {ok:issues.length===0,expected,checked:items.length,issues};
 }
+function verifiedProbeResults(checkedItems,records,issues){
+ const failed=new Set(issues.map(x=>String(x.code)));
+ const pinned=[];
+ for(const item of checkedItems){
+  const code=String(item.code);
+  if(failed.has(code))continue;
+  const hits=records.get(code)||[],hit=hits.length===1?hits[0]:null;
+  const report=hit?.data,original=report?.dailyBasisV2,stored=D?.get?.(code);
+  // Fake or incomplete preflight responses must NEVER be elevated into reusable research.
+  if(!hit?.ok||!report||!original?.snapshotVerified||!original?.latestVolumeReconciled||
+     !original?.fingerprint||stored?.fingerprint!==original.fingerprint||
+     stored?.date!==original.date||String(report.stock||report.code||'')!==code)continue;
+  pinned.push({code,ok:true,data:report});
+ }
+ return pinned;
+}
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function preflight({items,targetDate,fetcher,attempts=2,delayMs=850,onUpdate=()=>{},allowPartialService=false,allowHistoricalZeroData=false,allowPartialData=false,shouldStop=()=>false}){
  const selection=sample(items),records=new Map(),checkedItems=[...selection];if(!selection.length)throw Error('深掃健康檢查：缺少抽樣股票');
@@ -38,7 +54,7 @@ async function preflight({items,targetDate,fetcher,attempts=2,delayMs=850,onUpda
   onUpdate(`DEEP_SCAN 日期健康檢查 ${attempt}/${attempts}：${attempt>1?'逐檔重試':'抽驗'} ${pending.map(x=>x.code).join('、')}，目標 ${expected}`);
   if(attempt===1)await request(pending,attempt);else for(const item of pending)await request([item],attempt);
   last=examine(selection,{type:'MOMENTUM_DEEP_SCAN',results:[...records.values()].flat()},expected);
-  if(last.ok)return {...last,attempts:used,sampledCodes:selection.map(x=>String(x.code)),degraded:false};
+  if(last.ok)return {...last,attempts:used,sampledCodes:selection.map(x=>String(x.code)),degraded:false,verifiedProbeResults:verifiedProbeResults(checkedItems,records,last.issues)};
   if(attempt<attempts){stop();await delay(delayMs);}
  }
  stop();
@@ -69,7 +85,7 @@ async function preflight({items,targetDate,fetcher,attempts=2,delayMs=850,onUpda
  // peer remains a hard stop. Partial scan is never certified as full-market.
  if(allowPartialService&&isolated&&marketQuorum){
   onUpdate(`抽樣個別資料異常（${[...bad].join('、')}），上市／上櫃各有至少兩檔同日健康樣本；繼續逐檔嚴格驗證。異常股票不視為通過，全市場排名不得認證。`);
-  return {...last,ok:true,degraded:true,attempts:used,verifiedProbes:healthy.length,sampledCodes:checkedItems.map(x=>String(x.code)),quarantinedCodes:[...bad]};
+  return {...last,ok:true,degraded:true,attempts:used,verifiedProbes:healthy.length,sampledCodes:checkedItems.map(x=>String(x.code)),quarantinedCodes:[...bad],verifiedProbeResults:verifiedProbeResults(checkedItems,records,last.issues)};
  }
  const details=last.issues.slice(0,4).map(x=>`${x.code} ${x.kind}：${x.reason}`).join('；');
  const hint=last.issues.some(x=>x.kind!=='SERVICE')?'已停止掃描；個股資料異常且無足夠同市場健康替代樣本。日期、價格或資料完整性未通過時不使用該檔日K，請檢查Worker來源契約及快取。':'已停止掃描；服務未回傳足夠有效樣本，無法確認深掃資料健康。請稍後重試或檢查資料服務；這不代表已證實資料過期。';

@@ -49,16 +49,21 @@ function normalizeWorkerReport(report,code){
  const r={...report},rows=Array.isArray(r.dailySeries)&&r.dailySeries.length?r.dailySeries:r.canonicalBars;
  if(r.completed===false||r.isComplete===false||meta.onlyCompletedBars!==true)fail('Worker未確認完成日K '+code);
  if(!Array.isArray(rows)||!rows.length||meta.ascending!==true||meta.returnedBars!==rows.length||meta.completedDailyRowsAvailable!==rows.length||meta.completeOhlcvRowsAvailable!==rows.length||E.date(meta.firstDate)!==E.date(rows[0].date)||E.date(meta.lastDate)!==E.date(rows.at(-1).date))fail('Worker日K完成根數／首末日期未對齊 '+code);
- const declarations=[['volumeUnit',r.volumeUnit],['dailySeriesMeta.volumeUnit',meta.volumeUnit],['volume.unit',r.volume?.unit]].filter(([,v])=>v!==undefined&&v!==null&&v!=='');
+ const declarations=[['volumeUnit',r.volumeUnit],['dailySeriesMeta.volumeUnit',meta.volumeUnit],['volume.unit',r.volume?.unit],['dailySeriesMeta.volume.unit',meta.volume?.unit]].filter(([,v])=>v!==undefined&&v!==null&&v!=='');
  let unitSource;
  if(declarations.length){
   if(declarations.some(([,v])=>!['shares','股'].includes(v)))fail('Worker成交量單位未知或互相衝突 '+code);
   unitSource=declarations.map(([key])=>key).join(' + ');
+  // Never let a string declaring 'shares' override observed volume evidence.
+  // If an independently sourced quote disagrees materially, fail as DATA.
+  const c=context(code),latest=num(rows.at(-1)?.volume),official=num(c.q.volume);
+  if(!(latest>0&&official>0)||Math.abs(latest-official)/official>.2)
+    fail('Worker已宣告股數，但日K與同日市場成交量無法交叉驗證 '+code);
  }else{
   const c=context(code),last=rows.at(-1),known=r.dailyOnly===true&&r.scanMode==='DAILY_ONLY'&&meta.mode==='DAILY_ONLY'&&/^Yahoo Finance history \+ (?:TWSE|TPEx|TPEX) MIS latest completed daily \(R4\.9\.3 DAILY_ONLY\)$/.test(meta.source||'');
   const volume=num(last.volume),quote=num(c.q.volume);
   const reasons=[];
-  if(!known)reasons.push('未提供可識別的DAILY_ONLY股數來源契約（source='+String(meta.source||'缺失').slice(0,95)+'）');
+  if(!known)reasons.push('未提供可識別的DAILY_ONLY股數來源契約（source='+String(meta.source||'缺失').slice(0,95)+'；scanMode='+String(r.scanMode||'缺失')+'；meta.mode='+String(meta.mode||'缺失')+'；dailyOnly='+String(r.dailyOnly??'缺失')+'）；請由Worker明示volume.unit=shares並提供來源證據');
   if(String(r.stock||r.code||'')!==String(code))reasons.push('股票代號不符');
   if(market(r.market)!==c.q.market)reasons.push('市場別不符');
   if(E.date(r.closeDate)!==c.date||E.date(last.date)!==c.date)reasons.push('日K／快照交易日不符');
@@ -101,7 +106,7 @@ function historyMismatch(a,b){
  return `日K根數不同（舊${a.length}根／新${b.length}根）`;
 }
 function remember(report,code){const p=validate(report,code),old=cache.get(p.key);
- if(old&&!old.error&&old.fingerprint!==p.fingerprint)fail('同一快照收到不同歷史序列 '+code+'｜'+historyMismatch(old.bars,p.bars)+'；本檔標記資料不足，未以新序列覆蓋已驗證快取');
+ if(old&&!old.error&&old.fingerprint!==p.fingerprint)fail('同一快照收到不同歷史序列 '+code+'｜'+historyMismatch(old.bars,p.bars)+'｜舊日K指紋 '+old.fingerprint+'／新日K指紋 '+p.fingerprint+'｜來源 '+String(old.sourceMeta?.source||'未提供').slice(0,90)+'／'+String(p.sourceMeta?.source||'未提供').slice(0,90)+'；請由Worker固定歷史版本，已隔離新序列，未覆蓋已驗證快取');
  cache.set(p.key,p);return p;
 }
 async function ensure(items){

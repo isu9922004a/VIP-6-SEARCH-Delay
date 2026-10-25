@@ -8,7 +8,7 @@
   const BATCH=8,REQUEST_GAP=250,CPU_RETRY_GAP=1800,RETRY_GAP=800;
   const DAILY_BATCH_TIMEOUT_MS=32000;
   const CACHE_KEY='SHITOU_STRONG_STOCK_TEACHER_R5328';
-  const CACHE_REV='TEACHER_CANONICAL_DAILY_DECISION_REVIEW_2_PACTX_1';
+  const CACHE_REV='TEACHER_CANONICAL_DAILY_DECISION_REVIEW_2_PACTX_2_PINNED';
   const CPU_BREAKER_CONSECUTIVE=4;
   const FAILURE_WINDOW_SIZE=16;
   const MARKET_ENDPOINT_R49=(typeof MARKET_API_BASE_URL!=='undefined'&&MARKET_API_BASE_URL)?MARKET_API_BASE_URL:'https://shitou-taiwanmarket-api.d318426.workers.dev';
@@ -229,6 +229,12 @@
       if(!health)throw new Error('DEEP_SCAN 健康檢查模組未載入，停止全市場掃描');
       const healthAudit=await health.preflight({items:pool.deep,targetDate:market.date,fetcher:(items,options)=>fetchDailyBatchRawR49(items,options),onUpdate:note,allowPartialService:true,allowHistoricalZeroData:true,allowPartialData:true,shouldStop:()=>stopped});
       const cache=recoverCache(snapshotFingerprint(bundle,market.date),market.date);
+      // Preflight and the actual scan must use the SAME already-verified history
+      // receipt. A second Worker request might return revised Yahoo bars for
+      // the same quote, causing a false sense of a coherent single snapshot.
+      const pinnedProbeResults=new Map((healthAudit.verifiedProbeResults||[])
+        .filter(x=>x?.ok&&x.data?.dailyBasisV2?.snapshotVerified===true)
+        .map(x=>[String(x.code),x]));
       // Failed stocks from a previous attempt move to the end, rather than permanently
       // blocking new stocks behind the same four CPU failures. No stock is discarded.
       const queue=[...pool.deep.filter(x=>!cache.failed.has(x.code)),...pool.deep.filter(x=>cache.failed.has(x.code))];
@@ -238,15 +244,23 @@
       for(let from=0;from<total&&!stopped;from+=BATCH){
         const batch=queue.slice(from,from+BATCH);
         if(button)button.textContent=`輕量日K批次 ${done}/${total}…`;
-        const remote=batch.filter(item=>!cache.map.has(item.code));
+        const remote=batch.filter(item=>!cache.map.has(item.code)&&!pinnedProbeResults.has(item.code));
         let fetched={outcomes:new Map(),requests:0};
         if(remote.length){
           fetched=await fetchDailyBatchWithRetryR49(remote,market.date);
           retries+=Math.max(0,fetched.requests-1);
         }
         for(const item of batch){
-          let c=cache.map.get(item.code);
-          if(c){cacheHits++;if(c.report){try{root.ShitouSelectionDataV2.remember(c.report,item.code);c=F.evaluate(root.ShitouSelectionDataV2.apply(c.report,item.code),market.date,item.q);}catch(e){c={status:'DATA',eligible:false,reason:String(e.message||e)};}}}
+          let c=cache.map.get(item.code),pinned=pinnedProbeResults.get(item.code);
+          if(pinned){
+            // The preflight snapshot is fresher than any sessionStorage result.
+            // Re-evaluate from the verified receipt, not a potentially stale
+            // report from a previous page visit. Never merge two histories.
+            try{c=evaluateResponse(item,pinned,market.date);cacheHits++;cache.map.delete(item.code);}
+            catch(e){c={status:'DATA',eligible:false,reason:String(e.message||e)};}
+            pinnedProbeResults.delete(item.code);
+            if(remember(cache,item,c,market.date)&&cache.map.size%16===0)persistCache(cache);
+          }else if(c){cacheHits++;if(c.report){try{root.ShitouSelectionDataV2.remember(c.report,item.code);c=F.evaluate(root.ShitouSelectionDataV2.apply(c.report,item.code),market.date,item.q);}catch(e){c={status:'DATA',eligible:false,reason:String(e.message||e)};}}}
           else{
             c=fetched.outcomes.get(item.code)||{status:'FAILED',eligible:false,reason:'批次未回傳此股票資料'};
             if(remember(cache,item,c,market.date)&&cache.map.size%16===0)persistCache(cache);
