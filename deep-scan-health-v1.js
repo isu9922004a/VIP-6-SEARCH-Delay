@@ -21,8 +21,8 @@ function examine(items,payload,targetDate){
  return {ok:issues.length===0,expected,checked:items.length,issues};
 }
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
-async function preflight({items,targetDate,fetcher,attempts=2,delayMs=850,onUpdate=()=>{},allowPartialService=false,allowHistoricalZeroData=false,shouldStop=()=>false}){
- const selection=sample(items),records=new Map();if(!selection.length)throw Error('深掃健康檢查：缺少抽樣股票');
+async function preflight({items,targetDate,fetcher,attempts=2,delayMs=850,onUpdate=()=>{},allowPartialService=false,allowHistoricalZeroData=false,allowPartialData=false,shouldStop=()=>false}){
+ const selection=sample(items),records=new Map(),checkedItems=[...selection];if(!selection.length)throw Error('深掃健康檢查：缺少抽樣股票');
  const expected=normalizeDate(targetDate);if(!expected)throw Error('深掃健康檢查：市場目標日格式不正確');
  const stop=()=>{if(shouldStop())throw Error('使用者停止掃描');};
  let last=null,used=0;
@@ -42,15 +42,37 @@ async function preflight({items,targetDate,fetcher,attempts=2,delayMs=850,onUpda
   if(attempt<attempts){stop();await delay(delayMs);}
  }
  stop();
- const bad=new Set(last.issues.map(x=>x.code)),healthy=selection.filter(item=>!bad.has(String(item.code))),markets=[...new Set(selection.map(market))];
- // Only the scanner with per-stock failure accounting opts in. Only historical zero-volume DATA may be isolated explicitly; invalid/stale prices
- // or a completely unhealthy market still stop the scan. Failed probes are NOT excluded.
- if(allowPartialService&&last.issues.every(x=>x.kind==='SERVICE'||allowHistoricalZeroData&&x.kind==='DATA'&&/日K含零量/.test(x.reason))&&markets.every(m=>healthy.some(item=>market(item)===m))){
-  onUpdate(`抽查部分股票資料暫缺（${[...bad].join('、')}）；上市／上櫃已有同日有效樣本，繼續逐檔驗證，異常股票仍計入服務失敗或資料不足。`);
-  return {...last,ok:true,degraded:true,attempts:used,sampledCodes:selection.map(x=>String(x.code))};
+ // HEALTH-SAMPLE-ROTATE: an individual corrupt history / missing unit contract is not
+ // proof that the entire TWSE or TPEx service failed. Probe different stocks in that
+ // SAME market, but keep EVERY invalid stock failed and never alter its OHLCV.
+ // No relaxation for systemic snapshot failures, cross-date or price inconsistencies.
+ if(allowPartialService&&allowPartialData&&last.issues.length&&last.issues.every(x=>x.kind==='DATA'||x.kind==='SERVICE')){
+  const excluded=new Set(checkedItems.map(x=>String(x.code)));
+  const healthyCount=m=>checkedItems.filter(item=>market(item)===m&&!last.issues.some(e=>e.code===String(item.code))).length;
+  for(const m of ['TWSE','TPEX']){
+   let extra=0;
+   while(healthyCount(m)<2&&extra<3){
+    stop();const alternate=items.find(item=>item?.code&&!excluded.has(String(item.code))&&market(item)===m);
+    if(!alternate)break;
+    excluded.add(String(alternate.code));checkedItems.push(alternate);extra++;
+    onUpdate(`DEEP_SCAN ${m} 抽樣補位：${alternate.code}（原異常股票仍列資料不足／服務失敗）`);
+    await request([alternate],2);
+    last=examine(checkedItems,{type:'MOMENTUM_DEEP_SCAN',results:[...records.values()].flat()},expected);
+   }
+  }
+ }
+ stop();
+ const bad=new Set(last.issues.map(x=>x.code)),healthy=checkedItems.filter(item=>!bad.has(String(item.code))),markets=[...new Set(selection.map(market))];
+ const isolated=last.issues.every(x=>x.kind==='SERVICE'||x.kind==='DATA'&&(allowPartialData||allowHistoricalZeroData&&/日K含零量/.test(x.reason)));
+ const marketQuorum=markets.every(m=>healthy.filter(item=>market(item)===m).length>=Math.min(2,items.filter(item=>market(item)===m).length));
+ // A market-wide failure, unknown date, bad OHLC, or absent independent verified
+ // peer remains a hard stop. Partial scan is never certified as full-market.
+ if(allowPartialService&&isolated&&marketQuorum){
+  onUpdate(`抽樣個別資料異常（${[...bad].join('、')}），上市／上櫃各有至少兩檔同日健康樣本；繼續逐檔嚴格驗證。異常股票不視為通過，全市場排名不得認證。`);
+  return {...last,ok:true,degraded:true,attempts:used,verifiedProbes:healthy.length,sampledCodes:checkedItems.map(x=>String(x.code)),quarantinedCodes:[...bad]};
  }
  const details=last.issues.slice(0,4).map(x=>`${x.code} ${x.kind}：${x.reason}`).join('；');
- const hint=last.issues.some(x=>x.kind!=='SERVICE')?'已停止掃描；日期、價格或資料完整性未通過，不使用過期或不一致日K。請檢查資料來源／快取後重試。':'已停止掃描；服務未回傳足夠有效樣本，無法確認深掃資料健康。請稍後重試或檢查資料服務；這不代表已證實資料過期。';
+ const hint=last.issues.some(x=>x.kind!=='SERVICE')?'已停止掃描；個股資料異常且無足夠同市場健康替代樣本。日期、價格或資料完整性未通過時不使用該檔日K，請檢查Worker來源契約及快取。':'已停止掃描；服務未回傳足夠有效樣本，無法確認深掃資料健康。請稍後重試或檢查資料服務；這不代表已證實資料過期。';
  throw Error(`DEEP_SCAN 盤後資料健康檢查未通過（${last.issues.length}/${last.checked} 檔抽樣異常，目標日 ${last.expected}）。${details}。${hint}`);
 }
 return Object.freeze({normalizeDate,sample,examine,preflight});

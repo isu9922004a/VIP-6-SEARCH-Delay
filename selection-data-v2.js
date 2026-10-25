@@ -31,8 +31,9 @@ function bind(bundle){
  const audit=inspectSnapshot(bundle);if(!audit.ok)fail('市場快照完整性、最新交易日或筆數未通過｜'+audit.issues.join('；'));
  const meta=bundle.meta,dates=[audit.date];
  const map=new Map();for(const [code,q] of bundle.map){const m=market(q.market);if(!m)fail('市場別缺失 '+code);if(q.quoteDate&&E.date(q.quoteDate)!==dates[0])fail('市場報價日期衝突 '+code);map.set(String(code),{...q,market:m,quoteDate:dates[0],volumeUnit:'shares'});}
- if(snapshot?.date!==dates[0]){cache.clear();pending.clear();months.clear();}
  const identity=dates[0]+'|'+fingerprint([...map].sort(([a],[b])=>a.localeCompare(b)).map(([code,q])=>[code,q.market,q.quoteDate,q.open,q.high,q.low,q.close,q.volume]));
+ // A corrected same-date market snapshot is a NEW identity. Old history cannot be reused.
+ if(snapshot?.identity!==identity){cache.clear();pending.clear();months.clear();}
  snapshot={date:dates[0],identity,map,meta};globalThis.ShitouPriceActionIntegration?.bind(snapshot);try{globalThis.ShitouResearchIntegration?.bind(snapshot);}catch(e){console.warn("研究快照未綁定",e);}return {...bundle,map};
 }
 function context(code){const q=snapshot?.map.get(String(code));if(!q)fail('尚未取得此股票同日市場快照 '+code);return {q,date:snapshot.date,key:[snapshot.date,String(code),q.market,q.open,q.high,q.low,q.close,q.volume].join('|')};}
@@ -56,7 +57,15 @@ function normalizeWorkerReport(report,code){
  }else{
   const c=context(code),last=rows.at(-1),known=r.dailyOnly===true&&r.scanMode==='DAILY_ONLY'&&meta.mode==='DAILY_ONLY'&&/^Yahoo Finance history \+ (?:TWSE|TPEx|TPEX) MIS latest completed daily \(R4\.9\.3 DAILY_ONLY\)$/.test(meta.source||'');
   const volume=num(last.volume),quote=num(c.q.volume);
-  if(!known||String(r.stock||r.code||'')!==String(code)||market(r.market)!==c.q.market||E.date(r.closeDate)!==c.date||E.date(last.date)!==c.date||!(quote>0&&volume>0)||rows.some(b=>!Number.isInteger(num(b.volume))||!(num(b.volume)>0)))fail('DAILY_ONLY成交量缺少可核驗的股數來源契約 '+code);
+  const reasons=[];
+  if(!known)reasons.push('未提供可識別的DAILY_ONLY股數來源契約（source='+String(meta.source||'缺失').slice(0,95)+'）');
+  if(String(r.stock||r.code||'')!==String(code))reasons.push('股票代號不符');
+  if(market(r.market)!==c.q.market)reasons.push('市場別不符');
+  if(E.date(r.closeDate)!==c.date||E.date(last.date)!==c.date)reasons.push('日K／快照交易日不符');
+  if(!(quote>0&&volume>0))reasons.push('當日市場量或日K量無效');
+  if(rows.some(b=>!Number.isInteger(num(b.volume))||!(num(b.volume)>0)))reasons.push('歷史成交量非正整數股數');
+  if(reasons.length)fail('DAILY_ONLY成交量缺少可核驗的股數來源契約 '+code+'｜'+reasons.join('；'));
+
   if(Math.abs(volume-quote)/quote>.2)fail(`同日市場與日K成交量差異 ${(Math.abs(volume-quote)/quote*100).toFixed(2)}%，超過20%（日K ${volume}股／市場 ${quote}股） ${code}`);
   unitSource='PROJECT_R4.9.3_DAILY_ONLY_SHARES_CONTRACT + SAME_DAY_MARKET_VOLUME_CHECK';
  }
@@ -82,7 +91,19 @@ function validate(report,code){
  const sourceVolume=last.volume;last.volume=q.volume;
  return {bars:b,date:c.date,q,key:c.key,fingerprint:fingerprint(b),sourceVolume,sourceMeta:report.dailySeriesMeta||{},workerDataAudit:report.workerDataAudit||null,priceAdjustment:report.priceAdjustment||{verified:false,basis:'UNKNOWN'},expectedTradingDates:report.expectedTradingDates,corporateActions:report.corporateActions};
 }
-function remember(report,code){const p=validate(report,code),old=cache.get(p.key);if(old&&old.fingerprint!==p.fingerprint)fail('同一快照收到不同歷史序列；請重新整理後統一重掃 '+code);cache.set(p.key,p);return p;}
+function historyMismatch(a,b){
+ const length=Math.min(a.length,b.length);
+ for(let i=0;i<length;i++){
+  const fields=['date','open','high','low','close','volume'];
+  const changed=fields.filter(k=>a[i]?.[k]!==b[i]?.[k]);
+  if(changed.length)return `首筆差異 ${a[i]?.date||b[i]?.date||i}／${changed.join(',')}（舊${a.length}根／新${b.length}根）`;
+ }
+ return `日K根數不同（舊${a.length}根／新${b.length}根）`;
+}
+function remember(report,code){const p=validate(report,code),old=cache.get(p.key);
+ if(old&&!old.error&&old.fingerprint!==p.fingerprint)fail('同一快照收到不同歷史序列 '+code+'｜'+historyMismatch(old.bars,p.bars)+'；本檔標記資料不足，未以新序列覆蓋已驗證快取');
+ cache.set(p.key,p);return p;
+}
 async function ensure(items){
  const requestedIdentity=snapshot?.identity;
  const assertCurrent=()=>{if(snapshot?.identity!==requestedIdentity)fail('取得日K期間市場快照已改變，請重新查詢');};

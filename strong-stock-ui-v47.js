@@ -227,7 +227,7 @@
       if(!total)throw new Error('無有效深度分析範圍；請檢查市場及產業資料');
       const health=root.ShitouDeepScanHealthV1;
       if(!health)throw new Error('DEEP_SCAN 健康檢查模組未載入，停止全市場掃描');
-      const healthAudit=await health.preflight({items:pool.deep,targetDate:market.date,fetcher:(items,options)=>fetchDailyBatchRawR49(items,options),onUpdate:note,allowPartialService:true,allowHistoricalZeroData:true,shouldStop:()=>stopped});
+      const healthAudit=await health.preflight({items:pool.deep,targetDate:market.date,fetcher:(items,options)=>fetchDailyBatchRawR49(items,options),onUpdate:note,allowPartialService:true,allowHistoricalZeroData:true,allowPartialData:true,shouldStop:()=>stopped});
       const cache=recoverCache(snapshotFingerprint(bundle,market.date),market.date);
       // Failed stocks from a previous attempt move to the end, rather than permanently
       // blocking new stocks behind the same four CPU failures. No stock is discarded.
@@ -275,7 +275,7 @@
       const verified=candidates.length+rejected;
       const snapshotDropped=Math.max(0,bundle.snapshotRows-bundle.map.size,bundle.snapshotDropped||0);
       const completed=!stopped&&done===total&&data===0&&failed===0;
-      const fullMarketCertified=completed&&pool.deferred.length===0&&snapshotDropped===0&&
+      const fullMarketCertified=completed&&!healthAudit.degraded&&pool.deferred.length===0&&snapshotDropped===0&&
         pool.audit.unknown===0&&pool.audit.invalidQuote===0&&pool.audit.missingLiquidity===0;
       if(done!==verified+data+failed)throw new Error('本次逐檔數量帳不平衡，停止產生報告');
       last=Object.freeze({model:F.MODEL,healthAudit,profile:'DAILY_ONLY',dataDate:market.date,createdAt:taipeiStampV3762(),universe:bundle.snapshotRows,unparsed:snapshotDropped,
