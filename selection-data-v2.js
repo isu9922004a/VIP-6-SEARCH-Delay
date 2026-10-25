@@ -56,7 +56,8 @@ function normalizeWorkerReport(report,code){
  }else{
   const c=context(code),last=rows.at(-1),known=r.dailyOnly===true&&r.scanMode==='DAILY_ONLY'&&meta.mode==='DAILY_ONLY'&&/^Yahoo Finance history \+ (?:TWSE|TPEx|TPEX) MIS latest completed daily \(R4\.9\.3 DAILY_ONLY\)$/.test(meta.source||'');
   const volume=num(last.volume),quote=num(c.q.volume);
-  if(!known||String(r.stock||r.code||'')!==String(code)||market(r.market)!==c.q.market||E.date(r.closeDate)!==c.date||E.date(last.date)!==c.date||!(quote>0&&volume>0)||Math.abs(volume-quote)/quote>.2||rows.some(b=>!Number.isInteger(num(b.volume))||!(num(b.volume)>0)))fail('DAILY_ONLY成交量缺少可核驗的股數來源契約 '+code);
+  if(!known||String(r.stock||r.code||'')!==String(code)||market(r.market)!==c.q.market||E.date(r.closeDate)!==c.date||E.date(last.date)!==c.date||!(quote>0&&volume>0)||rows.some(b=>!Number.isInteger(num(b.volume))||!(num(b.volume)>0)))fail('DAILY_ONLY成交量缺少可核驗的股數來源契約 '+code);
+  if(Math.abs(volume-quote)/quote>.2)fail(`同日市場與日K成交量差異 ${(Math.abs(volume-quote)/quote*100).toFixed(2)}%，超過20%（日K ${volume}股／市場 ${quote}股） ${code}`);
   unitSource='PROJECT_R4.9.3_DAILY_ONLY_SHARES_CONTRACT + SAME_DAY_MARKET_VOLUME_CHECK';
  }
  if(rows.some(b=>b.volumeUnit&&!['shares','股'].includes(b.volumeUnit)))fail('Worker日K列成交量單位衝突 '+code);

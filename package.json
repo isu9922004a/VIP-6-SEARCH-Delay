@@ -8,7 +8,8 @@
     "research:validate": "node scripts/validate-research-v1.cjs",
     "test:consistency": "node --test scripts/tests/research-v822.test.cjs",
     "test:worker-browser": "node scripts/tests/research-worker-browser.cjs",
-    "test": "node scripts/run-all-tests.cjs"
+    "test": "node scripts/run-all-tests.cjs",
+    "test:multi-stock-browser": "node scripts/tests/research-multi-stock-browser.cjs"
   },
   "devDependencies": {
     "playwright-core": "1.56.1"

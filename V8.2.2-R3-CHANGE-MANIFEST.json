@@ -1,0 +1,169 @@
+{
+  "version": "V8.2.2-R3",
+  "baseZipSha256": "df73a41f861455ce364db190ae6fa119709c3f8490aa64771873ee6ca2bd8a0f",
+  "changes": [
+    {
+      "file": "V8.2.2-R3-ALL-STOCKS-REPORT.md",
+      "status": "ADDED",
+      "sha256": "3c60902a1817cfe07535f9a4289c60137711651ff8eb1bab2d388c27b5d4dde0",
+      "originalSha256": null
+    },
+    {
+      "file": "datasync-test.mjs",
+      "status": "MODIFIED",
+      "sha256": "f547b3725d140c7eca4ad44638621ca0797bc5209c77631f864f8e7bd546ba4f",
+      "originalSha256": "7e54012a1fc07e5396b84e15043d3e7a4d0649b1e5b7e55a04a8b3e2fca15b98"
+    },
+    {
+      "file": "four-models-research-v1.js",
+      "status": "MODIFIED",
+      "sha256": "02908be99309979d9bfd4122a6ea5a4d5a5b3046cdffa7fdbf4e4745661b6fc5",
+      "originalSha256": "b000b9f62210b8e7dcec2ee7c47418b08c6359fd6b9e07603f99e71b449f68ee"
+    },
+    {
+      "file": "index.html",
+      "status": "MODIFIED",
+      "sha256": "4addaaabe1e88c9c152160eb1841ddb6bf135ef8ef99302e52167446e16fcaf4",
+      "originalSha256": "e9d8ec5ee738dac5e007915a53df0cedee69d4d94d7bf5a4b0c8a37d58c2f14d"
+    },
+    {
+      "file": "package.json",
+      "status": "MODIFIED",
+      "sha256": "a0b27221db589884a328f4e042310f4a6be2b92d0cb4535d4c32c85b1d682d53",
+      "originalSha256": "f47b8d86810091567d43be6a77875e325928d42529a49d8c9ff0084078403299"
+    },
+    {
+      "file": "research-common-v1.js",
+      "status": "MODIFIED",
+      "sha256": "7627d0b55ba976cbd5c3335ea5affa2d2b48500cc5dfd1001fdcabea95aa96b5",
+      "originalSha256": "67d05e7e8dc96127203a1e5265a520f38c49c6eb28e3e83de123dad73c51dd64"
+    },
+    {
+      "file": "research-integration-v1.js",
+      "status": "MODIFIED",
+      "sha256": "a20951c59eef877ac2ab89c43a83b4552429484996ab53d0deec52cafa73db51",
+      "originalSha256": "fbc84c145f6af14ee6337c289477f525f16307bce4f0c6b1c33b0783aebd9a46"
+    },
+    {
+      "file": "research-report-v1.js",
+      "status": "MODIFIED",
+      "sha256": "c492ccc2a66722f53b33fa5816e68434de075b06daa56a225cd6045b035f9f67",
+      "originalSha256": "97c99a94713f17173133f5b1a638bfe742ffc27a31951c8a92bc0962738ec508"
+    },
+    {
+      "file": "scripts/fixtures/9933-worker-responses-20261022.json",
+      "status": "ADDED",
+      "sha256": "74c73e3877997771493e27a90d5006a93d760f8d237b6d6cc6bfea0dc57e4612",
+      "originalSha256": null
+    },
+    {
+      "file": "scripts/fixtures/multi-stock-worker-responses-20261022.json",
+      "status": "ADDED",
+      "sha256": "13ee340cbc915ff907ee44c736acf62b236069932041f970261363dac5437f8c",
+      "originalSha256": null
+    },
+    {
+      "file": "scripts/run-all-tests.cjs",
+      "status": "ADDED",
+      "sha256": "140ca356a5cf19e363ad2c5e98c7bdb2b0c2c90bfcb765fc4b15ae8c80d73a5b",
+      "originalSha256": null
+    },
+    {
+      "file": "scripts/structure-confirmed-fixture.mjs",
+      "status": "ADDED",
+      "sha256": "773f8022e9f14063b85008807a8481a8bd506fd1b51d96b677d574f94d86e0fa",
+      "originalSha256": null
+    },
+    {
+      "file": "scripts/tests/research-browser.cjs",
+      "status": "MODIFIED",
+      "sha256": "94a529cb3b9a331158145e5f56204fbbdb51f5f07921fd798a26e92befda07ab",
+      "originalSha256": "69e201b6e1dc994e59b1a64eb6f2f85fb8db6c0c8da3191fb4255f275afe7bb3"
+    },
+    {
+      "file": "scripts/tests/research-mobile-v821.test.cjs",
+      "status": "MODIFIED",
+      "sha256": "65eaabf78621d4df3af9fc5470f58ded046c5e1289271c5648e135e5802e7dbb",
+      "originalSha256": "e21a95e543fa04b3f646ed3525673ff8551d55aae6c8c85db96d931b3eb1dbd4"
+    },
+    {
+      "file": "scripts/tests/research-multi-stock-browser.cjs",
+      "status": "ADDED",
+      "sha256": "60fcce101ff632d5fa420a29ecc7e3093ed8072d9377d5ca45112531ff8208a6",
+      "originalSha256": null
+    },
+    {
+      "file": "scripts/tests/research-worker-browser.cjs",
+      "status": "ADDED",
+      "sha256": "34a8de15c011abb22e8c4e0f89add42d41defd6b516c6527261855b372448569",
+      "originalSha256": null
+    },
+    {
+      "file": "scripts/tests/research-worker-contract.test.cjs",
+      "status": "ADDED",
+      "sha256": "09173fd6826ff839499fdb868a83c6dc1c621c9bdef73dfcdc25ef772204b4cb",
+      "originalSha256": null
+    },
+    {
+      "file": "scripts/tests/stock-audit-alert-v82.test.mjs",
+      "status": "MODIFIED",
+      "sha256": "be3d66658260f74b5ef9885c5d1f73f751904b53b6fe9be3bc16207177b6b11a",
+      "originalSha256": "9febf2bcdb1c655849d8d02f868f096e4189d2744fffb7b7e984ea571d6e0998"
+    },
+    {
+      "file": "scripts/tests/structure-rank.test.mjs",
+      "status": "MODIFIED",
+      "sha256": "d6fc06d4c26c36a98e5fa77d7a0b3d67db6817cf778c844bdf2ed9435a4614f4",
+      "originalSha256": "9b36011c0c22a00e2fa33d6a412662827d3da408576e9d9b08d5ff0a4995fc73"
+    },
+    {
+      "file": "scripts/tests/structure-risk.test.mjs",
+      "status": "MODIFIED",
+      "sha256": "c5807f5eebbac2e243af4418382cec944f57f981a050ecbd0052299d9d7ef693",
+      "originalSha256": "f62266bcbe01cfa69eb45edd6386ee83bb518a6da1e39890a4598a8bcb45bdfb"
+    },
+    {
+      "file": "selection-data-v2.js",
+      "status": "MODIFIED",
+      "sha256": "b17472661634a78ca5b3c7e373d8bd31d52e3d8c87869a021f429a7bef7dcae5",
+      "originalSha256": "8c11c7095e66e6893a9b416c8e4204586b6f55b3c29e79109ffa0ce5d2269afe"
+    },
+    {
+      "file": "version-v50.js",
+      "status": "MODIFIED",
+      "sha256": "505b879aa159b107662407dd79046184fedcf38208cf199ab868087faa9eb7d8",
+      "originalSha256": "556479af5bf2eaf8ec4df12c2b15f4b4db2151075f7368bfd2207968941d9154"
+    }
+  ],
+  "updateIncludesAllFilesFromValidatedR2Patch": true,
+  "verificationMethod": "Previously validated R2 patch manifest plus R3 changes; archive bytes checked against current source; runtime baseline was previously matched to the user ZIP",
+  "noCaseSpecificStockOrPriceLiteralInSharedResearchModules": true,
+  "formalAlgorithmFilesUnchanged": [
+    "research-foundation-v1.js",
+    "selection-decision-v2.js",
+    "strong-stock-filter-v47.js",
+    "tower-gold-scanner.js",
+    "restaurant-filter-v1.js",
+    "restaurant-scanner-v1.js",
+    "structure-reversal-core-v1.js",
+    "structure-reversal-scanner-v1.js",
+    "structure-reversal-config-v1.js",
+    "tower-trend-classifier.js",
+    "tower-line-core.js",
+    "mobile-image-share-v1.js"
+  ],
+  "modelCalculationChange": "None; only duplicate validation-error reasons removed",
+  "indexOnlyCacheVersionChanged": true,
+  "tests": {
+    "nodePass": 219,
+    "nodeFail": 0,
+    "nodeSkipped": 0,
+    "browserPass": 23,
+    "browserFail": 0,
+    "actualRecordedStocks": 6,
+    "matchingResearchEntryComparisons": 42
+  },
+  "fullMarketScanExecuted": false,
+  "physicalSafariTested": false,
+  "deployedR3": false
+}
