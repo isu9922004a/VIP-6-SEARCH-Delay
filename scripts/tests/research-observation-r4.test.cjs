@@ -22,7 +22,7 @@ test('R4: bearish 160 validated bars receive useful market context without chang
  assert.equal(Report.stageLabel(a),'短線偏弱');
  assert.match(Report.text(a),/【技術現況】收盤 .*低於MA20.*低於MA60.*MA20下彎/);
  assert.match(Report.text(a),/【風險】.*低於MA20/);
- assert.match(Report.text(a),/【四模型驗證】A突破.*B回踩.*C動能.*D資金/);
+ assert.match(Report.text(a),/【四模型驗證】策略一｜突破.*策略二｜回踩.*策略三｜動能.*策略四｜資金/);
  assert.doesNotMatch(Report.text(a),/【風險】暫無額外警訊/);
  const before=JSON.stringify(a);Report.lines(a);assert.equal(JSON.stringify(a),before);
 });

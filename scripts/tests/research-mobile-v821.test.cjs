@@ -22,12 +22,12 @@ test('full-bleed iPhone image layout keeps enlarged text inside safe bounds',()=
  assert.ok(p.length>=1&&p.length<=3);
  p.forEach(page=>{const audit=JSON.parse(page.dataset.researchAudit);assert.equal(audit.width,1284);assert.equal(audit.height,2778);assert.equal(audit.minFont,56);assert.equal(audit.noClipping,true);assert.ok(audit.bodyBottom<=2430);});
 });
-test('frontend displays V8.2.2-R4-DSFIX1 and busts all local script/style caches',()=>{
+test('frontend displays V8.2.2-R5-ZHTW1 and busts all local script/style caches',()=>{
  const html=fs.readFileSync(path.join(root,'index.html'),'utf8');const v=require('../../version-v50.js');
- assert.equal(v.displayCode,'V8.2.2-R4-DSFIX1');assert.equal(v.fileVersion,'V8.2.2-R4-DSFIX1');
- assert.match(html,/<title>石頭少爺 V8\.2\.2-R4-DSFIX1/);
+ assert.equal(v.displayCode,'V8.2.2-R5-ZHTW1');assert.equal(v.fileVersion,'V8.2.2-R5-ZHTW1');
+ assert.match(html,/<title>石頭少爺 V8\.2\.2-R5-ZHTW1/);
  for(const entry of html.matchAll(/<(?:script|link)\b[^>]*(?:src|href)="(\.\/[^"\s]+)"/g)){
-  const url=entry[1];if(/\.(?:js|css)\?v=/.test(url))assert.match(url,/\?v=V8\.2\.2-R4-DSFIX1$/,url);
+  const url=entry[1];if(/\.(?:js|css)\?v=/.test(url))assert.match(url,/\?v=V8\.2\.2-R5-ZHTW1$/,url);
  }
  const css=fs.readFileSync(path.join(root,'research-mobile-v1.css'),'utf8');assert.match(css,/research-stock-card/);assert.match(css,/@media\(max-width:600px\)/);
 });
