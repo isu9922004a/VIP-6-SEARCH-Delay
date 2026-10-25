@@ -4,17 +4,35 @@ const VERSION='BREAKOUT.1-PULLBACK.1-MOMENTUM.1-FLOW.1',RANK='PRECISION_RESEARCH
 const {ma,mean,pct,check,status,PARAM:P}=U;
 const FILTERS=Object.freeze({MAIN:['A','C','D'],DAYTRADE:['A','C'],STRONG:['A','B','C','D'],TOWER:['D'],RESTAURANT:['A','B'],STRUCTURE:['B']});
 const rsiMomentumPass=value=>U.num(value)!==null&&value>65+1e-10&&value<85-1e-10;
+// Official TWSE/TPEx short names may be Chinese, English or mixed (GIS-KY, 眾達-KY).
+// Never infer the language from the stock code, and never use a long English
+// corporation name in place of a verified market short name.
 function resolveDisplayName(record,code){
- const raw=String(record?.name||record?.stockName||record?.companyName||'').trim();
+ const clean=v=>String(v??'').trim().replace(/[\s　]+/g,' ');
+ const id=clean(code),raw=clean(record?.name||record?.stockName||record?.companyName);
+ const valid=n=>!!n&&n!==id&&!/[\uFFFD\u0000-\u001F\u007F]/.test(n)
+  &&!new RegExp('^(?:股票|代號)\\s*'+id+'(?:\\s*[（(]名稱待核對[）)])?$').test(n)
+  &&!/(?:名稱待核對|待核對名稱|unknown|undefined|null)/i.test(n)
+  &&!/(?:\b(?:Inc\.?|Incorporated|Corporation|Corp\.?|Holdings|Holding|Limited|Ltd\.?|Company|Co\.?)\b)/i.test(n);
+ const shortName=n=>valid(n)&&(/[\u3400-\u9fff]/.test(n)||/^[a-zA-Z][a-zA-Z0-9&.+\-]{1,27}$/.test(n));
+ // Verified daily-market snapshot (same completed date) takes precedence.
  try{
-  const fn=globalThis?.momentumSafeStockNameV377712;
+  const snap=globalThis.ShitouSelectionDataV2?.getSnapshot?.();
+  const date=record?.marketDate||record?.closeDate||record?.dataDate;
+  if(snap?.date&&snap.date===date){const marketName=clean(snap.map?.get(id)?.name);if(shortName(marketName))return marketName;}
+ }catch(_){}
+ // Existing built-in Taiwan stock-name directory is keyed by ticker code.
+ try{
+  const fn=globalThis.momentumSafeStockNameV377712;
   if(typeof fn==='function'){
-   const name=String(fn({code,name:raw,report:record})||'').trim();
-   if(/[\u3400-\u9fff]/.test(name))return name;
+   const name=clean(fn({code:id,name:raw}));
+   if(shortName(name))return name;
   }
  }catch(_){}
- if(/[㐀-鿿]/.test(raw))return raw;
- return code?`股票${code}（名稱待核對）`:'名稱待核對';
+ // Only short names are acceptable as fallback; a corporate English full name
+ // cannot be presumed to be the Taiwan exchange short name.
+ if(shortName(raw))return raw;
+ return id?`股票${id}（名稱待核對）`:'名稱待核對';
 }
 function compactStateLabel(state){
  return state==='BREAKOUT_LAUNCH'?'突破發動':state==='HEALTHY_PULLBACK'?'健康回踩':state==='MOMENTUM_CONTINUATION'?'強勢延續':state==='FLOW_CONFIRMATION'?'資金確認':state==='OVEREXTENDED'?'短線過熱':state==='BREAKOUT_FAILURE'?'結構失敗':state==='INSUFFICIENT_DATA'?'資料不足':state==='DISABLED'?'已關閉':'觀察中';
