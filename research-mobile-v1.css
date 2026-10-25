@@ -56,3 +56,5 @@
 .research-inline .research-stock-metric strong{font-size:clamp(18px,4vw,24px);color:#fff;font-weight:850;white-space:nowrap;font-variant-numeric:tabular-nums}
 .research-inline .research-stock-meta{margin:12px 0 0;color:#c1dcf0;line-height:1.5;font-size:15px;overflow-wrap:anywhere}
 @media(max-width:370px){.research-inline .research-stock-metrics{grid-template-columns:minmax(0,1fr)}.research-inline .research-stock-metric{flex-direction:row;justify-content:space-between;align-items:center}}
+/* Preserve the separate confirmed / failed / unknown paragraphs on phones. */
+.research-inline .research-card-value{white-space:pre-line}

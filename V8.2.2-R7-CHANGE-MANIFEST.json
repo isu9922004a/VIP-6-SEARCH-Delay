@@ -1,0 +1,129 @@
+{
+  "version": "V8.2.2-R7",
+  "baseVersion": "V8.2.2-R6-DATASOURCE1",
+  "baseZipSha256": "301450537db1bf917b537f82bd72b0cbf5a1e0f9cebaac2e3bf673e29695b960",
+  "changes": [
+    {
+      "file": "index.html",
+      "status": "MODIFIED",
+      "sha256": "28bcc31079f8b41bab1c72f81bd32423281eabd01075dc3641f80f35c30057f6",
+      "originalSha256": "f7c2eed0c0df8ee7fda978d07d959284bc087266dc092e442ae3f60695789729"
+    },
+    {
+      "file": "research-integration-v1.js",
+      "status": "MODIFIED",
+      "sha256": "75f0be577d04aae4bb65f36eba7cd3688b4b71290e78852ce2208485c42d99d6",
+      "originalSha256": "7ecb35a4fb5de04f5285a07d1db55584ccd48bf994f8d2e9f763a17f090e09ac"
+    },
+    {
+      "file": "research-mobile-v1.css",
+      "status": "MODIFIED",
+      "sha256": "6e8fe055cb71a864530f49cbf09a26435c64494c70774de79b065848f07b590b",
+      "originalSha256": "21b6ebb0e4828e295c834facdca247af209b06025d1a30ff750b69fcb4ab5c4a"
+    },
+    {
+      "file": "research-report-v1.js",
+      "status": "MODIFIED",
+      "sha256": "8b3cd2a1c3e67e2a02291467cff37a3dea1d5cfc82145a86717254d4a3357611",
+      "originalSha256": "f73215c6a829e1a22128fcc83fb7cf897fed2f5b8220039f384faefc79dc0e38"
+    },
+    {
+      "file": "scripts/fixtures/multi-stock-worker-responses-20261022.json",
+      "status": "MODIFIED",
+      "sha256": "f91844a241a10eec0637ade5d660b3509407ffed9093124973ab92e032945274",
+      "originalSha256": "13ee340cbc915ff907ee44c736acf62b236069932041f970261363dac5437f8c"
+    },
+    {
+      "file": "scripts/tests/research-browser.cjs",
+      "status": "MODIFIED",
+      "sha256": "9712b78e2f771ed2f7aa03696f8cb51b49d9ffa5c41c62a92224b318021e93aa",
+      "originalSha256": "bcf8cb8a4036bbe3d4edfc1ea8ac862ad95be026588d464195ba41827e573321"
+    },
+    {
+      "file": "scripts/tests/research-mobile-v821.test.cjs",
+      "status": "MODIFIED",
+      "sha256": "49a2b5352bc83874189a366b646506ff3d0b483c8c63047a5e11bbabc6e3e082",
+      "originalSha256": "e711877fc49545e1d63a250857647a7e864ab77364422e55c0b40e605d030dae"
+    },
+    {
+      "file": "scripts/tests/research-multi-stock-browser.cjs",
+      "status": "MODIFIED",
+      "sha256": "ecf145310e3cc994e4b953c2773a836181fc8e8b509232be587e4eb580780b43",
+      "originalSha256": "60fcce101ff632d5fa420a29ecc7e3093ed8072d9377d5ca45112531ff8208a6"
+    },
+    {
+      "file": "scripts/tests/research-unified-report.test.cjs",
+      "status": "ADDED",
+      "sha256": "4bafd95fde424ffe2ca0e4809f499dc6f45caec4057525f8113a60a88ec53e06",
+      "originalSha256": null
+    },
+    {
+      "file": "scripts/tests/research-worker-browser.cjs",
+      "status": "MODIFIED",
+      "sha256": "6e049b9616c04de62649a086d50c5fe5e023a9800639317f485427711311a6d6",
+      "originalSha256": "34a8de15c011abb22e8c4e0f89add42d41defd6b516c6527261855b372448569"
+    },
+    {
+      "file": "scripts/tests/research-zh-tw-multitf.test.cjs",
+      "status": "MODIFIED",
+      "sha256": "176450eded70fe330b6323b329ba10abcf0a57a086cc96cb6281868da5f1c84a",
+      "originalSha256": "ee09409950872d8ba78ec351c7d2ab3e5d622fe511250d803b30a44aa6cc9b07"
+    },
+    {
+      "file": "scripts/tests/stock-audit-alert-v82.test.mjs",
+      "status": "MODIFIED",
+      "sha256": "c0d6750f77a5b2354e05dad8b1d7953ed70a5bafddf812ea3735880b07b16aac",
+      "originalSha256": "4652df83bb44c11eb2f33813535940a001b77cd070e21a29a5ed0faae72bbf9e"
+    },
+    {
+      "file": "V8.2.2-R7-REPAIR-REPORT.md",
+      "status": "ADDED",
+      "sha256": "e72c01d3acb3c644d1431d366e5d40cf1e63b7fd4e1c49fb3056817ff3bc9481",
+      "originalSha256": null
+    },
+    {
+      "file": "version-v50.js",
+      "status": "MODIFIED",
+      "sha256": "8f5bf2f36dbceec8b95511855ca9318e6b3575041395e8d0a1006662ea32dda0",
+      "originalSha256": "4fdba215a938eb5dad9b39c3518c397cdcc2faaa8e969ef215376707de6fe2d9"
+    }
+  ],
+  "unchangedEngineAndFormalDataFiles": [
+    "four-models-research-v1.js",
+    "indicator-multi-v1.js",
+    "research-common-v1.js",
+    "research-foundation-v1.js",
+    "selection-data-v2.js",
+    "selection-decision-v2.js",
+    "strong-stock-filter-v47.js",
+    "tower-gold-scanner.js",
+    "restaurant-filter-v1.js",
+    "restaurant-scanner-v1.js",
+    "structure-reversal-core-v1.js",
+    "structure-reversal-scanner-v1.js",
+    "structure-reversal-config-v1.js",
+    "tower-trend-classifier.js",
+    "tower-line-core.js",
+    "mobile-image-share-v1.js",
+    "mobile-png-export-r5329.js"
+  ],
+  "indexChange": "version / resource-cache identifiers only",
+  "allStocksShareSameReportFunctions": true,
+  "stockSpecificProductionConditionsAdded": false,
+  "tests": {
+    "nodePass": 244,
+    "nodeFail": 0,
+    "nodeSkipped": 0,
+    "browserChecksPass": 23,
+    "recordedStocks": 7,
+    "researchAdapterComparisons": 49,
+    "webImageCsvJsonAndFullCanvasVerified": true,
+    "workerRecordedUiReplay": "PASS"
+  },
+  "newReferenceImagesAvailable": false,
+  "usedEarlierReadableReferenceLayout": true,
+  "fullMarketScanExecuted": false,
+  "physicalSafariLineTested": false,
+  "deployed": false,
+  "workerCodeModified": false
+}
