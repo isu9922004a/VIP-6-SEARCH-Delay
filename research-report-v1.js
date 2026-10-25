@@ -1,5 +1,7 @@
 (function(r,f){const a=f();if(typeof module==='object'&&module.exports)module.exports=a;else r.ShitouResearchReport=a;})(globalThis,function(){
 'use strict';
+const Z=globalThis.ShitouResearchZhTW||(typeof require==='function'?require('./research-zh-tw-v1.js'):null);
+const chinese=value=>Z?Z.humanize(value):String(value??'—');
 const fmt=v=>typeof v==='number'&&Number.isFinite(v)?v.toFixed(2):'—';
 const STAGES={BREAKOUT_LAUNCH:'突破發動',HEALTHY_PULLBACK:'健康回踩',MOMENTUM_CONTINUATION:'強勢延續',FLOW_CONFIRMATION:'資金確認',OVEREXTENDED:'短線過熱',BREAKOUT_FAILURE:'結構失敗',INSUFFICIENT_DATA:'資料不足',OBSERVATION:'觀察中',DISABLED:'已關閉'};
 const STATES={PASS:'符合',FAIL:'不符合',UNKNOWN:'待驗證',RESEARCH_MATCH:'研究符合',RESEARCH_NOT_MATCH:'未符合',DATA_UNVERIFIED:'資料待補',AWAIT_CONFIRMATION:'待確認',CONFIRMED:'已確認',FAILED:'已失效',EXPIRED:'已逾期',AMBIGUOUS:'先後不明',STRONG_ALIGNMENT:'一致轉強',PARTIAL_ALIGNMENT:'部分轉強',MIXED_SIGNALS:'訊號矛盾',BEARISH_ALIGNMENT:'一致轉弱',OVEREXTENSION_WARNING:'過熱警戒',INSUFFICIENT_DATA:'暫無共同訊號'};
@@ -39,15 +41,15 @@ function technicalOutlook(a){
  if(Number.isFinite(ratio))details.push(`相對前5日均量 ${ratio.toFixed(2)}倍${ratio>=1.5?'（放量）':ratio<=.8?'（量縮）':''}`);
  return {label,details,cautions,volumeRatio:ratio};
 }
-function stageLabel(a){return a?.state==='OBSERVATION'?(technicalOutlook(a)?.label||'觀察中（未觸發四模型）'):(a?.compactStateLabel||STAGES[a?.state]||a?.state||'觀察中');}
+function stageLabel(a){return a?.state==='OBSERVATION'?(technicalOutlook(a)?.label||'觀察中（未觸發四模型）'):(a?.compactStateLabel||STAGES[a?.state]||(a?.state?chinese(a.state):'觀察中'));}
 function modelSummary(a){
  if(!a?.models||!Object.keys(a.models).length)return '基礎日K未通過，四模型不可判定';
- const labels={A:'突破',B:'回踩',C:'動能',D:'資金'};
+ const labels={A:'策略一｜突破',B:'策略二｜回踩',C:'策略三｜動能',D:'策略四｜資金'};
  return ['A','B','C','D'].map(k=>{
-  const m=a.models[k];if(!m)return `${k}${labels[k]} 待驗證`;
+  const m=a.models[k];if(!m)return `${labels[k]} 待驗證`;
   const passed=m.checks.filter(x=>x.status==='PASS').length;
   const unknown=m.checks.filter(x=>x.status==='UNKNOWN').length;
-  return `${k}${labels[k]} ${m.status} ${passed}/${m.checks.length}${unknown?`（待驗${unknown}）`:''}`;
+  return `${labels[k]} ${chinese(m.status)} ${passed}/${m.checks.length}${unknown?`（待驗${unknown}）`:''}`;
  }).join('｜');
 }
 function evidenceSummary(a){
@@ -60,18 +62,18 @@ function riskSummary(a){
  if(a?.validation?.technicalModelAvailable===false)return '基礎資料未通過，風險尚無法完整判斷';
  const structural=a?.risks||[],context=technicalOutlook(a)?.cautions||[];
  const combined=[...new Set([...structural,...context])].slice(0,3);
- return combined.join('、')||'未觸發預設風險條件；不代表無風險';
+ return combined.map(chinese).join('、')||'未觸發預設風險條件；不代表無風險';
 }
 function dataSummary(a){
  const v=a?.validation;if(!v)return a?.dataQuality?.complete?'資料較完整':'部分資料待驗證';
- if(!v.technicalModelAvailable)return [...new Set(a.dataQuality?.missing||v.validationErrors)].join('；');
+ if(!v.technicalModelAvailable)return [...new Set(a.dataQuality?.missing||v.validationErrors)].map(chinese).join('；')||'行情資料不足，無法判斷';
  const notes=[`完成日K ${v.historyBarCount}根，技術資料已核驗`];
  if(v.historyBarCount<63)notes.push(`MA60斜率需63根（目前${v.historyBarCount}根）`);
  if(!v.externalEvidenceAvailable)notes.push('籌碼／營收等外部條件未完整核驗');
  if(a.models?.B?.sprintStatus==='UNVERIFIED'||a.models?.C?.sourceDefinitionVerified===false)notes.push('部分策略公式待核驗');
  if(a.models?.A?.checks.some(x=>x.id==='A2'&&x.status==='UNKNOWN'))notes.push('20週MA待核驗');
  const warnings={CALENDAR_UNVERIFIED:'正式交易日曆未核驗',ADJUSTMENT_BASIS_UNKNOWN:'價格還原口徑未知',PRICE_BASIS_UNVERIFIED:'價格基準未核驗'};
- for(const w of a.dataQuality?.warnings||[])notes.push(warnings[w]||w);
+ for(const w of a.dataQuality?.warnings||[])notes.push(warnings[w]||chinese(w));
  return notes.join('；');
 }
 function actionSummary(a){
@@ -88,11 +90,11 @@ function actionSummary(a){
  }
 }
 function dualSummary(d,analysis){
- if(!d)return analysis?.flags?.dualScanEnabled===false?'研究A/B：已關閉':'研究A/B：基礎日K未通過，暫不計算';
- const a=(d.modeA?.checks||[]).filter(x=>x.status==='PASS').map(x=>CONDITION_NAMES[x.id]||x.id);
- const b=(d.modeB?.checks||[]).filter(x=>x.status==='PASS').map(x=>CONDITION_NAMES[x.id]||x.id);
- const left=a.length?`A ${a.slice(0,2).join('、')}`:'A 暫無明確條件';
- const right=b.length?`B ${b.slice(0,2).join('、')}`:'B 暫無明確條件';
+ if(!d)return analysis?.flags?.dualScanEnabled===false?'雙模式研究：已關閉':'雙模式研究：基礎日K未通過，暫不計算';
+ const a=(d.modeA?.checks||[]).filter(x=>x.status==='PASS').map(x=>CONDITION_NAMES[x.id]||chinese(x.id));
+ const b=(d.modeB?.checks||[]).filter(x=>x.status==='PASS').map(x=>CONDITION_NAMES[x.id]||chinese(x.id));
+ const left=a.length?`模式一 ${a.slice(0,2).join('、')}`:'模式一暫無明確條件';
+ const right=b.length?`模式二 ${b.slice(0,2).join('、')}`:'模式二暫無明確條件';
  const unknown=[...(d.modeA?.checks||[]),...(d.modeB?.checks||[])].some(x=>x.status==='UNKNOWN');
  return `${left}｜${right}${unknown?'；部分條件待驗證':''}`;
 }
@@ -100,17 +102,43 @@ function alertSummary(p,a){
  if(!p)return a?.flags?.alertPlanEnabled===false?'到價提醒：已關閉':'基礎行情未通過，暫不建立提醒';
  return `上破 ${fmt(p.priceAbove?.input)}｜下破 ${fmt(p.priceBelow?.input)}｜漲跌幅 ${p.dayGainPercentInput??'—'}% / ${p.dayLossPercentInput??'—'}%`;
 }
+function extraResearchLines(a){
+ const f=a?.features,valid=a?.validation?.technicalModelAvailable===true,levels=a?.priceLevels||{};
+ const study=a?.indicatorStudy,stage=stageLabel(a),risk=riskSummary(a),ups=evidenceSummary(a);
+ const medium=!valid?'資料不足，暫無法判斷':!Number.isFinite(f?.ma?.[20]?.value)||!Number.isFinite(f?.ma?.[60]?.value)?'均線資料不足':f.ma[20].value>f.ma[60].value?'20日均線在60日均線之上；仍須核對週線方向':f.ma[20].value<f.ma[60].value?'20日均線在60日均線之下；中期仍有壓力':'20日與60日均線接近，方向待確認';
+ const short=!valid?'資料不足，暫無法判斷':study?.status==='已確認'?`KD ${fmt(study.day.kd.k)}/${fmt(study.day.kd.d)}；DIF ${fmt(study.day.macd.dif)}；OSC標準柱差 ${fmt(study.day.macd.hist)}；${technicalOutlook(a)?.label||'短線待確認'}`:technicalOutlook(a)?.label||'短線動能尚未確認';
+ const level=(item,kind)=>item?.verified&&Number.isFinite(item.value)?`${kind} ${fmt(item.value)} 元（研究參考，非保證價位）`:'資料不足，暫無法核驗價位';
+ const conditions=!valid?'先取得已核驗的完成日K':a.state==='BREAKOUT_FAILURE'?'先確認結構失效後能否重新站回壓力':'等待價量與關鍵壓力確認，勿僅憑指標交叉追價';
+ return [
+  `【目前行情階段】${study?.status==='已確認'?study.phase:stage}`,
+  `【短線動能研判】${short}`,
+  `【中期趨勢方向】${medium}`,
+  `【日週月週期研判】${study?.status==='已確認'?`日KD ${fmt(study.day.kd.k)}；週KD ${study.week.status==='已確認'?fmt(study.week.kd.k):'資料不足'}；月KD ${study.month.status==='已確認'?fmt(study.month.kd.k):'資料不足'}；形成中的週月K不作已確認共振`:'日週月KD資料不足，暫無法判斷共振'}`,
+  `【指標型態確認】${study?.status==='已確認'?(study.patterns.filter(p=>p.candidate).map(p=>p.label+'（'+p.status+'；尚未回測驗證）').join('、')||'五種型態目前均未觸發；不代表未來不會轉強'):'五種型態資料不足，尚未完成驗證'}`,
+  `【四策略綜合結果】${modelSummary(a)}`,
+  `【多方有利依據】${ups}`,
+  `【空方風險因素】${risk}`,
+  `【關鍵支撐價位】${level(levels.researchInvalidation,'研究失效參考')}`,
+  `【關鍵壓力價位】${level(levels.researchBreakout,'前20日突破參考')}`,
+  `【進場觀察條件】${conditions}`,
+  `【判斷失效條件】${level(levels.researchInvalidation,'研究失效參考')}；應以原策略正式風控為準`,
+  `【空手操作建議】${actionSummary(a)}`,
+  `【持股風險提醒】${risk}；停損依原策略或個人風險規則執行`,
+  `【行情資料完整性】${dataSummary(a)}`
+ ];
+}
 function lines(a){
  const d=a?.foundation?.dualScanContext,p=a?.foundation?.alertPlan;
  return [
   `${a.name}（${a.code}）｜${a.date||'日期待確認'}`,
+  ...extraResearchLines(a),
   `【現況】${stageLabel(a)}`,
   `【研究重點】${evidenceSummary(a)}`,
-  `【技術現況】${technicalOutlook(a)?.details.join('；')||(a?.reason?`無法核驗：${a.reason}`:'有效日K不足，技術現況待核驗')}`,
+  `【技術現況】${technicalOutlook(a)?.details.join('；')||(a?.reason?`無法核驗：${chinese(a.reason)}`:'有效日K不足，技術現況待核驗')}`,
   `【四模型驗證】${modelSummary(a)}`,
   `【關鍵價位】${a.originalB==null?'原策略B價未提供／不適用':`B價 ${fmt(a.originalB)}`}｜研究突破 ${fmt(a.researchBreakoutPrice)}｜研究失效 ${fmt(a.researchInvalidation)}${a.originalInvalidation!=null?`｜原策略失效 ${fmt(a.originalInvalidation)}`:''}`,
   `【風險】${riskSummary(a)}`,
-  `【研究A/B】${dualSummary(d,a)}`,
+  `【雙模式研究】${dualSummary(d,a)}`,
   `【到價提醒】${alertSummary(p,a)}`,
   ...(p?[`【提醒設定】價格高於：${fmt(p.priceAbove?.input)}｜價格低於：${fmt(p.priceBelow?.input)}；僅供手動設定`,
             ...(p.priceAbove?.alreadyCrossed||p.priceBelow?.alreadyCrossed?['【提醒狀態】盤後已越過原價位，請重新檢查通知門檻。']:[])]:[]),
@@ -129,7 +157,7 @@ function pages(a,{document:doc=globalThis.document,displayCode='V8.2.2-R4',water
  // The single-stock study intentionally uses the identical nine-section content template
  // as a filter candidate. Stock query metrics remain in the stock UI and exports, not this image.
  const strings=lines(a),fields=strings.map(s=>s.match(/^【([^】]+)】(.*)$/)).filter(Boolean)
-  .filter(m=>!['現況','提醒設定'].includes(m[1]));
+  .filter(m=>!['現況','提醒設定','研究重點','技術現況','四模型驗證','關鍵價位','風險','雙模式研究','到價提醒','提醒狀態','資料狀態','摘要結論'].includes(m[1]));
  function measuredWrap(value,font,width){
   ctx.font=font;
   const fragments=String(value).split('｜').map(x=>x.trim()).filter(Boolean),out=[];
