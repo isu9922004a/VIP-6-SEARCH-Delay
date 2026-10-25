@@ -4,13 +4,64 @@ const fmt=v=>typeof v==='number'&&Number.isFinite(v)?v.toFixed(2):'—';
 const STAGES={BREAKOUT_LAUNCH:'突破發動',HEALTHY_PULLBACK:'健康回踩',MOMENTUM_CONTINUATION:'強勢延續',FLOW_CONFIRMATION:'資金確認',OVEREXTENDED:'短線過熱',BREAKOUT_FAILURE:'結構失敗',INSUFFICIENT_DATA:'資料不足',OBSERVATION:'觀察中',DISABLED:'已關閉'};
 const STATES={PASS:'符合',FAIL:'不符合',UNKNOWN:'待驗證',RESEARCH_MATCH:'研究符合',RESEARCH_NOT_MATCH:'未符合',DATA_UNVERIFIED:'資料待補',AWAIT_CONFIRMATION:'待確認',CONFIRMED:'已確認',FAILED:'已失效',EXPIRED:'已逾期',AMBIGUOUS:'先後不明',STRONG_ALIGNMENT:'一致轉強',PARTIAL_ALIGNMENT:'部分轉強',MIXED_SIGNALS:'訊號矛盾',BEARISH_ALIGNMENT:'一致轉弱',OVEREXTENSION_WARNING:'過熱警戒',INSUFFICIENT_DATA:'暫無共同訊號'};
 const CONDITION_NAMES={RSI_GT_65:'日線RSI＞65',RSI_GT_70:'日線RSI＞70',MA20_CLOSE_CROSS:'收盤站上MA20',CHIP_GT_20:'籌碼集中＞20%',TURNOVER_GT_10:'周轉率＞10%',OFFICIAL_VALUE_TOP100:'成交值前100'};
-function stageLabel(a){return a?.compactStateLabel||STAGES[a?.state]||a?.state||'觀察中';}
+// Read-only market context: never changes a.state, check.status, ranking or research levels.
+// Even when no model fires, validated OHLCV can still describe observable direction.
+function technicalOutlook(a){
+ if(a?.validation?.technicalModelAvailable!==true||!a?.features)return null;
+ const f=a.features,z=a.sourceBars?.at(-1),m20=f.ma?.[20]?.value,m60=f.ma?.[60]?.value;
+ if(!z||!Number.isFinite(z.close))return null;
+ const close=z.close,slope=f.ma?.[20]?.slope;
+ let label='技術方向待確認';
+ if(Number.isFinite(m20)&&Number.isFinite(m60)){
+  if(close<m20&&close<m60)label=slope!==null&&slope<0?'短線偏弱':'均線下方整理';
+  else if(close>m20&&close>m60)label=slope!==null&&slope>0?'偏多整理':'均線上方整理';
+  else if(close>m20&&close<m60)label='反彈仍遇中期壓力';
+  else if(close<m20&&close>m60)label='短線回檔';
+  else label='均線附近整理';
+ }else if(Number.isFinite(m20))label=close<m20?'MA20下方整理':close>m20?'MA20上方整理':'貼近MA20';
+ const details=[`收盤 ${fmt(close)}`],cautions=[];
+ for(const [n,ma] of [[20,m20],[60,m60]]){
+  if(!Number.isFinite(ma))continue;
+  const relation=close>ma?'高於':close<ma?'低於':'等於';
+  details.push(`${relation}MA${n} ${fmt(ma)}`);
+  if(close<ma)cautions.push(`收盤低於MA${n}`);
+ }
+ if(Number.isFinite(slope)){
+  details.push(`MA20${slope>0?'上彎':slope<0?'下彎':'走平'}`);
+  if(slope<0)cautions.push('MA20下彎');
+ }
+ const closeLoc=f.candle?.closeLocation;
+ if(z.close<z.open){
+  details.push(closeLoc!==null&&Number.isFinite(closeLoc)&&closeLoc<=.25?'當日收黑且收近低點':'當日收黑');
+  if(closeLoc!==null&&Number.isFinite(closeLoc)&&closeLoc<=.25)cautions.push('收黑且收近當日低點');
+ }else if(z.close>z.open)details.push('當日收紅');
+ const ratio=f.volumePrior5>0?z.volume/f.volumePrior5:null;
+ if(Number.isFinite(ratio))details.push(`相對前5日均量 ${ratio.toFixed(2)}倍${ratio>=1.5?'（放量）':ratio<=.8?'（量縮）':''}`);
+ return {label,details,cautions,volumeRatio:ratio};
+}
+function stageLabel(a){return a?.state==='OBSERVATION'?(technicalOutlook(a)?.label||'觀察中（未觸發四模型）'):(a?.compactStateLabel||STAGES[a?.state]||a?.state||'觀察中');}
+function modelSummary(a){
+ if(!a?.models||!Object.keys(a.models).length)return '基礎日K未通過，四模型不可判定';
+ const labels={A:'突破',B:'回踩',C:'動能',D:'資金'};
+ return ['A','B','C','D'].map(k=>{
+  const m=a.models[k];if(!m)return `${k}${labels[k]} 待驗證`;
+  const passed=m.checks.filter(x=>x.status==='PASS').length;
+  const unknown=m.checks.filter(x=>x.status==='UNKNOWN').length;
+  return `${k}${labels[k]} ${m.status} ${passed}/${m.checks.length}${unknown?`（待驗${unknown}）`:''}`;
+ }).join('｜');
+}
 function evidenceSummary(a){
  const names=[];
  for(const [k,v] of Object.entries(a?.families||{}))if(v===true)names.push(k==='PRICE_STRUCTURE'?'突破/結構':k==='TREND_MA'?'均線趨勢':k==='VOLUME'?'量能':k==='MOMENTUM'?'動能':k==='FLOW'?'資金':k==='FUNDAMENTAL'?'基本面':k==='DATA_QUALITY'?'日K核驗':'');
- return names.filter(Boolean).slice(0,4).join('、')||'尚無明確共振';
+ const found=names.filter(Boolean).slice(0,4).join('、');
+ return a?.state==='OBSERVATION'?(found?`${found}；四模型尚未觸發完整訊號`:'四模型尚未觸發完整訊號；詳見技術現況'):(found||'尚無已核驗共振');
 }
-function riskSummary(a){return (a?.risks||[]).slice(0,3).join('、')||(a?.validation?.technicalModelAvailable===false?'基礎資料未通過，風險尚無法完整判斷':'暫無額外警訊');}
+function riskSummary(a){
+ if(a?.validation?.technicalModelAvailable===false)return '基礎資料未通過，風險尚無法完整判斷';
+ const structural=a?.risks||[],context=technicalOutlook(a)?.cautions||[];
+ const combined=[...new Set([...structural,...context])].slice(0,3);
+ return combined.join('、')||'未觸發預設風險條件；不代表無風險';
+}
 function dataSummary(a){
  const v=a?.validation;if(!v)return a?.dataQuality?.complete?'資料較完整':'部分資料待驗證';
  if(!v.technicalModelAvailable)return [...new Set(a.dataQuality?.missing||v.validationErrors)].join('；');
@@ -32,6 +83,7 @@ function actionSummary(a){
   case 'OVEREXTENDED': return '短線偏熱，先不急追。';
   case 'BREAKOUT_FAILURE': return '結構轉弱，先保守。';
   case 'INSUFFICIENT_DATA': return a?.validation?.technicalModelAvailable?'保留已可計算的技術結果；補足歷史日K後再確認完整訊號。':'先補齊並核驗基礎行情，再判斷現況。';
+  case 'OBSERVATION': {const t=technicalOutlook(a);return t?`${t.label}；尚未觸發四模型完整訊號，觀察均線與量價是否轉強。`:'四模型暫未觸發，先確認資料與下一個交易日訊號。';}
   default: return '先觀察，等待更完整訊號。';
  }
 }
@@ -54,6 +106,8 @@ function lines(a){
   `${a.name}（${a.code}）｜${a.date||'日期待確認'}`,
   `【現況】${stageLabel(a)}`,
   `【研究重點】${evidenceSummary(a)}`,
+  `【技術現況】${technicalOutlook(a)?.details.join('；')||(a?.reason?`無法核驗：${a.reason}`:'有效日K不足，技術現況待核驗')}`,
+  `【四模型驗證】${modelSummary(a)}`,
   `【關鍵價位】${a.originalB==null?'原策略B價未提供／不適用':`B價 ${fmt(a.originalB)}`}｜研究突破 ${fmt(a.researchBreakoutPrice)}｜研究失效 ${fmt(a.researchInvalidation)}${a.originalInvalidation!=null?`｜原策略失效 ${fmt(a.originalInvalidation)}`:''}`,
   `【風險】${riskSummary(a)}`,
   `【研究A/B】${dualSummary(d,a)}`,
@@ -68,7 +122,7 @@ function lines(a){
 function text(a){return lines(a).join('\n');}
 function wrap(ctx,s,width){const out=[];for(const p of String(s).split('\n')){let row='';for(const ch of p){if(row&&ctx.measureText(row+ch).width>width){out.push(row);row=ch;}else row+=ch;}out.push(row);}return out;}
 function roundRectPath(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
-function pages(a,{document:doc=globalThis.document,displayCode='V8.2.2-R3',watermark=false,stockMetrics=null,stockMode=!!stockMetrics}={}){
+function pages(a,{document:doc=globalThis.document,displayCode='V8.2.2-R4',watermark=false,stockMetrics=null,stockMode=!!stockMetrics}={}){
  const W=1284,H=2778,M=54,FIELD_FONT=56,FIELD_LINE=77,LABEL_FONT=40,MAX_BOTTOM=2430;
  const ctx=doc.createElement('canvas').getContext('2d');
  if(!ctx)throw Error('Canvas 2D unavailable');
@@ -152,5 +206,5 @@ function pages(a,{document:doc=globalThis.document,displayCode='V8.2.2-R3',water
  });
 }
 function candlePage(a,{document:doc=globalThis.document}={}){return null;}
-return Object.freeze({fmt,STAGES,lines,text,wrap,pages,candlePage,STATES});
+return Object.freeze({fmt,STAGES,stageLabel,technicalOutlook,modelSummary,lines,text,wrap,pages,candlePage,STATES});
 });

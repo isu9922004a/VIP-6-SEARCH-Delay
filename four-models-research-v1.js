@@ -14,7 +14,7 @@ function resolveDisplayName(record,code){
   &&!new RegExp('^(?:股票|代號)\\s*'+id+'(?:\\s*[（(]名稱待核對[）)])?$').test(n)
   &&!/(?:名稱待核對|待核對名稱|unknown|undefined|null)/i.test(n)
   &&!/(?:\b(?:Inc\.?|Incorporated|Corporation|Corp\.?|Holdings|Holding|Limited|Ltd\.?|Company|Co\.?)\b)/i.test(n);
- const shortName=n=>valid(n)&&(/[\u3400-\u9fff]/.test(n)||/^[a-zA-Z][a-zA-Z0-9&.+\-]{1,27}$/.test(n));
+ const shortName=n=>valid(n)&&(/[\u3400-\u9fff]/.test(n)||/^[a-zA-Z0-9][a-zA-Z0-9&.+*\-]{1,27}$/.test(n));
  // Verified daily-market snapshot (same completed date) takes precedence.
  try{
   const snap=globalThis.ShitouSelectionDataV2?.getSnapshot?.();
