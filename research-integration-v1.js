@@ -124,7 +124,7 @@ function alertControls(a){const plan=a.foundation.alertPlan,box=el('div');box.cl
 async function preview(analyses,{stockMode=false}={}){if(!analyses.length)return;if(document.fonts?.ready)await document.fonts.ready;
  const pages=analyses.flatMap(a=>{const metrics=stockMode&&latestStockQuery?.analysis===a?latestStockQuery.metrics:null;
  const p=R.pages(a,{displayCode:root.ShitouReleaseV50.displayCode,stockMetrics:metrics});const c=stockMode?null:R.candlePage(a);if(c)p.push(c);return p;});
- return root.strongStockShowPagesV47(pages,{title:stockMode?'個股查詢｜四模型專屬研究':'四策略研究摘要｜附頁',prefix:stockMode?'V8.2.1_STOCK_RESEARCH':'V8.2.1_RESEARCH',date:analyses[0].date,kind:'v8-research',note:stockMode?'個股研究不列入濾網排名｜非買進訊號':'精簡摘要僅供研究觀察；原榜資格與排序保留。'});}
+ return root.strongStockShowPagesV47(pages,{title:stockMode?'四策略研究｜個股查詢摘要':'四策略研究摘要｜附頁',prefix:stockMode?'V8.2.1_STOCK_RESEARCH':'V8.2.1_RESEARCH',date:analyses[0].date,kind:'v8-research',note:stockMode?'個股研究不列入濾網排名｜非買進訊號':'精簡摘要僅供研究觀察；原榜資格與排序保留。'});}
 function mountStock(input){const host=by('result');if(!host)return;by('researchStock')?.remove();const a=forReport(input);if(!Object.values(flags).some((v,i)=>v&&Object.keys(flags)[i].endsWith('Enabled')))return;const box=el('section');box.id='researchStock';box.className='research-inline';box.append(el('h3','四策略研究摘要'),researchCard(a,1,'個股',true));host.append(box);}
 function setFlags(next){flags=U.flags({...flags,...next});cache.clear();seen.clear();records.clear();revision++;try{localStorage.setItem('shitou-research-flags-v1',JSON.stringify(flags));}catch(_){}const snapshot=root.ShitouSelectionDataV2?.getSnapshot?.();if(snapshot){const results=[...sourceRecords].map(([code,data])=>({ok:true,code,data}));capture({snapshot,items:results.map(x=>({code:x.code})),results});}if(typeof lastReportData!=='undefined'&&lastReportData){captureStockQuery(lastReportData);mountStock(lastReportData);}schedule();return {...flags};}
 function render(){const panel=by('researchPanel');if(!panel)return;
@@ -137,7 +137,7 @@ function render(){const panel=by('researchPanel');if(!panel)return;
   if(stock){host.append(stockQueryIntro(stock));const card=researchCard(stock.analysis,1,'個股',true);host.append(card);
    const button=card.querySelector('.research-card-actions>button');if(button)button.onclick=()=>preview([stock.analysis],{stockMode:true});}
   by('researchPreview').disabled=!stock;
-  by('researchPreview').textContent='個股專屬研究附圖';
+  by('researchPreview').textContent='四策略研究｜個股查詢摘要圖';
   return;
  }
  by('researchPreview').textContent='研究前八強附圖';

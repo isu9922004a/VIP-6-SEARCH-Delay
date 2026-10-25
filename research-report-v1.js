@@ -60,8 +60,9 @@ function pages(a,{document:doc=globalThis.document,displayCode='V8.2.1',watermar
  const W=1284,H=2778,M=54,FIELD_FONT=56,FIELD_LINE=77,LABEL_FONT=40,MAX_BOTTOM=2430;
  const ctx=doc.createElement('canvas').getContext('2d');
  if(!ctx)throw Error('Canvas 2D unavailable');
- const sourceLines=lines(a),extra=stockMetrics?[`【個股收盤】${fmt(stockMetrics.close)} 元｜${stockMetrics.marketDate||'日期待核對'}`,`【日RSI5】${fmt(stockMetrics.rsi5)}`,`【日MA20】${fmt(stockMetrics.ma20)}｜資料不足不補值`,`【報價來源】${stockMetrics.source||'未標示'}`]:[];
- const strings=[...sourceLines.slice(0,1),...extra,...sourceLines.slice(1)],fields=strings.map(s=>s.match(/^【([^】]+)】(.*)$/)).filter(Boolean)
+ // The single-stock study intentionally uses the identical nine-section content template
+ // as a filter candidate. Stock query metrics remain in the stock UI and exports, not this image.
+ const strings=lines(a),fields=strings.map(s=>s.match(/^【([^】]+)】(.*)$/)).filter(Boolean)
   .filter(m=>!['現況','提醒設定'].includes(m[1]));
  function measuredWrap(value,font,width){
   ctx.font=font;
@@ -93,7 +94,7 @@ function pages(a,{document:doc=globalThis.document,displayCode='V8.2.1',watermar
  function paint(x,plan,index){
   x.fillStyle='#0f2032';x.fillRect(0,0,W,H);
   x.fillStyle='#173958';x.fillRect(0,0,W,210);
-  x.fillStyle='#fff';x.font='850 70px "Microsoft JhengHei",sans-serif';x.fillText(stockMetrics?'個股查詢｜研究摘要':'四策略研究｜現況摘要',M,96);
+  x.fillStyle='#fff';x.font='850 70px "Microsoft JhengHei",sans-serif';x.fillText(stockMetrics?'四策略研究｜個股查詢摘要':'四策略研究｜現況摘要',M,96);
   x.font='650 38px "Microsoft JhengHei",sans-serif';x.fillStyle='#cae6fa';x.fillText(`${displayCode}｜${a.date||'日期待核對'}｜${index+1}/${plans.length}`,M,166);
   if(index===0){
    x.fillStyle='#fff';x.font='850 77px "Microsoft JhengHei",sans-serif';
