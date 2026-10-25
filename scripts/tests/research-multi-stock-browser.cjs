@@ -28,17 +28,58 @@ const byCode=new Map(fixture.records.map(r=>[r.code,r]));fs.mkdirSync(out,{recur
    const row=await page.evaluate(code=>{
     const I=ShitouResearchIntegration,R=ShitouResearchReport,stock=I.getCurrentStock().analysis,raw=shitouGetLastReportV82();
     const core=a=>({code:a.code,date:a.date,state:a.state,models:a.models,features:a.features,families:a.families,risks:a.risks,breakout:a.researchBreakoutPrice,invalidation:a.researchInvalidation,quality:a.dataQuality});
-    const baseline=JSON.stringify(core(stock)),text=JSON.stringify(R.lines(stock)),entries=[];
+    const report=R.view(stock),baseline=JSON.stringify(core(stock)),text=JSON.stringify(R.lines(stock)),entries=[];
     for(const kind of ['MAIN','DAYTRADE','STRONG','TOWER','RESTAURANT','STRUCTURE_A','STRUCTURE_B']){
      // Research adapter envelopes only; this never asserts formal scanner eligibility.
      const candidate={code,report:raw,score:88,eligible:false},before=JSON.stringify(candidate),a=I.forReport(candidate);
      I.baseline(kind,{date:stock.date,candidates:[candidate]},[candidate]);
-     entries.push({kind,sameCore:JSON.stringify(core(a))===baseline,sameSummary:JSON.stringify(R.lines(a))===text,inputUnchanged:JSON.stringify(candidate)===before});
+     entries.push({kind,sameCore:JSON.stringify(core(a))===baseline,sameSummary:JSON.stringify(R.lines(a))===text,sameView:JSON.stringify(R.view(a))===JSON.stringify(report),inputUnchanged:JSON.stringify(candidate)===before});
     }
-    return {code,name:stock.name,date:stock.date,state:stock.state,label:stock.compactStateLabel,bars:stock.validation.historyBarCount,technicalAvailable:stock.validation.technicalModelAvailable,breakout:stock.researchBreakoutPrice,invalidation:stock.researchInvalidation,reason:stock.reason,entries};
+    const fields=[...document.querySelectorAll('#researchStock .research-card-field')].map(x=>({title:x.querySelector('.research-card-label').textContent,value:x.querySelector('.research-card-value').textContent}));
+    const summary=R.pages(stock,{stockMode:true}).map(p=>JSON.parse(p.dataset.researchAudit));
+    const full=R.pages(stock,{stockMode:true,detail:true}).map(p=>JSON.parse(p.dataset.researchAudit));
+    return {code,name:stock.name,date:stock.date,state:stock.state,label:R.stageLabel(stock),bars:stock.validation.historyBarCount,technicalAvailable:stock.validation.technicalModelAvailable,breakout:stock.researchBreakoutPrice,invalidation:stock.researchInvalidation,reason:stock.reason,entries,fields,expectedFields:[...report.summary,...report.details],summary,full};
    },record.code);
    assert.equal(row.code,record.code);assert.equal(row.date,record.full.closeDate);
-   assert.ok(row.entries.every(x=>x.sameCore&&x.sameSummary&&x.inputUnchanged),JSON.stringify(row));
+   assert.ok(row.entries.every(x=>x.sameCore&&x.sameSummary&&x.sameView&&x.inputUnchanged),JSON.stringify(row));
+   assert.deepEqual(row.fields,row.expectedFields,`web card lost a report field for ${record.code}`);
+   const normalize=x=>x.replace(/[\s｜]/g,'');
+   for(const [pages,expected] of [[row.summary,row.expectedFields.slice(0,7)],[row.full,row.expectedFields]]){
+    assert.ok(pages.every(x=>x.noClipping&&x.stage===row.label));
+    for(const field of expected){const value=pages.flatMap(x=>x.fields).filter(x=>x.title.replace('（續）','')===field.title).map(x=>x.value).join('');assert.equal(normalize(value),normalize(field.value),`${record.code}: image lost ${field.title}`);}
+   }
+   // Exercise both actual inline image buttons; intercept only final preview display.
+   await page.evaluate(()=>{globalThis.__imageSelections=[];globalThis.__previewOriginal=strongStockShowPagesV47;globalThis.strongStockShowPagesV47=(pages,opts)=>__imageSelections.push({title:opts.title,audits:pages.map(p=>JSON.parse(p.dataset.researchAudit))});});
+   await page.locator('#researchStock .research-card-actions>button').nth(0).click();
+   await page.waitForFunction(()=>__imageSelections.length===1);
+   await page.locator('#researchStock .research-card-actions>button').nth(1).click();
+   await page.waitForFunction(()=>__imageSelections.length===2);
+   const selected=await page.evaluate(()=>{const x=__imageSelections;globalThis.strongStockShowPagesV47=__previewOriginal;return x;});
+   assert.deepEqual(selected[0].audits,row.summary);assert.deepEqual(selected[1].audits,row.full);
+   row.previewButtonsVerified=true;
+   const exported=await page.evaluate(async()=>{
+    const I=ShitouResearchIntegration,a=I.getCurrentStock().analysis,report=ShitouResearchReport.view(a),blobs=[];
+    const oldUrl=URL.createObjectURL,oldClick=HTMLAnchorElement.prototype.click;
+    URL.createObjectURL=blob=>{blobs.push(blob);return oldUrl.call(URL,blob);};HTMLAnchorElement.prototype.click=function(){};
+    try{I.exportData('csv-zh');const json=I.exportData('json');return {csv:await blobs[0].text(),report:json.report,expected:report};}
+    finally{URL.createObjectURL=oldUrl;HTMLAnchorElement.prototype.click=oldClick;}
+   });
+   assert.deepEqual(exported.report,exported.expected);
+   for(const field of [...exported.expected.summary,...exported.expected.details]){
+    const quoted='"'+field.value.replaceAll('"','""')+'"';assert.ok(exported.csv.includes(quoted),`CSV truncated ${record.code} ${field.title}`);
+   }
+   row.csvAndJsonVerified=true;
+   row.fullCanvas=await page.evaluate(()=>{
+    const a=ShitouResearchIntegration.getCurrentStock().analysis,R=ShitouResearchReport,proto=CanvasRenderingContext2D.prototype,old=proto.fillText,printed=[],overflows=[];
+    proto.fillText=function(text,x,y,...rest){printed.push(String(text));if(x+this.measureText(String(text)).width>1230.5)overflows.push({text:String(text),x,y});return old.call(this,text,x,y,...rest);};
+    try{const pages=R.pages(a,{detail:true,stockMode:true});for(const p of pages){const c=p.renderExportRegion();c.width=c.height=1;}return {pageCount:pages.length,printed,overflows};}finally{proto.fillText=old;}
+   });
+   assert.deepEqual(row.fullCanvas.overflows,[]);
+   for(const field of row.expectedFields)assert.ok(row.fullCanvas.printed.some(x=>x===field.title),`canvas omitted ${field.title}`);
+   if(['9933','2059'].includes(record.code)){
+    const images=await page.evaluate(()=>{const a=ShitouResearchIntegration.getCurrentStock().analysis,R=ShitouResearchReport,result=[];for(const stockMode of [true,false]){const pages=R.pages(a,{stockMode,displayCode:ShitouReleaseV50.displayCode});for(const [i,p] of pages.entries()){const canvas=p.renderExportRegion();result.push({mode:stockMode?'stock':'filter',index:i+1,url:canvas.toDataURL('image/png')});canvas.width=canvas.height=1;}}if(a.code==='2059'){const pages=R.pages(a,{stockMode:true,detail:true,displayCode:ShitouReleaseV50.displayCode});for(const [i,p] of pages.entries()){const canvas=p.renderExportRegion();result.push({mode:'full',index:i+1,url:canvas.toDataURL('image/png')});canvas.width=canvas.height=1;}}return result;});
+    for(const image of images)fs.writeFileSync(path.join(out,`${record.code}-${image.mode}-${image.index}.png`),Buffer.from(image.url.split(',')[1],'base64'));
+   }
    if(record.code==='2330'){
     const quote=fixture.snapshot.rows.find(q=>q.code==='2330'),volume=record.daily.dailySeries.at(-1).volume;
     assert.ok(Math.abs(volume-quote.volume)/quote.volume>.2);assert.equal(row.technicalAvailable,false);assert.equal(row.state,'INSUFFICIENT_DATA');
@@ -47,6 +88,6 @@ const byCode=new Map(fixture.records.map(r=>[r.code,r]));fs.mkdirSync(out,{recur
    results.push(row);console.log(JSON.stringify({code:row.code,name:row.name,state:row.state,sameEntries:row.entries.length,technicalAvailable:row.technicalAvailable}));
   }
   assert.deepEqual(errors,[]);assert.ok(new Set(results.map(row=>row.state)).size>1,'Different stock data must not be forced into one identical state');
-  fs.writeFileSync(path.join(out,'multi-stock-results.json'),JSON.stringify({status:'PASS',scope:'Six real API-response recordings through actual stock-query button; seven research envelope adapters per stock, not full scanner universe/eligibility verification',capturedAt:fixture.capturedAt,stockCount:results.length,entryComparisons:results.reduce((n,row)=>n+row.entries.length,0),results,errors},null,2));
+  fs.writeFileSync(path.join(out,'multi-stock-results.json'),JSON.stringify({status:'PASS',scope:'Seven real API-response recordings through actual stock-query button; seven research envelope adapters per stock; actual card fields, summary/full images and preview buttons; not full scanner universe/eligibility verification',capturedAt:fixture.capturedAt,stockCount:results.length,entryComparisons:results.reduce((n,row)=>n+row.entries.length,0),results,errors},null,2));
  }finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}
 })().catch(error=>{console.error(error);process.exitCode=1;});

@@ -40,7 +40,7 @@ const out=path.resolve(process.argv[2]||path.join(root,'../worker-browser')),bef
   }
   let clicked;
   await page.evaluate(()=>{globalThis.__capturedResearchPreview=null;globalThis.strongStockShowPagesV47=(pages,options)=>{globalThis.__capturedResearchPreview={title:options.title,audits:pages.map(p=>JSON.parse(p.dataset.researchAudit))};};});
-  await page.locator('#researchStock .research-card-actions>button').click();await page.waitForFunction(()=>!!globalThis.__capturedResearchPreview);clicked=await page.evaluate(()=>globalThis.__capturedResearchPreview);
+  await page.locator('#researchStock .research-card-actions>button').first().click();await page.waitForFunction(()=>!!globalThis.__capturedResearchPreview);clicked=await page.evaluate(()=>globalThis.__capturedResearchPreview);
   assert.equal(clicked.title,'四策略研究｜個股查詢摘要');assert.equal(clicked.audits[0].mode,'SINGLE_STOCK');assert.deepEqual(clicked.audits[0].summary,current.summary);assert.deepEqual(errors,[]);
   assert.ok(requests.some(url=>url.includes('profile=DAILY_ONLY')));assert.ok(requests.some(url=>url.includes('market=ALL_STOCKS')));
   fs.writeFileSync(path.join(out,'recorded-worker-results.json'),JSON.stringify({status:'PASS',before,live,scope:live?'Actual UI search / live project Worker network, desktop Chromium, not physical Safari':'Actual UI search / captured real Worker responses, not a physical Safari or live browser API call',capturedAt:live?new Date().toISOString():fixture.capturedAt,current,requests,errors,clicked},null,2));

@@ -54,7 +54,7 @@ test('frontend loads research localization before report, indicator study before
  const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
  assert.ok(html.indexOf('indicator-multi-v1.js')<html.indexOf('four-models-research-v1.js'));
  assert.ok(html.indexOf('research-zh-tw-v1.js')<html.indexOf('research-report-v1.js'));
- assert.match(html,/<title>石頭少爺 V8\.2\.2-R5-ZHTW1/);
+ assert.match(html,/<title>石頭少爺 V8\.2\.2-R7/);
  const js=fs.readFileSync(path.join(root,'research-integration-v1.js'),'utf8');
  assert.match(js,/匯出繁體中文研究表（CSV）/);
  assert.match(js,/匯出文字報告（TXT）/);
