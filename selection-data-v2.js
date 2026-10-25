@@ -37,7 +37,33 @@ function bind(bundle){
 }
 function context(code){const q=snapshot?.map.get(String(code));if(!q)fail('尚未取得此股票同日市場快照 '+code);return {q,date:snapshot.date,key:[snapshot.date,String(code),q.market,q.open,q.high,q.low,q.close,q.volume].join('|')};}
 function get(code){try{return cache.get(context(code).key)||null;}catch{return null;}}
+// Project Worker daily-ohlcv-v1 uses explicit completion metadata, not a top-level
+// completed flag. FULL declares shares at volume.unit. Its R4.9.3 DAILY_ONLY
+// sibling declares the same shares field through the named source contract.
+// The latter is accepted only after the independent same-day snapshot matches.
+// Unknown schemas, explicit conflicts, and generic missing units still fail.
+function normalizeWorkerReport(report,code){
+ const meta=report?.dailySeriesMeta;
+ if(meta?.schema!=='daily-ohlcv-v1')return report;
+ const r={...report},rows=Array.isArray(r.dailySeries)&&r.dailySeries.length?r.dailySeries:r.canonicalBars;
+ if(r.completed===false||r.isComplete===false||meta.onlyCompletedBars!==true)fail('Worker未確認完成日K '+code);
+ if(!Array.isArray(rows)||!rows.length||meta.ascending!==true||meta.returnedBars!==rows.length||meta.completedDailyRowsAvailable!==rows.length||meta.completeOhlcvRowsAvailable!==rows.length||E.date(meta.firstDate)!==E.date(rows[0].date)||E.date(meta.lastDate)!==E.date(rows.at(-1).date))fail('Worker日K完成根數／首末日期未對齊 '+code);
+ const declarations=[['volumeUnit',r.volumeUnit],['dailySeriesMeta.volumeUnit',meta.volumeUnit],['volume.unit',r.volume?.unit]].filter(([,v])=>v!==undefined&&v!==null&&v!=='');
+ let unitSource;
+ if(declarations.length){
+  if(declarations.some(([,v])=>!['shares','股'].includes(v)))fail('Worker成交量單位未知或互相衝突 '+code);
+  unitSource=declarations.map(([key])=>key).join(' + ');
+ }else{
+  const c=context(code),last=rows.at(-1),known=r.dailyOnly===true&&r.scanMode==='DAILY_ONLY'&&meta.mode==='DAILY_ONLY'&&/^Yahoo Finance history \+ (?:TWSE|TPEx|TPEX) MIS latest completed daily \(R4\.9\.3 DAILY_ONLY\)$/.test(meta.source||'');
+  const volume=num(last.volume),quote=num(c.q.volume);
+  if(!known||String(r.stock||r.code||'')!==String(code)||market(r.market)!==c.q.market||E.date(r.closeDate)!==c.date||E.date(last.date)!==c.date||!(quote>0&&volume>0)||Math.abs(volume-quote)/quote>.2||rows.some(b=>!Number.isInteger(num(b.volume))||!(num(b.volume)>0)))fail('DAILY_ONLY成交量缺少可核驗的股數來源契約 '+code);
+  unitSource='PROJECT_R4.9.3_DAILY_ONLY_SHARES_CONTRACT + SAME_DAY_MARKET_VOLUME_CHECK';
+ }
+ if(rows.some(b=>b.volumeUnit&&!['shares','股'].includes(b.volumeUnit)))fail('Worker日K列成交量單位衝突 '+code);
+ return {...r,completed:true,isComplete:true,volumeUnit:'shares',dailySeriesMeta:{...meta,volumeUnit:'shares'},workerDataAudit:{schema:meta.schema,completionSource:'dailySeriesMeta.onlyCompletedBars + completedDailyRowsAvailable + completeOhlcvRowsAvailable',historyBarCount:rows.length,volumeUnit:'shares',volumeUnitSource:unitSource,source:meta.source,sourceDate:E.date(meta.lastDate),originalCompleted:r.completed??null,originalVolumeUnit:r.volumeUnit??null}};
+}
 function validate(report,code){
+ report=normalizeWorkerReport(report,code);
  const c=context(code),q=c.q;
  if(String(report?.stock||report?.code||'')!==String(code))fail('回傳代號不符 '+code);
  if(report.completed===false||report.isComplete===false)fail('上游明示尚未收盤 '+code);
@@ -53,7 +79,7 @@ function validate(report,code){
  if(!eq(report.close,last.close)||!['open','high','low','close'].every(k=>eq(q[k],last[k])))fail('同日市場與日K的OHLC未對齊 '+code);
  if(!(q.volume>0&&last.volume>0)||Math.abs(q.volume-last.volume)/q.volume>.2)fail('市場與日K成交量差異超過20% '+code);
  const sourceVolume=last.volume;last.volume=q.volume;
- return {bars:b,date:c.date,q,key:c.key,fingerprint:fingerprint(b),sourceVolume,sourceMeta:report.dailySeriesMeta||{},priceAdjustment:report.priceAdjustment||{verified:false,basis:'UNKNOWN'},expectedTradingDates:report.expectedTradingDates,corporateActions:report.corporateActions};
+ return {bars:b,date:c.date,q,key:c.key,fingerprint:fingerprint(b),sourceVolume,sourceMeta:report.dailySeriesMeta||{},workerDataAudit:report.workerDataAudit||null,priceAdjustment:report.priceAdjustment||{verified:false,basis:'UNKNOWN'},expectedTradingDates:report.expectedTradingDates,corporateActions:report.corporateActions};
 }
 function remember(report,code){const p=validate(report,code),old=cache.get(p.key);if(old&&old.fingerprint!==p.fingerprint)fail('同一快照收到不同歷史序列；請重新整理後統一重掃 '+code);cache.set(p.key,p);return p;}
 async function ensure(items){
@@ -71,13 +97,14 @@ async function ensure(items){
  assertCurrent();for(const item of items){const c=context(item.code);if(pending.has(c.key))await pending.get(c.key);assertCurrent();const p=cache.get(c.key);if(!p||p.error)fail(p?.error||'尚未取得共用日K '+item.code);}
 }
 function apply(report,code){
+ report=normalizeWorkerReport(report,code);
  const c=context(code),p=cache.get(c.key);if(!p||p.error)fail(p?.error||'共用日K未完成 '+code);
  if(String(report.stock||report.code||'')!==String(code)||report.market&&market(report.market)!==p.q.market)fail('原報告代號／市場別不同 '+code);
  if(report.completed===false||report.isComplete===false||E.date(report.closeDate||report.dataDate)!==p.date)fail('原報告完成狀態／日期不符 '+code);
  if(!(num(report.close)>0)||Math.abs(Number(report.close)-p.q.close)>Math.max(.02,p.q.close*.0001))fail('原報告收盤價不同 '+code);
  const bars=p.bars.map(b=>({...b})),sourceVolDiffPct=(p.q.volume>0&&p.sourceVolume>0)?Math.abs(p.q.volume-p.sourceVolume)/p.q.volume*100:null,provenance={model:MODEL,profile:'DAILY_ONLY',date:p.date,fingerprint:p.fingerprint,bars:bars.length,snapshotVerified:true,latestVolumeReconciled:true,sourceVolume:p.sourceVolume,snapshotVolume:p.q.volume,sourceVolumeDiffPct:sourceVolDiffPct,sourceVolumeWarning:sourceVolDiffPct!==null&&sourceVolDiffPct>.5,sourceVolumeUnit:'shares',volumeBasis:'同日市場快照，原日K來源量另存以利稽核'};
  const rsiSourceAudit=report.rsiSourceAudit||{source:report.dailyBasisV2?'PRIOR_CANONICAL_UNVERIFIED':'UPSTREAM_REPORT',value:report.dailyRsi5??report.dailyRsi??null,date:E.date(report.dailyRsi5Date||report.rsiDate||report.closeDate||report.dataDate),code:String(report.stock||report.code||''),market:report.market||p.q.market,meta:report.rsi5Meta||null};
- return {...report,rsiSourceAudit,stock:String(code),code:String(code),market:p.q.market,marketDate:p.date,completed:true,isComplete:true,dataTiming:'POST_CLOSE_ONLY',dailySeries:bars,canonicalBars:bars,close:p.q.close,volumeUnit:'shares',dailyRsi5:E.rsi(bars),dailyBasisV2:provenance,
+ return {...report,rsiSourceAudit,workerDataAudit:p.workerDataAudit||report.workerDataAudit||null,stock:String(code),code:String(code),market:p.q.market,marketDate:p.date,completed:true,isComplete:true,dataTiming:'POST_CLOSE_ONLY',dailySeries:bars,canonicalBars:bars,close:p.q.close,volumeUnit:'shares',dailyRsi5:E.rsi(bars),dailyBasisV2:provenance,
   monthlyReviewV2:months.get(c.key)||{status:'UNAVAILABLE',source:'NO_FULL_MONTHLY',verified:false,date:p.date},priceAdjustment:{...p.priceAdjustment},dailySeriesMeta:{...p.sourceMeta,volumeUnit:'shares',source:'共用DAILY_ONLY；同日市場OHLC驗證，最新量以快照校正'},expectedTradingDates:p.expectedTradingDates,corporateActions:p.corporateActions||report.corporateActions};
 }
 async function harmonize(items,payload,profile='FULL'){
@@ -95,5 +122,5 @@ async function harmonize(items,payload,profile='FULL'){
  return {...payload,results};
 }
 function fromUrl(url){const u=new URL(url,'https://local.invalid'),codes=(u.searchParams.get('codes')||'').split(',').filter(Boolean);return {items:codes.map(code=>({code,q:snapshot?.map.get(code)})),profile:u.searchParams.get('profile')||'FULL'};}
-return Object.freeze({MODEL,isDataFailure,failureRecord,inspectSnapshot,bind,context,get,validate,remember,ensure,apply,harmonize,fromUrl,fingerprint,setFetcher:f=>{fetcher=f;},getSnapshot:()=>snapshot,reset:()=>{snapshot=null;cache.clear();pending.clear();months.clear();globalThis.ShitouPriceActionIntegration?.bind(null);try{globalThis.ShitouResearchIntegration?.bind(null);}catch(_){}}});
+return Object.freeze({MODEL,isDataFailure,failureRecord,inspectSnapshot,bind,context,get,normalizeWorkerReport,validate,remember,ensure,apply,harmonize,fromUrl,fingerprint,setFetcher:f=>{fetcher=f;},getSnapshot:()=>snapshot,reset:()=>{snapshot=null;cache.clear();pending.clear();months.clear();globalThis.ShitouPriceActionIntegration?.bind(null);try{globalThis.ShitouResearchIntegration?.bind(null);}catch(_){}}});
 });
