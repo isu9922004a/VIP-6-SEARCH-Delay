@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
+import {confirmedCandidate} from '../structure-confirmed-fixture.mjs';
 const require=createRequire(import.meta.url);
 const C=require('../../structure-reversal-core-v1.js');
 const S=require('../../structure-reversal-scanner-v1.js');
@@ -51,7 +52,8 @@ test('B: true bullish high close + volume can still confirm, no thresholds loose
 
 test('ranking and top8: stale and critical-risk historical confirmations never mix with current confirmed',()=>{
  const qual={ordinaryVerified:false,provisional:true};
- const good={code:'1001',eligible:false,confirmed:true,historicalConfirmed:true,status:'CONFIRMED',event:{signalDate:dates[97],confirmedDate:dates[98]},score:{total:65},qualification:qual};
+ const good=confirmedCandidate({code:'1001',event:{signalDate:dates[97],confirmedDate:dates[98]},score:{total:65},qualification:qual});
+ assert.equal(C.top8Decision(good).allowed,true);assert.equal(C.top8Decision(good).researchOnly,true);
  const critical={code:'1002',eligible:false,confirmed:false,historicalConfirmed:true,status:'CONFIRMED',event:{signalDate:dates[97],confirmedDate:dates[98]},score:{total:95},qualification:qual};
  const stale={code:'1003',eligible:false,confirmed:false,historicalConfirmed:true,status:'STALE_CONFIRMED',event:{signalDate:dates[85],confirmedDate:dates[86],stale:true},score:{total:100},qualification:qual};
  const falling={code:'1004',eligible:false,confirmed:false,historicalConfirmed:false,status:'FALLING',event:{signalDate:dates[99]},score:{total:45},qualification:qual};

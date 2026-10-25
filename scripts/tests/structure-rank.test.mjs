@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
+import {confirmedCandidate} from '../structure-confirmed-fixture.mjs';
 const require=createRequire(import.meta.url);
 const C=require('../../structure-reversal-core-v1.js');
 const S=require('../../structure-reversal-scanner-v1.js');
@@ -33,16 +34,32 @@ test('no made-up trade fitness when data are incomplete',()=>{
  assert.equal(fit.score,null);
 });
 
-test('confirmed top8 order follows independent short-term fitness, not raw historical score alone',()=>{
+test('confirmed top8 preserves structure score priority and uses trade fitness to break ties',()=>{
  const q={ordinaryVerified:false,provisional:true};
- const candidate=(code,raw,fit,grade='WATCHABLE')=>({code,name:code,mode:'A',eligible:false,confirmed:true,historicalConfirmed:true,status:'CONFIRMED',event:{signalDate:'2026-10-20',confirmedDate:'2026-10-21'},qualification:q,score:{total:raw},tradeFitness:{score:fit,grade},features:{tradeValue:400e6}});
- const a=candidate('1001',100,30,'WARNING'),better=candidate('1002',85,90),hot=candidate('1003',100,99,'HIGH_RISK'),missing=candidate('1004',99,null,'DATA');
- const s={pending:0,planned:4,attempted:4,stopped:false,breaker:null,issues:[],unparsed:0,audit:[q],results:{A:[a,better,hot,missing],B:[]}};
+ const candidate=(code,raw,fit,grade='WATCHABLE')=>confirmedCandidate({code,qualification:q,score:{total:raw},tradeFitness:{score:fit,grade}});
+ const a=candidate('1001',85,30,'WARNING'),better=candidate('1002',85,90),hot=candidate('1003',100,99,'HIGH_RISK'),missing=candidate('1004',99,null,'DATA'),higher=candidate('1005',95,20);
+ for(const c of [a,better,higher]){assert.equal(C.top8Decision(c).allowed,true);assert.equal(C.top8Decision(c).researchOnly,true);}
+ const s={pending:0,planned:5,attempted:5,stopped:false,breaker:null,issues:[],unparsed:0,audit:[q],results:{A:[a,better,hot,missing,higher],B:[]}};
  S.finish(s);
- assert.deepEqual(s.modeResults.A.top8.map(x=>x.code),['1002','1001']);
+ assert.deepEqual(s.modeResults.A.top8.map(x=>x.code),['1005','1002','1001']);
  assert.deepEqual(s.modeResults.A.tradeRisk.map(x=>x.code),['1003']);
- assert.equal(s.modeResults.A.counts.confirmed,4);
+ assert.equal(s.modeResults.A.counts.confirmed,5);
  assert.deepEqual(s.modeResults.A.tradeData.map(x=>x.code),['1004']);
+ assert.ok(s.modeResults.A.top8.every(x=>x.eligible===false));
+});
+
+test('missing admission fields remain DATA and cannot enter top8',()=>{
+ const cases=[['features','rsi5'],['features','volumeRatio5'],['features','close'],['features','tradeValue'],['risk','gapTriggerPct'],['risk','gap20Pct'],['risk','structureRiskPct'],['tradeFitness','score'],['score','total']];
+ const rows=cases.map(([section,key],i)=>{const c=confirmedCandidate({code:String(1100+i)});delete c[section][key];assert.equal(C.top8Decision(c).kind,'DATA',section+'.'+key);return c;});
+ const missingPosition=confirmedCandidate({code:'1199'});delete missingPosition.features.candle.position;rows.push(missingPosition);
+ const s={planned:rows.length,attempted:rows.length,issues:[],unparsed:0,audit:[],results:{A:rows,B:[]}};S.finish(s);
+ assert.deepEqual(s.modeResults.A.top8,[]);assert.equal(s.modeResults.A.tradeData.length,rows.length);
+});
+
+test('current top8 risk boundaries still reject overheating, weak volume and chase limits',()=>{
+ for(const extra of [{features:{rsi5:C.C.top8.maxRsi5}},{features:{volumeRatio5:C.C.top8.minVolumeRatio5-.01}},{features:{candle:{position:C.C.top8.minClosePosition-.01}}},{risk:{gapTriggerPct:C.C.maxTriggerGapPct+.01}},{risk:{gap20Pct:C.C.maxMA20GapPct}},{risk:{structureRiskPct:C.C.maxStructureRiskPct+.01}},{tradeFitness:{grade:'HIGH_RISK'}},{event:{stale:true}}]){
+  const result=C.top8Decision(confirmedCandidate(extra));assert.equal(result.allowed,false);assert.equal(result.kind,'WAIT');
+ }
 });
 
 test('B watch and B falling are separate; neither can appear in confirmed top8',()=>{
@@ -68,8 +85,10 @@ test('upstream recognized HISTORY_TOO_SHORT is data insufficiency, not an API/se
 
 test('existing qualification and risk model revision is updated without changing core confirmation thresholds',()=>{
  const cfg=C.C;
- assert.equal(cfg.revision,'STRUCTURE-RANK.1');
+ assert.equal(cfg.revision,'STRUCTURE-RANK.2');
  assert.equal(cfg.confirmVolumeA,1.2);
  assert.equal(cfg.confirmVolumeB,1.5);
  assert.equal(cfg.confirmBars,3);
+ assert.equal(cfg.maxTriggerGapPct,5);assert.equal(cfg.maxMA20GapPct,8);assert.equal(cfg.maxStructureRiskPct,10);
+ assert.deepEqual(cfg.top8,{maxRsi5:85,minVolumeRatio5:.8,minClosePosition:.25});
 });
