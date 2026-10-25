@@ -4,12 +4,27 @@ const VERSION='BREAKOUT.1-PULLBACK.1-MOMENTUM.1-FLOW.1',RANK='PRECISION_RESEARCH
 const {ma,mean,pct,check,status,PARAM:P}=U;
 const FILTERS=Object.freeze({MAIN:['A','C','D'],DAYTRADE:['A','C'],STRONG:['A','B','C','D'],TOWER:['D'],RESTAURANT:['A','B'],STRUCTURE:['B']});
 const rsiMomentumPass=value=>U.num(value)!==null&&value>65+1e-10&&value<85-1e-10;
+function resolveDisplayName(record,code){
+ const raw=String(record?.name||record?.stockName||record?.companyName||'').trim();
+ try{
+  const fn=globalThis?.momentumSafeStockNameV377712;
+  if(typeof fn==='function'){
+   const name=String(fn({code,name:raw,report:record})||'').trim();
+   if(name)return name;
+  }
+ }catch(_){}
+ if(/[㐀-鿿]/.test(raw))return raw;
+ return raw&&/^\d+$/.test(raw)?code:(raw||code);
+}
+function compactStateLabel(state){
+ return state==='BREAKOUT_LAUNCH'?'突破發動':state==='HEALTHY_PULLBACK'?'健康回踩':state==='MOMENTUM_CONTINUATION'?'強勢延續':state==='FLOW_CONFIRMATION'?'資金確認':state==='OVEREXTENDED'?'短線過熱':state==='BREAKOUT_FAILURE'?'結構失敗':state==='INSUFFICIENT_DATA'?'資料不足':state==='DISABLED'?'已關閉':'觀察中';
+}
 function model(id,checks,extra){return {id,checks,status:status(checks),...extra};}
 function evaluate(r,options={}){r=structuredClone(r);
- const flags=U.flags(options.flags),n=U.validate(r),code=String(r.stock||r.code||'');
- if(!n.ok)return U.freeze({version:VERSION,code,name:r.name||code,date:r.marketDate||r.closeDate||r.dataDate,state:'INSUFFICIENT_DATA',reason:n.reason,models:{},families:{},risks:[],dataQuality:{complete:false,missing:[n.reason]},originalB:U.num(r.originalB),originalInvalidation:U.num(r.originalInvalidation),researchOnly:true,flags});
+ const flags=U.flags(options.flags),n=U.validate(r),code=String(r.stock||r.code||''),displayName=resolveDisplayName(r,String(r.stock||r.code||''));
+ if(!n.ok)return U.freeze({version:VERSION,code,name:displayName,date:r.marketDate||r.closeDate||r.dataDate,state:'INSUFFICIENT_DATA',compactStateLabel:compactStateLabel('INSUFFICIENT_DATA'),reason:n.reason,models:{},families:{},risks:[],dataQuality:{complete:false,missing:[n.reason]},originalB:U.num(r.originalB),originalInvalidation:U.num(r.originalInvalidation),researchOnly:true,flags});
  const b=n.bars,z=b.at(-1),p=b.at(-2),f=U.features(b),foundation=F.evaluate(r,{flags,features:f}),date=z.date;
- if(!flags.fourModelsEnabled)return U.freeze({version:VERSION,code,name:r.name||code,date,state:'DISABLED',models:{},families:{},risks:[],foundation,flags,researchOnly:true});
+ if(!flags.fourModelsEnabled)return U.freeze({version:VERSION,code,name:displayName,date,state:'DISABLED',compactStateLabel:compactStateLabel('DISABLED'),models:{},families:{},risks:[],foundation,flags,researchOnly:true});
  const weekly=U.weeks(b,r),volOld=b.length>=25?mean(b.slice(-25,-20).map(x=>x.volume)):null,volumeGrowth=volOld>0?f.volumeLatest5/volOld:null;
  const breakout=f.prior20High!==null&&z.close>f.prior20High,failed=f.prior20High!==null&&z.high>f.prior20High&&z.close<=f.prior20High;
  const previousBreak=b.length>=22&&p.close>Math.max(...b.slice(-22,-2).map(x=>x.high));
@@ -46,7 +61,7 @@ function evaluate(r,options={}){r=structuredClone(r);
  const models={A,B,C,D},missing=Object.values(models).flatMap(m=>m.checks.filter(x=>x.status==='UNKNOWN').map(x=>m.id+':'+x.id));
  const stage=failed||supportBroken?'BREAKOUT_FAILURE':hot?'OVEREXTENDED':breakout?'BREAKOUT_LAUNCH':held.length&&reclaim?'HEALTHY_PULLBACK':red3&&breaks3?'MOMENTUM_CONTINUATION':D.status==='符合'?'FLOW_CONFIRMATION':b.length<60?'INSUFFICIENT_DATA':'OBSERVATION';
  const structureInvalidation=held.length?Math.max(...held.map(x=>x.value)):f.prior20Low;
- return U.freeze({version:VERSION,rankModel:RANK,parameterVersion:P.version,code,name:r.name||code,date,generatedAt:options.generatedAt||new Date().toISOString(),sourceSnapshotId:r.dailyBasisV2?.fingerprint||U.hash(b),dataSource:r.dailySeriesMeta?.source||n.source,sourceBars:b.slice(-20),state:stage,models,features:f,families,risks:[...new Set(risks)],foundation,originalB:U.num(r.originalB),originalInvalidation:U.num(r.originalInvalidation),researchBreakoutPrice:f.prior20High,researchInvalidation:structureInvalidation,nextTradingDate:U.nextDate(r),dataQuality:{complete:missing.length===0&&!!n.basisVerified&&!!n.calendarVerified,missing,warnings:n.warnings||[]},researchOnly:true,affectsOriginalEligibility:false,affectsOriginalScore:false,affectsOriginalRanking:false,flags});
+ return U.freeze({version:VERSION,rankModel:RANK,parameterVersion:P.version,code,name:displayName,date,generatedAt:options.generatedAt||new Date().toISOString(),sourceSnapshotId:r.dailyBasisV2?.fingerprint||U.hash(b),dataSource:r.dailySeriesMeta?.source||n.source,sourceBars:b.slice(-20),state:stage,compactStateLabel:compactStateLabel(stage),models,features:f,families,risks:[...new Set(risks)],foundation,originalB:U.num(r.originalB),originalInvalidation:U.num(r.originalInvalidation),researchBreakoutPrice:f.prior20High,researchInvalidation:structureInvalidation,nextTradingDate:U.nextDate(r),dataQuality:{complete:missing.length===0&&!!n.basisVerified&&!!n.calendarVerified,missing,warnings:n.warnings||[]},researchOnly:true,affectsOriginalEligibility:false,affectsOriginalScore:false,affectsOriginalRanking:false,flags});
 }
 function candidate(a,kind='STRONG',enabledModels=FILTERS[kind]||FILTERS.STRONG){
  if(['DISABLED','INSUFFICIENT_DATA','BREAKOUT_FAILURE','OVEREXTENDED'].includes(a.state))return false;
