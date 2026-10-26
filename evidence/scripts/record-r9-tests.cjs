@@ -1,0 +1,10 @@
+'use strict';
+const fs=require('node:fs'),assert=require('node:assert/strict');
+const read=f=>fs.readFileSync(f,'utf8');
+const unit=read('r9-test.log'),count=n=>Number(unit.match(new RegExp('ℹ '+n+' (\\d+)'))?.[1]);
+assert.equal(count('fail'),0);assert.equal(count('tests'),300);assert.equal(count('pass'),300);
+const ui=JSON.parse(read('evidence/browser-ui/browser-results.json')),worker=JSON.parse(read('evidence/browser-worker/recorded-worker-results.json')),multi=JSON.parse(read('evidence/browser-multi-stock/multi-stock-results.json'));
+assert.ok(ui.results.every(x=>x.status==='PASS'));assert.equal(worker.status,'PASS');assert.equal(multi.status,'PASS');assert.equal(multi.entryComparisons,49);
+for(const [from,to] of [['baseline-test.log','baseline-unit-tests.txt'],['r9-test.log','unit-tests.txt'],['browser-ui.log','browser-ui-tests.txt'],['browser-worker.log','worker-browser-tests.txt'],['browser-multi-stock.log','multi-stock-browser-tests.txt']])fs.copyFileSync(from,'evidence/'+to);
+const result={release:'V8.2.2-R9',recordedAt:new Date().toISOString(),baseline:{pass:257,fail:0},unit:{command:'node scripts/run-all-tests.cjs',tests:count('tests'),pass:count('pass'),fail:count('fail'),skipped:count('skipped')},browserUI:{command:'node scripts/tests/research-browser.cjs evidence/browser-ui',pass:ui.results.length,fail:0,engine:'Desktop Edge Chromium, iPhone CSS viewport; not physical Safari'},recordedWorkerUI:{command:'node scripts/tests/research-worker-browser.cjs evidence/browser-worker',status:worker.status,live:worker.live,version:worker.current.version,stock:worker.current.analysis.code,historyBars:worker.current.analysis.validation.historyBarCount},multiStockUI:{command:'node scripts/tests/research-multi-stock-browser.cjs evidence/browser-multi-stock',stocks:multi.stockCount,entryComparisons:multi.entryComparisons,fail:0},notTested:['New Worker production deployment','Six formal full-market scans and final rankings','Physical iPhone Safari','Actual LINE delivery'],cloudflareDeployed:false};
+fs.writeFileSync('evidence/test-results.json',JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify(result));

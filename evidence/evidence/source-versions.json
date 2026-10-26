@@ -1,0 +1,33 @@
+{
+  "baseline": "0a3e5add9d387a351b141688316aab8604a2f0ee",
+  "remoteMain": "0a3e5add9d387a351b141688316aab8604a2f0ee",
+  "deploymentSourceByteIdentity": "UNVERIFIED_NO_CLOUDFLARE_SOURCE_ACCESS",
+  "attachments": {
+    "stock": {
+      "attachment": "142bf23d-fd3e-4817-af8e-4520ed97d59b/貼上的文字.txt",
+      "sha256": "863f046f996e3e212efb1eaf6e2e9492ab105c5e00d3e9764066ef65f41bf37b",
+      "lineCount": 10006,
+      "version": "石頭少爺 Agent V49 正式版｜R5.3.2.4.26-R4.9.3-CLOSED-BAR.1｜選股一致性與完整性修正版"
+    },
+    "market": {
+      "attachment": "878a6217-439c-488a-bd66-ec90bfed7a24/貼上的文字.txt",
+      "sha256": "d06b07ee68f712d54ece0c4df12c5e0633f6e141e0b080dc946d446fba5e7502",
+      "lineCount": 4334,
+      "version": "石頭少爺 Agent V49｜R5.3.2.4.26-R4.9.3-DATEGATE.1-CLOSED-BAR.1｜盤後交易日完整性修補"
+    }
+  },
+  "zip": {
+    "sha256": "1cd76a56347c3983d2e56e1c189baa311636f73058e1db2adc76a6d2a5c58aae",
+    "files": 163,
+    "byteMatchesWithMain": 163,
+    "differences": []
+  },
+  "live": {
+    "marketVersion": "石頭少爺 Agent V49｜R5.3.2.4.26-R4.9.3-DATEGATE.1-CLOSED-BAR.1｜盤後交易日完整性修補",
+    "stockVersions": [
+      "石頭少爺 Agent V49 正式版｜R5.3.2.4.26-R4.9.3-CLOSED-BAR.1｜選股一致性與完整性修正版"
+    ],
+    "frontend": "V8.2.2-R8",
+    "capturedAt": "2026-10-26T01:03:26.763Z"
+  }
+}
