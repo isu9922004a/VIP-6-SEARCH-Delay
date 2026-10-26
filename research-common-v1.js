@@ -2,7 +2,7 @@
 (function(r,f){const a=f(typeof module==='object'&&module.exports?require('./tower-line-core.js'):r.ShitouTowerCore);if(typeof module==='object'&&module.exports)module.exports=a;else r.ShitouResearchCommon=a;})(globalThis,function(T){
 'use strict';
 const VERSION='RESEARCH_COMMON_1';
-const DEFAULTS=Object.freeze({threeDayStructureEnabled:true,granvilleContextEnabled:true,candlePatternEnabled:true,jointValidationEnabled:true,experimentalRankingEnabled:false,dualScanEnabled:true,dualScanExperimentalRankingEnabled:false,dualScanStrictValidationEnabled:true,alertPlanEnabled:true,directAlertIntegrationEnabled:false,webPushEnabled:false,fourModelsEnabled:true});
+const DEFAULTS=Object.freeze({threeDayStructureEnabled:true,granvilleContextEnabled:true,candlePatternEnabled:true,jointValidationEnabled:true,experimentalRankingEnabled:false,dualScanEnabled:true,dualScanExperimentalRankingEnabled:false,dualScanStrictValidationEnabled:true,alertPlanEnabled:true,directAlertIntegrationEnabled:false,webPushEnabled:false,fourModelsEnabled:true,unifiedResearchEnabled:true,oneThirdEnabled:true,postLimitupEnabled:true,waveEnabled:true,marketContextEnabled:true});
 const PARAM=Object.freeze({version:'RESEARCH_PARAMS_1',slopeBars:3,trendWindow:20,doji:.10,wickRatio:.50,wickBody:2,confirmBars:3,d1GainPct:3,d2Volume:1.1,d3Volume:.7,volumeConfirm:1.2,maGapPct:8,atrGap:2,breakoutReturnMin:5,breakoutReturnMax:15,volumeGrowth:1.15,volumeDeltaLots:1000});
 const num=v=>typeof v==='number'&&Number.isFinite(v)?v:null;
 const mean=a=>a.length&&a.every(v=>num(v)!==null)?a.reduce((s,v)=>s+v,0)/a.length:null;

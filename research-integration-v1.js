@@ -119,7 +119,7 @@ async function prepareStockQuery(input){
   return D.apply(raw,code);
  }catch(e){return {...raw,researchAcquisitionError:String(e.message||e)};}
 }
-function forReport(input){const r=source(input),key=U.hash([r,flags]);if(!cache.has(key)){if(cache.size>=512)cache.delete(cache.keys().next().value);cache.set(key,C.evaluate(r,{flags}));}return cache.get(key);}
+function forReport(input){const r=source(input),key=U.hash(['UNIFIED_RESEARCH_R13',r,flags]);if(!cache.has(key)){if(cache.size>=512)cache.delete(cache.keys().next().value);const result=C.evaluate(r,{flags});cache.set(key,result);if(result.unifiedResearch?.code)try{root.ShitouResearchHistory?.append(localStorage,result.unifiedResearch);}catch(e){console.warn('歷史研究快照未保存：'+e.message);}}return cache.get(key);}
 function capture({snapshot,items,results}){if(!snapshot?.identity)return;bind(snapshot);for(const item of items){const code=String(item.code),matches=results.filter(x=>String(x.code||x.data?.stock||x.data?.code||'')===code),x=matches.length===1?matches[0]:null;let a;if(x?.ok&&x.data){sourceRecords.set(code,structuredClone(x.data));a=safely(()=>forReport(x.data));}else sourceRecords.delete(code);if(!a)a=C.evaluate({stock:code,name:item.name||code,closeDate:date,completed:false});records.set(code,a);}revision++;schedule();}
 function baseline(kind,scan,rows){
  if(!scan||!Array.isArray(rows))return;const d=U.T.date(scan.dataDate||scan.date||scan.marketBundleMeta?.targetTradeDate||scan.marketBundleMeta?.completedTradeDate);if(!d||date&&d!==date)return;
@@ -169,9 +169,9 @@ function exportData(type='json'){
   return data;
  }
  const rank=ranking(),data={version:root.ShitouReleaseV50.code,identity,date,flags,baseline:[...baselines].map(([kind,b])=>({kind,...b})),experimental:rank,queried:[...records.values()],performance:'NOT_VALIDATED'};
- if(type==='json')save(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),'石頭少爺_V8.2.2-R12_研究比較.json');
- else if(type==='csv'){const quote=s=>'"'+String(s??'').replaceAll('"','""')+'"',rows=[['code','date','priceAbove','priceBelow','dayGainPercent','dayLossPercent','nextTradingDate','status'],...[...records.values()].map(a=>{const p=a.foundation?.alertPlan;return [a.code,a.date,p?.priceAbove.input,p?.priceBelow.input,p?.dayGainPercentInput,p?.dayLossPercentInput,p?.nextTradingDate,'MANUAL_ONLY'];})];save(new Blob(['\uFEFF'+rows.map(row=>row.map(quote).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'}),'石頭少爺_V8.2.2-R12_DRAX.csv');}
- else save(new Blob([[root.ShitouReleaseV50.release,rank.method,...[...records.values()].map(R.text)].join('\n\n')],{type:'text/plain;charset=utf-8'}),'石頭少爺_V8.2.2-R12_研究戰報.txt');
+ if(type==='json')save(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),'石頭少爺_V8.2.2-R13_研究比較.json');
+ else if(type==='csv'){const quote=s=>'"'+String(s??'').replaceAll('"','""')+'"',rows=[['code','date','priceAbove','priceBelow','dayGainPercent','dayLossPercent','nextTradingDate','status'],...[...records.values()].map(a=>{const p=a.foundation?.alertPlan;return [a.code,a.date,p?.priceAbove.input,p?.priceBelow.input,p?.dayGainPercentInput,p?.dayLossPercentInput,p?.nextTradingDate,'MANUAL_ONLY'];})];save(new Blob(['\uFEFF'+rows.map(row=>row.map(quote).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'}),'石頭少爺_V8.2.2-R13_DRAX.csv');}
+ else save(new Blob([[root.ShitouReleaseV50.release,rank.method,...[...records.values()].map(R.text)].join('\n\n')],{type:'text/plain;charset=utf-8'}),'石頭少爺_V8.2.2-R13_研究戰報.txt');
  return data;
 }
 async function copy(value,button){try{await navigator.clipboard.writeText(String(value));button.textContent='已複製';}catch(_){const box=el('textarea',String(value));box.readOnly=true;button.after(box);box.select();button.textContent='請長按選取複製';}}
@@ -179,7 +179,7 @@ function alertControls(a){const plan=a.foundation.alertPlan,box=el('div');box.cl
 async function preview(analyses,{stockMode=false,detail=false}={}){if(!analyses.length)return;const token=++previewSerial,query=stockQuerySerial;root.ShitouImageShareV1?.clear();if(document.fonts?.ready)await document.fonts.ready;if(token!==previewSerial||query!==stockQuerySerial)return null;
  const pages=analyses.flatMap(a=>{const metrics=stockMode&&latestStockQuery?.analysis===a?latestStockQuery.metrics:null;
  const p=R.pages(a,{displayCode:root.ShitouReleaseV50.displayCode,stockMetrics:metrics,stockMode,detail});const c=stockMode?null:R.candlePage(a);if(c)p.push(c);return p;});
- return root.strongStockShowPagesV47(pages,{title:'四策略研究｜新手進出場指南',prefix:stockMode?'V8.2.2-R12_個股研究':'V8.2.2-R12_研究',date:analyses[0].date,kind:'v8-research',note:stockMode?'個股研究不列入濾網排名｜非買進訊號':'精簡摘要僅供研究觀察；原榜資格與排序保留。'});}
+ return root.strongStockShowPagesV47(pages,{title:'四策略研究｜新手進出場指南',prefix:stockMode?'V8.2.2-R13_個股研究':'V8.2.2-R13_研究',date:analyses[0].date,kind:'v8-research',note:stockMode?'個股研究不列入濾網排名｜非買進訊號':'精簡摘要僅供研究觀察；原榜資格與排序保留。'});}
 function mountStock(input){const host=by('result');if(!host)return;by('researchStock')?.remove();const a=forReport(input);if(!Object.values(flags).some((v,i)=>v&&Object.keys(flags)[i].endsWith('Enabled')))return;const box=el('section');box.id='researchStock';box.className='research-inline';const card=researchCard(a,1,'個股',true);card.querySelector('.research-card-actions>button').onclick=()=>preview([a],{stockMode:true});box.append(el('h3','四策略研究摘要'),card);host.append(box);}
 function setFlags(next){flags=U.flags({...flags,...next});cache.clear();seen.clear();records.clear();revision++;try{localStorage.setItem('shitou-research-flags-v1',JSON.stringify(flags));}catch(_){}const snapshot=root.ShitouSelectionDataV2?.getSnapshot?.();if(snapshot){const results=[...sourceRecords].map(([code,data])=>({ok:true,code,data}));capture({snapshot,items:results.map(x=>({code:x.code})),results});}if(typeof lastReportData!=='undefined'&&lastReportData){captureStockQuery(lastReportData);mountStock(lastReportData);}schedule();return {...flags};}
 function render(){const panel=by('researchPanel');if(!panel)return;

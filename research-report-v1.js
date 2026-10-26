@@ -286,7 +286,8 @@ function view(a){
   {title:'行情資料完整性',value:dataSummary(a)},
   {title:'研究來源',value:`行情 ${a.date||'待核驗'}；${a.validation?.technicalModelAvailable?'使用同一份已核驗日K計算':'日K尚未通過核驗'}；僅盤後研究，訊號尚未驗證績效`}
  ];
- const guide=entryGuide(a),summary=guide.fields;
+ const guide=entryGuide(a),unified=a.unifiedResearch,summary=unified&&unified.state!=='DISABLED'?unified.summary:guide.fields;
+ if(unified&&unified.state!=='DISABLED')return {presentation:'BEGINNER_GUIDE_R13',guideNote:'技術條件不等於買進建議；新增因子僅Shadow研究，尚未驗證績效。',schemaVersion:'UNIFIED_RESEARCH_R13',code:a.code,name:a.name,date:a.date,sourceSnapshotId:a.sourceSnapshotId,stage:unified.stageLabel||'資料不足',summary,details:[...unified.details,...details.filter(x=>['提醒設定','提醒狀態','雙模式研究','四模型驗證','日週月週期研判','指標型態確認','資料來源與口徑','行情資料完整性'].includes(x.title)),...modelFields(a),{title:'原策略來源',value:'四策略為不同模型來源；原資格、分數、排名未改動。'}]};
  return {presentation:'BEGINNER_GUIDE_R12',guideNote:guide.note,schemaVersion:'UNIFIED_RESEARCH_REPORT_R12_GUIDE1',code:a.code,name:a.name,date:a.date,sourceSnapshotId:a.sourceSnapshotId||null,stage:stageLabel(a),summary,details};
 }
 function lines(a){
@@ -299,7 +300,7 @@ function wrap(ctx,s,width){const out=[];for(const p of String(s).split('\n')){le
  if(row&&ctx.measureText(row+token).width>width){out.push(row);row=token;}else row+=token;
  }out.push(row);}return out;}
 function roundRectPath(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
-function pages(a,{document:doc=globalThis.document,displayCode='V8.2.2-R12',watermark=false,stockMetrics=null,stockMode=!!stockMetrics,detail=false}={}){
+function pages(a,{document:doc=globalThis.document,displayCode='V8.2.2-R13',watermark=false,stockMetrics=null,stockMode=!!stockMetrics,detail=false}={}){
  const W=1284,H=2778,M=54,FIELD_FONT=56,FIELD_LINE=77,LABEL_FONT=40,MAX_BOTTOM=2430;
  const ctx=doc.createElement('canvas').getContext('2d');
  if(!ctx)throw Error('Canvas 2D unavailable');
