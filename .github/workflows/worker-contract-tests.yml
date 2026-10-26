@@ -1,0 +1,26 @@
+name: Worker and research data contracts
+on:
+  pull_request:
+  push:
+    branches: ['codex/**']
+permissions:
+  contents: read
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check standalone Worker syntax
+        run: |
+          node --check workers/stock-worker.mjs
+          node --check workers/market-worker.mjs
+      - name: Verify embedded contract is reproducible
+        run: |
+          node scripts/build-worker-contract.cjs
+          git diff --exit-code -- workers
+      - name: Run all offline regression tests
+        run: node scripts/run-all-tests.cjs
