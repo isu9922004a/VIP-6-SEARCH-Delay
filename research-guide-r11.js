@@ -44,7 +44,9 @@ function evaluate(a,input){
  const b=n.bars,z=b.at(-1),f=a.features,provenance=c.provenance;
  const volumeReliable=!provenance.volumeConflict&&n.calendarVerified===true&&n.basisVerified===true&&provenance.volumeBasis!=='UNKNOWN'&&!!provenance.retrievedAt;
  const quality=provenance.volumeConflict?'來源衝突':n.calendarVerified&&n.basisVerified&&volumeReliable?'已驗證':'部分待驗';
- const marketPhase=n.calendarVerified&&n.basisVerified?phase(b,{volumeReliable}):{state:'INSUFFICIENT',label:LABELS.INSUFFICIENT,event:null,transitions:[]};
+ // Missing metadata limits confirmation, but does not erase observable OHLC facts.
+ const marketPhase=phase(b,{volumeReliable});
+ marketPhase.validationStatus=quality;
  const e=marketPhase.event,breakPrice=e?.price??f.prior20High,broken=finite(breakPrice)&&z.close>breakPrice;
  const invalid=finite(e?.invalidation)?e.invalidation:a.researchInvalidation;
  const level=(role,value,formula,status='已驗證')=>({role,value:U.num(value),formula,source:a.dataSource||provenance.source,date:a.date,snapshotId:a.sourceSnapshotId,status:finite(value)?status:'資料不足'});
@@ -56,17 +58,20 @@ function evaluate(a,input){
  const hot=risks.slice(0,2).some(x=>x.status==='已觸發風險'),failed=marketPhase.state==='FAILED',confirmed=marketPhase.state==='CONFIRMED';
  const decision=marketPhase.state==='INSUFFICIENT'||quality==='來源衝突'?'無法判定':failed||rr.ratio!==null&&rr.ratio<PARAM.minRewardRisk?'暫避':confirmed&&!hot&&rr.ratio>=PARAM.minRewardRisk?'條件符合':broken||finite(breakPrice)&&z.close>=breakPrice*.97?'觀察':'等待';
  const scenario=(type,price,status,conditions,invalidation,reason)=>({type,price,status,conditions,invalidation,reason,risk:'需確認量價、RSI與乖離、上影線及下一道壓力空間；研究失效不是個人停損。'});
- const scenarios=[scenario('回測確認型',breakPrice,!broken?'不適用':failed?'未符合':confirmed?'目前已符合':e?.retest?'待確認':'尚未符合',`突破後另日回測 ${fmt(breakPrice)} 附近（±1%），收盤守住；再於後續交易日收高於回測日高點及前日收盤，成交量至少前5日均量1.2倍且口徑已驗證。`,`收盤低於 ${fmt(breakPrice)} 為突破失守；低於 ${fmt(invalid)} 為結構失效。`,!broken?'尚未收盤突破，無法預先宣稱回測成功':!e?.retest?'尚未發生後續回測':'須分別核對支撐與再轉強'),scenario('突破確認型',pressure?.value??z.high,pressure?'待確認':'不適用',`收盤突破 ${fmt(pressure?.value??z.high)}，量至少前5日均量1.2倍，RSI5低於75、MA20正乖離低於5%、上影占振幅低於30%，且另有可驗證的上方壓力與報酬風險比至少1。`,`突破後收盤失守突破價須重新評估。`,pressure?'目前尚未收盤突破此壓力；下一道壓力空間仍待確認':'僅有當日高點，缺已驗證的上方壓力，不建立正式突破情境')];
+ const breakoutWatch=z.high>z.close?z.high:pressure?.value;
+ const scenarios=[scenario('回測確認型',breakPrice,!broken?'不適用':failed?'未符合':confirmed?'目前已符合':e?.retest?'待確認':'尚未符合',`突破後另日回測 ${fmt(breakPrice)} 附近（±1%），收盤守住；再於後續交易日收高於回測日高點及前日收盤，成交量至少前5日均量1.2倍且口徑已驗證。`,`收盤低於 ${fmt(breakPrice)} 為突破失守；低於 ${fmt(invalid)} 為結構失效。`,!broken?'尚未收盤突破，無法預先宣稱回測成功':!e?.retest?'尚未發生後續回測':'須分別核對支撐與再轉強'),scenario('突破確認型',breakoutWatch,finite(breakoutWatch)?'待確認':'不適用',`收盤突破 ${fmt(breakoutWatch)}，量至少前5日均量1.2倍，RSI5低於75、MA20正乖離低於5%、上影占振幅低於30%，且另有可驗證的上方壓力與報酬風險比至少1。`,`突破後收盤失守突破價須重新評估。`,breakoutWatch===z.high?'當日高點僅供突破觀察，尚非已確認壓力':pressure?'前波高點尚未突破':'缺上方觀察價，不建立進場情境')];
  const check=(name,value)=>({name,status:value===null?'待驗證':value?'符合':'未符合'});
  scenarios[0].checks=[check('突破價有歷史來源',finite(breakPrice)),check('已收盤突破',broken),check('後續交易日發生回測',!!e?.retest),check('未收盤失守突破與結構失效價',e?!failed:null),check('回測後另日重新轉強',confirmed),check('成交量口徑已驗證',volumeReliable?true:null),check('報酬風險比至少1',rr.ratio===null?null:rr.ratio>=PARAM.minRewardRisk)];
  const avg=f.volumePrior5;
- scenarios[1].checks=[check('上方壓力有歷史來源',!!pressure),check('收盤有效突破觀察壓力',pressure?z.close>pressure.value:null),check('量能確認',volumeReliable&&avg>0?z.volume>=avg*PARAM.volumeConfirm:null),check('RSI與乖離未達偏熱門檻',finite(f.rsi5)&&finite(c.ma20GapPct)?!hot:null),check('無明顯上影線',finite(f.candle.upperRatio)?f.candle.upperRatio<PARAM.wickRatio:null),check('下一道壓力空間足夠',null),check('報酬風險比至少1',rr.ratio===null?null:rr.ratio>=PARAM.minRewardRisk)];
+ scenarios[1].checks=[check('上方壓力有歷史來源',!!pressure),check('收盤有效突破觀察價',finite(breakoutWatch)?z.close>breakoutWatch:null),check('量能確認',volumeReliable&&avg>0?z.volume>=avg*PARAM.volumeConfirm:null),check('RSI與乖離未達偏熱門檻',finite(f.rsi5)&&finite(c.ma20GapPct)?!hot:null),check('無明顯上影線',finite(f.candle.upperRatio)?f.candle.upperRatio<PARAM.wickRatio:null),check('下一道壓力空間足夠',null),check('報酬風險比至少1',rr.ratio===null?null:rr.ratio>=PARAM.minRewardRisk)];
  if(scenarios[0].status==='目前已符合'&&scenarios[0].checks.some(x=>x.status!=='符合'))scenarios[0].status=scenarios[0].checks.some(x=>x.status==='待驗證')?'待確認':'未符合';
- const down=finite(breakPrice)?z.low<breakPrice&&z.close>=breakPrice?'盤中跌破後收盤重新站回':z.close<breakPrice?'收盤低於突破參考':z.low<breakPrice?'盤中短暫跌破':'尚未跌破突破參考':'資料不足';
+ const down=finite(breakPrice)?e?.date===z.date?'今日剛突破，後續能否守穩仍待觀察':z.low<breakPrice&&z.close>=breakPrice?'盤中跌破後收盤重新站回':z.close<breakPrice?'收盤低於突破參考':'尚未跌破突破參考':'資料不足';
  const holdingInput=r.holding,holdingValid=holdingInput&&finite(holdingInput.cost)&&holdingInput.cost>0&&Number.isInteger(holdingInput.shares)&&holdingInput.shares>0&&finite(holdingInput.maxLoss)&&holdingInput.maxLoss>0&&typeof holdingInput.horizon==='string'&&holdingInput.horizon.trim();
  const holding=holdingValid?{enabled:true,unrealized:(z.close-holdingInput.cost)*holdingInput.shares,scenarioLoss:Math.max(0,(holdingInput.cost-invalid)*holdingInput.shares),text:`持股 ${holdingInput.shares} 股、成本 ${fmt(holdingInput.cost)}；收盤失守 ${fmt(breakPrice)} 應重新評估，結構失效 ${fmt(invalid)}。依可承受損失 ${fmt(holdingInput.maxLoss)} 元及交易週期 ${holdingInput.horizon} 評估減碼；不自動設定個人停損。`}:{enabled:false,text:holdingInput?'持股資料不足，需成本、股數、可承受損失與交易週期；僅提供一般技術風險參考':'未提供持股成本，僅提供一般技術風險參考'};
  const alert={state:'尚未設定提醒',text:`尚未設定提醒；預設漲跌幅 ${a.foundation?.alertPlan?.dayGainPercentInput??5}%／${a.foundation?.alertPlan?.dayLossPercentInput??5}% 僅供手動設定，未啟用監控。`};
- const summary=decision==='無法判定'?'資料不足或來源待核對，暫無法判定進場條件。':decision==='暫避'?`目前${marketPhase.label}，先重新評估結構與報酬風險。`:`目前${marketPhase.label}${hot?'，短線偏熱仍有追價風險':''}。${confirmed?'回測條件已確認，仍需評估交易風險':`先觀察 ${fmt(breakPrice)} 是否守穩，等待後續確認，不單憑突破追價`}。`;
+ const primaryRisks=risks.slice(0,3).filter(x=>x.status==='已觸發風險').map(x=>({'RSI5短線偏熱':'RSI偏熱','MA20正乖離':'乖離偏大','上影線占振幅':'有上影線'}[x.id]));
+ const summary=decision==='無法判定'?'來源衝突或日K不足，先核對行情再評估。':failed?'突破後收盤失守，先重新評估，不急著進場。':hot?`先觀察，不急著追價。${primaryRisks.slice(0,2).join('、')}，等待支撐與量價確認。`:confirmed?'回測轉強已確認，仍須評估進場風險。':broken?`已突破 ${fmt(breakPrice)}，先觀察能否守穩。`:marketPhase.state==='RETEST'?'回測尚待轉強確認，先觀察。':'等待支撐或突破條件，不急著進場。';
+
  return U.freeze({version:PARAM.version,parameters:PARAM,phase:marketPhase,decision,validationStatus:quality,provenance:{...provenance,snapshotId:a.sourceSnapshotId,market:r.market,calendarVerified:!!n.calendarVerified,priceBasisVerified:!!n.basisVerified},levels,risks,scenarios,rewardRisk:rr,holding,alert,downside:`${down}；收盤跌破 ${fmt(invalid)} 才符合本研究結構失效規則。支撐觀察價不是個人停損。`,upside:`當日高點 ${fmt(z.high)} 僅供短線突破觀察；前波壓力 ${fmt(c.prior60)}。接近壓力需看量、收盤位置與上影線，不能預設必達。`,summary,volumeReliable});
 }
 return Object.freeze({PARAM,LABELS,phase,riskReward,evaluate});
