@@ -10,7 +10,7 @@ function inspect(item,x,date){
   const r=x.data,q=item.q,rows=r.canonicalBars||r.dailySeries,last=rows?.at(-1);
   if(String(r.stock||r.code||'')!==item.code||(r.market&&String(r.market).toUpperCase()!==(market(item)==='TPEX'?'TPEX':'TWSE'))||!Array.isArray(rows)||rows.length<80||!last||C.date(r.closeDate)!==date||C.date(last.date)!==date)return {action:'FULL',reason:'日期、代號或完整長度不明'};
   if(!q||C.date(q.quoteDate)!==date||!eq(q.close,last.close)||!eq(r.close,last.close)||!(Number(q.volume)>0)||!(Number(last.volume)>0)||Math.abs(Number(q.volume)-Number(last.volume))/Number(q.volume)>.2)return {action:'FULL',reason:'與市場官方快照不一致'};
-  const safe=rows.map(v=>({...v}));safe.at(-1).volume=Number(q.volume);
+  const safe=rows.map(v=>({...v}));if(q.volumeScopeVerified===true&&q.volumeScope==='DAILY_OHLCV_EQUIVALENT')safe.at(-1).volume=Number(q.volume);
   const t=C.analyze({...r,canonicalBars:safe},{asOf:date,completed:true});
   if(!t.ok||t.bars.length<80)return {action:'FULL',reason:'日K未通過寶塔核心資料檢查'};
   // A signal can be safely screened only when its recent T3 state is independent

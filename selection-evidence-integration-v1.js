@@ -7,7 +7,7 @@ wrap('loadMarketBundleFromWorkerV3766',async function(base,...args){return D.bin
 const transport=root.fetchDeepBatchViaMarketWorkerV3768;
 if(typeof transport==='function'){
  D.setFetcher(items=>{if(typeof scanAbortRequestedV39B12OPT==='function'&&scanAbortRequestedV39B12OPT())throw Error('使用者停止掃描');return transport.call(root,items,'DAILY_ONLY');});
- root.fetchDeepBatchViaMarketWorkerV3768=async function(items,profile='FULL'){return D.harmonize(items,await transport.call(this,items,profile),profile);};
+ root.fetchDeepBatchViaMarketWorkerV3768=async function(items,profile='FULL'){const identity=D.getSnapshot()?.identity,payload=await transport.call(this,items,profile);if(D.getSnapshot()?.identity!==identity)throw Error('SNAPSHOT_CONFLICT｜深掃期間市場快照已改變');return D.harmonize(items,payload,profile);};
 }
 const labels={READY:'正式條件候選',WATCH:'等待確認',NO_CHASE:'不追價觀察',DATA:'資料不足',EXCLUDE:'風險排除'};
 function review(c,kind,original={}){

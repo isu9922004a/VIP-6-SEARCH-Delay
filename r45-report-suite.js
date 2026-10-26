@@ -713,7 +713,9 @@ async function captureStock(mode){
 
 async function generateStock(mode='beginner',withWatermark=false){
   const report=typeof lastReportData!=='undefined'?lastReportData:null;if(!report)throw new Error('請先完成個股分析');
+  const queryEpoch=window.ShitouReportPreviewEpoch;
   if(document.fonts?.ready)await document.fonts.ready;
+  if(report!==lastReportData||queryEpoch!==window.ShitouReportPreviewEpoch)throw Error('查詢已更新，請使用目前股票重新產生圖片');
   // Render the two formats directly. Re-running the old image generator appended
   // assistant/evidence strips over already complete V50 canvases.
   const professional=mode==='professional',renderer=professional?window.renderStockProfessionalInfographicV51:window.renderStockInfographicV46;

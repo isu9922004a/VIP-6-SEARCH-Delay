@@ -198,7 +198,7 @@ function wrap(ctx,s,width){const out=[];for(const p of String(s).split('\n')){le
  if(row&&ctx.measureText(row+token).width>width){out.push(row);row=token;}else row+=token;
  }out.push(row);}return out;}
 function roundRectPath(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
-function pages(a,{document:doc=globalThis.document,displayCode='V8.2.2-R8',watermark=false,stockMetrics=null,stockMode=!!stockMetrics,detail=false}={}){
+function pages(a,{document:doc=globalThis.document,displayCode='V8.2.2-R9',watermark=false,stockMetrics=null,stockMode=!!stockMetrics,detail=false}={}){
  const W=1284,H=2778,M=54,FIELD_FONT=56,FIELD_LINE=77,LABEL_FONT=40,MAX_BOTTOM=2430;
  const ctx=doc.createElement('canvas').getContext('2d');
  if(!ctx)throw Error('Canvas 2D unavailable');

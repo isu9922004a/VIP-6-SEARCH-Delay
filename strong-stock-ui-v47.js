@@ -229,6 +229,8 @@
       if(!health)throw new Error('DEEP_SCAN 健康檢查模組未載入，停止全市場掃描');
       const healthAudit=await health.preflight({items:pool.deep,targetDate:market.date,fetcher:(items,options)=>fetchDailyBatchRawR49(items,options),onUpdate:note,allowPartialService:true,allowHistoricalZeroData:true,allowPartialData:true,shouldStop:()=>stopped});
       const cache=recoverCache(snapshotFingerprint(bundle,market.date),market.date);
+      const quarantined=new Set(healthAudit.quarantinedCodes||[]);
+      quarantined.forEach(code=>cache.map.delete(code));
       // Preflight and the actual scan must use the SAME already-verified history
       // receipt. A second Worker request might return revised Yahoo bars for
       // the same quote, causing a false sense of a coherent single snapshot.
@@ -244,7 +246,7 @@
       for(let from=0;from<total&&!stopped;from+=BATCH){
         const batch=queue.slice(from,from+BATCH);
         if(button)button.textContent=`輕量日K批次 ${done}/${total}…`;
-        const remote=batch.filter(item=>!cache.map.has(item.code)&&!pinnedProbeResults.has(item.code));
+        const remote=batch.filter(item=>!quarantined.has(item.code)&&!cache.map.has(item.code)&&!pinnedProbeResults.has(item.code));
         let fetched={outcomes:new Map(),requests:0};
         if(remote.length){
           fetched=await fetchDailyBatchWithRetryR49(remote,market.date);
@@ -252,7 +254,8 @@
         }
         for(const item of batch){
           let c=cache.map.get(item.code),pinned=pinnedProbeResults.get(item.code);
-          if(pinned){
+          if(quarantined.has(item.code)){const failureCode=healthAudit.issues?.find(x=>x.code===item.code)?.failureCode;c={status:['SOURCE_UNAVAILABLE','TRANSIENT_SERVICE_ERROR'].includes(failureCode)?'FAILED':'DATA',eligible:false,failureCode,reason:'健康檢查已隔離；本輪不進入正式排名'};}
+          else if(pinned){
             // The preflight snapshot is fresher than any sessionStorage result.
             // Re-evaluate from the verified receipt, not a potentially stale
             // report from a previous page visit. Never merge two histories.

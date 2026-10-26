@@ -2,7 +2,7 @@
 (function(root){'use strict';
 const C=root.ShitouFourModels,U=root.ShitouResearchCommon,R=root.ShitouResearchReport;
 if(!C||!U||!R)return;
-let identity=null,date=null,revision=0,scheduled=false,activeKind='STRONG',latestStockQuery=null,stockQuerySerial=0;const sourceRecords=new Map(),records=new Map(),baselines=new Map(),cache=new Map(),seen=new Map();
+let identity=null,date=null,revision=0,scheduled=false,activeKind='STRONG',latestStockQuery=null,stockQuerySerial=0,previewSerial=0;const sourceRecords=new Map(),records=new Map(),baselines=new Map(),cache=new Map(),seen=new Map();
 let flags=U.flags();try{const saved=JSON.parse(localStorage.getItem('shitou-research-flags-v1')||'null');if(saved)flags=U.flags(saved);}catch(_){}
 const el=(tag,text)=>{const x=document.createElement(tag);if(text!==undefined)x.textContent=text;return x;},by=id=>document.getElementById(id),LABEL={MAIN:'① 主升段',DAYTRADE:'② 當沖盤前',STRONG:'③ 強勢飆股',TOWER:'④ 寶塔點金',RESTAURANT:'⑤ 餐廳量價',STRUCTURE_A:'⑥ 結構A',STRUCTURE_B:'⑥ 結構B',STOCK_QUERY:'⑦ 個股查詢｜專屬研究'};
 function safely(fn){try{return fn();}catch(e){console.warn('研究附層暫停：'+e.message);return null;}}
@@ -42,7 +42,7 @@ function captureStockQuery(input,{activate=false}={}){
  const selector=by('researchKind');if(selector)selector.value=activeKind;
  render();return latestStockQuery;
 }
-function clearStockQuery(){latestStockQuery=null;by('researchStock')?.remove();if(activeKind==='STOCK_QUERY')render();}
+function clearStockQuery(){previewSerial++;latestStockQuery=null;root.closeInfographicPreviewV3328?.();root.ShitouImageShareV1?.clear();by('researchStock')?.remove();if(activeKind==='STOCK_QUERY')render();}
 function researchCard(a,number,prefix='研究',expanded=false){
  const details=el('details');details.className='research-stock-card';details.open=expanded;
  details.dataset.code=String(a.code||'');details.dataset.researchState=String(a.state||'');
@@ -161,17 +161,17 @@ function exportData(type='json'){
   return data;
  }
  const rank=ranking(),data={version:root.ShitouReleaseV50.code,identity,date,flags,baseline:[...baselines].map(([kind,b])=>({kind,...b})),experimental:rank,queried:[...records.values()],performance:'NOT_VALIDATED'};
- if(type==='json')save(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),'石頭少爺_V8.2.2-R8_研究比較.json');
- else if(type==='csv'){const quote=s=>'"'+String(s??'').replaceAll('"','""')+'"',rows=[['code','date','priceAbove','priceBelow','dayGainPercent','dayLossPercent','nextTradingDate','status'],...[...records.values()].map(a=>{const p=a.foundation?.alertPlan;return [a.code,a.date,p?.priceAbove.input,p?.priceBelow.input,p?.dayGainPercentInput,p?.dayLossPercentInput,p?.nextTradingDate,'MANUAL_ONLY'];})];save(new Blob(['\uFEFF'+rows.map(row=>row.map(quote).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'}),'石頭少爺_V8.2.2-R8_DRAX.csv');}
- else save(new Blob([[root.ShitouReleaseV50.release,rank.method,...[...records.values()].map(R.text)].join('\n\n')],{type:'text/plain;charset=utf-8'}),'石頭少爺_V8.2.2-R8_研究戰報.txt');
+ if(type==='json')save(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),'石頭少爺_V8.2.2-R9_研究比較.json');
+ else if(type==='csv'){const quote=s=>'"'+String(s??'').replaceAll('"','""')+'"',rows=[['code','date','priceAbove','priceBelow','dayGainPercent','dayLossPercent','nextTradingDate','status'],...[...records.values()].map(a=>{const p=a.foundation?.alertPlan;return [a.code,a.date,p?.priceAbove.input,p?.priceBelow.input,p?.dayGainPercentInput,p?.dayLossPercentInput,p?.nextTradingDate,'MANUAL_ONLY'];})];save(new Blob(['\uFEFF'+rows.map(row=>row.map(quote).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'}),'石頭少爺_V8.2.2-R9_DRAX.csv');}
+ else save(new Blob([[root.ShitouReleaseV50.release,rank.method,...[...records.values()].map(R.text)].join('\n\n')],{type:'text/plain;charset=utf-8'}),'石頭少爺_V8.2.2-R9_研究戰報.txt');
  return data;
 }
 async function copy(value,button){try{await navigator.clipboard.writeText(String(value));button.textContent='已複製';}catch(_){const box=el('textarea',String(value));box.readOnly=true;button.after(box);box.select();button.textContent='請長按選取複製';}}
 function alertControls(a){const plan=a.foundation.alertPlan,box=el('div');box.className='research-alerts';for(const [label,value] of [['價格高於',plan.priceAbove.input],['價格低於',plan.priceBelow.input],['單日漲幅超過',plan.dayGainPercentInput],['單日跌幅超過',plan.dayLossPercentInput]]){const button=el('button',label+'：'+(value===null?'尚無有效價位':label.startsWith('價格')?R.fmt(value):String(value)));button.type='button';button.disabled=value===null;button.onclick=()=>copy(label.startsWith("價格")?R.fmt(value):value,button);box.appendChild(button);}const all=el('button','複製四欄'),link=el('a','開啟 DRAX');all.type='button';all.onclick=()=>copy([`股票 ${a.code}｜${a.date}`,`價格高於 ${R.fmt(plan.priceAbove.input)}`,`價格低於 ${R.fmt(plan.priceBelow.input)}`,`單日漲幅超過 ${plan.dayGainPercentInput??'未知'}`,`單日跌幅超過 ${plan.dayLossPercentInput??'未知'}`,'平台語意待確認；待手動設定'].join('\n'),all);link.href='https://drax.tw/';link.target='_blank';link.rel='noopener noreferrer';box.append(all,link);return box;}
-async function preview(analyses,{stockMode=false,detail=false}={}){if(!analyses.length)return;if(document.fonts?.ready)await document.fonts.ready;
+async function preview(analyses,{stockMode=false,detail=false}={}){if(!analyses.length)return;const token=++previewSerial,query=stockQuerySerial;root.ShitouImageShareV1?.clear();if(document.fonts?.ready)await document.fonts.ready;if(token!==previewSerial||query!==stockQuerySerial)return null;
  const pages=analyses.flatMap(a=>{const metrics=stockMode&&latestStockQuery?.analysis===a?latestStockQuery.metrics:null;
  const p=R.pages(a,{displayCode:root.ShitouReleaseV50.displayCode,stockMetrics:metrics,stockMode,detail});const c=stockMode?null:R.candlePage(a);if(c)p.push(c);return p;});
- return root.strongStockShowPagesV47(pages,{title:stockMode?'四策略研究｜個股查詢摘要':'四策略研究摘要｜附頁',prefix:stockMode?'V8.2.2-R8_個股研究':'V8.2.2-R8_研究',date:analyses[0].date,kind:'v8-research',note:stockMode?'個股研究不列入濾網排名｜非買進訊號':'精簡摘要僅供研究觀察；原榜資格與排序保留。'});}
+ return root.strongStockShowPagesV47(pages,{title:stockMode?'四策略研究｜個股查詢摘要':'四策略研究摘要｜附頁',prefix:stockMode?'V8.2.2-R9_個股研究':'V8.2.2-R9_研究',date:analyses[0].date,kind:'v8-research',note:stockMode?'個股研究不列入濾網排名｜非買進訊號':'精簡摘要僅供研究觀察；原榜資格與排序保留。'});}
 function mountStock(input){const host=by('result');if(!host)return;by('researchStock')?.remove();const a=forReport(input);if(!Object.values(flags).some((v,i)=>v&&Object.keys(flags)[i].endsWith('Enabled')))return;const box=el('section');box.id='researchStock';box.className='research-inline';const card=researchCard(a,1,'個股',true);card.querySelector('.research-card-actions>button').onclick=()=>preview([a],{stockMode:true});box.append(el('h3','四策略研究摘要'),card);host.append(box);}
 function setFlags(next){flags=U.flags({...flags,...next});cache.clear();seen.clear();records.clear();revision++;try{localStorage.setItem('shitou-research-flags-v1',JSON.stringify(flags));}catch(_){}const snapshot=root.ShitouSelectionDataV2?.getSnapshot?.();if(snapshot){const results=[...sourceRecords].map(([code,data])=>({ok:true,code,data}));capture({snapshot,items:results.map(x=>({code:x.code})),results});}if(typeof lastReportData!=='undefined'&&lastReportData){captureStockQuery(lastReportData);mountStock(lastReportData);}schedule();return {...flags};}
 function render(){const panel=by('researchPanel');if(!panel)return;

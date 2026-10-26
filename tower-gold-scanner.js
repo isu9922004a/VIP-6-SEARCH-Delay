@@ -24,7 +24,7 @@ async function scan({items,universe,parsed=universe,excluded=0,date,fetchBatch,s
    const report=x.data;if(String(report.stock||report.code||'')!==item.code){result.dataUnavailable++;result.issues.push({code:item.code,reason:'回傳股票代號不符／缺失'});continue;}
    const q=item.q,last=(report.canonicalBars||report.dailySeries)?.at(-1);
    if(q&&(!last||C.date(q.quoteDate)!==date||C.date(last.date)!==date||Math.abs(Number(q.close)-Number(last.close))>Math.max(.02,Number(q.close)*.0001)||!(Number(q.volume)>0)||!(Number(last.volume)>0)||Math.abs(Number(q.volume)-Number(last.volume))/Number(q.volume)>.2)){result.dataUnavailable++;result.issues.push({code:item.code,reason:'市場快照與日K同日同價同量未核對'});continue;}
-   const rows=(report.canonicalBars||report.dailySeries)?.map(r=>({...r}));if(q&&rows?.length)rows.at(-1).volume=Number(q.volume);
+   const rows=(report.canonicalBars||report.dailySeries)?.map(r=>({...r}));if(q?.volumeScopeVerified===true&&q.volumeScope==='DAILY_OHLCV_EQUIVALENT'&&rows?.length)rows.at(-1).volume=Number(q.volume);
    const a=A.analyze({...report,name:item.name||report.name,canonicalBars:rows},{asOf:date,completed:true,marketTower});
    if(!a.tower.ok||!a.risk.ok||a.status==='DATA_UNAVAILABLE'){result.dataUnavailable++;result.issues.push({code:item.code,reason:a.trend.plain});}else result.success++;
    result.results.push(a);
