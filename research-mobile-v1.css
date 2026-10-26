@@ -59,4 +59,22 @@
 /* Preserve the separate confirmed / failed / unknown paragraphs on phones. */
 .research-inline .research-card-value{white-space:pre-line}
 
-.research-holding{display:grid;gap:12px;margin-top:16px}.research-holding label{display:grid;gap:6px}.research-holding input{box-sizing:border-box;max-width:100%;width:100%;padding:12px;font-size:16px;color:#fff;background:#173958;border:1px solid #8dd4ff;border-radius:8px}.research-holding button{min-height:44px}
+/* R10 GUIDE1: the same five sections on web, exports and PNG. */
+.research-inline .research-entry-guide{background:#102235;border-radius:20px;padding:16px;min-width:0}
+.research-inline .research-guide-header{display:grid;gap:8px;background:#1b3c59;border-radius:16px;padding:18px;color:#b7d9ed;font-size:16px;line-height:1.45}
+.research-inline .research-guide-header strong{font-size:27px;font-weight:850;color:#fff;overflow-wrap:anywhere}
+.research-inline .research-guide-field{grid-template-columns:minmax(0,1fr);gap:10px;padding:20px 12px;border-bottom:1px solid #385b70}
+.research-inline .research-guide-field .research-card-label{font-size:22px;font-weight:850;color:#f2f6fa}
+.research-inline .research-guide-field .research-card-value{font-size:21px;line-height:1.65;color:#e8f0f6}
+.research-inline .research-guide-section-0,.research-inline .research-guide-section-4{margin-top:16px;background:#2a4c63;border-radius:16px;border:0;padding:18px}
+.research-inline .research-guide-section-0 .research-card-label,.research-inline .research-guide-section-4 .research-card-label{font-size:17px;color:#b7d9ed}
+.research-inline .research-guide-section-0 .research-card-value{display:grid;gap:8px}
+.research-inline .research-guide-section-0 strong{font-size:26px;font-weight:850;color:#fff}
+.research-inline .research-guide-section-4{background:#1b364c}
+.research-inline .research-guide-section-4 .research-card-value{font-weight:850;color:#fff}
+.research-inline .research-guide-section-1 .research-card-label:before{content:'✓ ';color:#6ac7b8}
+.research-inline .research-guide-section-2 .research-card-label:before{content:'⚠ ';color:#e5bc79}
+.research-inline .research-guide-section-3 .research-card-label:before{content:'◎ ';color:#9cccf2}
+.research-inline .research-guide-note{color:#adbfce!important;font-size:16px;line-height:1.5;margin:16px 0 0}
+.research-inline .research-guide-evidence{margin-top:12px;padding:14px 0}
+@media(max-width:600px){.research-inline .research-entry-guide{padding:10px}.research-inline .research-guide-header{padding:16px}.research-inline .research-guide-field{padding:18px 10px}.research-inline .research-guide-field .research-card-value{font-size:20px}.research-inline .research-guide-field .research-card-label{font-size:21px}.research-inline .research-guide-section-0 .research-card-label,.research-inline .research-guide-section-4 .research-card-label{font-size:17px}.research-inline .research-guide-section-0 strong{font-size:25px}}

@@ -41,7 +41,7 @@ function technicalOutlook(a){
  if(Number.isFinite(ratio))details.push(`相對前5日均量 ${ratio.toFixed(2)}倍${ratio>=1.5?'（放量）':ratio<=.8?'（量縮）':''}`);
  return {label,details,cautions,volumeRatio:ratio};
 }
-function stageLabel(a){if(a?.beginner?.phase.state==='INITIAL'&&a.tradeContext?.breakout.status==='INITIAL_CLOSE')return '短線突破初步成立';if(a?.state==='BREAKOUT_LAUNCH'&&a.tradeContext)return a.tradeContext.breakout.status==='HELD_CLOSES'?'突破後收盤守穩':'短線突破初步成立';return a?.state==='OBSERVATION'?(technicalOutlook(a)?.label||'觀察中（未觸發四模型）'):(a?.compactStateLabel||STAGES[a?.state]||(a?.state?chinese(a.state):'觀察中'));}
+function stageLabel(a){if(a?.state==='BREAKOUT_LAUNCH'&&a.tradeContext)return a.tradeContext.breakout.status==='HELD_CLOSES'?'突破後收盤守穩':'短線突破初步成立';return a?.state==='OBSERVATION'?(technicalOutlook(a)?.label||'觀察中（未觸發四模型）'):(a?.compactStateLabel||STAGES[a?.state]||(a?.state?chinese(a.state):'觀察中'));}
 function modelSummary(a){
  if(!a?.models||!Object.keys(a.models).length)return '基礎日K未通過，四模型不可判定';
  const labels={A:'策略一｜突破',B:'策略二｜回踩',C:'策略三｜動能',D:'策略四｜資金'};
@@ -132,20 +132,16 @@ function compactDataSummary(a){
  return `日K ${a.validation.historyBarCount}根可算，非全部驗證；${c?.provenance.volumeConflict?'量差／口徑待核':'策略／口徑詳見完整報告'}`;
 }
 function priceSummary(a){
- const g=a.beginner;
- if(g){return g.levels.filter(x=>['近期突破價','當日最高價','前波高點壓力','原策略B關鍵價'].includes(x.role)).map(x=>`${x.role} ${shortPrice(x.value)}（${x.status}）`).join('｜')||'資料不足，無法核驗價位';}
  const c=a.tradeContext;
  if(!c)return `近期突破 ${fmt(a.researchBreakoutPrice)}｜研究失效 ${fmt(a.researchInvalidation)}`;
- return `近期突破參考 ${shortPrice(c.recent)}｜當日高點觀察 ${shortPrice(a.sourceBars?.at(-1)?.high)}｜策略B ${shortPrice(c.originalB)}`;
+ return `近期壓力 ${shortPrice(c.recent)}｜短壓 ${shortPrice(c.nearest?.price)}｜策略B ${shortPrice(c.originalB)}${c.originalB===null?'未提供':c.originalBVerified?'':'待核'}`;
 }
 function breakoutSummary(a){
- if(a.beginner){const g=a.beginner,e=g.phase.event;return `${g.phase.label}；${e?`事件日 ${e.date}，固定突破參考 ${fmt(e.price)}；${e.retest?'回測日 '+e.retest.date:'後續回測尚未發生'}；${e.confirmedAt?'重新轉強確認日 '+e.confirmedAt:'重新轉強未確認'}`:'尚無可核驗的突破事件'}；收盤跌破突破參考即突破失守；研究失效與原策略資格分開核對。`;}
  const c=a.tradeContext;if(!c)return '基礎日K待核驗';
  const labels={INITIAL_CLOSE:'已收盤突破，首次成立；後續守穩待確認',HELD_CLOSES:'後續收盤守穩；仍須觀察量價延續',FAILED:'突破後收盤失守',INTRADAY_REJECTED:'盤中越壓、收盤未突破',NOT_BROKEN:'尚未收盤突破近期壓力'};
  return `近期壓力 ${fmt(c.recent)}；${labels[c.breakout.status]}${c.breakout.eventDate?`（事件 ${c.breakout.eventDate}，固定參考 ${fmt(c.breakout.price)}，連續守穩${c.breakout.heldSessions}根）`:''}；前60日高點 ${fmt(c.prior60)}；${c.originalB===null?'原策略B價未提供／不適用':`原策略B價 ${fmt(c.originalB)}：${c.originalBStatus==='UNVERIFIED'?'價位來源待核；'+(a.sourceBars.at(-1).close>c.originalB?'收盤在參考價之上':'尚未突破參考價'):c.originalBStatus==='CLOSE_ABOVE'?'收盤已在門檻之上（不等於B資格符合）':'尚未突破'}`}；不以近期突破代替完整波段突破或策略資格`;
 }
 function scenarioSummary(a){
- if(a.beginner)return a.beginner.rewardRisk?.text||'尚無足夠條件計算報酬風險比。';
  const c=a.tradeContext;if(!c)return '行情未核驗，無法計算';
  const sign=v=>v===null?'—':`${v>0?'+':''}${v.toFixed(2)}%`;
  const rr=c.rewardRisk;
@@ -158,7 +154,7 @@ function provenanceSummary(a){
 }
 const shortPrice=v=>typeof v==='number'&&Number.isFinite(v)?String(Number(v.toFixed(2))):'—';
 function glanceEvidence(a){
- if(!a.tradeContext||a.sourceBars?.at(-1)?.close<a.features?.ma?.[20]?.value)return evidenceSummary(a);
+ if(!a.tradeContext)return evidenceSummary(a);
  return `收 ${shortPrice(a.sourceBars.at(-1).close)}｜MA20 ${shortPrice(a.features.ma[20].value)}｜MA60 ${shortPrice(a.features.ma[60].value)}`;
 }
 function glanceRisk(a){
@@ -177,13 +173,61 @@ function glanceDual(a){
  const d=a.foundation?.dualScanContext;if(!d)return dualSummary(d,a);
  return [['A',d.modeA],['B',d.modeB]].map(([key,m])=>{
  const checks=m?.checks||[];
- if(checks.some(x=>x.id==='MA20_CLOSE_CROSS'&&x.status==='FAIL'))return `${key} 未符合：收盤穿越站上MA20未成立（今日無新穿越）`;
+ if(checks.some(x=>x.id==='MA20_CLOSE_CROSS'&&x.status==='FAIL'))return `${key} 未符合：無新穿越`;
  return `${key} ${checks.some(x=>x.status==='FAIL')?'未符合':!checks.length||checks.some(x=>x.status==='UNKNOWN')?'待驗證':'研究符合'}`;
  }).join('｜');
 }
 function glanceAction(a){
  const c=a.tradeContext;
  return a.state==='BREAKOUT_LAUNCH'&&c?`觀察守穩 ${shortPrice(c.breakout.price)}${c.nearest?`、再過 ${shortPrice(c.nearest.price)}`:''}；不單憑突破追價。`:actionSummary(a);
+}
+// R10 calculations remain unchanged. This schema drives every stock entrance.
+const GUIDE_NOTE='以上為歷史行情的條件式研究示例，非已觸發的買進訊號；持股者需依成本與風險上限另行評估。';
+function entryGuide(a){
+ const valid=a.validation?.technicalModelAvailable===true,c=a.tradeContext,z=a.sourceBars?.at(-1),f=a.features;
+ const titles=['現在適合進場嗎？','什麼情況可以考慮買？','什麼情況要小心？','漲到哪裡要注意？','一句話結論'];
+ const none=['先核對行情，再評估進場\n'+(a.state==='DISABLED'?'四策略研究已關閉，暫不產生進出場情境。':'完成日K待核驗或驗證未通過，目前無法確認進場條件。'),
+  '先補齊同一日期、同一來源的日K與價格口徑，再觀察支撐、突破及量價條件。',
+  '資料未核驗前，不能確認支撐與風險價位；尚未核驗不代表沒有風險。',
+  '上方壓力尚無足夠資料確認，不預設目標價。',
+  '先確認行情資料，再評估進場風險。'];
+ if(!valid||!c||!z||!f)return {fields:titles.map((title,i)=>({title,value:none[i]})),note:GUIDE_NOTE};
+ const price=shortPrice;
+ if(!Number.isFinite(c.recent))return {fields:titles.map((title,i)=>({title,value:[
+  `先觀察，等待價量確認\n收盤 ${price(z.close)} 元；當日區間 ${price(z.low)}～${price(z.high)} 元。`,
+  `① 觀察 ${price(z.low)} 元附近能否守穩並出現轉強。\n② 再看收盤能否突破 ${price(z.high)} 元，確認量價及上方空間。`,
+  `${price(z.low)} 元為當日低點，失守須重新評估；尚不能把這個價位當成已確認的波段支撐。`,
+  `${price(z.high)} 元為當日高點，先觀察能否突破；較長期間壓力仍待後續日K核對。`,
+  '先依當日價量觀察，等支撐、突破與上方空間確認，再評估進場風險。'
+ ][i]})),note:GUIDE_NOTE};
+ const close=z.close,bp=c.breakout.price??c.recent,hasBreak=Number.isFinite(bp)&&close>bp;
+ const weak=a.state==='BREAKOUT_FAILURE'||c.breakout.status==='FAILED'||Number.isFinite(f.ma[20].value)&&close<f.ma[20].value;
+ const hot=Number.isFinite(c.rsi5)&&c.rsi5>=75||Number.isFinite(c.ma20GapPct)&&c.ma20GapPct>=5;
+ // Values always come from this stock's validated snapshot. A legacy B reference
+ // stays labelled as unverified unless corroborated by a computed high.
+ const pressures=[];
+ for(const item of [...c.pressures].sort((x,y)=>x.price-y.price)){
+  if(!pressures.some(x=>Math.abs(x.price-item.price)<1e-8))pressures.push(item);
+ }
+ const upper=pressures.slice(0,2),next=upper[0],second=upper[1];
+ const label=x=>x.kind.includes('待核驗')?'（策略參考待核）':'';
+ const above=upper.length?`上方還有 ${upper.map(x=>price(x.price)+label(x)).join(' 與 ')} 元壓力。`:'更上方壓力仍待確認。';
+ const conflict=c.provenance.volumeConflict;
+ const headline=weak?'先觀察，等待結構轉強':'先觀察，不急著追價';
+ const fact=hasBreak?`已突破 ${price(bp)} 元${hot?'，但 '+(c.rsi5>=75?'RSI 偏熱':'均線乖離偏大'):''}，${above}`:
+  `尚未收盤突破 ${price(c.recent)} 元${weak?'，短線結構仍偏弱':''}；${above}`;
+ const buy=weak?`① 先等價格重新站穩${Number.isFinite(f.ma[20].value)?' MA20 '+price(f.ma[20].value)+' 元':'支撐'}，確認結構轉強。\n② 再觀察${next?' '+price(next.price)+' 元突破與':' '}量價確認，並評估報酬風險。`:
+  `① ${hasBreak?`回測 ${price(bp)} 元附近，確認支撐有效並出現轉強訊號。`:Number.isFinite(f.ma[20].value)&&f.ma[20].value<close?`回測 MA20 ${price(f.ma[20].value)} 元附近，確認支撐有效並出現轉強訊號。`:`先等收盤突破 ${price(c.recent)} 元，確認守穩與量價配合。`}\n② ${next?`或收盤有效突破 ${price(next.price)} 元${label(next)}，且量價確認、報酬風險合理。`:'再確認下一道壓力與報酬風險，不在缺乏上方參考時追價。'}`;
+ const lower=Number.isFinite(z.low)&&z.low<close&&(!hasBreak||z.low<bp)?z.low:null;
+ const risk=(hasBreak?`${price(bp)} 元失守且無法收復，代表突破轉弱，需重新評估。`:
+  weak?'結構尚未轉強，反彈不等於突破確認。':`尚未站上 ${price(c.recent)} 元前，不把盤中上漲當成突破確認。`)+
+  (lower!==null?`${price(lower)} 元為當日低點，可列為${hasBreak?'下一層':'短線'}風險觀察價。`:'研究失效價僅供風險觀察，不直接作為個人停損。');
+ const upside=next?`${price(next.price)} 元看能否突破${label(next)}；${second?`${price(second.price)} 元為${second.kind==='前60日高點'?'近60日較大壓力':second.kind.includes('待核驗')?'策略參考（待核）':'上方壓力'}。`:'更上方壓力待確認。'}接近壓力時注意量能與賣壓，不能預設一定會漲到。`:
+  '目前缺乏高於收盤的歷史壓力參考；後續看量價與新高能否守穩，不能預設一定續漲。';
+ const bullish=Number.isFinite(f.ma[20].value)&&Number.isFinite(f.ma[60].value)&&close>f.ma[20].value&&close>f.ma[60].value;
+ const conclusion=weak?'股票短線結構仍待改善。先等支撐守穩、價格與量能重新轉強，再評估進場風險。':
+  `${bullish?'股票短線偏強，但還沒到非買不可的程度。':'目前先列入觀察，不急著進場。'}先等${hasBreak?'支撐確認或壓力突破':'突破與量價確認'}，再評估進場風險。`;
+ return {fields:titles.map((title,i)=>({title,value:[headline+'\n'+fact+(conflict?'成交量口徑待核，量價條件須複核。':''),buy,risk,upside,conclusion][i]})),note:GUIDE_NOTE};
 }
 function conflictSummary(a){
  if(a.validation?.technicalModelAvailable!==true)return '基礎日K未通過，不能比較策略意見';
@@ -198,34 +242,21 @@ function conflictSummary(a){
 // Additional indicator studies do not silently override the four-model situation.
 function view(a){
  const d=a.foundation?.dualScanContext,p=a.foundation?.alertPlan,t=technicalOutlook(a),f=a.features,valid=a.validation?.technicalModelAvailable===true,study=a.indicatorStudy;
- const g=a.beginner;
- const bp=g?.levels?.find(x=>x.role==='近期突破價')?.value,high=g?.levels?.find(x=>x.role==='當日最高價')?.value,prior=g?.levels?.find(x=>x.role==='前波高點壓力')?.value;
- const price=v=>shortPrice(v),broken=Number.isFinite(bp)&&a.sourceBars?.at(-1)?.close>bp;
- const low=a.sourceBars?.at(-1)?.low,close=a.sourceBars?.at(-1)?.close;
- const avoid=g?.decision==='暫避',unknown=g?.decision==='無法判定',hot=Number.isFinite(f?.rsi5)&&f.rsi5>=75;
- const headline=unknown?'先核對行情，再評估進場':avoid?'先暫避，重新評估結構':g?.decision==='條件符合'?'條件符合，仍要評估風險':'先觀察，不急著追價';
- const guideSummary=g&&valid?[
-  {title:'現在適合進場嗎？',value:headline+'\n'+(unknown?'資料來源有衝突，進場條件暫不能確認。':avoid?'突破失守或報酬風險不合理，等待新的確認。':`${broken?`已突破 ${price(bp)} 元`:'突破尚待確認'}${hot?'，但 RSI 偏熱':''}；${Number.isFinite(prior)&&prior>close?`上方 ${price(prior)} 元仍有壓力。`:'支撐與量價仍需確認。'}`)},
-  {title:'什麼情況可以考慮買？',value:unknown?'先核對資料來源，再檢查進場條件。':avoid?'等價格重新站穩、結構轉強，再評估量價與進場風險。':`① ${broken?`回測 ${price(bp)} 元附近，守住後再轉強。`:`先等收盤突破 ${price(bp)} 元及量價確認。`}\n② ${Number.isFinite(high)&&high>close?`或收盤突破 ${price(high)} 元，且量價確認、報酬風險合理。`:'再等支撐與下一道壓力確認。'}`},
-  {title:'什麼情況要小心？',value:unknown?'來源尚未核對前，無法確認風險價位。':`${broken?`${price(bp)} 元若後續收盤失守，突破可能轉弱，須重新評估。`:`未突破 ${price(bp)} 元，先等結構確認。`}${Number.isFinite(low)&&low<bp?`${price(low)} 元為當日低點，可作下一層觀察。`:''}`},
-  {title:'漲到哪裡要注意？',value:unknown?'先核對價格來源，再確認上方壓力。':`${price(high)} 元是當日高點，觀察能否突破；${Number.isFinite(prior)&&prior>close?`${price(prior)} 元為前波壓力。`:'更上方壓力待確認。'}接近時看量能與賣壓，不能預設必達。`},
-  {title:'一句話結論',value:unknown?'資料來源尚待核對，先確認行情再評估。':avoid?'先等結構恢復與量價確認，再重新評估進場風險。':`先等${broken?'支撐守穩':'突破確認'}或壓力突破，再評估進場風險。${hot?'短線偏熱，不單憑突破追價。':'條件符合也不代表保證獲利。'}`}
- ]:null;
- const summary=guideSummary||[
+ const technicalSummary=[
   {title:'研究重點',value:glanceEvidence(a)},
   {title:'關鍵價位',value:priceSummary(a)},
   {title:'風險',value:glanceRisk(a)},
   {title:'研究A/B',value:glanceDual(a)},
-  {title:'到價提醒',value:g?.alert.text||'尚未設定提醒；未啟用監控。'},
+  {title:'到價提醒',value:p&&p.priceAbove?.input==null&&p.priceBelow?.input==null?`價格未設定｜漲跌幅 ${p.dayGainPercentInput??'—'}%／${p.dayLossPercentInput??'—'}%`:alertSummary(p,a)},
   {title:'資料狀態',value:compactDataSummary(a)},
-  {title:'摘要結論',value:g?.summary||glanceAction(a)}
+  {title:'摘要結論',value:glanceAction(a)}
  ];
  const period=(x,label)=>x?.status==='已確認'?`${label} KD ${fmt(x.kd?.k)}／${fmt(x.kd?.d)}；DIF ${fmt(x.macd?.dif)}；OSC ${fmt(x.macd?.hist)}`:`${label} 待驗證：${chinese(x?.reason||'完成週期歷史或交易日曆不足')}`;
  const medium=!valid?'資料不足，暫無法判斷':!Number.isFinite(f?.ma?.[20]?.value)||!Number.isFinite(f?.ma?.[60]?.value)?'均線資料不足':f.ma[20].value>f.ma[60].value?'MA20高於MA60；週線方向仍需獨立核驗':f.ma[20].value<f.ma[60].value?'MA20低於MA60；中期仍有壓力':'MA20與MA60接近，方向待確認';
  const level=(key,label)=>{const item=a.priceLevels?.[key],formula=key==='researchBreakout'?'前20根完成日K最高價（不含當日）':item?.formula?.startsWith('max(')?'已守住的前日均線支撐最高值':'前20根完成日K最低價（不含當日）';return item?.verified&&Number.isFinite(item.value)?`${label} ${fmt(item.value)}；${formula}；行情 ${item.sourceDate}`:'資料不足，暫無法核驗價位';};
  const favourable=!valid?'基礎日K未通過，無法核驗有利依據':Object.entries(a.families||{}).filter(([k,v])=>v===true&&k!=='DATA_QUALITY').map(([k])=>({PRICE_STRUCTURE:'突破／結構',TREND_MA:'均線趨勢',VOLUME:'量能',MOMENTUM:'動能',FLOW:'資金',FUNDAMENTAL:'基本面'}[k])).filter(Boolean).join('、')||'尚無正向家族共振；仍可依已知價量判讀現況';
  const details=[
- ...(g?[...(guideSummary?[{title:'研究A/B',value:glanceDual(a)},{title:'到價提醒',value:g.alert.text},{title:'資料狀態',value:g.validationStatus+'；'+compactDataSummary(a)},{title:'摘要結論',value:g.summary}]:[]),{title:'多層級關鍵價位',value:g.levels.length?g.levels.map(x=>`${x.role} ${fmt(x.value)}｜${x.status}；${x.formula}；來源 ${x.source||'待核'}／${x.date}；快照 ${x.snapshotId||'待核'}`).join('\n'):'資料不足，無法核驗價位'},...g.scenarios.map(x=>({title:`情境條件核對｜${x.type}`,value:[x.status+'；觀察價 '+fmt(x.price),x.reason,x.conditions,x.invalidation,x.risk,...(x.checks||[]).map(c=>`${c.name}：${c.status}`)].join('；')})),{title:'統一風險驗證',value:g.risks.map(x=>`${x.id} ${fmt(x.value)}：${x.status}`).join('；')+'；偏熱不等同必跌，尚未觸發不代表無風險。'},{title:'報酬風險比試算',value:g.rewardRisk?.text||'尚無足夠條件計算報酬風險比。'},{title:'持股管理情境',value:g.holding.text}]:[]),
+  ...technicalSummary,
   {title:'目前行情階段',value:stageLabel(a)},
   {title:'突破層級與確認',value:breakoutSummary(a)},
   {title:'原策略價位',value:`${a.originalB==null?'原策略B價未提供／不適用':`原策略B價 ${fmt(a.originalB)}（${a.priceLevels?.originalB?.verified?'已核驗':'來源待核'}）`}；${a.originalInvalidation==null?'原策略失效價未提供':`原策略失效 ${fmt(a.originalInvalidation)}`}；研究失效 ${fmt(a.researchInvalidation)}，非預設交易停損`},
@@ -255,24 +286,25 @@ function view(a){
   {title:'行情資料完整性',value:dataSummary(a)},
   {title:'研究來源',value:`行情 ${a.date||'待核驗'}；${a.validation?.technicalModelAvailable?'使用同一份已核驗日K計算':'日K尚未通過核驗'}；僅盤後研究，訊號尚未驗證績效`}
  ];
- return {presentation:guideSummary?'BEGINNER_GUIDE':'STANDARD',guideDataNote:g?.validationStatus==='來源衝突'?'來源衝突，量價須複核':g?.validationStatus==='已驗證'?'技術資料已核對；A/B詳見完整研究':'部分資料待驗；A/B與口徑詳見完整研究',schemaVersion:'UNIFIED_RESEARCH_REPORT_R11_REPAIR2',code:a.code,name:a.name,date:a.date,sourceSnapshotId:a.sourceSnapshotId||null,stage:stageLabel(a),summary,details};
+ const guide=entryGuide(a),summary=guide.fields;
+ return {presentation:'BEGINNER_GUIDE_R12',guideNote:guide.note,schemaVersion:'UNIFIED_RESEARCH_REPORT_R12_GUIDE1',code:a.code,name:a.name,date:a.date,sourceSnapshotId:a.sourceSnapshotId||null,stage:stageLabel(a),summary,details};
 }
 function lines(a){
  const v=view(a);
  return [`${a.name}（${a.code}）｜${a.date||'日期待確認'}`,`【現況】${v.stage}`,...[...v.summary,...v.details].map(f=>`【${f.title}】${f.value}`),'原榜分數、資格與排序保留；本區僅提供研究摘要。'];
 }
 function text(a){return lines(a).join('\n');}
-function wrap(ctx,s,width){const out=[];for(const p of String(s).split('\n')){let row='';for(const token of p.match(/[A-Za-z0-9][A-Za-z0-9._/%+\-]*[，。；：！？、）]*|[^\s][，。；：！？、）]*|[\s\S]/g)||[]){
+function wrap(ctx,s,width){const out=[];for(const p of String(s).split('\n')){let row='';for(const token of p.match(/[A-Za-z0-9][A-Za-z0-9._/%+\-]*[，。！？；：、）】」』]?|[\s\S][，。！？；：、）】」』]?/g)||[]){
  if(ctx.measureText(token).width>width){for(const ch of token){if(row&&ctx.measureText(row+ch).width>width){out.push(row);row=ch;}else row+=ch;}continue;}
  if(row&&ctx.measureText(row+token).width>width){out.push(row);row=token;}else row+=token;
  }out.push(row);}return out;}
 function roundRectPath(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
-function pages(a,{document:doc=globalThis.document,displayCode='V8.2.2-R11',watermark=false,stockMetrics=null,stockMode=!!stockMetrics,detail=false}={}){
+function pages(a,{document:doc=globalThis.document,displayCode='V8.2.2-R12',watermark=false,stockMetrics=null,stockMode=!!stockMetrics,detail=false}={}){
  const W=1284,H=2778,M=54,FIELD_FONT=56,FIELD_LINE=77,LABEL_FONT=40,MAX_BOTTOM=2430;
  const ctx=doc.createElement('canvas').getContext('2d');
  if(!ctx)throw Error('Canvas 2D unavailable');
  // Summary first, followed by complete research; no field is silently filtered out.
- const report=view(a);if(!detail&&report.presentation==='BEGINNER_GUIDE')return guidePages(a,report,{doc,displayCode,watermark,stockMode});
+ const report=view(a);if(!detail)return guidePages(a,report,{doc,displayCode,watermark,stockMode});
  const strings=lines(a),fields=[...report.summary.map(f=>({...f,group:'SUMMARY'})),...(detail?report.details.map(f=>({...f,group:'DETAIL'})):[])];
  function measuredWrap(value,font,width){
   ctx.font=font;
@@ -296,25 +328,29 @@ function pages(a,{document:doc=globalThis.document,displayCode='V8.2.2-R11',wate
   // Split a single oversized field too; a long data error must not escape the page.
   const chunks=[];for(let i=0;i<body.length;i+=20){const part=body.slice(i,i+20);chunks.push({title:m.title+(i?'（續）':''),group:m.group,body:part,size:90+part.length*FIELD_LINE});}return chunks;
  });
- ctx.font='850 60px "Microsoft JhengHei",sans-serif';
- const titleLines=wrap(ctx,`${a.name||'名稱待核對'}（${a.code||'—'}）`,W-2*M),titleBottom=270+titleLines.length*70;
- const stageTop=Math.max(382,titleBottom+20),firstStart=stageTop+198,continuationStart=Math.max(365,titleBottom+35);
- const plans=[];let items=[],y=firstStart;
+ const plans=[];let items=[],y=580;
  for(const box of boxes){
-  if((items.length&&box.group!==items[0].box.group)||y+box.size+12>MAX_BOTTOM){if(items.length)plans.push(items);items=[];y=continuationStart;}
+  if((items.length&&box.group!==items[0].box.group)||y+box.size+12>MAX_BOTTOM){if(items.length)plans.push(items);items=[];y=365;}
   items.push({box,y});y+=box.size+12;
  }
  if(items.length||!plans.length)plans.push(items);
+ function stockTitle(x,suffix=''){
+  let name=String(a.name||'名稱待核對'),value=`${name}（${a.code||'—'}）${suffix}`;
+  while(name.length>1&&x.measureText(value).width>W-2*M){name=name.slice(0,-1);value=`${name}…（${a.code||'—'}）${suffix}`;}return value;
+ }
  function paint(x,plan,index){
   x.fillStyle='#0f2032';x.fillRect(0,0,W,H);
   x.fillStyle='#173958';x.fillRect(0,0,W,210);
   x.fillStyle='#fff';x.font='850 70px "Microsoft JhengHei",sans-serif';x.fillText(stockMode?'四策略研究｜個股查詢摘要':'四策略研究｜現況摘要',M,96);
-  x.font='650 38px "Microsoft JhengHei",sans-serif';x.fillStyle='#cae6fa';x.fillText(`${displayCode}｜${a.date||'日期待核對'}${Number.isFinite(a.sourceBars?.at(-1)?.close)?'｜收 '+shortPrice(a.sourceBars.at(-1).close):''}｜${index+1}/${plans.length}`,M,166);
-  x.fillStyle='#fff';x.font='850 60px "Microsoft JhengHei",sans-serif';
-  titleLines.forEach((line,i)=>x.fillText(line,M,270+i*70));
+  x.font='650 38px "Microsoft JhengHei",sans-serif';x.fillStyle='#cae6fa';x.fillText(`${displayCode}｜${a.date||'日期待核對'}｜${index+1}/${plans.length}`,M,166);
   if(index===0){
-   x.fillStyle='#245676';roundRectPath(x,M,stageTop,W-2*M,144,23);x.fill();
-   x.fillStyle='#fff';x.font='850 60px "Microsoft JhengHei",sans-serif';x.fillText(`現況：${stageLabel(a)}`,M+29,stageTop+94);
+   x.fillStyle='#fff';x.font='850 77px "Microsoft JhengHei",sans-serif';
+   x.fillText(stockTitle(x),M,322);
+   x.fillStyle='#245676';roundRectPath(x,M,382,W-2*M,144,23);x.fill();
+   x.fillStyle='#fff';x.font='850 60px "Microsoft JhengHei",sans-serif';x.fillText(`現況：${stageLabel(a)}`,M+29,476);
+  }else{
+   x.fillStyle='#fff';x.font='800 58px "Microsoft JhengHei",sans-serif';
+   x.fillText(stockTitle(x,'｜續頁'),M,320);
   }
   for(const {box,y:top} of plan){
    x.fillStyle='#1b364d';roundRectPath(x,M,top,W-2*M,box.size,18);x.fill();
@@ -346,34 +382,45 @@ function pages(a,{document:doc=globalThis.document,displayCode='V8.2.2-R11',wate
   }};
  });
 }
-// Summary painter consumes the shared schema; no indicator calculation here.
 function guidePages(a,report,{doc,displayCode,watermark,stockMode}){
  const W=1284,H=2778,M=54,FONT=56,LINE=76,MAX=2420,ctx=doc.createElement('canvas').getContext('2d');
  ctx.font='850 76px "Microsoft JhengHei",sans-serif';
  const names=wrap(ctx,`${a.name}（${a.code}）`,W-2*M-80),headerBottom=300+(names.length-1)*88;
  ctx.font=`700 ${FONT}px "Microsoft JhengHei",sans-serif`;
- const boxes=report.summary.flatMap(f=>{const body=wrap(ctx,f.value,W-2*M-80),chunks=[];for(let i=0;i<body.length;i+=15){const part=body.slice(i,i+15);chunks.push({title:f.title+(i?'（續）':''),body:part,size:102+part.length*LINE});}return chunks;});
- const plans=[];let items=[],top=headerBottom+55;
- for(const box of boxes){if(items.length&&top+box.size>MAX){plans.push(items);items=[];top=headerBottom+55;}items.push({box,top});top+=box.size+22;}if(items.length)plans.push(items);
+ const boxes=report.summary.flatMap((f,section)=>{
+  const body=String(f.value).split('\n').flatMap((line,i)=>{ctx.font=`${section===0&&i===0?'850 66':'700 '+FONT}px "Microsoft JhengHei",sans-serif`;return wrap(ctx,line,W-2*M-80).map(value=>({value,bold:section===0&&i===0}));});
+  const chunks=[];for(let i=0;i<body.length;i+=20){const part=body.slice(i,i+20);chunks.push({title:f.title+(i?'（續）':''),section,body:part,size:102+part.length*LINE});}return chunks;
+ });
+ const plans=[];let items=[],top=headerBottom+45;
+ for(const box of boxes){if(items.length&&top+box.size>MAX){plans.push(items);items=[];top=headerBottom+45;}items.push({box,top});top+=box.size+25;}if(items.length)plans.push(items);
+ function icon(x,section,cx,cy){
+  x.save();x.strokeStyle=['#e5c77a','#6ac7b8','#e5bc79','#9cccf2'][section]||'#9cccf2';x.lineWidth=4;
+  if(section===2){x.beginPath();x.moveTo(cx,cy-18);x.lineTo(cx+17,cy-9);x.lineTo(cx+15,cy+10);x.lineTo(cx,cy+22);x.lineTo(cx-15,cy+10);x.lineTo(cx-17,cy-9);x.closePath();x.stroke();}
+  else {x.beginPath();x.arc(cx,cy,18,0,Math.PI*2);x.stroke();if(section===3){x.beginPath();x.arc(cx,cy,10,0,Math.PI*2);x.stroke();x.beginPath();x.arc(cx,cy,3,0,Math.PI*2);x.stroke();}else if(section===1){x.beginPath();x.moveTo(cx-10,cy);x.lineTo(cx-2,cy+8);x.lineTo(cx+11,cy-9);x.stroke();}else{x.beginPath();x.moveTo(cx,cy-9);x.lineTo(cx,cy+4);x.stroke();}}
+  x.restore();
+ }
  function paint(x,plan,index){
   x.fillStyle='#102235';x.fillRect(0,0,W,H);x.fillStyle='#1b3c59';roundRectPath(x,M,36,W-2*M,headerBottom-36,34);x.fill();
   x.fillStyle='#b7d9ed';x.font='700 42px "Microsoft JhengHei",sans-serif';x.fillText('四策略研究｜新手進出場指南',M+40,100);
   x.fillStyle='#fff';x.font='850 76px "Microsoft JhengHei",sans-serif';names.forEach((v,i)=>x.fillText(v,M+40,195+i*88));
-  x.fillStyle='#b7d9ed';x.font='650 38px "Microsoft JhengHei",sans-serif';x.fillText(`行情 ${a.date}｜收盤 ${shortPrice(a.sourceBars?.at(-1)?.close)} 元`,M+40,headerBottom-35);
-  for(const {box,top:y} of plan){const decision=box.title.startsWith('現在適合'),last=box.title.startsWith('一句話');
+  x.fillStyle='#b7d9ed';x.font='650 40px "Microsoft JhengHei",sans-serif';x.fillText(`行情基準 ${(a.date||'待核驗').replaceAll('-','/')}｜${Number.isFinite(a.sourceBars?.at(-1)?.close)?'收盤 '+shortPrice(a.sourceBars.at(-1).close)+' 元':'價格待核對'}`,M+40,headerBottom-35);
+  for(const {box,top:y} of plan){const decision=box.section===0,last=box.section===4;
    if(decision||last){x.fillStyle=decision?'#2a4c63':'#1b364c';roundRectPath(x,M,y,W-2*M,box.size,28);x.fill();}
-   x.font=`800 ${decision||last?43:50}px "Microsoft JhengHei",sans-serif`;x.fillStyle=decision||last?'#b7d9ed':'#f2f6fa';x.fillText(box.title,M+40,y+58);
-   x.font=`700 ${FONT}px "Microsoft JhengHei",sans-serif`;x.fillStyle='#f4f8ff';box.body.forEach((line,i)=>x.fillText(line,M+40,y+135+i*LINE));
-   if(!decision&&!last){x.strokeStyle='#385b70';x.lineWidth=2;x.beginPath();x.moveTo(M+20,y+box.size+10);x.lineTo(W-M-20,y+box.size+10);x.stroke();}
+   x.font=`800 ${decision||last?43:54}px "Microsoft JhengHei",sans-serif`;x.fillStyle=decision||last?'#b7d9ed':'#f2f6fa';
+   if(!decision&&!last)icon(x,box.section,M+22,y+41);
+   x.fillText(box.title,M+40+(decision||last?0:28),y+58);
+   x.fillStyle='#f4f8ff';box.body.forEach((line,i)=>{x.font=`${line.bold?'850 66':'700 '+FONT}px "Microsoft JhengHei",sans-serif`;if(/^[①②]/.test(line.value)){const cy=y+115+i*LINE;x.strokeStyle='#c3d5e2';x.lineWidth=2;x.beginPath();x.arc(M+62,cy,21,0,Math.PI*2);x.stroke();x.save();x.font='650 34px sans-serif';x.fillText(line.value[0]==='①'?'1':'2',M+52,cy+12);x.restore();x.fillText(line.value.slice(1).trimStart(),M+96,y+135+i*LINE);}else x.fillText(line.value,M+40,y+135+i*LINE);});
+   if(!decision&&!last){x.strokeStyle='#385b70';x.lineWidth=2;x.beginPath();x.moveTo(M+10,y+box.size+12);x.lineTo(W-M-10,y+box.size+12);x.stroke();}
   }
-  x.fillStyle='#adbfce';x.font='650 34px "Microsoft JhengHei",sans-serif';
-  const notes=[`${displayCode}｜${stageLabel(a)}｜${index+1}/${plans.length}`,report.guideDataNote,'歷史行情研究，非買進訊號；持股須依成本與風險評估。'].flatMap(v=>wrap(x,v,W-2*M));notes.forEach((v,i)=>x.fillText(v,M,2505+i*48));
+  x.fillStyle='#adbfce';x.font='650 37px "Microsoft JhengHei",sans-serif';
+  const notes=wrap(x,report.guideNote,W-2*M);notes.forEach((v,i)=>x.fillText(v,M,2495+i*48));
+  x.font='650 30px "Microsoft JhengHei",sans-serif';x.fillText(`${displayCode}｜${index+1}/${plans.length}`,M,2740);
  }
- return plans.map((plan,index)=>{const bodyBottom=Math.max(...plan.map(x=>x.top+x.box.size)),dataset={researchAudit:JSON.stringify({code:a.code,date:a.date,sourceSnapshotId:a.sourceSnapshotId,originalB:a.originalB,alertPlan:a.foundation?.alertPlan,width:W,height:H,index:index+1,total:plans.length,minFont:FONT,bodyBottom,noClipping:bodyBottom<=MAX,mode:stockMode?'SINGLE_STOCK':'FILTER_RESEARCH',schemaVersion:report.schemaVersion,stage:report.stage,fields:plan.map(x=>({title:x.box.title,value:x.box.body.join('\n')})),section:'SUMMARY',summary:lines(a)}),release:a.version,fullBleed:'true'};
+ return plans.map((plan,index)=>{const bodyBottom=Math.max(...plan.map(x=>x.top+x.box.size)),dataset={researchAudit:JSON.stringify({code:a.code,date:a.date,sourceSnapshotId:a.sourceSnapshotId,originalB:a.originalB,alertPlan:a.foundation?.alertPlan,width:W,height:H,index:index+1,total:plans.length,minFont:FONT,bodyBottom,noClipping:bodyBottom<=MAX,mode:stockMode?'SINGLE_STOCK':'FILTER_RESEARCH',schemaVersion:report.schemaVersion,stage:report.stage,fields:plan.map(x=>({title:x.box.title,value:x.box.body.map(l=>l.value).join('\n')})),section:'SUMMARY',summary:lines(a)}),release:a.version,fullBleed:'true'};
   const render=({top=0,height=H,scale=1}={})=>{const canvas=doc.createElement('canvas');canvas.width=Math.floor(W*scale);canvas.height=Math.floor(height*scale);const x=canvas.getContext('2d');x.setTransform(scale,0,0,scale,0,-top*scale);paint(x,plan,index);Object.assign(canvas.dataset,dataset);return canvas;};
   return {width:W,height:H,dataset,renderExportRegion:render,toBlob(callback,type='image/png'){const canvas=render();if(watermark&&globalThis.applyAntiTheftWatermarkV3761)globalThis.applyAntiTheftWatermarkV3761(canvas,'all');canvas.toBlob(blob=>{canvas.width=canvas.height=1;callback(blob);},type);}};
  });
 }
 function candlePage(a,{document:doc=globalThis.document}={}){return null;}
-return Object.freeze({breakoutSummary,scenarioSummary,provenanceSummary,fmt,STAGES,stageLabel,technicalOutlook,modelSummary,view,lines,text,wrap,pages,candlePage,STATES});
+return Object.freeze({entryGuide,GUIDE_NOTE,breakoutSummary,scenarioSummary,provenanceSummary,fmt,STAGES,stageLabel,technicalOutlook,modelSummary,view,lines,text,wrap,pages,candlePage,STATES});
 });

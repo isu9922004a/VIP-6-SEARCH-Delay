@@ -88,5 +88,5 @@ test('both images keep identical section order/core content, no independent metr
 test('extremely long missing-data explanations paginate without shrinking type or clipping',()=>{
  const a=C.evaluate(fixture9933());const long={...a,validation:{...a.validation,technicalModelAvailable:false},dataQuality:{complete:false,missing:['具體缺漏原因'.repeat(2500)]}};
  const ctx={font:'',measureText:s=>({width:[...String(s)].length*56})},document={createElement:()=>({getContext:()=>ctx})};
- const pages=R.pages(long,{document});assert.ok(pages.length>3);for(const p of pages){const x=JSON.parse(p.dataset.researchAudit);assert.ok(x.noClipping);assert.equal(x.minFont,56);}
+ const pages=R.pages(long,{document,detail:true});assert.ok(pages.length>3);for(const p of pages){const x=JSON.parse(p.dataset.researchAudit);assert.ok(x.noClipping);assert.equal(x.minFont,56);}
 });

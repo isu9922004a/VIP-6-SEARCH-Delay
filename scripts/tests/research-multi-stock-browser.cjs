@@ -38,13 +38,13 @@ const byCode=new Map(fixture.records.map(r=>[r.code,r]));fs.mkdirSync(out,{recur
     const fields=[...document.querySelectorAll('#researchStock .research-card-field')].map(x=>({title:x.querySelector('.research-card-label').textContent,value:x.querySelector('.research-card-value').textContent}));
     const summary=R.pages(stock,{stockMode:true}).map(p=>JSON.parse(p.dataset.researchAudit));
     const full=R.pages(stock,{stockMode:true,detail:true}).map(p=>JSON.parse(p.dataset.researchAudit));
-    return {code,name:stock.name,date:stock.date,state:stock.state,label:R.stageLabel(stock),bars:stock.validation.historyBarCount,technicalAvailable:stock.validation.technicalModelAvailable,breakout:stock.researchBreakoutPrice,invalidation:stock.researchInvalidation,reason:stock.reason,entries,fields,expectedFields:[...report.summary,...report.details],summary,full};
+    return {code,name:stock.name,date:stock.date,state:stock.state,label:R.stageLabel(stock),bars:stock.validation.historyBarCount,technicalAvailable:stock.validation.technicalModelAvailable,breakout:stock.researchBreakoutPrice,invalidation:stock.researchInvalidation,reason:stock.reason,entries,fields,summaryFields:report.summary,expectedFields:[...report.summary,...report.details],summary,full};
    },record.code);
    assert.equal(row.code,record.code);assert.equal(row.date,record.full.closeDate);
    assert.ok(row.entries.every(x=>x.sameCore&&x.sameSummary&&x.sameView&&x.inputUnchanged),JSON.stringify(row));
    assert.deepEqual(row.fields,row.expectedFields,`web card lost a report field for ${record.code}`);
    const normalize=x=>x.replace(/[\s｜]/g,'');
-   for(const [pages,expected] of [[row.summary,row.expectedFields.slice(0,7)],[row.full,row.expectedFields]]){
+   for(const [pages,expected] of [[row.summary,row.summaryFields],[row.full,row.expectedFields]]){
     assert.ok(pages.every(x=>x.noClipping&&x.stage===row.label));
     for(const field of expected){const value=pages.flatMap(x=>x.fields).filter(x=>x.title.replace('（續）','')===field.title).map(x=>x.value).join('');assert.equal(normalize(value),normalize(field.value),`${record.code}: image lost ${field.title}`);}
    }
@@ -87,6 +87,12 @@ const byCode=new Map(fixture.records.map(r=>[r.code,r]));fs.mkdirSync(out,{recur
    }else{assert.equal(row.technicalAvailable,true);assert.equal(row.bars,record.daily.dailySeries.length);}
    results.push(row);console.log(JSON.stringify({code:row.code,name:row.name,state:row.state,sameEntries:row.entries.length,technicalAvailable:row.technicalAvailable}));
   }
+  // Synthetic reference for visual comparison; never used as live market data.
+  const {bars,report}=require('../research-fixtures.cjs'),C=require('../../four-models-research-v1.js');
+  const ref=bars(160,()=>178);ref[125].high=201;ref[153].high=187;ref[158]={...ref[158],open:181,low:180,high:184,close:183,volume:201000};ref[159]={...ref[159],open:184,low:183.5,high:192.5,close:189,volume:643000};
+  const reference=C.evaluate(report(ref,{stock:'6690',name:'安碁資訊',originalB:201}));
+  const sample=await page.evaluate(a=>{const p=ShitouResearchReport.pages(a,{stockMode:true});return {pages:p.length,audit:JSON.parse(p[0].dataset.researchAudit),url:p[0].renderExportRegion().toDataURL('image/png')};},reference);
+  assert.equal(sample.pages,1);assert.ok(sample.audit.noClipping);fs.writeFileSync(path.join(out,'synthetic-reference-6690.png'),Buffer.from(sample.url.split(',')[1],'base64'));
   assert.deepEqual(errors,[]);assert.ok(new Set(results.map(row=>row.state)).size>1,'Different stock data must not be forced into one identical state');
   fs.writeFileSync(path.join(out,'multi-stock-results.json'),JSON.stringify({status:'PASS',scope:'Seven real API-response recordings through actual stock-query button; seven research envelope adapters per stock; actual card fields, summary/full images and preview buttons; not full scanner universe/eligibility verification',capturedAt:fixture.capturedAt,stockCount:results.length,entryComparisons:results.reduce((n,row)=>n+row.entries.length,0),results,errors},null,2));
  }finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}

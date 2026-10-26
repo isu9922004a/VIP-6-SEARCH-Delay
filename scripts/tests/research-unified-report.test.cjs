@@ -3,7 +3,7 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const C=require('../../four-models-research-v1.js'),R=require('../../research-report-v1.js'),D=require('../../selection-data-v2.js');
 const fixture=require('../fixtures/multi-stock-worker-responses-20261022.json');
 const {report,bars}=require('../research-fixtures.cjs');
-const summaryTitles=['研究重點','關鍵價位','風險','研究A/B','到價提醒','資料狀態','摘要結論'];
+const summaryTitles=['現在適合進場嗎？','什麼情況可以考慮買？','什麼情況要小心？','漲到哪裡要注意？','一句話結論'];
 const document={createElement:()=>({getContext:()=>({font:'',measureText(s){return {width:[...s].length*56};}})})};
 function audits(a,options={}){return R.pages(a,{document,...options}).map(x=>JSON.parse(x.dataset.researchAudit));}
 function squeeze(s){return s.replace(/[\s｜]/g,'');}
@@ -37,21 +37,22 @@ test('2059 no-signal models retain observable weakness and independently report 
  D.bind({map:new Map(fixture.snapshot.rows.map(q=>[q.code,q])),meta:fixture.snapshot.meta,snapshotRows:fixture.snapshot.rows.length});
  D.remember(record.daily,'2059');const a=C.evaluate(D.apply(record.full,'2059')),v=R.view(a);
  assert.equal(a.state,'OBSERVATION');assert.equal(v.stage,'短線偏弱');
- assert.match(v.summary[0].value,/低於MA20.*低於MA60.*下彎/);
- assert.match(v.summary[2].value,/低於MA20/);
+ assert.match(v.details.find(x=>x.title==='技術現況').value,/低於MA20.*低於MA60.*下彎/);
+ assert.match(v.summary[0].value,/結構.*偏弱/);
+ assert.match(v.details.find(x=>x.title==='風險').value,/低於MA20/);
  for(const [key,m] of Object.entries(a.models)){
   const field=v.details.find(x=>x.title.startsWith('策略'+({A:'一',B:'二',C:'三',D:'四'}[key])+'｜'));
   assert.match(field.value,/已確認：.*\n未成立：.*\n待驗證：/);
   assert.ok(m.checks.some(x=>x.status==='FAIL'||x.status==='UNKNOWN'));
  }
- assert.match(v.summary.find(x=>x.title==='研究A/B').value,/未符合|待驗證/);
- assert.doesNotMatch(v.summary.find(x=>x.title==='研究A/B').value,/研究符合/);
+ assert.match(v.details.find(x=>x.title==='研究A/B').value,/未符合|待驗證/);
+ assert.doesNotMatch(v.details.find(x=>x.title==='研究A/B').value,/研究符合/);
  D.reset();
 });
 test('failed plus unknown dual checks cannot be presented as research match from a partial PASS',()=>{
  const a=C.evaluate(report()),b={...a,foundation:{...a.foundation,dualScanContext:{modeA:{checks:[{id:'RSI_GT_65',status:'PASS'},{id:'CHIP_GT_20',status:'UNKNOWN'}]},modeB:{checks:[{id:'RSI_GT_70',status:'PASS'},{id:'MA20_CLOSE_CROSS',status:'FAIL'}]}}}};
- const text=R.view(b).summary.find(x=>x.title==='研究A/B').value;
- assert.match(text,/A 待驗證/);assert.match(text,/B 未符合：收盤穿越站上MA20未成立/);assert.doesNotMatch(text,/研究符合/);
+ const text=R.view(b).details.find(x=>x.title==='研究A/B').value;
+ assert.match(text,/A 待驗證/);assert.match(text,/B 未符合：無新穿越/);assert.doesNotMatch(text,/研究符合/);
 });
 test('an indicator phase cannot replace the four-strategy situation in one output only',()=>{
  const a=C.evaluate(report()),b={...a,state:'BREAKOUT_FAILURE',compactStateLabel:'結構失敗',indicatorStudy:{...a.indicatorStudy,phase:'多頭續強'}};
