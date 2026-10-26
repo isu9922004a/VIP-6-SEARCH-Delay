@@ -27,7 +27,7 @@ test('frontend displays V8.2.2-R12 and busts all local script/style caches',()=>
  assert.equal(v.displayCode,'V8.2.2-R12');assert.equal(v.fileVersion,'V8.2.2-R12');
  assert.match(html,/<title>石頭少爺 V8\.2\.2-R12/);
  for(const entry of html.matchAll(/<(?:script|link)\b[^>]*(?:src|href)="(\.\/[^"\s]+)"/g)){
-  const url=entry[1];if(/\.(?:js|css)\?v=/.test(url))assert.match(url,/\?v=V8\.2\.2-R12-GUIDE1$/,url);
+  const url=entry[1];if(/\.(?:js|css)\?v=/.test(url))assert.match(url,/\?v=V8\.2\.2-R12-GUIDE1(?:-DRAX1)?$/,url);
  }
  const css=fs.readFileSync(path.join(root,'research-mobile-v1.css'),'utf8');assert.match(css,/research-stock-card/);assert.match(css,/@media\(max-width:600px\)/);
 });

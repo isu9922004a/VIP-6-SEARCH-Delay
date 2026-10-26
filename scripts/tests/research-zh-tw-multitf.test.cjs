@@ -58,5 +58,5 @@ test('frontend loads research localization before report, indicator study before
  const js=fs.readFileSync(path.join(root,'research-integration-v1.js'),'utf8');
  assert.match(js,/匯出繁體中文研究表（CSV）/);
  assert.match(js,/匯出文字報告（TXT）/);
- assert.match(js,/DRAX 相容匯出（CSV）/);
+ assert.match(js,/DRAX 價格對應提醒/);
 });
