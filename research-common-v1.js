@@ -81,5 +81,58 @@ function weeks(b,r){
  const rows=[];for(const [m,g] of groups){const dt=new Date(m+'T00:00:00Z');dt.setUTCDate(dt.getUTCDate()+4);const fri=dt.toISOString().slice(0,10);if(m<c.start||fri>c.end)continue;const expected=c.dates.filter(d=>d>=m&&d<=fri);if(expected.at(-1)>asOf)continue;if(!expected.length||JSON.stringify(expected)!==JSON.stringify(g.map(x=>x.date)))return {value:null,reason:'已完成週日K缺漏／與日曆不符',bars:[]};rows.push({week:m,end:g.at(-1).date,close:g.at(-1).close});}
  return {value:rows.length>=20?mean(rows.slice(-20).map(x=>x.close)):null,reason:rows.length<20?'已完成正式週K不足20週':null,bars:rows};
 }
-return Object.freeze({VERSION,DEFAULTS,PARAM,T,num,mean,ma,pct,freeze,hash,flags,normalizeInput,validate,validationResult,rsi,atr,tick,legal,step,geometry,features,cutoff,available,check,status,nextDate,weeks});
+// Read-only context shared by every stock and report entrance. Thresholds are
+// research cautions, not eligibility rules or a validated trading system.
+function tradeContext(b,f,r,invalid){
+ const z=b.at(-1),p=b.at(-2),recent=f.prior20High;
+ const finite=v=>typeof v==='number'&&Number.isFinite(v);
+ const prior60=b.length>=61?Math.max(...b.slice(-61,-1).map(x=>x.high)):null;
+ // Track up to five completed sessions from a genuine close breakout, keeping
+ // that event's original pressure fixed for the subsequent hold check.
+ let event=null;
+ for(let i=Math.max(20,b.length-5);i<b.length;i++){
+  const price=Math.max(...b.slice(i-20,i).map(x=>x.high));
+  if(b[i].close>price&&(!event||b.slice(event.index,i+1).some(x=>x.close<=event.price)))event={index:i,date:b[i].date,price};
+ }
+ const held=event?b.slice(event.index).every(x=>x.close>event.price):false;
+ const sessions=event?b.length-event.index:0;
+ const status=event?(held?(sessions>=2?'HELD_CLOSES':'INITIAL_CLOSE'):'FAILED'):finite(recent)&&z.high>recent&&z.close<=recent?'INTRADAY_REJECTED':'NOT_BROKEN';
+ const originalB=num(r.originalB),bVerified=r.originalBVerified===true;
+ const pressures=[{kind:'當日高點短壓',price:z.high},{kind:'前60日高點',price:prior60},
+  {kind:bVerified?'原策略B門檻':'原策略B參考（待核驗）',price:originalB}].filter(x=>finite(x.price)&&x.price>z.close);
+ pressures.sort((a,b)=>a.price-b.price);
+ const nearest=pressures[0]||null;
+ const scenario=(kind,price)=>({kind,price,changePct:pct(price,z.close)});
+ const scenarios=[...pressures.map(x=>scenario(x.kind,x.price)),
+  ...(finite(recent)?[scenario('近期突破參考',recent)]:[]),
+  ...(finite(f.ma[20].value)?[scenario('MA20支撐參考',f.ma[20].value)]:[]),
+  ...(finite(invalid)?[scenario('研究失效參考（非交易停損）',invalid)]:[])];
+ const target=finite(originalB)&&originalB>z.close?originalB:finite(prior60)&&prior60>z.close?prior60:null;
+ const rr=finite(target)&&finite(invalid)&&invalid<z.close?(target-z.close)/(z.close-invalid):null;
+ const volumeRatio=f.volumePrior5>0?z.volume/f.volumePrior5:null;
+ const gap=f.ma[20].distance,upper=f.candle.upperRatio;
+ const cautions=[];
+ if(finite(f.rsi5)&&f.rsi5>=75)cautions.push(`RSI5 ${f.rsi5.toFixed(2)}，短線偏熱`);
+ if(finite(gap)&&gap>=5)cautions.push(`MA20正乖離 ${gap.toFixed(2)}%`);
+ if(finite(upper)&&upper>=.3)cautions.push(`${volumeRatio>=2?'放量伴隨':''}高點回落，上影占振幅 ${(upper*100).toFixed(0)}%`);
+ if(nearest&&pct(nearest.price,z.close)<=3)cautions.push(`距${nearest.kind}僅 ${pct(nearest.price,z.close).toFixed(2)}%`);
+ if(rr!==null&&rr<1)cautions.push(`假設報酬風險比 ${rr.toFixed(2)}：1，低於1`);
+ const basis=r.dailyBasisV2||{},meta=r.dailySeriesMeta||{};
+ const volumeConflict=basis.sourceVolumeWarning===true||r.sourceVolumeWarning===true;
+ if(volumeConflict)cautions.push('成交量來源差異待核對，量能資格須複核');
+ return {version:'TRADE_CONTEXT_1',recent,prior60,originalB,originalBVerified:bVerified,
+  originalBStatus:originalB===null?'UNAVAILABLE':!bVerified?'UNVERIFIED':z.close>originalB?'CLOSE_ABOVE':'NOT_BROKEN',
+  breakout:{status,eventDate:event?.date||null,price:event?.price||recent,heldSessions:held?sessions:0,confirmation:'至少連續2根完成日K收盤守在同一突破價上；不代表未來續漲'},
+  rsi5:f.rsi5,rsi10:f.rsi10,ma20GapPct:gap,upperWickRatio:upper,volumeRatioPrior5:volumeRatio,
+  volumeRatioPrevious:p?.volume>0?z.volume/p.volume:null,pressures,nearest,scenarios,
+  rewardRisk:{entry:z.close,target,invalidation:invalid,ratio:rr,assumption:'以收盤假設進場、上方B參考或60日高點為目標、研究失效為風險情境；非交易停損建議'},cautions,
+  provenance:{source:meta.source||r.dataSource||null,sourceDate:z.date,
+   retrievedAt:meta.fetchedAt||meta.retrievedAt||r.fetchedAt||r.retrievedAt||null,
+   priceBasis:r.priceAdjustment?.basis||'UNKNOWN',volumeUnit:'shares',
+   volumeBasis:basis.volumeBasis||meta.volumeScope||meta.volumeBasis||'UNKNOWN',
+   sourceVolume:basis.sourceVolume??z.volume,snapshotVolume:basis.snapshotVolume??null,
+   volumeConflict,volumeQualification:volumeConflict?'REVIEW_REQUIRED':'SOURCE_ONLY_NOT_CROSS_VERIFIED',
+   historyBars:b.length,maPeriods:[20,60],rsiFormula:'Wilder RSI5／RSI10；可能與資料商初始化不同'}};
+}
+return Object.freeze({tradeContext,VERSION,DEFAULTS,PARAM,T,num,mean,ma,pct,freeze,hash,flags,normalizeInput,validate,validationResult,rsi,atr,tick,legal,step,geometry,features,cutoff,available,check,status,nextDate,weeks});
 });
