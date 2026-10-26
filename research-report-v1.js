@@ -229,6 +229,79 @@ function entryGuide(a){
   `${bullish?'股票短線偏強，但還沒到非買不可的程度。':'目前先列入觀察，不急著進場。'}先等${hasBreak?'支撐確認或壓力突破':'突破與量價確認'}，再評估進場風險。`;
  return {fields:titles.map((title,i)=>({title,value:[headline+'\n'+fact+(conflict?'成交量口徑待核，量價條件須複核。':''),buy,risk,upside,conclusion][i]})),note:GUIDE_NOTE};
 }
+// R14: Read-only, single-card beginner wording shared by stock lookup and all filters.
+// Never convert a research-only scenario into an unconditional trading signal.
+function compactUnifiedGuide(a,u){
+ const base=entryGuide(a);
+ if(u?.state!=='RESEARCH_ONLY'||a?.validation?.technicalModelAvailable!==true||!a.tradeContext)return base;
+ const z=a.sourceBars?.at(-1),c=a.tradeContext;
+ if(!z||!Number.isFinite(z.close))return base;
+ const price=v=>Number.isFinite(v)&&v>0?shortPrice(v)+' 元':null;
+ const close=z.close;
+ const weak=a.state==='BREAKOUT_FAILURE'||['BEAR','FAILED','REBOUND'].includes(u.stage)||
+  (Number.isFinite(a.features?.ma?.[20]?.value)&&close<a.features.ma[20].value);
+ const trend=weak?'短線偏弱':u.stage==='HIGH_CONSOLIDATION'?'偏多但高檔整理':
+  ['BULL_START','BULL_CONTINUE'].includes(u.stage)?'短線偏強':u.stage==='PULLBACK'?'多頭拉回':
+  u.stage==='RANGE'?'區間整理':'方向待確認';
+ const good=(u.scenarios||[]).filter(x=>x.signalStatus==='CONFIRMED'&&x.riskDecision==='ACCEPTABLE_FOR_EVALUATION'&&x.riskReward?.status==='KNOWN');
+ const blocked=(u.scenarios||[]).filter(x=>x.signalStatus==='CONFIRMED'&&x.riskDecision==='BLOCKED');
+ const mustCheck=(u.scenarios||[]).some(x=>x.riskDecision==='UNKNOWN');
+ const buyReady=u.entryDecision==='CONDITIONAL_ENTRY'&&good.length>0;
+ const decision=buyReady?'🟢 條件可供評估，不是直接買進':
+  blocked.length||u.entryDecision==='DO_NOT_ENTER'?'🔴 風險偏高，目前不宜進場':
+  u.entryDecision==='CANNOT_EVALUATE'||mustCheck?'⚪ 關鍵風險待核，不宜進場':'🟠 先觀察，尚未確認買點';
+ const risks=[],riskNames={LOW_VOLUME:'買盤量能不足',NEAR_RESISTANCE:'上方壓力太近',VOLUME_UPPER_WICK:'爆量上影，賣壓較大',FAILED_BREAKOUT:'突破後收回，疑似假突破',EXTENDED:'股價離支撐太遠',GAP:'跳空後價位需重算',SUPPORT_BROKEN:'收盤失守支撐',MOMENTUM_DIVERGENCE:'動能未同步創高'};
+ for(const x of u.risks||[])if(riskNames[x.code]&&!risks.includes(riskNames[x.code]))risks.push(riskNames[x.code]);
+ if(c.provenance?.volumeConflict)risks.unshift('成交量口徑待核');
+ if(Number.isFinite(c.rsi5)&&c.rsi5>=75)risks.push('RSI偏熱，勿追價');
+ if(!risks.length){if(!buyReady)risks.push('進場訊號尚未確認');else risks.push('仍可能出現假突破');}
+ const check=good[0]||(u.scenarios||[]).find(x=>x.id==='BREAKOUT'&&Number.isFinite(x.triggerPrice))||
+  (u.scenarios||[]).find(x=>x.id==='PULLBACK'&&Number.isFinite(x.triggerPrice));
+ // Do not call a level a resistance if it is already at/below the closing price.
+ const resistances=[];
+ for(const x of (c.pressures||[]).filter(x=>Number.isFinite(x.price)&&x.price>close&&!(x.kind||'').includes('待核驗')).sort((a,b)=>a.price-b.price)){
+  if(!resistances.some(v=>Math.abs(v-x.price)<1e-8))resistances.push(x.price);
+ }
+ for(const x of (u.levels||[]).filter(x=>Number.isFinite(x.price)&&x.price>close&&/波段高點|整理上緣/.test(x.source||'')).sort((a,b)=>a.price-b.price)){
+  if(!resistances.some(v=>Math.abs(v-x.price)<1e-8))resistances.push(x.price);
+ }
+ resistances.sort((a,b)=>a-b);
+ const one=resistances[0],two=resistances.find(v=>v>one+1e-8);
+ const anchor=Number.isFinite(c.breakout?.price)&&c.breakout.price<close?c.breakout.price:null;
+ const nearby=(u.levels||[]).filter(x=>Number.isFinite(x.price)&&x.price<close&&
+  (/MA5|MA10|已確認波段低點/.test(x.source||''))&&x.price>=close*.97).sort((a,b)=>b.price-a.price);
+ const support=anchor??nearby[0]?.price??null;
+ const ma20=a.features?.ma?.[20]?.value;
+ const fallbackSupport=Number.isFinite(ma20)&&ma20>0&&ma20<close?ma20:null;
+ const guard=support??fallbackSupport;
+ const actionable=buyReady?good[0]:null;
+ const stop=actionable?.riskReward?.stop;
+ const lost=Number.isFinite(actionable?.invalidationPrice)&&actionable.invalidationPrice<close?actionable.invalidationPrice:null;
+ const condition=(check?.id==='PULLBACK'&&Number.isFinite(check.triggerPrice)&&check.triggerPrice<close)?
+  `回測 ${price(check.triggerPrice)}守穩、收紅且量價轉強`:
+  one?`收盤有效突破 ${price(one)}，量價同步增強`:
+  Number.isFinite(check?.triggerPrice)&&check.triggerPrice>close?`收盤有效突破 ${price(check.triggerPrice)}並放量`:
+  '先等支撐守穩、完成日K出現量價轉強';
+ const secondCondition=`需確認前5日均量比達 ${(u.parameters?.volume||1.2).toFixed(1)} 倍，扣成本後報酬風險合理`;
+ const buyText=`① ${condition}。\n② ${secondCondition}；缺一不可。`;
+ const headReason=buyReady?'有已確認情境，仍需核對實際成交價與停損空間':
+  blocked.length?'技術條件雖成立，但風險檢查未過關':
+  weak?'股價結構偏弱，尚未看到穩定轉強':
+  mustCheck?'部分風險與資料無法確認':
+  '尚未完成價量與進場風險的雙重確認';
+ const danger=`${risks.slice(0,2).join('；')}。${guard?`先看 ${price(guard)} 能否守住；`:'支撐價尚待確認；'}${lost?`研究情境收盤失效參考 ${price(lost)}，不是個人停損。`:'跌破已確認支撐要重新評估，非預設停損。'}`;
+ const resistance=one?`${price(one)}先看能否站上${two?`；${price(two)}為下一道壓力`:''}。遇壓要看量能，不能預設必漲。`:
+  `沒有核驗出高於收盤的明確壓力；不可虛構停利目標。`;
+ const conclusion=buyReady?`技術面${trend}；僅符合附帶條件的評估資格。${Number.isFinite(stop)?`研究停損情境 ${price(stop)}，須按實際進場價重算。`:'先建立合理防守價。'}`:
+  `目前${trend}，${blocked.length?'風險條件不合格':weak?'先等結構轉強':'先等價格與量能確認'}；不急著買。`;
+ return {fields:[
+  {title:'現在適合進場嗎？',value:`${decision}\n趨勢：${trend}。${headReason}。`},
+  {title:'什麼情況可以考慮買？',value:buyText},
+  {title:'什麼情況要小心？',value:danger},
+  {title:'漲到哪裡要注意？',value:resistance},
+  {title:'一句話結論',value:conclusion}
+ ],note:'以上為歷史行情的條件式研究，非即時買進訊號；價位依盤後資料，跳空須重新計算。'};
+}
 function conflictSummary(a){
  if(a.validation?.technicalModelAvailable!==true)return '基礎日K未通過，不能比較策略意見';
  const pass=Object.entries(a.models||{}).filter(([,m])=>m.status==='符合').map(([k])=>k);
@@ -286,9 +359,9 @@ function view(a){
   {title:'行情資料完整性',value:dataSummary(a)},
   {title:'研究來源',value:`行情 ${a.date||'待核驗'}；${a.validation?.technicalModelAvailable?'使用同一份已核驗日K計算':'日K尚未通過核驗'}；僅盤後研究，訊號尚未驗證績效`}
  ];
- const guide=entryGuide(a),unified=a.unifiedResearch,summary=unified&&unified.state!=='DISABLED'?unified.summary:guide.fields;
- if(unified&&unified.state!=='DISABLED')return {presentation:'BEGINNER_GUIDE_R13',guideNote:'技術條件不等於買進建議；新增因子僅Shadow研究，尚未驗證績效。',schemaVersion:'UNIFIED_RESEARCH_R13',code:a.code,name:a.name,date:a.date,sourceSnapshotId:a.sourceSnapshotId,stage:unified.stageLabel||'資料不足',summary,details:[...unified.details,...details.filter(x=>['提醒設定','提醒狀態','雙模式研究','四模型驗證','日週月週期研判','指標型態確認','資料來源與口徑','行情資料完整性'].includes(x.title)),...modelFields(a),{title:'原策略來源',value:'四策略為不同模型來源；原資格、分數、排名未改動。'}]};
- return {presentation:'BEGINNER_GUIDE_R12',guideNote:guide.note,schemaVersion:'UNIFIED_RESEARCH_REPORT_R12_GUIDE1',code:a.code,name:a.name,date:a.date,sourceSnapshotId:a.sourceSnapshotId||null,stage:stageLabel(a),summary,details};
+ const unified=a.unifiedResearch,compact=compactUnifiedGuide(a,unified),summary=compact.fields;
+ if(unified&&unified.state==='RESEARCH_ONLY')return {presentation:'BEGINNER_GUIDE_R14_SINGLE',guideNote:compact.note,schemaVersion:'UNIFIED_RESEARCH_R14_SINGLE',code:a.code,name:a.name,date:a.date,sourceSnapshotId:a.sourceSnapshotId,stage:unified.stageLabel||'資料不足',summary,details:[...unified.details,...details.filter(x=>['提醒設定','提醒狀態','雙模式研究','四模型驗證','日週月週期研判','指標型態確認','資料來源與口徑','行情資料完整性'].includes(x.title)),...modelFields(a),{title:'原策略來源',value:'四策略為不同模型來源；原資格、分數、排名未改動。'}]};
+ return {presentation:'BEGINNER_GUIDE_R12',guideNote:compact.note,schemaVersion:'UNIFIED_RESEARCH_REPORT_R12_GUIDE1',code:a.code,name:a.name,date:a.date,sourceSnapshotId:a.sourceSnapshotId||null,stage:stageLabel(a),summary,details};
 }
 function lines(a){
  const v=view(a);
