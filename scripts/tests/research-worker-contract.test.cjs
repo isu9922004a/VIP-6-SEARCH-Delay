@@ -14,7 +14,7 @@ test('recorded DAILY_ONLY contract + independent snapshot yields shared 160-bar 
  const inputBefore=JSON.stringify(full),single=C.evaluate(D.apply(full,'9933')),filter=C.evaluate(D.apply(daily,'9933'));
  assert.deepEqual(core(single),core(filter));assert.equal(single.validation.historyBarCount,160);assert.equal(single.state,'HEALTHY_PULLBACK');assert.equal(single.researchBreakoutPrice,48.75);assert.equal(single.researchInvalidation,43);
  assert.equal(JSON.stringify(full),inputBefore);assert.equal(single.validation.externalEvidenceAvailable,false);assert.equal(single.models.D.checks.find(c=>c.id==='D4').status,'UNKNOWN');assert.equal(single.dataQuality.complete,false);
- assert.match(single.validation.workerDataAudit.volumeUnitSource,/CONTRACT/);assert.equal(D.get('9933').sourceVolume,8139000);assert.equal(single.sourceBars.at(-1).volume,8265954);
+ assert.match(single.validation.workerDataAudit.volumeUnitSource,/CONTRACT/);assert.equal(D.get('9933').sourceVolume,8139000);assert.equal(single.sourceBars.at(-1).volume,8139000,'unverified aggregate market scope must not overwrite provider daily volume');
 });
 for(const [name,change] of [
  ['explicit unfinished report',r=>r.completed=false],['explicit unfinished marker',r=>r.isComplete=false],['metadata not completed',r=>r.dailySeriesMeta.onlyCompletedBars=false],

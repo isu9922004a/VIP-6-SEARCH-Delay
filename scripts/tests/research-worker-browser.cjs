@@ -29,7 +29,7 @@ const out=path.resolve(process.argv[2]||path.join(root,'../worker-browser')),bef
   const current=await page.evaluate(()=>({analysis:ShitouResearchIntegration.getCurrentStock().analysis,metrics:ShitouResearchIntegration.getCurrentStock().metrics,summary:ShitouResearchReport.lines(ShitouResearchIntegration.getCurrentStock().analysis),version:ShitouReleaseV50.displayCode}));
   if(before){assert.equal(current.analysis.state,'INSUFFICIENT_DATA');}
   else{
-   assert.equal(current.analysis.state,'HEALTHY_PULLBACK');assert.equal(current.analysis.validation.historyBarCount,fixture.daily.results[0].data.dailySeries.length);
+   assert.equal(current.analysis.state,'HEALTHY_PULLBACK',current.analysis.reason);assert.equal(current.analysis.validation.historyBarCount,fixture.daily.results[0].data.dailySeries.length);
    assert.equal(current.analysis.researchBreakoutPrice,48.75);assert.equal(current.analysis.researchInvalidation,43);assert.ok(current.analysis.models.A&&current.analysis.models.B&&current.analysis.models.C&&current.analysis.models.D);
    const stockTechnical=await page.evaluate(()=>{const I=ShitouResearchIntegration,a=I.getCurrentStock().analysis,raw=shitouGetLastReportV82(),core=x=>({state:x.state,models:x.models,features:x.features,families:x.families,risks:x.risks,breakout:x.researchBreakoutPrice,invalidation:x.researchInvalidation,quality:x.dataQuality});return {single:core(a),filter:core(I.forReport({code:'9933',report:raw}))};});assert.deepEqual(stockTechnical.single,stockTechnical.filter);
    assert.match(current.analysis.validation.workerDataAudit.volumeUnitSource,/CONTRACT/);

@@ -77,7 +77,7 @@ test('snapshot change during in-flight DAILY_ONLY cannot poison another day cach
 });
 test('shared canonical cache rejects unknown volume units and mixed ticker rows before reconciliation',()=>{
  const r=fixture9933();bind(r);
- for(const bad of [{...r,volumeUnit:'unknown'},{...r,dailySeriesMeta:{volumeUnit:'lots'}},{...r,dataDate:'2026-10-21'}])assert.throws(()=>D.remember(bad,'9933'),/單位|日期/);
+ for(const bad of [{...r,volumeUnit:'unknown'},{...r,dailySeriesMeta:{...r.dailySeriesMeta,volumeUnit:'lots'}},{...r,dataDate:'2026-10-21'}])assert.throws(()=>D.remember(bad,'9933'),/單位|日期/);
  const other=structuredClone(r);other.canonicalBars[0].stock='2330';assert.throws(()=>D.remember(other,'9933'),/代號/);assert.equal(D.get('9933'),null);D.reset();
 });
 test('both images keep identical section order/core content, no independent metric cards',()=>{
