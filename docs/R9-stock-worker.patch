@@ -1,0 +1,173 @@
+diff --git a/workers/stock-worker.mjs b/workers/stock-worker.mjs
+index 02400e0..5bf2bd9 100644
+--- a/workers/stock-worker.mjs
++++ b/workers/stock-worker.mjs
+@@ -1,3 +1,61 @@
++// BEGIN EMBEDDED DAILY CONTRACT
++/* Shared wire contract. Embedded verbatim in both standalone Workers by build-worker-contract.cjs. */
++(function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.ShitouWorkerDataContractV1=api;})(globalThis,function(){
++'use strict';
++const SCHEMA='shitou-daily-contract-v1',VERSION='R4.9.3-CONTRACT.1';
++const fields=['date','open','high','low','close','volume'];
++const clone=x=>JSON.parse(JSON.stringify(x));
++const bars=x=>(x||[]).map(r=>Object.fromEntries(fields.map(k=>[k,k==='date'?String(r[k]):Number(r[k])])));
++function fingerprint(rows){const text=JSON.stringify(bars(rows));let h=2166136261;for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619);}return rows.length+'-'+(h>>>0).toString(16);}
++const adapters=Object.freeze({YAHOO_CHART:{field:'indicators.quote.volume',inputUnit:'shares',multiplier:1},TWSE_MIS:{field:'v',inputUnit:'lots',multiplier:1000},TWSE_STOCK_DAY:{field:'成交股數',inputUnit:'shares',multiplier:1},TPEX_DAILY_HISTORY:{field:'成交仟股',inputUnit:'thousand-shares',multiplier:1000},VERIFIED_LATEST_SNAPSHOT:{field:'volume',inputUnit:'shares',multiplier:1},GITHUB_VERIFIED_OFFICIAL_DAILY_ARCHIVE:{field:'volume',inputUnit:'shares',multiplier:1}});
++function unitEvidence(ids){return [...new Set(ids)].map(adapter=>({adapter,...adapters[adapter],outputUnit:'shares'}));}
++function refresh(report,rows,extra={}){
++ const r={...report},m=r.dailySeriesMeta||{},out=clone(rows);
++ r.dailySeries=out;if(Array.isArray(r.canonicalBars))r.canonicalBars=clone(out);
++ r.dailySeriesMeta={...m,returnedBars:out.length,completedDailyRowsAvailable:out.length,completeOhlcvRowsAvailable:out.length,countScope:'RETURNED_SERIES',canonicalBarCount:Array.isArray(r.canonicalBars)?out.length:0,dailySeriesCount:out.length,firstDate:out[0]?.date||null,lastDate:out.at(-1)?.date||null,ascending:out.every((b,i)=>!i||b.date>out[i-1].date),onlyCompletedBars:m.onlyCompletedBars===true,...extra};
++ return r;
++}
++function seal(report,{evidence,originalRows,officialRecoveryEvidence=[],snapshotVerified=false,predecessor=null}={}){
++ if(!report||!Array.isArray(report.dailySeries)||!report.dailySeries.length)return report;
++ const r=refresh(report,report.dailySeries),prior=report.dataContract;
++ const original=clone(originalRows||report.originalDailySeries||report.dailySeries);
++ r.originalDailySeries=original;
++ const c={schemaVersion:SCHEMA,sourceVersion:VERSION,source:r.dailySeriesMeta.source||null,sourceMode:r.scanMode||r.dailySeriesMeta.mode||'FULL',stock:String(r.stock||r.code||''),market:String(r.market||'').toUpperCase(),closeDate:r.closeDate,completed:r.completed!==false&&r.isComplete!==false&&r.dailySeriesMeta.onlyCompletedBars===true,onlyCompletedBars:r.dailySeriesMeta.onlyCompletedBars===true,volumeUnit:'shares',volumeUnitSource:clone(evidence||prior?.volumeUnitSource||[]),historyBarCount:r.dailySeries.length,originalHistoryFingerprint:fingerprint(original),normalizedHistoryFingerprint:fingerprint(r.dailySeries),officialRecoveryApplied:officialRecoveryEvidence.length>0,officialRecoveryEvidence:clone(officialRecoveryEvidence),snapshotVerified:snapshotVerified===true,revision:predecessor?{reason:'OFFICIAL_GAP_RECOVERY',predecessor}:null};
++ r.dataContract=c;r.volumeUnit='shares';r.completed=c.completed;r.isComplete=c.completed;
++ r.dailySeriesMeta={...r.dailySeriesMeta,schemaVersion:SCHEMA,volumeUnit:'shares',volumeUnitSource:c.volumeUnitSource};
++ return r;
++}
++function auditQuote(q){
++ const official=q.officialTradeValue??(q.tradeValueSource==='ESTIMATED_CLOSE_X_VOLUME'?null:q.tradeValue),volume=Number(q.volume),avg=Number(official)/volume;
++ const available=official!=null&&Number(official)>0&&volume>0;
++ const conflict=available&&(avg<Number(q.low)-.02||avg>Number(q.high)+.02);
++ return {...q,volumeUnit:q.volumeUnit||'shares',volumeSource:q.volumeSource||'OFFICIAL_MARKET_SNAPSHOT',volumeScope:q.volumeScope||'OFFICIAL_REPORTED_SCOPE_UNVERIFIED',tradeValueScope:q.tradeValueScope||'OFFICIAL_REPORTED_SCOPE_UNVERIFIED',volumeScopeAudit:{status:conflict?'UNRESOLVED_SCOPE_CONFLICT':available?'RANGE_CONSISTENT_SCOPE_UNVERIFIED':'AMOUNT_UNAVAILABLE',impliedAverage:available?avg:null,formalVolumeEligible:!conflict,reason:conflict?'成交金額／股數與日K區間口徑待查證；保留原值，不認定假行情':''}};
++}
++function verify(report){
++ const c=report?.dataContract,rows=report?.dailySeries,original=report?.originalDailySeries;
++ const bad=reason=>({ok:false,reason});
++ if(!c||c.schemaVersion!==SCHEMA||c.sourceVersion!==VERSION)return bad('未知結構化資料契約版本');
++ if(report.dailySeriesMeta?.schema!=='daily-ohlcv-v1'||c.sourceMode!==(report.scanMode||report.dailySeriesMeta?.mode||'FULL'))return bad('結構化日K格式／模式衝突');
++ if(!Array.isArray(rows)||!rows.length||!Array.isArray(original)||!original.length)return bad('缺少可追蹤原始日K');
++ if(c.stock!==String(report.stock||report.code||'')||c.market!==String(report.market||'').toUpperCase()||c.closeDate!==report.closeDate)return bad('結構化資料身分衝突');
++ if(c.completed!==true||c.onlyCompletedBars!==true||report.dailySeriesMeta?.onlyCompletedBars!==true)return bad('未確認完成日K');
++ if(c.volumeUnit!=='shares'||c.historyBarCount!==rows.length||!['FULL','CORE','DAILY_ONLY','SCAN_LITE','MOMENTUM_LITE'].includes(c.sourceMode))return bad('結構化成交量單位／根數／模式衝突');
++ if(c.originalHistoryFingerprint!==fingerprint(original)||c.normalizedHistoryFingerprint!==fingerprint(rows))return bad('原始／標準化指紋不符');
++ if(original.some(b=>b.stock&&String(b.stock)!==c.stock||b.code&&String(b.code)!==c.stock||b.market&&String(b.market).toUpperCase()!==c.market))return bad('原始日K股票／市場身分衝突');
++ if(!Array.isArray(c.volumeUnitSource)||!c.volumeUnitSource.length)return bad('缺少成交量解析器證據');
++ for(const e of c.volumeUnitSource){const a=adapters[e.adapter];if(!a||e.field!==a.field||e.inputUnit!==a.inputUnit||e.multiplier!==a.multiplier||e.outputUnit!=='shares')return bad('成交量來源證據或單位衝突');}
++ if(typeof c.snapshotVerified!=='boolean'||typeof c.officialRecoveryApplied!=='boolean'||!Array.isArray(c.officialRecoveryEvidence))return bad('驗證狀態格式錯誤');
++ if(c.officialRecoveryApplied!==!!c.officialRecoveryEvidence.length)return bad('官方補K宣告缺少證據');
++ for(const e of c.officialRecoveryEvidence){
++  const row=rows.find(b=>b.date===e.date),adapter=adapters[e.adapter];
++  if(!row||!adapter||!['TWSE_STOCK_DAY','TPEX_DAILY_HISTORY','VERIFIED_LATEST_SNAPSHOT','GITHUB_VERIFIED_OFFICIAL_DAILY_ARCHIVE'].includes(e.adapter)||e.stock!==c.stock||e.market!==c.market||e.volumeUnit!=='shares'||e.rowFingerprint!==fingerprint([row]))return bad('官方補K證據未對齊日K');
++ }
++ return {ok:true,contract:c};
++}
++return Object.freeze({SCHEMA,VERSION,adapters,bars,fingerprint,unitEvidence,refresh,seal,verify,auditQuote});
++});
++
++// END EMBEDDED DAILY CONTRACT
+ // 石頭少爺 Agent V49 R4.9.3｜DAILY_ONLY＋MOMENTUM_LITE 輕量掃描模式。
+ // - DAILY_ONLY 只回傳最近160根已完成OHLCV；略過月K、Fib、Tactical、Decision Layer，供前端三盤/8-21-55/5-13-34/費波自行計算。
+ // 石頭少爺 Agent V40 正式版｜批次掃描降載＋報告一致性修正。
+@@ -5,7 +63,7 @@
+ // - 最終候選可再用預設 FULL profile 取得三週期適配；CORE 不污染共用 SCAN_LITE 結果快取。
+ // - 只澄清不同時間窗低點語意與中短波段空間比名稱，不改正式分數公式。
+ // - V40 Action Gate：統一個股頁與盤前榜的條件不足／等待突破／追價風險／第一壓力空間判讀；只覆蓋級別與名次資格，不改任何原始分數。
+-const VERSION = "石頭少爺 Agent V49 正式版｜R5.3.2.4.26-R4.9.3-CLOSED-BAR.1｜選股一致性與完整性修正版";
++const VERSION = "石頭少爺 Agent V49 正式版｜R5.3.2.4.26-R4.9.3-CLOSED-BAR.1-CONTRACT.1｜選股一致性與完整性修正版";
+ 
+ // V39 B11 RC2｜SCAN_LITE 快取/投影淨化修正。
+ // - 修正 FULL 分析快取投影成 SCAN_LITE 時，B5/B6 research audit 可能被重新帶回的契約漏洞。
+@@ -120,7 +178,7 @@ const SCAN_LITE_MONTHLY_FETCH_LIMIT = 1;
+ // V2.9.0：零設定漸進式官方資料快取。
+ // 若另外綁定 Workers KV（binding 名稱：STOCK_CACHE），會優先使用 KV；
+ // 未綁定也可直接貼上部署，會自動使用 caches.default。
+-const OFFICIAL_CACHE_SCHEMA = "official-month-cache-v1";
++const OFFICIAL_CACHE_SCHEMA = "official-month-cache-v2-contract-1";
+ const OFFICIAL_CACHE_MAX_MONTHS = 72;
+ const OFFICIAL_CACHE_TTL_SECONDS = 7 * 24 * 60 * 60;
+ const CURRENT_MONTH_CACHE_MAX_AGE_MS = 20 * 60 * 1000;
+@@ -140,7 +198,7 @@ const MARKET_ROUTE_CACHE_SCHEMA = "market-route-cache-v4";
+ const MARKET_ROUTE_CACHE_KEY_PATH = "/__shitou_internal_cache__/market-route";
+ const MARKET_ROUTE_CACHE_TTL_SECONDS = 24 * 60 * 60;
+ const TPEX_CANDIDATE_ROUTE_CACHE_TTL_SECONDS = 6 * 60 * 60;
+-const LOCATOR_CACHE_SCHEMA = "yahoo-locator-cache-v2-closed-session-guard";
++const LOCATOR_CACHE_SCHEMA = "yahoo-locator-cache-v3-contract-1";
+ const LOCATOR_CACHE_KEY_PATH = "/__shitou_internal_cache__/yahoo-locator";
+ const LOCATOR_CACHE_TTL_SECONDS = 30 * 60;
+ 
+@@ -2427,7 +2485,7 @@ async function fetchTwseMisLatestCompletedDaily(stock, market, budget, withDebug
+       return { row: null, debug: withDebug ? detail : undefined };
+     }
+ 
+-    const row = { date, open, high, low, close, volume };
++    const row = { date, open, high, low, close, volume, volumeAdapter:'TWSE_MIS' };
+     detail.applied = true;
+     detail.reason = "latest-completed-snapshot-ready";
+     detail.row = row;
+@@ -5546,7 +5604,7 @@ async function fetchYahooHistory(symbol, monthsBack, withDebug = false, budget =
+         `${d.getUTCFullYear()}-` +
+         `${String(d.getUTCMonth() + 1).padStart(2, "0")}-` +
+         `${String(d.getUTCDate()).padStart(2, "0")}`;
+-      rows.push({ date, open, high, low, close, volume });
++      rows.push({ date, open, high, low, close, volume, volumeAdapter:'YAHOO_CHART' });
+     }
+ 
+     rows.sort((a, b) => a.date.localeCompare(b.date));
+@@ -5821,7 +5879,7 @@ function parseTwseMarketRow(row) {
+     return null;
+   }
+ 
+-  return { date, open, high, low, close, volume };
++  return { date, open, high, low, close, volume, volumeAdapter:'TWSE_STOCK_DAY' };
+ }
+ 
+ function parseTpexMarketRow(row) {
+@@ -5839,7 +5897,7 @@ function parseTpexMarketRow(row) {
+     return null;
+   }
+ 
+-  return { date, open, high, low, close, volume };
++  return { date, open, high, low, close, volume, volumeAdapter:'TPEX_DAILY_HISTORY' };
+ }
+ 
+ function buildMonthlyBarsFromDailyRows(rows) {
+@@ -6163,11 +6221,15 @@ function buildDailySeriesMeta(rows, dailySeries, source) {
+ 
+   return {
+     schema: "daily-ohlcv-v1",
++    volumeUnit: "shares",
++    volumeUnitSource: completed.filter(r=>dailySeries.some(b=>b.date===r.date)).every(r=>globalThis.ShitouWorkerDataContractV1.adapters[r.volumeAdapter]) ? globalThis.ShitouWorkerDataContractV1.unitEvidence([...new Set(completed.map(r=>r.volumeAdapter).filter(Boolean))]) : [],
++    upstreamHistoryCounts: {completedDailyRowsAvailable:completed.length,completeOhlcvRowsAvailable:completeOhlcvCount},
++    countScope: "RETURNED_SERIES",
+     requestedBars: DAILY_SERIES_RETURN_BARS,
+     minRecommendedBars: DAILY_SERIES_MIN_RECOMMENDED_BARS,
+     returnedBars: dailySeries.length,
+-    completedDailyRowsAvailable: completed.length,
+-    completeOhlcvRowsAvailable: completeOhlcvCount,
++    completedDailyRowsAvailable: dailySeries.length,
++    completeOhlcvRowsAvailable: dailySeries.length,
+     firstDate: dailySeries[0]?.date || null,
+     lastDate: dailySeries[dailySeries.length - 1]?.date || null,
+     ascending: true,
+@@ -6194,6 +6256,7 @@ function getCompletedDailyRows(rows) {
+     if (row.date > now.date) continue;
+     if (row.date === now.date && currentMinutes < cutoffMinutes) continue;
+     // The previous stable sort also retained the last input row for each date.
++    if(byDate.has(row.date)&&globalThis.ShitouWorkerDataContractV1.fingerprint([byDate.get(row.date)])!==globalThis.ShitouWorkerDataContractV1.fingerprint([row]))throw Error('HISTORY_CONFLICT｜同來源重複交易日OHLCV衝突');
+     byDate.set(row.date, row);
+   }
+   const completed = [...byDate.values()];
+@@ -9994,6 +10057,11 @@ function sleep(ms) {
+ }
+ 
+ function jsonResponse(data, status, corsHeaders) {
++  if (data?.stock && data?.dailySeriesMeta?.schema==='daily-ohlcv-v1') {
++    data=globalThis.ShitouWorkerDataContractV1.seal(data,{evidence:data.dailySeriesMeta.volumeUnitSource});
++    const audit=globalThis.ShitouWorkerDataContractV1.verify(data);
++    if(!audit.ok){data={version:VERSION,stock:data.stock,market:data.market,error:'DATA_INVALID｜'+audit.reason,failureCode:'DATA_INVALID'};status=422;}
++  }
+   return new Response(JSON.stringify(data), {
+     status,
+     headers: {
+@@ -10003,3 +10071,5 @@ function jsonResponse(data, status, corsHeaders) {
+     }
+   });
+ }
++
++export {buildDailySeriesMeta,serializeDailySeriesForFrontend,getCompletedDailyRows,projectScanLitePayloadV29130,jsonResponse};

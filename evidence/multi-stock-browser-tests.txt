@@ -1,0 +1,7 @@
+{"code":"9933","name":"中鼎","state":"HEALTHY_PULLBACK","sameEntries":7,"technicalAvailable":true}
+{"code":"2330","name":"台積電","state":"INSUFFICIENT_DATA","sameEntries":7,"technicalAvailable":false}
+{"code":"2317","name":"鴻海","state":"OBSERVATION","sameEntries":7,"technicalAvailable":true}
+{"code":"8039","name":"台虹","state":"BREAKOUT_FAILURE","sameEntries":7,"technicalAvailable":true}
+{"code":"4939","name":"亞電","state":"OBSERVATION","sameEntries":7,"technicalAvailable":true}
+{"code":"1815","name":"富喬","state":"OBSERVATION","sameEntries":7,"technicalAvailable":true}
+{"code":"2059","name":"川湖","state":"OBSERVATION","sameEntries":7,"technicalAvailable":true}

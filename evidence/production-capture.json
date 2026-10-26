@@ -1,0 +1,57 @@
+{
+  "capturedAt": "2026-10-26T01:03:26.763Z",
+  "readOnly": true,
+  "responses": {
+    "page": {
+      "url": "https://isu9922004a.github.io/VIP-BOWTOWER-4-SEARCH/version-v50.js",
+      "status": 200,
+      "bytes": 1479,
+      "headers": {
+        "content-type": "application/javascript; charset=utf-8",
+        "date": "Mon, 26 Oct 2026 01:03:29 GMT",
+        "etag": "W/\"6ade2b0b-5e5\""
+      }
+    },
+    "snapshot": {
+      "url": "https://shitou-taiwanmarket-api.d318426.workers.dev/?market=ALL_STOCKS",
+      "status": 200,
+      "bytes": 1098246,
+      "headers": {
+        "content-type": "application/json; charset=utf-8",
+        "date": "Mon, 26 Oct 2026 01:03:30 GMT",
+        "x-shitou-cache": "MISS"
+      }
+    },
+    "daily": {
+      "url": "https://shitou-taiwanmarket-api.d318426.workers.dev/?market=DEEP_SCAN&codes=6173,4526&markets=TPEX,TWSE&profile=DAILY_ONLY&debug=1",
+      "status": 200,
+      "bytes": 33707,
+      "headers": {
+        "content-type": "application/json; charset=utf-8",
+        "date": "Mon, 26 Oct 2026 01:03:31 GMT",
+        "x-shitou-cache": "MISS"
+      }
+    },
+    "stockDaily": {
+      "url": "https://shitou-agent-fib-api.d318426.workers.dev/?stock=6173&marketHint=TPEX&mode=DAILY_ONLY",
+      "status": 200,
+      "bytes": 15890,
+      "headers": {
+        "content-type": "application/json; charset=utf-8",
+        "date": "Mon, 26 Oct 2026 01:03:33 GMT",
+        "x-shitou-scan-mode": "DAILY_ONLY",
+        "x-shitou-scan-profile": "DAILY_ONLY"
+      }
+    },
+    "stockFull": {
+      "url": "https://shitou-agent-fib-api.d318426.workers.dev/?stock=6173&marketHint=TPEX",
+      "status": 200,
+      "bytes": 78251,
+      "headers": {
+        "content-type": "application/json; charset=utf-8",
+        "date": "Mon, 26 Oct 2026 01:03:34 GMT",
+        "x-shitou-result-cache": "MISS"
+      }
+    }
+  }
+}
