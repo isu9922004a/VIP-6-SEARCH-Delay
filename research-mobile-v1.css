@@ -58,3 +58,5 @@
 @media(max-width:370px){.research-inline .research-stock-metrics{grid-template-columns:minmax(0,1fr)}.research-inline .research-stock-metric{flex-direction:row;justify-content:space-between;align-items:center}}
 /* Preserve the separate confirmed / failed / unknown paragraphs on phones. */
 .research-inline .research-card-value{white-space:pre-line}
+
+.research-holding{display:grid;gap:12px;margin-top:16px}.research-holding label{display:grid;gap:6px}.research-holding input{box-sizing:border-box;max-width:100%;width:100%;padding:12px;font-size:16px;color:#fff;background:#173958;border:1px solid #8dd4ff;border-radius:8px}.research-holding button{min-height:44px}
