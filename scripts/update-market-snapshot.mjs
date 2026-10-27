@@ -653,6 +653,25 @@ export async function buildSnapshot({twseQuoteRows,tpexQuoteRows,twseCompanyRows
   };
 }
 
+// A latest-feed outage must not prevent recovery from the independent dated endpoint.
+// Request date is never used to relabel a response: reconcile/build verify every row.
+export async function loadOfficialQuotePair({calendar=null,now=new Date(),fetchLatest=fetchJsonArray,
+  fetchTwseByDate=fetchTwseQuotesByDate,fetchTpexByDate=fetchTpexQuotesByDate}={}) {
+  const expected=expectedCompletedDate(calendar,now);
+  const latest=await Promise.allSettled([
+    fetchLatest(SOURCES.twseQuotes,'TWSE STOCK_DAY_ALL'),
+    fetchLatest(SOURCES.tpexQuotes,'TPEx daily_close_quotes')
+  ]);
+  const [twse,tpex]=await Promise.all(latest.map(async (result,index)=>{
+    if(result.status==='fulfilled'&&latestMarketQuoteDate(result.value.rows))return result.value;
+    const reason=result.status==='rejected'?String(result.reason?.message||result.reason):'latest source date missing';
+    const dated=await (index===0?fetchTwseByDate:fetchTpexByDate)(expected);
+    if(latestMarketQuoteDate(dated.rows)!==expected)throw Error(`${index===0?'TWSE':'TPEx'} dated recovery mismatch: expected ${expected}`);
+    return {...dated,recoveryFromLatestFailure:reason};
+  }));
+  return {twse,tpex};
+}
+
 export async function main() {
   // When an already-published snapshot matches a confirmed closed-day
   // expectation, avoid pointless network requests and preserve its bytes.
@@ -674,12 +693,6 @@ export async function main() {
     console.log(`CONFIRMED_MARKET_CLOSED: ${clock.today}｜${clock.officialClosure.name}｜來源 ${clock.officialClosure.source}`);
   }
   console.log('Fetching official TWSE / TPEx market snapshot...');
-  const [twseLatest,tpexQuotes,twseCompanies,tpexCompanies] = await Promise.all([
-    fetchJsonArray(SOURCES.twseQuotes, 'TWSE STOCK_DAY_ALL'),
-    fetchJsonArray(SOURCES.tpexQuotes, 'TPEx daily_close_quotes'),
-    fetchJsonArray(SOURCES.twseCompanies, 'TWSE company list'),
-    fetchJsonArray(SOURCES.tpexCompanies, 'TPEx company list')
-  ]);
   let marketCalendar={ready:false,source:SOURCES.twseHolidaySchedule,closures:[],specialTradingDates:[]};
   try {
     const holiday=await fetchJsonArray(SOURCES.twseHolidaySchedule,'TWSE holiday schedule');
@@ -689,13 +702,18 @@ export async function main() {
     console.warn(`TWSE market calendar unavailable; 2026 fallback only｜${error?.message||error}`);
   }
 
+  const [{twse:twseLatest,tpex:tpexQuotes},twseCompanies,tpexCompanies] = await Promise.all([
+    loadOfficialQuotePair({calendar:marketCalendar,now}),
+    fetchJsonArray(SOURCES.twseCompanies,'TWSE company list'),
+    fetchJsonArray(SOURCES.tpexCompanies,'TPEx company list')
+  ]);
   const initialTwseDate = latestMarketQuoteDate(twseLatest.rows);
   const initialTpexDate = latestMarketQuoteDate(tpexQuotes.rows);
   console.log(`Latest source dates: TWSE ${initialTwseDate || 'unknown'}｜TPEx ${initialTpexDate || 'unknown'}`);
 
   let reconciled;
   try {
-    reconciled = await reconcileLatestTradeDate(twseLatest, tpexQuotes, {calendar:marketCalendar});
+    reconciled = await reconcileLatestTradeDate(twseLatest, tpexQuotes, {calendar:marketCalendar,now});
   } catch (error) {
     throw new Error(`完成交易日校正失敗｜TWSE ${initialTwseDate || '未知'}｜TPEx ${initialTpexDate || '未知'}｜${error?.message || error}`);
   }
@@ -722,6 +740,7 @@ export async function main() {
         finalUrl:reconciled.twse.finalUrl,
         attempt:reconciled.twse.attempt,
         source:reconciled.twse.source || 'STOCK_DAY_ALL',
+        latestFailure:twseLatest.recoveryFromLatestFailure||null,
         initialDate:initialTwseDate,
         finalDate:finalTwseDate
       },
@@ -730,6 +749,7 @@ export async function main() {
         finalUrl:reconciled.tpex.finalUrl,
         attempt:reconciled.tpex.attempt,
         source:reconciled.tpex.source || 'tpex_mainboard_daily_close_quotes',
+        latestFailure:tpexQuotes.recoveryFromLatestFailure||null,
         initialDate:initialTpexDate,
         finalDate:finalTpexDate
       },
@@ -741,6 +761,7 @@ export async function main() {
 
   const previous = await readJsonIfExists(LATEST_PATH);
   verifySnapshotAdvancement(snapshot, previous);
+  verifyMarketSnapshotCoverage(snapshot);
   try {
     snapshot.exclusionStatus = await updateScanExclusions(snapshot.tradeDate,ROOT);
   } catch (error) {

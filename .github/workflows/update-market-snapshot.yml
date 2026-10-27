@@ -10,9 +10,9 @@ on:
       - 'scripts/verify-market-snapshot.mjs'
       - 'scripts/tests/update-market-snapshot.test.mjs'
   schedule:
-    # UTC. Taipei 17:43-23:43; repeat off peak while official data catches up.
-    - cron: '3,23,43 10-15 * * 1-5'
-    - cron: '43,53 9 * * 1-5'
+    # UTC. Retry through Taipei next morning if the post-close scheduler is delayed.
+    # Scheduled Actions are best-effort; workflow_dispatch and push also recover a missed run.
+    - cron: '7,27,47 9-23 * * 1-5'
     - cron: '27 23 * * 0-4'
 permissions:
   contents: write
@@ -45,6 +45,11 @@ jobs:
           done
           echo "::error::Official same-date market data unavailable. Old snapshot retained; scans must wait."
           exit 1
+      - name: Record freshness audit
+        if: always()
+        shell: bash
+        run: |
+          node scripts/verify-market-snapshot.mjs >> "$GITHUB_STEP_SUMMARY" 2>&1 || true
       - name: Commit verified market data
         shell: bash
         run: |
@@ -58,4 +63,10 @@ jobs:
           git add -- data/market
           TRADE_DATE=$(node -e "process.stdout.write(String(require('./data/market/latest.json').tradeDate))")
           git commit -m "data: verified complete market snapshot ${TRADE_DATE}"
-          git push
+          for attempt in 1 2 3; do
+            git pull --rebase origin main
+            node scripts/verify-market-snapshot.mjs
+            if git push origin HEAD:main; then exit 0; fi
+          done
+          echo '::error::Verified data could not be published; do not report success.'
+          exit 1

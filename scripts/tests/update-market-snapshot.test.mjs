@@ -81,3 +81,21 @@ test('previously persisted snapshot must have genuine matching stock dates and c
   assert.throws(()=>verifyMarketSnapshotCoverage({...snapshot,rows:[...rows.slice(0,-1),{...rows.at(-1),quoteDate:'20261021'}]}),/date\/code invalid/);
   assert.throws(()=>verifyMarketSnapshotCoverage({...snapshot,counts:{twseRows:800,tpexRows:601,totalRows:1401}}),/incomplete/);
 });
+
+const {loadOfficialQuotePair}=await import('../update-market-snapshot.mjs');
+test('latest source outage independently recovers only that market by expected completed date',async()=>{
+ const calls=[];
+ const pair=await loadOfficialQuotePair({calendar,now:twTime('2026-10-27'),
+  fetchLatest:async(_,label)=>{if(label.startsWith('TPEx'))throw Error('HTTP 503');return latest('20261027');},
+  fetchTpexByDate:async d=>{calls.push(d);return latest(d);},fetchTwseByDate:async()=>{throw Error('must not refetch TWSE');}});
+ assert.deepEqual(calls,['20261027']);assert.equal(pair.tpex.recoveryFromLatestFailure,'HTTP 503');
+ assert.equal(pair.twse.rows[0].Date,'20261027');
+});
+test('a dated recovery cannot relabel an old response as today',async()=>{
+ await assert.rejects(loadOfficialQuotePair({calendar,now:twTime('2026-10-27'),fetchLatest:async()=>{throw Error('offline');},fetchTwseByDate:async()=>latest('20261022'),fetchTpexByDate:async()=>latest('20261027')}),/recovery mismatch/);
+});
+test('intraday fallback still requests the previous verified completed session',async()=>{
+ const calls=[];const dated=async d=>{calls.push(d);return latest(d);};
+ await loadOfficialQuotePair({calendar,now:twTime('2026-10-27','10:00'),fetchLatest:async()=>{throw Error('offline');},fetchTwseByDate:dated,fetchTpexByDate:dated});
+ assert.deepEqual(calls,['20261022','20261022']);
+});
