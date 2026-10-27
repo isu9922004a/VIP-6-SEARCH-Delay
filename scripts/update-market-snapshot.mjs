@@ -13,6 +13,7 @@ const ROOT = process.cwd();
 const LATEST_PATH = path.join(ROOT, 'data/market/latest.json');
 const ARCHIVE_DIR = path.join(ROOT, 'data/market/archive');
 const MAX_ARCHIVES = 30;
+export const SNAPSHOT_UPDATE_VERSION = 'DATAFIX.20261027.1';
 
 // The annual TWSE holiday API does not necessarily include an emergency
 // closure announced on the preceding day. Keep manually verified exceptions
@@ -692,7 +693,7 @@ export async function main() {
   if (clock.officialClosure) {
     console.log(`CONFIRMED_MARKET_CLOSED: ${clock.today}｜${clock.officialClosure.name}｜來源 ${clock.officialClosure.source}`);
   }
-  console.log('Fetching official TWSE / TPEx market snapshot...');
+  console.log(`${SNAPSHOT_UPDATE_VERSION}: Fetching official TWSE / TPEx market snapshot...`);
   let marketCalendar={ready:false,source:SOURCES.twseHolidaySchedule,closures:[],specialTradingDates:[]};
   try {
     const holiday=await fetchJsonArray(SOURCES.twseHolidaySchedule,'TWSE holiday schedule');
