@@ -1,4 +1,28 @@
 (function(root){'use strict';
+const TRANSPORT_VERSION='RESTAURANT_TRANSPORT.2',REQUEST_TIMEOUT_MS=95000,BATCH_BUDGET_MS=150000;
+// Retry transport failures per ticker, retaining verified peers and stopping on data errors.
+async function recoverBatch(items,{request,classify,shouldStop=()=>false,pause=ms=>new Promise(r=>setTimeout(r,ms)),now=()=>Date.now()}){
+ const records=new Map(),deadline=now()+BATCH_BUDGET_MS;let pending=items.slice();
+ const cancelled=()=>{if(shouldStop())throw Object.assign(Error('使用者停止'),{name:'AbortError'});};
+ const retryable=r=>r?.retryable!==false&&classify(r)==='TRANSIENT_SERVICE_ERROR'&&!/SERVICE_BINDING|HTTP (?:400|401|403|404|405|410|422)\b|格式錯誤/.test(String(r?.error||''));
+ for(let round=0;round<3&&pending.length;round++){
+  cancelled();if(round)await pause(350*round);cancelled();const next=[],size=round===0?items.length:round===1?2:1;
+  for(let at=0;at<pending.length;at+=size){cancelled();const part=pending.slice(at,at+size),remaining=deadline-now();
+   if(remaining<=0){for(const item of pending.slice(at))records.set(String(item.code),{code:String(item.code),ok:false,failureCode:'TRANSIENT_SERVICE_ERROR',retryable:false,error:'本批服務重試時間已用完；未完成股票不視為策略淘汰'});break;}
+   let payload,problem;
+   try{payload=await request(part,round+1,Math.min(REQUEST_TIMEOUT_MS,remaining));if(payload?.type!=='MOMENTUM_DEEP_SCAN'||!Array.isArray(payload.results))throw Error('第五策略深掃格式錯誤');}catch(e){cancelled();problem=e;}
+   cancelled();
+   for(const item of part){const code=String(item.code),hits=(payload?.results||[]).filter(x=>String(x.code||x.data?.stock||x.data?.code||'')===code);
+    const failure=problem?{code,ok:false,error:problem.name==='AbortError'?'行情服務逾時，尚未完成':String(problem.message||problem)}:hits.length!==1?{code,ok:false,failureCode:'DATA_INVALID',retryable:false,error:'深掃回傳缺失或重複，禁止當成有效股票'}:hits[0];
+    const value={...failure,code};records.set(code,value);
+    if(!value.ok&&round<2&&retryable(value))next.push(item);
+   }
+  }
+  pending=next;
+ }
+ return {type:'MOMENTUM_DEEP_SCAN',transportVersion:TRANSPORT_VERSION,results:items.map(i=>records.get(String(i.code))||{code:String(i.code),ok:false,error:'服務未完成',retryable:false})};
+}
+if(typeof module==='object'&&module.exports){module.exports={recoverBatch,REQUEST_TIMEOUT_MS,BATCH_BUDGET_MS,TRANSPORT_VERSION};return;}
 const C=root.ShitouRestaurantCore,S=root.ShitouRestaurantScanner,D=root.ShitouSelectionDataV2,F=root.ShitouStrongStockFilterV47;
 if(!C||!S||!D||!F)throw Error('第五濾網共用模組未載入');
 let running=false,stopped=false,last=null,requests=0;const controllers=new Set(),reportCache=new Map();
@@ -25,8 +49,8 @@ function render(scan){S.assertSnapshot(scan);last=scan;const host=by('Result');i
  const detail=el('details'),summary=el('summary','完整逐檔紀錄、未入選與失敗原因'),pre=el('pre',scan.text);detail.append(summary,pre);host.appendChild(detail);
  const run=root.ShitouIndicatorShadow?.capture('RESTAURANT',scan);if(run)root.ShitouIndicatorShadow.mount(run,'restaurantResult');progress(scan.attempted,scan.planned);finishUI();
 }
-async function request(part,date,attempt=1){
- const controller=new AbortController();controllers.add(controller);const timer=setTimeout(()=>controller.abort(),25000);requests++;
+async function request(part,date,attempt=1,timeoutMs=REQUEST_TIMEOUT_MS){
+ const controller=new AbortController();controllers.add(controller);const timer=setTimeout(()=>controller.abort(),Math.min(REQUEST_TIMEOUT_MS,timeoutMs));requests++;
  try{const base=typeof MARKET_API_BASE_URL!=='undefined'?MARKET_API_BASE_URL:'https://shitou-taiwanmarket-api.d318426.workers.dev',codes=part.map(i=>i.code).join(','),markets=part.map(i=>String(i.q.market).toUpperCase()).join(',');
   const response=await fetch(`${base}/?market=DEEP_SCAN&profile=DAILY_ONLY&codes=${encodeURIComponent(codes)}&markets=${encodeURIComponent(markets)}&_restaurant_refresh=${Date.now()}_${attempt}`,{cache:'no-store',headers:{Accept:'application/json'},signal:controller.signal});
   if(!response.ok)throw Error('Worker HTTP '+response.status);const payload=await response.json();if(payload.type!=='MOMENTUM_DEEP_SCAN'||!Array.isArray(payload.results))throw Error('第五策略深掃格式錯誤');
@@ -36,10 +60,7 @@ async function request(part,date,attempt=1){
  }finally{clearTimeout(timer);controllers.delete(controller);}
 }
 async function remote(part,date){
- if(stopped)throw Error('使用者停止');let error;
- for(let attempt=1;attempt<=2&&!stopped;attempt++)try{const payload=await request(part,date,attempt);if(attempt===1&&payload.results.some(r=>!r.ok&&/日期|不同日|快照|過期/.test(String(r.error||''))))throw Error('資料日期仍未一致，重新取得一次');return payload;}catch(e){error=e;if(/HTTP (?:400|401|403|404|405|410|422)\b|格式錯誤/.test(String(e.message||e)))break;}
- if(part.length>1&&!stopped&&!/HTTP (?:400|401|403|404|405|410|422)\b|格式錯誤/.test(String(error?.message||error))){const results=[];for(let i=0;i<part.length&&!stopped;i+=2){const small=part.slice(i,i+2);try{const p=await request(small,date,3);results.push(...p.results);}catch(e){results.push(...small.map(x=>({code:x.code,ok:false,error:String(e.message||e)})));}}return {type:'MOMENTUM_DEEP_SCAN',results};}
- throw error||Error('使用者停止');
+ return recoverBatch(part,{request:(items,attempt,timeout)=>request(items,date,attempt,timeout),classify:D.classifyFailure,shouldStop:()=>stopped});
 }
 async function fetchBatch(part,date){
  const results=[],need=[];for(const item of part){const p=D.get(item.code),cached=reportCache.get(item.code);if(p&&!p.error&&cached?.key===p.key&&cached.fingerprint===p.fingerprint)try{results.push({code:item.code,ok:true,data:D.apply(cached.report,item.code)});continue;}catch(_){}need.push(item);}
@@ -106,5 +127,5 @@ function install(){
  @media(max-width:600px){.restaurant-panel .strong-stock-actions .btn{flex:1;min-width:0}.restaurant-panel .strong-stock-image-actions{flex-direction:column}.restaurant-panel .copy-btn{min-width:0;width:100%;box-sizing:border-box}}
  `;document.head.appendChild(style);
 }
-root.ShitouRestaurantUI=Object.freeze({run,stop,render,fetchBatch,request,text,getLast:()=>last,isRunning:()=>running,install});install();
+root.ShitouRestaurantUI=Object.freeze({transportVersion:TRANSPORT_VERSION,requestTimeoutMs:REQUEST_TIMEOUT_MS,run,stop,render,fetchBatch,request,text,getLast:()=>last,isRunning:()=>running,install});install();
 })(globalThis);

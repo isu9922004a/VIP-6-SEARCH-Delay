@@ -60,7 +60,7 @@ async function scan({pool:plan,meta,fetchBatch,eventWindow=3,requestedMode='300'
    result.results.push(c);consecutiveService=0;
   }
   finish(result);onProgress(result);
-  if(consecutiveService>=8){result.breaker='連續8檔行情服務未完成，停止本輪並保留部分結果';break;}
+  if(consecutiveService>=8){const reasons=[...new Set(result.issues.filter(x=>x.kind==='SERVICE').slice(-8).map(x=>x.reason))];result.breaker='連續8檔行情服務未完成，停止本輪並保留部分結果｜'+reasons.slice(0,2).map(x=>String(x).slice(0,180)).join('；');break;}
  }
  if(shouldStop())result.stopped=true;
  finish(result);return snapshot(result);

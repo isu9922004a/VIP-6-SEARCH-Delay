@@ -27,7 +27,7 @@ function isDataFailure(record){
  if(['DATA_INVALID','STALE_DATA','SNAPSHOT_CONFLICT','HISTORY_CONFLICT','INSUFFICIENT_HISTORY','SYSTEMIC_FAILURE'].includes(record?.failureCode))return true;
  return record?.dataUnavailable===true||/\b(?:DATA_HISTORY_GAP|HISTORY_AHEAD_OF_OFFICIAL_SNAPSHOT|HISTORY_TOO_SHORT|INSUFFICIENT_HISTORY|NO_HISTORY|DATA_UNAVAILABLE|HISTORY_GAP_[A-Z_]+|CLOSED_BAR_[A-Z_]+)\b|資料不足｜|共用日K[：:]/i.test(reason);
 }
-function failureRecord(record){if(!record||record.ok)return record;const failureCode=classifyFailure(record),data=!['SOURCE_UNAVAILABLE','TRANSIENT_SERVICE_ERROR'].includes(failureCode);return {...record,failureCode,dataUnavailable:data,failureKind:data?'DATA':'SERVICE',retryable:failureCode==='TRANSIENT_SERVICE_ERROR'};}
+function failureRecord(record){if(!record||record.ok)return record;const failureCode=classifyFailure(record),data=!['SOURCE_UNAVAILABLE','TRANSIENT_SERVICE_ERROR'].includes(failureCode);return {...record,failureCode,dataUnavailable:data,failureKind:data?'DATA':'SERVICE',retryable:record.retryable!==false&&failureCode==='TRANSIENT_SERVICE_ERROR'};}
 
 const market=v=>String(v||'').toUpperCase()==='TPEX'?'TPEX':String(v||'').toUpperCase()==='TWSE'?'TWSE':null;
 function fingerprint(rows){const text=JSON.stringify(rows);let h=2166136261;for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619);}return rows.length+'-'+(h>>>0).toString(16);}
