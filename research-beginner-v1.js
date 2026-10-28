@@ -19,7 +19,7 @@ function riskText(rr){
 }
 function projectionText(n){const q=n?.pattern;if(!q)return '沒有清楚的三個轉折點，先不猜測上漲目標。';return `${dead(q)?'舊走勢的':'假設再漲第一段的距離，'}試算價（D）為${money(q.projection.price)}。${dead(q)?'原計畫已停止採用，不能把它當成本次目標。':'只是估算，不是保證會到的目標，也不是已確認的壓力。'}`;}
 function chartContext(a,d){const n=a.nContinuation,q=n?.pattern;
- const definitions=[['上漲要先越過哪裡',d.trigger,'收盤跨過後，還要看成交量與後續能否守住。'],['原買進想法何時要重查',d.invalidation,'這是該情境的失效線，不保證能在此成交停損。'],['下跌先觀察哪裡',d.defenseReference,'先觀察能否守住；尚不能當成已確認支撐或直接設停損。'],['最近上方壓力',d.nextResistance?.price,'漲近這裡可能遇到賣壓，要先看能否過關。']];
+ const definitions=[['這段走勢的突破觀察價',d.trigger,'收盤跨過後仍要守穩；漲到這裡前，也要先留意最近上方壓力。'],['原買進想法何時要重查',d.invalidation,'這是該情境的失效線，不保證能在此成交停損。'],['下跌先觀察哪裡',d.defenseReference,'先觀察能否守住；尚不能當成已確認支撐或直接設停損。'],['最近上方壓力',d.nextResistance?.price,'漲近這裡可能遇到賣壓，要先看能否過關。']];
  const levels=definitions.map(([title,price,explanation],i)=>({title,price:finite(price)?price:null,explanation:finite(price)?explanation:i===1?'尚無已確認的買進情境，所以沒有可直接沿用的失效線。':'資料不足，先不猜價位。'}));
  const points=q?`A ${money(q.A.price)}＝第一段起漲低點；B ${money(q.B.price)}＝那一段高點；C ${money(q.C.price)}＝後來回落低點${q.provisional?'（還待確認）':''}。`:'A是起漲低點、B是那一段高點、C是後來回落低點；這檔目前沒有完整三點。';
  return {levels,volume:volumeText(d.volume),stage:stage(n),points,projection:projectionText(n)};
