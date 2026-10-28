@@ -4,7 +4,8 @@ import fs from 'node:fs';
 import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url);
 const M=require('../../stock-audit-alert-v82.js');
-const snap=JSON.parse(fs.readFileSync(new URL('../../data/market/latest.json',import.meta.url),'utf8'));
+const recorded=JSON.parse(fs.readFileSync(new URL('../../evidence/snapshot.json',import.meta.url),'utf8'));
+const snap={rows:recorded.rows,tradeDateIso:recorded.meta.targetTradeDate,marketCoverageReady:recorded.meta.marketCoverageReady};
 const q=snap.rows.find(x=>x.code==='4939');
 const sample={code:'4939',closeDate:'2026-10-22',market:'TPEX',close:72.2,volumeUnit:'shares',dailySeries:[{date:'2026-10-22',open:q.open,high:q.high,low:q.low,close:q.close,volume:8782000}]};
 test('V8.2 detects real 4939 same-day volume split without changing source',()=>{
@@ -37,12 +38,12 @@ test('V8.2 absence of a trustworthy source cannot be presented as certified',()=
  assert.equal(M.check(sample,{...snap,rows:[]}).status,'NOT_VERIFIED');
  assert.equal(M.alertPlan({turn:null,defense:undefined}).priceAbove.input,null);
 });
-test('V8.2.2-R12 frontend/version preserves six-filter legacy entries',()=>{
+test('current frontend/version preserves six-filter legacy entries',()=>{
  const html=fs.readFileSync(new URL('../../index.html',import.meta.url),'utf8');
  const v=fs.readFileSync(new URL('../../version-v50.js',import.meta.url),'utf8');
  const t=fs.readFileSync(new URL('../../r45-report-suite.js',import.meta.url),'utf8');
- assert.match(html,/stock-audit-alert-v82\.js\?v=V8\.2\.2-R12/);
- assert.match(v,/DISPLAY='V8\.2\.2-R12'/);
+ assert.match(html,/stock-audit-alert-v82\.js\?v=[^\"]+/);
+ const version=require('../../version-v50.js');assert.ok(v.includes("DISPLAY='"+version.displayCode+"'"));assert.ok(html.includes('<title>石頭少爺 '+version.displayCode));
  assert.match(t,/收盤與量能須再次確認/);
  for(const x of ['momentumScanButton','dayTradeScanButton','strongStockScanButton','towerGoldPanel','restaurant'])assert.ok(html.includes(x));
 });

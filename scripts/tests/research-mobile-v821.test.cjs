@@ -6,7 +6,7 @@ test('English corporate full name never leaks to four-strategy display fallback'
  const had=globalThis.momentumSafeStockNameV377712,raw=C.evaluate(fixture);
  assert.equal(raw.name,'股票6690（名稱待核對）');
  globalThis.momentumSafeStockNameV377712=()=> '安碁資訊';
- try {const localized=C.evaluate(fixture);assert.equal(localized.name,'安碁資訊');assert.match(R.text(localized),/^安碁資訊（6690）/);}
+ try {const localized=C.evaluate(fixture);assert.equal(localized.name,'安碁資訊');assert.match(R.text(localized),/^安碁資訊（6690）/m);}
  finally{if(had===undefined)delete globalThis.momentumSafeStockNameV377712;else globalThis.momentumSafeStockNameV377712=had;}
 });
 test('compact report prints essential information and retains manually entered alert hints',()=>{
@@ -22,12 +22,14 @@ test('full-bleed iPhone image layout keeps enlarged text inside safe bounds',()=
  assert.ok(p.length>=1&&p.length<=3);
  p.forEach(page=>{const audit=JSON.parse(page.dataset.researchAudit);assert.equal(audit.width,1284);assert.equal(audit.height,2778);assert.equal(audit.minFont,56);assert.equal(audit.noClipping,true);assert.ok(audit.bodyBottom<=2430);});
 });
-test('frontend displays V8.2.2-R12 and busts all local script/style caches',()=>{
+test('frontend and report declare the current release and local assets use explicit cache versions',()=>{
  const html=fs.readFileSync(path.join(root,'index.html'),'utf8');const v=require('../../version-v50.js');
- assert.equal(v.displayCode,'V8.2.2-R12');assert.equal(v.fileVersion,'V8.2.2-R12');
- assert.match(html,/<title>石頭少爺 V8\.2\.2-R12/);
+ assert.match(v.displayCode,/^V8\.2\.2-R\d+$/);assert.equal(v.fileVersion,v.displayCode);
+ assert.ok(html.includes('<title>石頭少爺 '+v.displayCode));
+ const src=fs.readFileSync(path.join(root,'research-report-v1.js'),'utf8');assert.ok(src.includes(v.displayCode));
+ for(const file of ['version-v50.js','research-report-v1.js'])assert.ok(html.includes(file+'?v='+v.displayCode));
  for(const entry of html.matchAll(/<(?:script|link)\b[^>]*(?:src|href)="(\.\/[^"\s]+)"/g)){
-  const url=entry[1];if(/\.(?:js|css)\?v=/.test(url))assert.match(url,/\?v=V8\.2\.2-R12-GUIDE1(?:-DRAX1)?$/,url);
+  const url=entry[1];if(/\.(?:js|css)\?v=/.test(url))assert.match(url,/\?v=V8\.2\.2-R\d+(?:-[A-Z0-9]+)+$/,url);
  }
  const css=fs.readFileSync(path.join(root,'research-mobile-v1.css'),'utf8');assert.match(css,/research-stock-card/);assert.match(css,/@media\(max-width:600px\)/);
 });

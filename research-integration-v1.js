@@ -119,7 +119,12 @@ async function prepareStockQuery(input){
   if(raw.market&&raw.market!==q.market)throw Error('查詢與共用快照市場別不符');
   if(!D.get(code)||D.get(code).error)await D.ensure([{code,name:raw.name,q}]);
   return D.apply(raw,code);
- }catch(e){return {...raw,researchAcquisitionError:String(e.message||e),researchInputErrors:[...(raw.researchInputErrors||[]),String(e.message||e)]};}
+ }catch(e){
+  // ensure() adds an aggregate error prefix. Prefer the same bound per-stock
+  // failure used by every scan adapter, preserving independent input errors.
+  const reason=D.getSnapshot()?.date===date&&D.get(code)?.error||String(e.message||e);
+  return {...raw,researchAcquisitionError:reason,researchInputErrors:[...new Set([...(raw.researchInputErrors||[]),reason])]};
+ }
 }
 function forReport(input){const r=source(input),key=U.hash([root.ShitouUnifiedAnalysis.VERSION,r,flags]);if(!cache.has(key)){if(cache.size>=512)cache.delete(cache.keys().next().value);const result=C.evaluate(r,{flags});cache.set(key,result);if(result.unifiedResearch?.code)try{root.ShitouResearchHistory?.append(localStorage,result.unifiedResearch);}catch(e){console.warn('歷史研究快照未保存：'+e.message);}}return cache.get(key);}
 function capture({snapshot,items,results}){if(!snapshot?.identity)return;bind(snapshot);for(const item of items){const code=String(item.code),matches=results.filter(x=>String(x.code||x.data?.stock||x.data?.code||'')===code),x=matches.length===1?matches[0]:null;let a;if(x?.ok&&x.data){sourceRecords.set(code,structuredClone(x.data));a=safely(()=>forReport(x.data));}else sourceRecords.delete(code);if(!a)a=C.evaluate({stock:code,name:item.name||code,closeDate:date,completed:false});records.set(code,a);}revision++;schedule();}

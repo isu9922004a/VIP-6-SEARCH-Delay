@@ -1,0 +1,29 @@
+{
+  "release": "V8.2.2-R18",
+  "validatedAt": "2026-10-28T14:10:12.794429+00:00",
+  "offline": {
+    "command": "node scripts/run-all-tests.cjs",
+    "files": 29,
+    "passed": 29,
+    "failed": 0,
+    "newReportCases": 5
+  },
+  "browser": {
+    "engine": "Chromium mobile emulation",
+    "historicalStocks": 7,
+    "currentDay8039": 1,
+    "researchAdapters": 56,
+    "DOMImageParity": true,
+    "sourceObjectsUnchanged": true,
+    "noClipping": true,
+    "historicalReplayUsesRecordedMarketDate": true
+  },
+  "workerRuntimeChanged": false,
+  "formalScannerRulesChanged": false,
+  "limits": [
+    "Recorded API replay, not full-market live scan",
+    "Native iPhone Safari untested",
+    "No profitability backtest",
+    "8039 source volume scope difference remains pending"
+  ]
+}

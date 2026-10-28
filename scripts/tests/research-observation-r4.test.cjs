@@ -19,7 +19,7 @@ test('R4: bearish 160 validated bars receive useful market context without chang
  assert.equal(a.validation.historyBarCount,160);
  assert.equal(a.state,'OBSERVATION');
  assert.equal(a.compactStateLabel,'觀察中');
- assert.equal(Report.stageLabel(a),'短線偏弱');
+ assert.equal(Report.technicalOutlook(a).label,'短線偏弱');assert.equal(Report.stageLabel(a),a.unifiedResearch.stageLabel);
  assert.match(Report.text(a),/【技術現況】收盤 .*低於MA20.*低於MA60.*MA20下彎/);
  assert.match(Report.text(a),/【風險】.*低於MA20/);
  assert.match(Report.text(a),/【四模型驗證】策略一｜突破.*策略二｜回踩.*策略三｜動能.*策略四｜資金/);
@@ -30,7 +30,7 @@ test('R4: rising and flat 160 validated bars get grounded technical context with
  for(const [kind,want] of [['bull','偏多整理'],['flat','均線附近整理']]){
   const a=Core.evaluate(input(kind));
   assert.equal(Report.technicalOutlook(a)?.label,want,kind);
-  if(kind==='flat'){assert.equal(a.state,'OBSERVATION');assert.equal(Report.stageLabel(a),want);}
+  if(kind==='flat'){assert.equal(a.state,'OBSERVATION');assert.equal(Report.stageLabel(a),a.unifiedResearch.stageLabel);}
   else assert.equal(a.state,'OVEREXTENDED');
   assert.match(Report.text(a),/【技術現況】收盤/);
  }
@@ -56,11 +56,11 @@ test('R4: image and text use the same summary for filter and individual stock',(
  }
 });
 
-test('R4: all 1,949 supplied market-snapshot short names survive normal lookup, including numeric-prefix and starred KY names',()=>{
- const snapshot=require('../../data/market/latest.json');
- assert.equal(snapshot.rows.length,1949);
+test('R4: all supplied recorded market-snapshot short names survive normal lookup, including numeric-prefix and starred KY names',()=>{
+ const snapshot=require('../fixtures/multi-stock-worker-responses-20261022.json').snapshot;
+ assert.equal(snapshot.rows.length,snapshot.meta.total);assert.ok(snapshot.rows.length>1000);
  for(const row of snapshot.rows){
-  const a=Core.evaluate({stock:row.code,name:row.name,market:row.market,closeDate:snapshot.tradeDateIso,completed:true});
+  const a=Core.evaluate({stock:row.code,name:row.name,market:row.market,closeDate:snapshot.meta.targetTradeDate,completed:true});
   assert.equal(a.name,row.name,`${row.code}: ${row.name} -> ${a.name}`);
   // Quote-only snapshot does not certify technical history; no fabricated signal.
   assert.equal(a.state,'INSUFFICIENT_DATA',row.code);

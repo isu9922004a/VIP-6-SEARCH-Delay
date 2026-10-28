@@ -20,6 +20,11 @@ const normalize=s=>String(s).replace(/[\s｜]/g,'');
     if(url.searchParams.get('market')==='DEEP_SCAN'){const codes=(url.searchParams.get('codes')||'').split(',');if(codes.every(x=>byCode.has(x)))return reply({type:'MOMENTUM_DEEP_SCAN',results:codes.map(code=>({ok:true,code,data:byCode.get(code).daily}))});}
    }return route.abort();
   });
+  // Replay the completed market day, rather than comparing a historical API
+  // recording with today's freshness gate. Timers continue to run normally.
+  const recordedDate=String(fixture.snapshot.meta.targetTradeDate).replace(/-/g,'');
+  const replayDate=recordedDate.slice(0,4)+'-'+recordedDate.slice(4,6)+'-'+recordedDate.slice(6,8);
+  await page.clock.setFixedTime(new Date(replayDate+'T11:00:00Z'));
   await page.goto(origin,{waitUntil:'load'});
   const version=await page.evaluate(()=>({display:ShitouReleaseV50.displayCode,badge:document.querySelector('.version-pill').textContent,title:document.title,chart:ShitouResearchChart.VERSION,context:ShitouStructureContext.VERSION}));
   assert.equal(version.display,currentVersion);assert.ok(version.badge.includes(currentVersion));assert.ok(version.title.includes(currentVersion));
@@ -43,7 +48,7 @@ const normalize=s=>String(s).replace(/[\s｜]/g,'');
     try{for(const p of pages){const c=p.renderExportRegion();c.width=c.height=1;}}finally{proto.fillText=old;}
     return {code:a.code,date:a.date,state:a.state,priceBasis:a.unifiedResearch?.chart?.basisVerified,calendarVerified:a.unifiedResearch?.chart?.calendarVerified,entry:a.unifiedResearch?.entryDecision,entries,dom,expected:[...v.summary,...v.details],summaryExpected:v.summary,summary:summary.map(x=>JSON.parse(x.dataset.researchAudit)),full:full.map(x=>JSON.parse(x.dataset.researchAudit)),chart:chart?JSON.parse(chart.dataset.researchAudit):null,overflow,unchanged:before===JSON.stringify(a),summaryCount:summary.length};
    });
-   assert.ok(result.entries.every(x=>x.inputUnchanged&&x.sameReport),JSON.stringify({entries:result.entries,expected:result.expected.find(x=>x.title==='價格與交易日證據')}));assert.deepEqual(result.dom,result.expected);assert.ok(result.unchanged);assert.deepEqual(result.overflow,[]);
+   assert.ok(result.entries.every(x=>x.inputUnchanged&&x.sameReport),JSON.stringify({entries:result.entries,expected:result.expected.filter(x=>['價格與交易日證據','資料狀態','行情資料完整性','技術現況'].includes(x.title))}));assert.deepEqual(result.dom,result.expected);assert.ok(result.unchanged);assert.deepEqual(result.overflow,[]);
    for(const [pages,expected] of [[result.summary,result.summaryExpected],[result.full,result.expected]]){
     assert.ok(pages.every(x=>x.noClipping));for(const field of expected){const s=pages.flatMap(x=>x.fields).filter(x=>x.title.replace('（續）','')===field.title).map(x=>x.value).join('');assert.equal(normalize(s),normalize(field.value),record.code+' lost image field '+field.title);}
    }
@@ -53,7 +58,7 @@ const normalize=s=>String(s).replace(/[\s｜]/g,'');
     const card=page.locator('#researchStock');await card.getByRole('button',{name:'查看結構證據圖',exact:true}).click();await page.waitForFunction(()=>__selected.length===1);
     const selected=await page.evaluate(()=>{const out=__selected[0];globalThis.strongStockShowPagesV47=__originalPreview;return out;});assert.equal(selected.title,'四策略研究｜結構證據圖');assert.ok(selected.prefix.includes(currentVersion));assert.deepEqual(selected.audits,[result.chart]);
     if(['2059','9933','8039'].includes(record.code)){
-     const images=await page.evaluate(()=>{const a=ShitouResearchIntegration.getCurrentStock().analysis,R=ShitouResearchReport;return {chart:R.candlePage(a).renderExportRegion().toDataURL('image/png'),summary:R.pages(a,{stockMode:true})[0].renderExportRegion().toDataURL('image/png')};});
+     const images=await page.evaluate(()=>{const a=ShitouResearchIntegration.getCurrentStock().analysis,R=ShitouResearchReport;const full=R.pages(a,{stockMode:true,detail:true}),levels=full.find(p=>JSON.parse(p.dataset.researchAudit).fields.some(f=>f.title==='原策略價位'));return {chart:R.candlePage(a).renderExportRegion().toDataURL('image/png'),summary:R.pages(a,{stockMode:true})[0].renderExportRegion().toDataURL('image/png'),...(levels?{'strategy-levels':levels.renderExportRegion().toDataURL('image/png')}:{})};});
      for(const [kind,url] of Object.entries(images))fs.writeFileSync(path.join(out,`${record.code}-${kind}.png`),Buffer.from(url.split(',')[1],'base64'));
     }
    }

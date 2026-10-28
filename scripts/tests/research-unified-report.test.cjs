@@ -36,9 +36,9 @@ test('2059 no-signal models retain observable weakness and independently report 
  const record=fixture.records.find(x=>x.code==='2059');assert.ok(record);
  D.bind({map:new Map(fixture.snapshot.rows.map(q=>[q.code,q])),meta:fixture.snapshot.meta,snapshotRows:fixture.snapshot.rows.length});
  D.remember(record.daily,'2059');const a=C.evaluate(D.apply(record.full,'2059')),v=R.view(a);
- assert.equal(a.state,'OBSERVATION');assert.equal(v.stage,'短線偏弱');
+ assert.equal(a.state,'OBSERVATION');assert.equal(v.stage,a.unifiedResearch.stageLabel);assert.equal(R.technicalOutlook(a).label,'短線偏弱');
  assert.match(v.details.find(x=>x.title==='技術現況').value,/低於MA20.*低於MA60.*下彎/);
- assert.match(v.summary[0].value,/結構.*偏弱/);
+ assert.match(v.summary[0].value,/短線偏弱/);
  assert.match(v.details.find(x=>x.title==='風險').value,/低於MA20/);
  for(const [key,m] of Object.entries(a.models)){
   const field=v.details.find(x=>x.title.startsWith('策略'+({A:'一',B:'二',C:'三',D:'四'}[key])+'｜'));
@@ -63,7 +63,7 @@ test('an indicator phase cannot replace the four-strategy situation in one outpu
 });
 test('invalid bars do not get false completed models or invented K/D and levels',()=>{
  const a=C.evaluate({stock:'9001',name:'測試',market:'TWSE',closeDate:'2026-10-22',close:100,completed:true}),v=R.view(a);
- assert.equal(a.validation.technicalModelAvailable,false);assert.match(v.summary[0].value,/待核驗/);
+ assert.equal(a.validation.technicalModelAvailable,false);assert.match(v.summary[0].value,/先核對行情/);assert.match(v.summary[0].value,/完成日K不足/);
  assert.ok(v.details.filter(x=>/^策略[一二三四]｜/.test(x.title)).every(x=>/無法判定/.test(x.value)));
  assert.match(v.details.find(x=>x.title==='關鍵支撐價位').value,/無法核驗/);
  assert.match(v.details.find(x=>x.title==='日週月週期研判').value,/資料不足/);
