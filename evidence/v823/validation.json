@@ -1,0 +1,69 @@
+{
+  "version": "V8.2.3",
+  "createdAt": "2026-10-28T16:16:23.384463+00:00",
+  "offlineRegression": {
+    "command": "node scripts/run-all-tests.cjs",
+    "testFilesPassed": 31,
+    "failed": 0
+  },
+  "newNModule": {
+    "command": "node --test scripts/tests/research-n-continuation-v823.test.cjs",
+    "casesPassed": 20,
+    "failed": 0
+  },
+  "browserRuns": [
+    {
+      "fixture": "8039",
+      "status": "PASS",
+      "stockQueries": 1,
+      "researchAdapterComparisons": 7,
+      "fallback": false,
+      "noClipping": true,
+      "textImageParity": true,
+      "version": "V8.2.3"
+    },
+    {
+      "fixture": "8039-fallback",
+      "status": "PASS",
+      "stockQueries": 1,
+      "researchAdapterComparisons": 7,
+      "fallback": true,
+      "noClipping": true,
+      "textImageParity": true,
+      "version": "V8.2.3"
+    },
+    {
+      "fixture": "historical",
+      "status": "PASS",
+      "stockQueries": 7,
+      "researchAdapterComparisons": 49,
+      "fallback": false,
+      "noClipping": true,
+      "textImageParity": true,
+      "version": "V8.2.3"
+    },
+    {
+      "fixture": "historical-fallback",
+      "status": "PASS",
+      "stockQueries": 7,
+      "researchAdapterComparisons": 49,
+      "fallback": true,
+      "noClipping": true,
+      "textImageParity": true,
+      "version": "V8.2.3"
+    }
+  ],
+  "workerSyntaxAndEmbeddedContract": "PASS; Worker runtime files unchanged",
+  "coverageLimits": [
+    "Recorded API replay using Chromium mobile emulation, not native iPhone Safari",
+    "16 recorded stock-query journeys and 112 research-adapter comparisons; not real history validation for every listed stock",
+    "Independent N research explanations only; existing filter eligibility, score and ranking unchanged",
+    "No profitability or success-rate claim; unknown source evidence remains blocked"
+  ],
+  "sampleImages": [
+    "8039/8039-summary.png",
+    "8039/8039-chart.png",
+    "8039/8039-n-comparison-1.png",
+    "8039/8039-n-comparison-2.png"
+  ]
+}
