@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/update-market-snapshot.yml'
       - 'scripts/update-market-snapshot.mjs'
+      - 'scripts/update-research-calendar.mjs'
       - 'scripts/update-scan-exclusions.mjs'
       - 'config/verified-market-closures.json'
       - 'scripts/verify-market-snapshot.mjs'
@@ -50,6 +51,9 @@ jobs:
         shell: bash
         run: |
           node scripts/verify-market-snapshot.mjs >> "$GITHUB_STEP_SUMMARY" 2>&1 || true
+      - name: Publish official completed-session calendar for research
+        continue-on-error: true
+        run: node scripts/update-research-calendar.mjs
       - name: Commit verified market data
         shell: bash
         run: |

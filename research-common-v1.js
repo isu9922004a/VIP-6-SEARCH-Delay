@@ -78,7 +78,7 @@ function weeks(b,r){
  const c=r.tradingCalendar,asOf=b.at(-1).date;
  if(!c?.verified||!c.source||!Array.isArray(c.dates)||!c.start||!c.end||c.end<asOf||c.dates.some((d,i)=>!T.date(d)||i&&d<=c.dates[i-1]))return {value:null,reason:'缺已核驗正式交易日曆，不能以100日MA代替20週MA',bars:[]};
  const groups=new Map();for(const z of b){const d=new Date(z.date+'T00:00:00Z'),w=(d.getUTCDay()+6)%7;d.setUTCDate(d.getUTCDate()-w);const monday=d.toISOString().slice(0,10);if(!groups.has(monday))groups.set(monday,[]);groups.get(monday).push(z);}
- const rows=[];for(const [m,g] of groups){const dt=new Date(m+'T00:00:00Z');dt.setUTCDate(dt.getUTCDate()+4);const fri=dt.toISOString().slice(0,10);if(m<c.start||fri>c.end)continue;const expected=c.dates.filter(d=>d>=m&&d<=fri);if(expected.at(-1)>asOf)continue;if(!expected.length||JSON.stringify(expected)!==JSON.stringify(g.map(x=>x.date)))return {value:null,reason:'已完成週日K缺漏／與日曆不符',bars:[]};rows.push({week:m,end:g.at(-1).date,close:g.at(-1).close});}
+ const rows=[];for(const [m,g] of groups){const dt=new Date(m+'T00:00:00Z');dt.setUTCDate(dt.getUTCDate()+4);const fri=dt.toISOString().slice(0,10);if(m<c.start||fri>c.end)continue;const expected=c.dates.filter(d=>d>=m&&d<=fri);if(expected[0]<b[0].date)continue;if(expected.at(-1)>asOf)continue;if(!expected.length||JSON.stringify(expected)!==JSON.stringify(g.map(x=>x.date)))return {value:null,reason:'已完成週日K缺漏／與日曆不符',bars:[]};rows.push({week:m,end:g.at(-1).date,close:g.at(-1).close});}
  return {value:rows.length>=20?mean(rows.slice(-20).map(x=>x.close)):null,reason:rows.length<20?'已完成正式週K不足20週':null,bars:rows};
 }
 // Read-only context shared by every stock and report entrance. Thresholds are
@@ -130,7 +130,7 @@ function tradeContext(b,f,r,invalid){
    retrievedAt:meta.fetchedAt||meta.retrievedAt||r.fetchedAt||r.retrievedAt||null,
    priceBasis:r.priceAdjustment?.basis||'UNKNOWN',volumeUnit:'shares',
    volumeBasis:basis.volumeBasis||meta.volumeScope||meta.volumeBasis||'UNKNOWN',
-   sourceVolume:basis.sourceVolume??z.volume,snapshotVolume:basis.snapshotVolume??null,
+   sourceVolume:basis.sourceVolume??z.volume,snapshotVolume:basis.snapshotVolume??null,sourceVolumeDiffPct:basis.sourceVolumeDiffPct??null,
    volumeConflict,volumeQualification:volumeConflict?'REVIEW_REQUIRED':'SOURCE_ONLY_NOT_CROSS_VERIFIED',
    historyBars:b.length,maPeriods:[20,60],rsiFormula:'Wilder RSI5／RSI10；可能與資料商初始化不同'}};
 }

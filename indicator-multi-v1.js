@@ -43,6 +43,7 @@ function completePeriods(bars,calendar,type){
   // Exclude the last period: without a later-period observation, its closing is not proven.
   if(key===currentKey)continue;
   const rows=groups.get(key),expected=dates.filter(d=>groupKey(d)===key);
+  if(key===keys[0]&&expected.length&&expected[0]<bars[0].date)continue; // Left-edge partial period is not an internal data gap.
   if(!expected.length||expected.length!==rows.length||expected.some((d,i)=>d!==rows[i].date))return {status:'資料不足',reason:'已完成週月K有交易日缺漏',bars:[]};
   out.push({date:rows.at(-1).date,open:rows[0].open,high:Math.max(...rows.map(x=>x.high)),low:Math.min(...rows.map(x=>x.low)),close:rows.at(-1).close,volume:rows.reduce((v,b)=>v+b.volume,0)});
  }

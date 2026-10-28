@@ -9,9 +9,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <link rel="stylesheet" href="./tower-design.css?v=V8.2.2-R13-UNIFIED1">
 
-<title>石頭少爺 V8.2.2-R16｜四策略研究</title>
+<title>石頭少爺 V8.2.2-R17｜四策略研究</title>
 <script src="./scan-exclusions-rsi-v5328.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./version-v50.js?v=V8.2.2-R16-CONTEXT1"></script>
+<script src="./version-v50.js?v=V8.2.2-R17-EVIDENCE1"></script>
 
 <style>
 
@@ -23895,6 +23895,9 @@ async function analyzeStock(){
       priceAdjustmentConsistent:data?.priceAdjustmentConsistent,
       // V8.2: retain explicit original volume units/provenance for same-day image-vs-scan audit.
       volumeUnit:data?.volumeUnit,dailySeriesMeta:data?.dailySeriesMeta,
+      dataContract:data?.dataContract,upstreamDataContract:data?.upstreamDataContract,
+      sourceDailySeries:data?.sourceDailySeries,sourceDailySeriesMeta:data?.sourceDailySeriesMeta,
+      originalDailySeries:data?.originalDailySeries,scanMode:data?.scanMode,dailyOnly:data?.dailyOnly,
       decisionLayer,tradeability,trendPersistence,maDeduction,volumePriceHealth,reboundQuality,pressureMap,remainingOpportunity,entryQualityVNext,chaseRisk,exitRisk
 
     };
@@ -34812,7 +34815,8 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 <script src="./price-action-context-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
 <script src="./selection-evidence-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
 <script src="./worker-data-contract-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./selection-data-v2.js?v=V8.2.2-R15-TRANSPORT2"></script>
+<script src="./research-source-evidence-v1.js?v=V8.2.2-R17-EVIDENCE1"></script>
+<script src="./selection-data-v2.js?v=V8.2.2-R17-EVIDENCE1"></script>
 <script src="./selection-decision-v2.js?v=V8.2.2-R13-UNIFIED1"></script>
 <script src="./strong-stock-filter-v47.js?v=V8.2.2-R13-UNIFIED1"></script>
 <script src="./deep-scan-health-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
@@ -35071,18 +35075,18 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 })();
 </script>
 <link rel="stylesheet" href="./research-mobile-v1.css?v=V8.2.2-R13-UNIFIED1-DRAX1">
-<script src="./research-common-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
+<script src="./research-common-v1.js?v=V8.2.2-R17-EVIDENCE1"></script>
 <script src="./research-foundation-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./indicator-multi-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
+<script src="./indicator-multi-v1.js?v=V8.2.2-R17-EVIDENCE1"></script>
 <script src="./research-history-v1.js?v=V8.2.2-R16-CONTEXT1"></script>
-<script src="./structure-context-v1.js?v=V8.2.2-R16-CONTEXT1"></script>
-<script src="./research-chart-v1.js?v=V8.2.2-R16-CONTEXT1"></script>
-<script src="./unified-analysis-v1.js?v=V8.2.2-R16-CONTEXT1"></script>
-<script src="./four-models-research-v1.js?v=V8.2.2-R16-CONTEXT1"></script>
+<script src="./structure-context-v1.js?v=V8.2.2-R17-EVIDENCE1"></script>
+<script src="./research-chart-v1.js?v=V8.2.2-R17-EVIDENCE1"></script>
+<script src="./unified-analysis-v1.js?v=V8.2.2-R17-EVIDENCE1"></script>
+<script src="./four-models-research-v1.js?v=V8.2.2-R17-EVIDENCE1"></script>
 <script src="./research-zh-tw-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./research-report-v1.js?v=V8.2.2-R16-CONTEXT1"></script>
+<script src="./research-report-v1.js?v=V8.2.2-R17-EVIDENCE1"></script>
 <script src="./drax-price-reminder-v1.js?v=V8.2.2-R13-UNIFIED1-DRAX1"></script>
-<script src="./research-integration-v1.js?v=V8.2.2-R16-CONTEXT1"></script>
+<script src="./research-integration-v1.js?v=V8.2.2-R17-EVIDENCE1"></script>
 <script src="./stock-audit-alert-v82.js?v=V8.2.2-R13-UNIFIED1"></script>
 <script src="./release-compact-v1.js?v=V8.2.2-R16-CONTEXT1"></script>
 </body>

@@ -1,12 +1,12 @@
 /* Draw only precomputed, dated research evidence. Rendering never changes a signal. */
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.ShitouResearchChart=api;})(globalThis,function(){
 'use strict';
-const VERSION='RESEARCH_CHART_R16',W=1284,H=2778;
+const VERSION='RESEARCH_CHART_R17',W=1284,H=2778;
 const fmt=x=>Number.isFinite(x)?String(+x.toFixed(2)):'待核';
-function page(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouReleaseV50?.displayCode||'V8.2.2-R16',watermark=false}={}){
+function page(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouReleaseV50?.displayCode||'V8.2.2-R17',watermark=false}={}){
  const u=a?.unifiedResearch,d=u?.chart;if(!d?.bars?.length||u.state!=='RESEARCH_ONLY')return null;
  const bars=d.bars.slice(-80),start=bars[0].index,end=bars.at(-1).index,patterns=d.patterns.filter(x=>x.type==='DOUBLE_BOTTOM'?x.points.some(v=>v.index>=start):x.endIndex>=start).slice(0,2);
- const shown=[{title:'突破觀察線',price:d.trigger,color:'#f6cf65',solid:false},{title:'情境收盤失效',price:d.invalidation,color:'#ff858f',solid:true},{title:'候選防守參考',price:d.defenseReference,color:'#8dc9c2',solid:false},{title:'最近上方關卡',price:d.nextResistance?.price,color:'#d6aeff',solid:false}];
+ const shown=[{title:'區間突破參考',price:d.trigger,color:'#f6cf65',solid:false},{title:'情境收盤失效',price:d.invalidation,color:'#ff858f',solid:true},{title:'候選防守參考',price:d.defenseReference,color:'#8dc9c2',solid:false},{title:'最近上方關卡',price:d.nextResistance?.price,color:'#d6aeff',solid:false}];
  const audit={code:a.code,date:a.date,sourceSnapshotId:a.sourceSnapshotId,schemaVersion:u.schemaVersion,chartVersion:VERSION,section:'STRUCTURE_CHART',width:W,height:H,noClipping:true,barCount:bars.length,firstDate:bars[0].date,lastDate:bars.at(-1).date,priceBasis:d.priceBasis,volumeStatus:d.volume.status,
   levels:shown.map(x=>({title:x.title,price:x.price??null})),patterns:patterns.map(x=>({type:x.type,status:x.status,formedAt:x.formedAt,confirmedAt:x.confirmedAt})),fields:shown.map(x=>({title:x.title,value:fmt(x.price)})),note:'虛線為參考／形成中；無已確認進場情境則不畫失效線；所有型態為未驗證績效的研究'};
  const dataset={researchAudit:JSON.stringify(audit),fullBleed:'true',release:displayCode};

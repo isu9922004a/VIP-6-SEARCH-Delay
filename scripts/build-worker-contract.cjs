@@ -7,7 +7,7 @@ const shared = normalize(fs.readFileSync(path.join(root, 'worker-data-contract-v
 const begin = '// BEGIN EMBEDDED DAILY CONTRACT\n';
 const end = '// END EMBEDDED DAILY CONTRACT\n';
 for (const name of ['stock-worker.mjs', 'market-worker.mjs']) {
-  const file = path.join(root, 'workers', name);
+  const file = path.join(root, name);
   const old = fs.readFileSync(file, 'utf8');
   let payload = normalize(old);
   // Remove every previously embedded header (including older CRLF copies).
@@ -17,5 +17,5 @@ for (const name of ['stock-worker.mjs', 'market-worker.mjs']) {
     payload = payload.slice(endAt + end.length);
   }
   const rebuilt = begin + shared + '\n' + end + payload;
-  if (old !== rebuilt) fs.writeFileSync(file, rebuilt);
+  if (normalize(old) !== rebuilt) fs.writeFileSync(file, rebuilt);
 }

@@ -19,7 +19,7 @@ function volume(b,r){const z=b.at(-1),basis=r.dailyBasisV2||{},meta=r.dailySerie
  const status=conflict?'CONFLICT':source&&['shares','lots','thousand_shares'].includes(unit)&&baseline20>0?'VERIFIED_SOURCE':'UNKNOWN';
  return {status,usable:status==='VERIFIED_SOURCE',source,inputUnit:unit||null,unit:'shares',baseline5,baseline20,ratio5:baseline5>0?z.volume/baseline5:null,ratio20:baseline20>0?z.volume/baseline20:null,
   baselineRule:'當日量／前5或20根完成日K均量，分母排除當日',crossSourceVerified:basis.snapshotVolumeApplied===true&&!conflict,
-  note:conflict?'成交量來源／統計範圍衝突，暫停量能確認':status==='UNKNOWN'?'量能來源或單位待核，暫停量能確認':'僅確認同一來源日K量；不代表跨來源統計範圍一致，也不能辨識主力身分'};
+  note:conflict?`來源量與市場量${Number.isFinite(basis.sourceVolumeDiffPct)?'差 '+basis.sourceVolumeDiffPct.toFixed(2)+'%':''}，統計範圍待核，暫停量能確認`:status==='UNKNOWN'?'量能來源或單位待核，暫停量能確認':'僅確認同一來源日K量；不代表跨來源統計範圍一致，也不能辨識主力身分'};
 }
 function quality(b,level,v,p=PARAM){const z=b.at(-1),g=U.geometry(z),atr=U.atr(b),buffer=Math.max(U.tick(level||z.close),atr>0?atr*p.breakATR:0);
  const priceStatus=!(level>0)?'DATA_INSUFFICIENT':z.close>level+buffer?'CLOSE_ABOVE':z.high>level&&z.close<=level?'REJECTED':z.high>level?'PENDING':'NOT_BROKEN';
@@ -101,7 +101,7 @@ function evaluate(b,r={},options={}){const p={...PARAM,...options.parameters},pv
  const highs=pv.filter(x=>x.type==='HIGH').slice(-2),rsis=highs.map(x=>U.rsi(b.slice(0,x.index+1),14)),divergence=highs.length===2&&rsis.every(finite)&&highs[1].price>highs[0].price&&rsis[1]<rsis[0];
  return U.freeze({version:VERSION,parameterVersion:p.version,parameters:p,date:z.date,volume:v,breakout:quality(b,priorHigh,v,p),breakoutEvent:event,pullback:pb,patterns,candles:candleContext(b,levels,p),pivots:pv,
   momentum:{formula:'Wilder RSI14；以已確認波峰對照，價格與RSI非獨立證據',rsi14:U.rsi(b,14),bearishDivergence:divergence,peaks:highs,values:rsis,confirmedAt:divergence?highs[1].confirmedAt:null},
-  gap:{openingGapPct:U.pct(z.open,b.at(-2).close),fullRangeUp:z.low>b.at(-2).high,corporateActionBasisVerified:r.priceAdjustment?.verified===true,note:'開盤高於昨收不等於全區間缺口；未核實除權息不解讀為突破缺口'},
+  gap:{openingGapPct:U.pct(z.open,b.at(-2).close),fullRangeUp:z.low>b.at(-2).high,corporateActionBasisVerified:r.priceAdjustment?.verified===true&&r.priceAdjustment?.corporateActionsVerified===true,note:'開盤高於昨收不等於全區間缺口；未核實除權息不解讀為突破缺口'},
   unsupportedClaims:['主力成本與交易意圖','封單撤單與對倒','15%換手出貨分界'],researchOnly:true,performanceValidated:false,affectsOriginalEligibility:false,affectsOriginalScore:false,affectsOriginalRanking:false});
 }
 return Object.freeze({VERSION,PARAM,pivots,volume,quality,breakoutEvent,pullback,triangle,doubleBottom,evaluate,lineAt});

@@ -6,7 +6,7 @@ const clone=x=>structuredClone(x),root=path.resolve(__dirname,'../..');
 const bindCaptured=()=>{D.reset();D.bind({map:new Map(snapshot.rows.map(q=>[q.code,q])),meta:snapshot.meta,snapshotRows:snapshot.rows.length});};
 const base=()=>clone(captured.results.find(x=>x.code==='4526').data);
 const sealed=()=>C.seal(base(),{evidence:C.unitEvidence(['YAHOO_CHART','TWSE_MIS'])});
-const worker=()=>import('../../workers/market-worker.mjs');
+const worker=()=>import('../../market-worker.mjs');
 function simulatedSeries(target='2026-10-22',calendar={closures:[]}){
  // Explicit simulated fixture; prices/volume are not actual market evidence.
  const fallback=new Set(['2026-10-09','2026-09-25','2026-09-28','2026-10-23','2026-10-26','2026-01-01']);
@@ -117,7 +117,7 @@ test('calendar gap selection respects cross-month/cross-year and known closure',
  const missing=rows.at(-4).date;assert.deepEqual(W.dailyBridgeMissingSessionsV2(rows.filter(b=>b.date!==missing),'2026-01-08',calendar),[missing]);
 });
 test('FULL and DAILY_ONLY serializer metadata distinguish upstream count from returned count',async()=>{
- const S=await import('../../workers/stock-worker.mjs'),rows=simulatedSeries().map(b=>({...b,volumeAdapter:'YAHOO_CHART'})),returned=rows.slice(-30),m=S.buildDailySeriesMeta(rows,returned,'SIMULATED_SOURCE');
+ const S=await import('../../stock-worker.mjs'),rows=simulatedSeries().map(b=>({...b,volumeAdapter:'YAHOO_CHART'})),returned=rows.slice(-30),m=S.buildDailySeriesMeta(rows,returned,'SIMULATED_SOURCE');
  assert.equal(m.returnedBars,30);assert.equal(m.completedDailyRowsAvailable,30);assert.equal(m.upstreamHistoryCounts.completedDailyRowsAvailable,60);
  const response=S.jsonResponse({...simulatedReport(returned),scanMode:'FULL',dailySeriesMeta:m},200,{}),body=await response.json();assert.equal(C.verify(body).ok,true);
 });
@@ -143,5 +143,5 @@ test('invalid market snapshot and missing same-market quorum cannot authorize sc
  bindCaptured();const x=captured.results[0],q=D.context(x.code).q;await assert.rejects(H.preflight({items:[{code:x.code,q}],targetDate:'2026-10-22',attempts:1,delayMs:0,fetcher:async()=>({type:'MOMENTUM_DEEP_SCAN',results:[x]})}),e=>e.failureCode==='SYSTEMIC_FAILURE');
 });
 test('both complete Workers embed exactly the shared browser contract',()=>{
- const shared=fs.readFileSync(path.join(root,'worker-data-contract-v1.js'),'utf8');for(const file of ['stock-worker.mjs','market-worker.mjs'])assert.ok(fs.readFileSync(path.join(root,'workers',file),'utf8').startsWith('// BEGIN EMBEDDED DAILY CONTRACT\n'+shared+'\n// END EMBEDDED DAILY CONTRACT\n'));
+ const shared=fs.readFileSync(path.join(root,'worker-data-contract-v1.js'),'utf8');for(const file of ['stock-worker.mjs','market-worker.mjs'])assert.ok(fs.readFileSync(path.join(root,file),'utf8').startsWith('// BEGIN EMBEDDED DAILY CONTRACT\n'+shared+'\n// END EMBEDDED DAILY CONTRACT\n'));
 });

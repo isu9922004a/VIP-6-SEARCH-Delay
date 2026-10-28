@@ -1,7 +1,7 @@
 /* Deterministic shadow research. Renderers consume this result, never rescore it. */
 (function(r,f){const c=typeof module==='object'&&module.exports,a=f(c?require('./research-common-v1.js'):r.ShitouResearchCommon,c?require('./indicator-multi-v1.js'):r.ShitouIndicatorMultiV1,c?require('./structure-context-v1.js'):r.ShitouStructureContext);if(c)module.exports=a;else r.ShitouUnifiedAnalysis=a;})(globalThis,function(U,I,S){
 'use strict';
-const VERSION='UNIFIED_RESEARCH_R16',PARAM=Object.freeze({version:'R16_PARAMS_1',pivotLeft:3,pivotRight:3,volume:1.2,longWick:.5,weakClose:.6,zoneATR:.25,maxStopPct:8,minRR:1.5,minSpacePct:2,maxGapPct:5,maxExtensionATR:2,fee:.001425,feeDiscount:1,tax:.003,slippage:.001,redBodyMin:.25,redBodyMax:.65,redWickMax:.4,redVolumeMin:.7,redVolumeMax:1.5,setupDays:5});
+const VERSION='UNIFIED_RESEARCH_R17',PARAM=Object.freeze({version:'R16_PARAMS_1',pivotLeft:3,pivotRight:3,volume:1.2,longWick:.5,weakClose:.6,zoneATR:.25,maxStopPct:8,minRR:1.5,minSpacePct:2,maxGapPct:5,maxExtensionATR:2,fee:.001425,feeDiscount:1,tax:.003,slippage:.001,redBodyMin:.25,redBodyMax:.65,redWickMax:.4,redVolumeMin:.7,redVolumeMax:1.5,setupDays:5});
 const FLAGS=Object.freeze({unifiedResearchEnabled:true,oneThirdEnabled:true,postLimitupEnabled:true,waveEnabled:true,marketContextEnabled:true});
 const statusZh={WAIT_TRIGGER:'尚未出現買點',PENDING_CONFIRMATION:'已觸及觀察價格但待確認',CONFIRMED:'技術條件已確認',INVALIDATED:'原本看好的理由已失效',DATA_INSUFFICIENT:'資料不足',ACCEPTABLE_FOR_EVALUATION:'風險可供評估',BLOCKED:'風險過高，阻擋進場',UNKNOWN:'必要風險未知'};
 const fmt=n=>Number.isFinite(n)?n.toFixed(2):'未知';
@@ -94,6 +94,7 @@ function evaluate(input,options={}){
  const patternNames=context.patterns.map(x=>`${x.label}：${({FORMING:'形成中',PENDING_CONFIRMATION:'待確認',CONFIRMED:'技術確認',INVALIDATED:'已失效',BREAKDOWN_OBSERVED:'向下跌破觀察'})[x.status]||x.status}；${x.note}`).join('\n')||'尚未識別出符合研究定義的W底／三角，不強制畫型態。';
  const details=[
   {title:'行情階段與依據',value:`${stageText[stage]}；MA20 ${fmt(f.ma[20].value)}、MA60 ${fmt(f.ma[60].value)}；Wilder RSI5／10／14 ${fmt(f.rsi5)}/${fmt(f.rsi10)}/${fmt(f.rsi14)}。價格衍生指標非獨立勝率證據。`},
+  {title:'價格與交易日證據',value:`價格口徑：${r.priceAdjustment?.verified?(r.priceAdjustment.basis==='UNADJUSTED_OFFICIAL_OHLC'?'官方未還原名目價格':r.priceAdjustment.basis):'尚未取得獨立核驗'}；${r.priceAdjustment?.method||r.researchEvidence?.priceBasis?.reason||'後端未提供完整價格口徑證據'}。${r.priceAdjustment?.matchedBars?'逐根比對 '+r.priceAdjustment.matchedBars+' 根OHLC。':''}\n交易日期：${n.calendarVerified?'已核對官方實際成交日期':'尚未接入可核驗的交易日期'}；${r.researchEvidence?.calendar?.reason||r.tradingCalendar?.source||'無來源'}。`},
   {title:'量能口徑與確認',value:`${volume.note}；日K量統一為股。當日量 ${z.volume} 股／前5根均量 ${fmt(volume.baseline5)} 股＝${fmt(volume.ratio5)} 倍；前20根量比 ${fmt(volume.ratio20)} 倍。分母排除當日。${p.volume} 倍為突破研究參數，未驗證績效，不通用套用回檔情境。`},
   {title:'情境觸發與確認',value:scenarios.map(x=>`${x.label}：${statusZh[x.signalStatus]}／${statusZh[x.riskDecision]}；${x.confirmationRule}`).join('\n')},
   {title:'支撐確認與失效',value:`${context.pullback.note}。${context.pullback.establishedSupport?`先前情境 ${context.pullback.establishedSupport.date}，固定參考 ${fmt(context.pullback.establishedSupport.price)}。`:'目前沒有先前已確認的MA20收復情境。'}\n`+scenarios.map(x=>`${x.label}：${x.invalidationRule}`).join('\n')},
@@ -102,7 +103,7 @@ function evaluate(input,options={}){
   {title:'目標與報酬風險',value:scenarios.map(x=>`${x.label}：${x.riskReward?.status==='KNOWN'?`以收盤假設進場；計畫失效 ${fmt(x.invalidationPrice)}、研究停損 ${fmt(x.riskReward.stop)}、最近關卡 ${fmt(x.riskReward.target1)}、扣成本R/R ${fmt(x.riskReward.rr)}`:'缺乏合理的防守／上方關卡或情境已失效，無法計算'}`).join('\n')+'\n型態量度投射不作為已核實壓力或R/R目標；跳空、漲停與滑價可能無法按計畫成交。'},
   {title:'主力敘事的資料邊界',value:'日K只能描述量價，不能確認吸籌／洗盤／出貨意圖、主力實際成本、封單撤單或對倒；換手15%不是通用出貨分界。沒有外部資金證據就標未知。'},
   {title:'既有輔助研究',value:Object.entries(studies).filter(([,v])=>v).map(([k,v])=>`${({oneThird:'三分之一回撤',postLimitup:'漲停後候選',wave:'波浪候選'})[k]}：${v.note||v.reason||'輔助研究，未驗證績效'}`).join('\n')},
-  {title:'下一交易日觀察',value:`${next||'正式日曆未核實，不推算下一交易日'}：突破看固定線 ${fmt(breakTrigger)}；回檔看候選參考 ${fmt(context.pullback.candidatePrice)}；上方最近關卡 ${fmt(upper[0]?.price)}。隔日開盤與盤中訊號尚未發生；跳空須重算。`}
+  {title:'下一交易日觀察',value:`${next||(n.calendarVerified?'已核對完成交易日；下一交易日待公告核對':'正式日曆未核實，不推算下一交易日')}：突破看固定線 ${fmt(breakTrigger)}；回檔看候選參考 ${fmt(context.pullback.candidatePrice)}；上方最近關卡 ${fmt(upper[0]?.price)}。隔日開盤與盤中訊號尚未發生；跳空須重算。`}
  ];
  const chartBars=b.slice(-120).map((x,i)=>({...x,index:b.length-Math.min(120,b.length)+i,ma5:U.ma(b,5,b.length-Math.min(120,b.length)+i),ma20:U.ma(b,20,b.length-Math.min(120,b.length)+i),ma60:U.ma(b,60,b.length-Math.min(120,b.length)+i)}));
  return U.freeze({version:VERSION,schemaVersion:VERSION,state:'RESEARCH_ONLY',code:r.stock,date:z.date,close:z.close,sourceSnapshotId:r.dailyBasisV2?.fingerprint||U.hash(b),parameterVersion:p.version,parameters:p,flags,stage,stageLabel:stageText[stage],entryDecision,scenarios,levels,breakout:br,risks,studies,structureContext:context,summary,details,conclusion,nextTradingDate:next,

@@ -16,11 +16,11 @@ jobs:
           node-version: '24'
       - name: Check standalone Worker syntax
         run: |
-          node --check workers/stock-worker.mjs
-          node --check workers/market-worker.mjs
+          node --check stock-worker.mjs
+          node --check market-worker.mjs
       - name: Verify embedded contract is reproducible
         run: |
           node scripts/build-worker-contract.cjs
-          git diff --exit-code -- workers
+          git diff --exit-code -- stock-worker.mjs market-worker.mjs
       - name: Run all offline regression tests
         run: node scripts/run-all-tests.cjs
