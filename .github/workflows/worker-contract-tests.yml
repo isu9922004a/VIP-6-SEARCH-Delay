@@ -24,3 +24,61 @@ jobs:
           git diff --exit-code -- stock-worker.mjs market-worker.mjs
       - name: Run all offline regression tests
         run: node scripts/run-all-tests.cjs
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        fallback: ['0', '1']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install Chinese display fonts
+        run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Install browser test driver
+        run: npm install --prefix /tmp/research-browser --no-package-lock --no-save playwright-core@1.56.1
+      - name: Compare all report fields and mobile image bounds
+        env:
+          PLAYWRIGHT_MODULE: /tmp/research-browser/node_modules/playwright-core
+          CHROME_BIN: /usr/bin/google-chrome
+          RESEARCH_FALLBACK: ${{ matrix.fallback }}
+        run: node scripts/tests/research-context-r16-browser.cjs /tmp/research-evidence
+      - name: Capture generated chart for review
+        if: matrix.fallback == '0'
+        run: node -e 'console.log("CHART_REVIEW_PNG="+require("node:fs").readFileSync("/tmp/research-evidence/8039-chart.png").toString("base64"))'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mobile-report-${{ matrix.fallback }}
+          path: /tmp/research-evidence
+  deployed-frontend:
+    if: github.ref == 'refs/heads/main'
+    needs: [contracts, browser]
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify Pages serves this release
+        run: python3 scripts/verify-deployed-frontend.py
+      - name: Install Chinese display fonts
+        run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Install browser test driver
+        run: npm install --prefix /tmp/research-browser --no-package-lock --no-save playwright-core@1.56.1
+      - name: Exercise deployed frontend with recorded completed-day data
+        env:
+          PLAYWRIGHT_MODULE: /tmp/research-browser/node_modules/playwright-core
+          CHROME_BIN: /usr/bin/google-chrome
+          RESEARCH_BROWSER_ORIGIN: https://isu9922004a.github.io/VIP-BOWTOWER-4-SEARCH/
+        run: node scripts/tests/research-context-r16-browser.cjs /tmp/deployed-research-evidence
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: deployed-frontend-evidence
+          path: |
+            /tmp/deployed-research-evidence
+            /tmp/deployed-frontend-verification.json

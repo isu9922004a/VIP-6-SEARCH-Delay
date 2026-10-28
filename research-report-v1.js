@@ -1,5 +1,6 @@
 (function(r,f){const a=f();if(typeof module==='object'&&module.exports)module.exports=a;else r.ShitouResearchReport=a;})(globalThis,function(){
 'use strict';
+const B=typeof module==='object'&&module.exports?require('./research-beginner-v1.js'):globalThis.ShitouResearchBeginner;
 const Z=globalThis.ShitouResearchZhTW||(typeof require==='function'?require('./research-zh-tw-v1.js'):null);
 const chinese=value=>Z?Z.humanize(value):String(value??'—');
 const fmt=v=>typeof v==='number'&&Number.isFinite(v)?v.toFixed(2):'—';
@@ -252,17 +253,7 @@ function compactUnifiedGuide(a,u){
  const conclusion=buyReady?'僅取得附帶條件的評估資格；依實際進場價重算。':`目前${trend}，${pending?'先補核資料':g.weak?'先等結構轉強':'等待對應情境確認'}；不急著買。`;
  return {fields:titles.map((title,i)=>({title,value:[decision+'\n趨勢：'+trend+'。'+volumeFact+'。'+(pending||''),buy,danger,resistance,conclusion][i]})),note:'盤後條件研究，未驗證績效；入榜不等於可新買，跳空須重算。量比、均線方向與全部關卡見完整研究。'};
 }
-function nResearchFields(a){
- const n=a.nContinuation;if(!n)return [];
- if(n.state!=='RESEARCH_ONLY')return [{title:'N字結構與來源',value:n.label||'N字研究資料待核驗'}];
- const q=n.pattern,status={CONFIRMED:'日K情境已確認',WAIT_TRIGGER:'等待觸發',PENDING_CONFIRMATION:'仍待確認',INVALIDATED:'已失效'},decision={DO_NOT_ENTER:'風險阻擋',CANNOT_EVALUATE:'必要資料待核',CONDITIONAL_RESEARCH:'僅取得條件研究資格',WAIT:'先觀察'};
- const points=q?['A','B','C'].map(k=>`${k} ${fmt(q[k].price)}（低高點日 ${q[k].pivotDate}；首次可確認 ${q[k].knownAt||'尚未確認'}）`).join('\n'):'尚無符合規則的A/B/C，不硬畫N字。';
- const cases=(n.cases||[]).map(x=>`${x.label}：${status[x.signalStatus]||x.signalStatus}／${decision[x.entryDecision]||x.entryDecision}\n${x.rule}\n以收盤 ${fmt(x.entryAssumption)} 假設進場；計畫停損 ${fmt(x.planStop)}；最近可核驗關卡 ${fmt(x.nearestVerifiedBarrier)}；扣成本R/R ${fmt(x.riskReward?.rr)}。到等幅投射的假設毛R/R ${fmt(x.projectionScenarioRR?.grossRR)}，不作資格依據。${x.missingEvidence.length?'待核：'+x.missingEvidence.join('、')+'。':''}${x.unmetConditions?.length?'未成立：'+x.unmetConditions.join('、')+'。':''}`).join('\n\n')||'沒有合格N字結構，三種進場情境不補造價格。';
- return [{title:'N字結構與來源',value:`${n.label}；獨立等幅1.0研究，非既有1.618或前三高戰術N。\n${points}${q?`\n回撤 ${fmt(q.retracementPct)}%；${q.commonRetracementBand?'位於':'未位於'}影片常見38.2%–61.8%帶，僅描述、不作硬濾網。`:''}${n.inverse?'\n另觀察到反N結構：'+(n.inverse.stage==='BREAKDOWN_CONFIRMED'?'已跌破前低，留意多方風險。':'仍在形成，非放空指令。'):''}`},
- {title:'N字三種進場比較',value:cases},
- {title:'N字投射與失效',value:q?`等幅投射 D＝C＋(B−A)＝${fmt(q.projection.price)}，僅為未驗證投射，不併入已核驗壓力。\n整體結構A ${fmt(q.A.price)}與各情境計畫停損分開；原C計畫失效後須等新C，不能移動舊訊號。\n歷史突破後價格觀察：${({UNKNOWN:'尚無突破',OPEN:'仍在觀察',STOP_TOUCHED:'曾觸及計畫停損',TARGET_TOUCHED:'曾觸及投射，不等於已成交獲利',AMBIGUOUS:'同根K觸及停損與投射，先後不明，不計為獲利'})[q.historicalBreakoutObservation.status]}。${q.stage==='AMBIGUOUS'?'同根K也觸及A與投射，不能假定達標優先。':''}`:'尚無N字投射與結構失效價；不由單根紅K補出目標。'},
- {title:'濾網N字補充理由',value:`N字階段：${n.label}。突破研究看剩餘空間，回踩研究分清C回調與突破後回測B，動能研究留意追價風險；資金研究仍須獨立外部資料。\n僅補充各股研究論述，不修改原濾網資格、分數或排序；不宣稱較高勝率。`}];
-}
+function nResearchFields(a){return B?.nFields(a)||[];}
 function conflictSummary(a){
  if(a.validation?.technicalModelAvailable!==true)return '基礎日K未通過，不能比較策略意見';
  const pass=Object.entries(a.models||{}).filter(([,m])=>m.status==='符合').map(([k])=>k);
@@ -290,6 +281,7 @@ function view(a){
  const level=(key,label)=>{const item=a.priceLevels?.[key],formula=key==='researchBreakout'?'前20根完成日K最高價（不含當日）':item?.formula?.startsWith('max(')?'已守住的前日均線支撐最高值':'前20根完成日K最低價（不含當日）';return item?.verified&&Number.isFinite(item.value)?`${label} ${fmt(item.value)}；${formula}；行情 ${item.sourceDate}`:'資料不足，暫無法核驗價位';};
  const favourable=!valid?'基礎日K未通過，無法核驗有利依據':Object.entries(a.families||{}).filter(([k,v])=>v===true&&k!=='DATA_QUALITY').map(([k])=>({PRICE_STRUCTURE:'突破／結構',TREND_MA:'均線趨勢',VOLUME:'量能',MOMENTUM:'動能',FLOW:'資金',FUNDAMENTAL:'基本面'}[k])).filter(Boolean).join('、')||'尚無正向家族共振；仍可依已知價量判讀現況';
  const details=[
+  ...(B?.parameterFields(a)||[]),
   ...technicalSummary,
   ...nResearchFields(a),
   ...evidenceDetails(a,guideContext(a)),
@@ -324,17 +316,17 @@ function view(a){
  ];
  const unified=a.unifiedResearch,compact=compactUnifiedGuide(a,unified),summary=compact.fields;
  if(unified&&unified.state==='RESEARCH_ONLY'){
-  const stage=stageLabel(a),all=[...unified.details.map(x=>x.title==='行情階段與依據'?{...x,value:x.value.replace(/^[^；]+/,stage)}:x),{title:'風險觸發與解除',value:unified.risks.map(x=>x.explanation+' 解除：'+x.clearCondition).join('\n')||'未觸發研究警示，仍需確認實際成交與風險。'},...details,{title:'原策略來源',value:'四策略為不同模型來源；原資格、分數、排名未改動。'}],seen=new Set(summary.map(x=>x.title));
+  const stage=stageLabel(a),all=[...(B?.parameterFields(a)||[]),...unified.details.map(x=>x.title==='行情階段與依據'?{...x,value:x.value.replace(/^[^；]+/,stage)}:x),{title:'風險觸發與解除',value:unified.risks.map(x=>x.explanation+' 解除：'+x.clearCondition).join('\n')||'未觸發研究警示，仍需確認實際成交與風險。'},...details,{title:'原策略來源',value:'四策略為不同模型來源；原資格、分數、排名未改動。'}],seen=new Set(summary.map(x=>x.title));
   // Keep original strategy levels, formula ownership, technical facts and dual
   // checks in the full report. The five-field summary remains a single card.
   const merged=all.filter(x=>{if(seen.has(x.title))return false;seen.add(x.title);return true;});
-  return {presentation:'BEGINNER_GUIDE_8_2_3',guideNote:compact.note,schemaVersion:'UNIFIED_REPORT_8_2_3',code:a.code,name:a.name,date:a.date,sourceSnapshotId:a.sourceSnapshotId,stage,summary,details:merged};
+  return {presentation:'BEGINNER_GUIDE_8_2_4',guideNote:compact.note,schemaVersion:'UNIFIED_REPORT_8_2_4',code:a.code,name:a.name,date:a.date,sourceSnapshotId:a.sourceSnapshotId,stage,summary,details:merged};
  }
- return {presentation:'BEGINNER_GUIDE_8_2_3',guideNote:compact.note,schemaVersion:'UNIFIED_RESEARCH_REPORT_8_2_3',code:a.code,name:a.name,date:a.date,sourceSnapshotId:a.sourceSnapshotId||null,stage:stageLabel(a),summary,details};
+ return {presentation:'BEGINNER_GUIDE_8_2_4',guideNote:compact.note,schemaVersion:'UNIFIED_RESEARCH_REPORT_8_2_4',code:a.code,name:a.name,date:a.date,sourceSnapshotId:a.sourceSnapshotId||null,stage:stageLabel(a),summary,details};
 }
 function lines(a){
  const v=view(a);
- return [globalThis.ShitouReleaseV50?.displayRelease||'石頭少爺 V8.2.3｜四策略研究',`${a.name}（${a.code}）｜${a.date||'日期待確認'}`,`【現況】${v.stage}`,...[...v.summary,...v.details].map(f=>`【${f.title}】${f.value}`),'原榜分數、資格與排序保留；本區僅提供研究摘要。'];
+ return [globalThis.ShitouReleaseV50?.displayRelease||'石頭少爺 V8.2.4｜四策略研究',`${a.name}（${a.code}）｜${a.date||'日期待確認'}`,`【現況】${v.stage}`,...[...v.summary,...v.details].map(f=>`【${f.title}】${f.value}`),'原榜分數、資格與排序保留；本區僅提供研究摘要。'];
 }
 function text(a){return lines(a).join('\n');}
 function wrap(ctx,s,width){const out=[];for(const p of String(s).split('\n')){let row='';for(const token of p.match(/[A-Za-z0-9][A-Za-z0-9._/%+\-]*[，。！？；：、）】」』]*|[\s\S][，。！？；：、）】」』]*/g)||[]){
@@ -342,7 +334,7 @@ function wrap(ctx,s,width){const out=[];for(const p of String(s).split('\n')){le
  if(row&&ctx.measureText(row+token).width>width){out.push(row);row=token;}else row+=token;
  }out.push(row);}return out;}
 function roundRectPath(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
-function pages(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouReleaseV50?.displayCode||'V8.2.3',watermark=false,stockMetrics=null,stockMode=!!stockMetrics,detail=false}={}){
+function pages(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouReleaseV50?.displayCode||'V8.2.4',watermark=false,stockMetrics=null,stockMode=!!stockMetrics,detail=false}={}){
  const W=1284,H=2778,M=54,FIELD_FONT=56,FIELD_LINE=77,LABEL_FONT=40,MAX_BOTTOM=2430;
  const ctx=doc.createElement('canvas').getContext('2d');
  if(!ctx)throw Error('Canvas 2D unavailable');

@@ -11,7 +11,7 @@ const normalize=s=>String(s).replace(/[\s｜]/g,'');
  await new Promise(r=>server.listen(0,'127.0.0.1',r));let browser;
  try{
   browser=await chromium.launch({executablePath:process.env.CHROME_BIN||'/usr/bin/chromium',headless:true,args:['--no-sandbox']});
-  const page=await browser.newPage({viewport:{width:428,height:926},isMobile:true,hasTouch:true,deviceScaleFactor:3}),origin='http://127.0.0.1:'+server.address().port,errors=[],missing=[];
+  const page=await browser.newPage({viewport:{width:428,height:926},isMobile:true,hasTouch:true,deviceScaleFactor:3}),base=process.env.RESEARCH_BROWSER_ORIGIN||'http://127.0.0.1:'+server.address().port,origin=new URL(base).origin,errors=[],missing=[];
   page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.status()>=400&&r.url().startsWith(origin))missing.push({url:r.url(),status:r.status()});});
   await page.route('**/*',route=>{const url=new URL(route.request().url()),reply=x=>route.fulfill({contentType:'application/json',body:JSON.stringify(x)});if(url.origin===origin)return route.continue();
    if(url.hostname==='shitou-agent-fib-api.d318426.workers.dev'&&byCode.has(url.searchParams.get('stock')))return reply(byCode.get(url.searchParams.get('stock')).full);
@@ -26,7 +26,7 @@ const normalize=s=>String(s).replace(/[\s｜]/g,'');
   const replayDate=recordedDate.slice(0,4)+'-'+recordedDate.slice(4,6)+'-'+recordedDate.slice(6,8);
   await page.clock.setFixedTime(new Date(replayDate+'T11:00:00Z'));
   if(process.env.RESEARCH_FALLBACK==='1')await page.addInitScript(()=>localStorage.setItem('shitou-research-flags-v1',JSON.stringify({unifiedResearchEnabled:false})));
-  await page.goto(origin,{waitUntil:'load'});
+  await page.goto(base,{waitUntil:'load'});
   if(process.env.RESEARCH_FALLBACK==='1')assert.equal(await page.evaluate(()=>ShitouResearchIntegration.getFlags().unifiedResearchEnabled),false);
   const version=await page.evaluate(()=>({display:ShitouReleaseV50.displayCode,badge:document.querySelector('.version-pill').textContent,title:document.title,chart:ShitouResearchChart.VERSION,context:ShitouStructureContext.VERSION}));
   assert.equal(version.display,currentVersion);assert.ok(version.badge.includes(currentVersion));assert.ok(version.title.includes(currentVersion));

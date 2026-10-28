@@ -3,7 +3,7 @@
 'use strict';
 const VERSION='UNIFIED_RESEARCH_R17',PARAM=Object.freeze({version:'R16_PARAMS_1',pivotLeft:3,pivotRight:3,volume:1.2,longWick:.5,weakClose:.6,zoneATR:.25,maxStopPct:8,minRR:1.5,minSpacePct:2,maxGapPct:5,maxExtensionATR:2,fee:.001425,feeDiscount:1,tax:.003,slippage:.001,redBodyMin:.25,redBodyMax:.65,redWickMax:.4,redVolumeMin:.7,redVolumeMax:1.5,setupDays:5});
 const FLAGS=Object.freeze({unifiedResearchEnabled:true,oneThirdEnabled:true,postLimitupEnabled:true,waveEnabled:true,marketContextEnabled:true});
-const statusZh={WAIT_TRIGGER:'尚未出現買點',PENDING_CONFIRMATION:'已觸及觀察價格但待確認',CONFIRMED:'技術條件已確認',INVALIDATED:'原本看好的理由已失效',DATA_INSUFFICIENT:'資料不足',ACCEPTABLE_FOR_EVALUATION:'風險可供評估',BLOCKED:'風險過高，阻擋進場',UNKNOWN:'必要風險未知'};
+const statusZh={FAILED_BREAKOUT:'盤中一度漲過壓力，但收盤沒有站上',WAIT_TRIGGER:'尚未出現買點',PENDING_CONFIRMATION:'已觸及觀察價格但待確認',CONFIRMED:'技術條件已確認',INVALIDATED:'原本看好的理由已失效',DATA_INSUFFICIENT:'資料不足',ACCEPTABLE_FOR_EVALUATION:'風險可供評估',BLOCKED:'風險過高，阻擋進場',UNKNOWN:'必要風險未知'};
 const fmt=n=>Number.isFinite(n)?n.toFixed(2):'未知';
 function roundTick(p,d=0){if(!(p>0))return null;const t=U.tick(p),v=(d<0?Math.floor((p+1e-8)/t):d>0?Math.ceil((p-1e-8)/t):Math.round(p/t))*t;return +v.toFixed(2);}
 function pivots(b,p=PARAM){const out=[];for(let i=p.pivotLeft;i+p.pivotRight<b.length;i++){const w=b.slice(i-p.pivotLeft,i+p.pivotRight+1),z=b[i];for(const [type,key,cmp] of [['HIGH','high',Math.max],['LOW','low',Math.min]])if(z[key]===cmp(...w.map(x=>x[key]))&&w.filter(x=>x[key]===z[key]).length===1)out.push({type,price:z[key],index:i,pivotDate:z.date,confirmedAt:b[i+p.pivotRight].date});}return out;}
