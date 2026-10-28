@@ -1,0 +1,122 @@
+{
+  "release": "V8.2.2-R16",
+  "baseCommit": "189f589212424e33154f036944c640c5379f2bfa",
+  "newOfflineCases": 27,
+  "newOfflinePassed": 27,
+  "existingResearchV8Cases": 110,
+  "existingResearchV8Passed": 110,
+  "fullSuite": {
+    "passedFiles": 17,
+    "failedFiles": 10,
+    "baselineFailedFiles": [
+      "scripts/tests/research-guide-r10.test.cjs",
+      "scripts/tests/research-mobile-v821.test.cjs",
+      "scripts/tests/research-observation-r4.test.cjs",
+      "scripts/tests/research-trade-context.test.cjs",
+      "scripts/tests/research-unified-report.test.cjs",
+      "scripts/tests/research-v822.test.cjs",
+      "scripts/tests/research-zh-tw-multitf.test.cjs",
+      "scripts/tests/stock-audit-alert-v82.test.mjs",
+      "scripts/tests/stock-worker-taipei-dates.test.cjs",
+      "scripts/tests/worker-contract-r9.test.cjs"
+    ],
+    "newFailureFiles": []
+  },
+  "browser": {
+    "scope": "Seven recorded historical API responses through actual stock lookup button; seven research adapters each; original candidate objects preserved; mobile Chromium emulation, not native iPhone Safari; no full-market scan or profitability test",
+    "version": {
+      "display": "V8.2.2-R16",
+      "badge": "V8.2.2-R16｜四策略研究",
+      "title": "石頭少爺 V8.2.2-R16｜四策略研究",
+      "chart": "RESEARCH_CHART_R16",
+      "context": "STRUCTURE_CONTEXT_R16"
+    },
+    "pageErrors": [],
+    "missingLocalAssets": [],
+    "researchAdapterComparisons": 49,
+    "records": [
+      {
+        "code": "9933",
+        "date": "2026-10-22",
+        "state": "HEALTHY_PULLBACK",
+        "entry": "CANNOT_EVALUATE",
+        "sameAdapters": true,
+        "summaryPages": 1,
+        "chart": true,
+        "overflow": [],
+        "unchanged": true
+      },
+      {
+        "code": "2330",
+        "date": "2026-10-22",
+        "state": "INSUFFICIENT_DATA",
+        "entry": null,
+        "sameAdapters": true,
+        "summaryPages": 1,
+        "chart": false,
+        "overflow": [],
+        "unchanged": true
+      },
+      {
+        "code": "2317",
+        "date": "2026-10-22",
+        "state": "OBSERVATION",
+        "entry": "CANNOT_EVALUATE",
+        "sameAdapters": true,
+        "summaryPages": 1,
+        "chart": true,
+        "overflow": [],
+        "unchanged": true
+      },
+      {
+        "code": "8039",
+        "date": "2026-10-22",
+        "state": "BREAKOUT_FAILURE",
+        "entry": "CANNOT_EVALUATE",
+        "sameAdapters": true,
+        "summaryPages": 1,
+        "chart": true,
+        "overflow": [],
+        "unchanged": true
+      },
+      {
+        "code": "4939",
+        "date": "2026-10-22",
+        "state": "OBSERVATION",
+        "entry": "CANNOT_EVALUATE",
+        "sameAdapters": true,
+        "summaryPages": 1,
+        "chart": true,
+        "overflow": [],
+        "unchanged": true
+      },
+      {
+        "code": "1815",
+        "date": "2026-10-22",
+        "state": "OBSERVATION",
+        "entry": "CANNOT_EVALUATE",
+        "sameAdapters": true,
+        "summaryPages": 1,
+        "chart": true,
+        "overflow": [],
+        "unchanged": true
+      },
+      {
+        "code": "2059",
+        "date": "2026-10-22",
+        "state": "OBSERVATION",
+        "entry": "CANNOT_EVALUATE",
+        "sameAdapters": true,
+        "summaryPages": 1,
+        "chart": true,
+        "overflow": [],
+        "unchanged": true
+      }
+    ]
+  },
+  "performanceValidated": false,
+  "formalRankingChanged": false,
+  "fullMarketScanExecuted": false,
+  "nativeSafariTested": false,
+  "backendChanged": false
+}
