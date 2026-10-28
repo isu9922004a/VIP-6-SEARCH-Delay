@@ -188,96 +188,69 @@ function glanceAction(a){
 }
 // R10 calculations remain unchanged. This schema drives every stock entrance.
 const GUIDE_NOTE='以上為歷史行情的條件式研究示例，非已觸發的買進訊號；持股者需依成本與風險上限另行評估。';
-function entryGuide(a){
- const valid=a.validation?.technicalModelAvailable===true,c=a.tradeContext,z=a.sourceBars?.at(-1),f=a.features;
- const titles=['現在適合進場嗎？','什麼情況可以考慮買？','什麼情況要小心？','漲到哪裡要注意？','一句話結論'];
- const none=['先核對行情，再評估進場\n'+(a.state==='DISABLED'?'四策略研究已關閉，暫不產生進出場情境。':a.reason?'原因：'+chinese(a.reason):'完成日K待核驗或驗證未通過，目前無法確認進場條件。'),
-  '先補齊同一日期、同一來源的日K與價格口徑，再觀察支撐、突破及量價條件。',
-  '資料未核驗前，不能確認支撐與風險價位；尚未核驗不代表沒有風險。',
-  '上方壓力尚無足夠資料確認，不預設目標價。',
-  '先確認行情資料，再評估進場風險。'];
- if(!valid||!c||!z||!f)return {fields:titles.map((title,i)=>({title,value:none[i]})),note:GUIDE_NOTE};
- const price=shortPrice;
- if(!Number.isFinite(c.recent))return {fields:titles.map((title,i)=>({title,value:[
-  `先觀察，等待價量確認\n收盤 ${price(z.close)} 元；當日區間 ${price(z.low)}～${price(z.high)} 元。`,
-  `① 觀察 ${price(z.low)} 元附近能否守穩並出現轉強。\n② 再看收盤能否突破 ${price(z.high)} 元，確認量價及上方空間。`,
-  `${price(z.low)} 元為當日低點，失守須重新評估；尚不能把這個價位當成已確認的波段支撐。`,
-  `${price(z.high)} 元為當日高點，先觀察能否突破；較長期間壓力仍待後續日K核對。`,
-  '先依當日價量觀察，等支撐、突破與上方空間確認，再評估進場風險。'
- ][i]})),note:GUIDE_NOTE};
- const close=z.close,bp=c.breakout.price??c.recent,hasBreak=Number.isFinite(bp)&&close>bp;
- const weak=a.state==='BREAKOUT_FAILURE'||c.breakout.status==='FAILED'||Number.isFinite(f.ma[20].value)&&close<f.ma[20].value;
- const hot=Number.isFinite(c.rsi5)&&c.rsi5>=75||Number.isFinite(c.ma20GapPct)&&c.ma20GapPct>=5;
- // Values always come from this stock's validated snapshot. A legacy B reference
- // stays labelled as unverified unless corroborated by a computed high.
- const pressures=[];
- for(const item of [...c.pressures].sort((x,y)=>x.price-y.price)){
-  if(!pressures.some(x=>Math.abs(x.price-item.price)<1e-8))pressures.push(item);
+// One evidence and wording path for all tickers, including saved legacy flags.
+function guideContext(a,u=a.unifiedResearch){
+ if(a.validation?.technicalModelAvailable!==true||!a.tradeContext||!a.sourceBars?.length)return null;
+ const b=a.reportBars||a.sourceBars,z=b.at(-1),prev=b.at(-2),f=a.features,c=a.tradeContext,active=u?.state==='RESEARCH_ONLY';
+ const finite=n=>typeof n==='number'&&Number.isFinite(n),average=rows=>rows.length&&rows.every(x=>finite(x.volume)&&x.volume>0)?rows.reduce((s,x)=>s+x.volume,0)/rows.length:null;
+ const meanAt=(n,end=b.length)=>end>=n?b.slice(end-n,end).reduce((s,x)=>s+x.close,0)/n:null;
+ const averages=[5,10,20,60].map(n=>{const value=meanAt(n),previous=meanAt(n,b.length-1);return {period:n,value,previous,slope:finite(previous)&&previous>0?(value/previous-1)*100:null,position:finite(value)?z.close>value?'ABOVE':z.close<value?'BELOW':'AT':'UNKNOWN'};});
+ const all=[];const add=(price,source,kind)=>{if(finite(price)&&price>0)all.push({price,source,kind});};
+ for(const m of averages)add(m.value,'MA'+m.period,'MA_REFERENCE');
+ add(z.high,'當日高點待後續確認','INTRADAY_HIGH');add(c.recent,'前20日區間上緣','RANGE_HIGH');add(c.prior60,'前60日高點','RANGE_HIGH');
+ if(active)for(const x of u.levels||[])if(!/策略/.test(x.source||'')||a.priceLevels?.originalB?.verified===true)add(x.price,x.source,x.kind);
+ if(a.priceLevels?.originalB?.verified===true)add(a.originalB,'原策略已核驗B價','STRATEGY_REFERENCE');
+ const upper=[];for(const x of all.filter(x=>+x.price.toFixed(2)>+z.close.toFixed(2)).sort((x,y)=>x.price-y.price)){
+  const last=upper.at(-1);if(last&&+last.price.toFixed(2)===+x.price.toFixed(2)){if(!last.sources.includes(x.source))last.sources.push(x.source);}else upper.push({...x,sources:[x.source]});
  }
- const upper=pressures.slice(0,2),next=upper[0],second=upper[1];
- const label=x=>x.kind.includes('待核驗')?'（策略參考待核）':'';
- const above=upper.length?`上方還有 ${upper.map(x=>price(x.price)+label(x)).join(' 與 ')} 元壓力。`:'更上方壓力仍待確認。';
- const conflict=c.provenance.volumeConflict;
- const headline=weak?'先觀察，等待結構轉強':'先觀察，不急著追價';
- const fact=hasBreak?`已突破 ${price(bp)} 元${hot?'，但 '+(c.rsi5>=75?'RSI 偏熱':'均線乖離偏大'):''}，${above}`:
-  `尚未收盤突破 ${price(c.recent)} 元${weak?'，短線結構仍偏弱':''}；${above}`;
- const buy=weak?`① 先等價格重新站穩${Number.isFinite(f.ma[20].value)?' MA20 '+price(f.ma[20].value)+' 元':'支撐'}，確認結構轉強。\n② 再觀察${next?' '+price(next.price)+' 元突破與':' '}量價確認，並評估報酬風險。`:
-  `① ${hasBreak?`回測 ${price(bp)} 元附近，確認支撐有效並出現轉強訊號。`:Number.isFinite(f.ma[20].value)&&f.ma[20].value<close?`回測 MA20 ${price(f.ma[20].value)} 元附近，確認支撐有效並出現轉強訊號。`:`先等收盤突破 ${price(c.recent)} 元，確認守穩與量價配合。`}\n② ${next?`或收盤有效突破 ${price(next.price)} 元${label(next)}，且量價確認、報酬風險合理。`:'再確認下一道壓力與報酬風險，不在缺乏上方參考時追價。'}`;
- const lower=Number.isFinite(z.low)&&z.low<close&&(!hasBreak||z.low<bp)?z.low:null;
- const risk=(hasBreak?`${price(bp)} 元失守且無法收復，代表突破轉弱，需重新評估。`:
-  weak?'結構尚未轉強，反彈不等於突破確認。':`尚未站上 ${price(c.recent)} 元前，不把盤中上漲當成突破確認。`)+
-  (lower!==null?`${price(lower)} 元為當日低點，可列為${hasBreak?'下一層':'短線'}風險觀察價。`:'研究失效價僅供風險觀察，不直接作為個人停損。');
- const upside=next?`${price(next.price)} 元看能否突破${label(next)}；${second?`${price(second.price)} 元為${second.kind==='前60日高點'?'近60日較大壓力':second.kind.includes('待核驗')?'策略參考（待核）':'上方壓力'}。`:'更上方壓力待確認。'}接近壓力時注意量能與賣壓，不能預設一定會漲到。`:
-  '目前缺乏高於收盤的歷史壓力參考；後續看量價與新高能否守穩，不能預設一定續漲。';
- const bullish=Number.isFinite(f.ma[20].value)&&Number.isFinite(f.ma[60].value)&&close>f.ma[20].value&&close>f.ma[60].value;
- const conclusion=weak?'股票短線結構仍待改善。先等支撐守穩、價格與量能重新轉強，再評估進場風險。':
-  `${bullish?'股票短線偏強，但還沒到非買不可的程度。':'目前先列入觀察，不急著進場。'}先等${hasBreak?'支撐確認或壓力突破':'突破與量價確認'}，再評估進場風險。`;
- return {fields:titles.map((title,i)=>({title,value:[headline+'\n'+fact+(conflict?'成交量口徑待核，量價條件須複核。':''),buy,risk,upside,conclusion][i]})),note:GUIDE_NOTE};
+ const baseline5=b.length>=6?average(b.slice(-6,-1)):null,baseline20=b.length>=21?average(b.slice(-21,-1)):null;
+ const ratioPrevious=prev?.volume>0?z.volume/prev.volume:null,ratio5=baseline5>0?z.volume/baseline5:null,ratio20=baseline20>0?z.volume/baseline20:null;
+ const sourceEvidence=a.validation.verifiedDataSources?.find(x=>x.scope==='VALIDATED_DAILY_OHLCV');
+ const basisVerified=active?u.chart?.basisVerified===true:sourceEvidence?.priceBasisVerified===true,calendarVerified=active?u.chart?.calendarVerified===true:sourceEvidence?.calendarVerified===true;
+ const conflict=c.provenance?.volumeConflict===true,volumeUnknown=conflict||active&&!u.structureContext?.volume?.usable;
+ const change=prev?.close>0?(z.close/prev.close-1)*100:null;
+ const weak=a.state==='BREAKOUT_FAILURE'||active&&['BEAR','FAILED','REBOUND'].includes(u.stage)||finite(f.ma?.[20]?.value)&&z.close<f.ma[20].value;
+ const volumeLabel=finite(ratio5)?ratio5<.7?'縮量':ratio5>=1.5?'放量':'量能接近近期水準':'量能基準待核';
+ const movement=change>0?weak?'反彈':'上漲':change<0?'下跌':'平收';
+ const established=active?u.structureContext?.pullback?.establishedSupport:null;
+ return {active,basisVerified,calendarVerified,upper,averages,baseline5,baseline20,ratioPrevious,ratio5,ratio20,volumeUnknown,conflict,volumeLabel,movement,change,weak,currentLow:z.low,previousLow:prev?.low??null,establishedSupport:established||null,fullRangeGap:!!prev&&z.low>prev.high,openingAboveClose:!!prev&&z.open>prev.close,closeLocation:z.high>z.low?(z.close-z.low)/(z.high-z.low):null};
 }
-// R14: Read-only, single-card beginner wording shared by stock lookup and all filters.
-// Never convert a research-only scenario into an unconditional trading signal.
+function evidenceDetails(a,g){
+ if(!g)return [];
+ const z=a.sourceBars.at(-1),c=a.tradeContext,number=n=>Number.isFinite(n)?fmt(n):'待核',macd=a.indicatorStudy?.day?.macd;
+ const ma=g.averages.filter(x=>x.value!==null).map(x=>`收盤${x.position==='ABOVE'?'高於':x.position==='BELOW'?'低於':'等於'}MA${x.period} ${fmt(x.value)}；該線較前一交易日${x.slope===null?'方向待核':x.slope>0?'上升':x.slope<0?'下降':'持平'}`).join('\n');
+ const volume=`當日 ${number(z.volume/1000)} 張；前一日量比 ${number(g.ratioPrevious)} 倍；前5個完成交易日均量 ${number(g.baseline5===null?null:g.baseline5/1000)} 張、量比 ${number(g.ratio5)} 倍；前20日量比 ${number(g.ratio20)} 倍。均量分母排除當日。\n${g.conflict?'來源量與市場快照的統計範圍待核；不得宣稱已跨來源驗證。':'以上是同一日K來源的量價事實，不等於外部資金或跨來源口徑已核實。'}${g.volumeLabel}不等於洗盤、吸籌或出貨；突破量比參數不直接套用所有反彈與回檔。`;
+ const momentum=`Wilder RSI5／10／14 ${number(a.features.rsi5)}／${number(a.features.rsi10)}／${number(a.features.rsi14)}。${macd?`DIF ${number(macd.dif)}、訊號線 ${number(macd.signal)}、柱體 ${number(macd.hist)}（DIF－訊號線）。${macd.hist<0?'柱體仍負，不能只憑紅K宣稱動能翻多。':macd.dif<0?'柱體非負但DIF仍低於零軸，屬修復觀察；仍須價格、量能與風險確認。':'柱體非負仍須價格、量能與風險確認。'}`:'MACD資料未取得，不補造動能結論。'}\n當日${g.movement}不等於趨勢反轉。${g.openingAboveClose?(g.fullRangeGap?'本日低點高於前日高點，屬全區間向上缺口；除權息因素仍須另核。':'開盤高於昨收，但與前日價格區間重疊，不稱全區間突破缺口。'):'未觀察到開盤高於昨收的上跳。'}`;
+ const levels=g.upper.length?g.upper.map((x,i)=>`${i+1}. ${fmt(x.price)} 元（${x.sources.join('／')}）`).join('\n'):'上方歷史關卡不足，不用未核實策略價或型態投射補造停利目標。';
+ const guard=`當日低點 ${fmt(g.currentLow)}${g.previousLow>0?`、前一交易日低點 ${fmt(g.previousLow)}`:''}，均為風險觀察價，不因低點出現就認定支撐。${g.establishedSupport?`已記錄的回踩情境：${g.establishedSupport.date}、固定參考 ${fmt(g.establishedSupport.price)}；是否失效以完整情境規則判斷。`:'目前未取得先前已確認的回踩支撐情境。'}研究失效價與個人交易停損分開；跳空須重算。`;
+ return [{title:'多空位置與均線方向',value:ma+'\n股價位於均線下方與均線下彎是不同事實；上方均線為觀察關卡，並非自動成立的壓力。'},
+ {title:'量價比較與資料邊界',value:volume},{title:'動能與反轉確認',value:momentum},{title:'關卡順序與來源',value:levels+'\n由近到遠觀察；當日高點與均線參考不等於已確認的波段壓力。未核實策略參考另列原策略價位。'},
+ {title:'風險觀察與支撐確認',value:guard},{title:'研究模式與邊界',value:g.active?'整合研究已啟用；仍依價格、交易日、量能及風險證據分項判定。':'整合研究未啟用或尚不可用；本摘要只提供已核驗日K的量價觀察，不宣稱整合買點確認。'}];
+}
+function entryGuide(a){return compactUnifiedGuide(a,a.unifiedResearch);}
 function compactUnifiedGuide(a,u){
- const base=entryGuide(a);
- if(u?.state!=='RESEARCH_ONLY'||a?.validation?.technicalModelAvailable!==true||!a.tradeContext)return base;
- const z=a.sourceBars?.at(-1),c=a.tradeContext,scenarios=u.scenarios||[];
- if(!z||!Number.isFinite(z.close))return base;
- const price=v=>Number.isFinite(v)&&v>0?shortPrice(v)+' 元':null;
- const volume=u.structureContext?.volume,volumeUnknown=c.provenance?.volumeConflict||!volume?.usable;
- const good=scenarios.filter(x=>x.signalStatus==='CONFIRMED'&&x.riskDecision==='ACCEPTABLE_FOR_EVALUATION'&&x.riskReward?.status==='KNOWN');
- const blocked=scenarios.filter(x=>x.signalStatus==='CONFIRMED'&&x.riskDecision==='BLOCKED');
- const buyReady=a.state!=='BREAKOUT_FAILURE'&&u.entryDecision==='CONDITIONAL_ENTRY'&&good.length>0&&!volumeUnknown;
- const weak=a.state==='BREAKOUT_FAILURE'||['BEAR','FAILED','REBOUND'].includes(u.stage)||z.close<a.features.ma[20].value;
- const trend=weak?'短線偏弱':u.stage==='HIGH_CONSOLIDATION'?'偏多高檔整理':['BULL_START','BULL_CONTINUE'].includes(u.stage)?'短線偏強':u.stage==='PULLBACK'?'多頭回檔':u.stage==='RANGE'?'區間整理':'方向待確認';
- const decision=a.state==='BREAKOUT_FAILURE'?'🔴 結構已失敗，目前不宜新進場':buyReady?'🟢 條件可供評估，須重算實際成交風險':volumeUnknown||u.entryDecision==='CANNOT_EVALUATE'?'⚪ 必要資料待核，尚無法確認新買點':blocked.length||u.entryDecision==='DO_NOT_ENTER'?'🔴 風險未通過，目前不宜新進場':'🟠 先觀察，尚未確認買點';
- const check=good[0]||scenarios.find(x=>x.id==='PULLBACK'&&x.signalStatus==='PENDING_CONFIRMATION'&&x.applicable)||scenarios.find(x=>x.id==='BREAKOUT')||scenarios[0];
- const pending=volumeUnknown?'量能來源／口徑待核':!u.chart?.basisVerified?'價格口徑待核':!u.chart?.calendarVerified?'完成交易日曆待核':null;
- const reason=weak?'股價結構尚待改善':'仍須完成價格確認與風險檢查';
+ const titles=['現在適合進場嗎？','什麼情況可以考慮買？','什麼情況要小心？','漲到哪裡要注意？','一句話結論'],g=guideContext(a,u);
+ if(!g){const values=['先核對行情，再評估進場\n'+(a.state==='DISABLED'?'四策略研究已關閉，暫不產生進出場情境。':a.reason?'原因：'+chinese(a.reason):'完成日K待核驗或驗證未通過，目前無法確認進場條件。'),'先補齊同一日期、同一來源的日K與價格口徑，再觀察支撐、突破及量價條件。','資料未核驗前，不能確認支撐與風險價位；尚未核驗不代表沒有風險。','上方壓力尚無足夠資料確認，不預設目標價。','先確認行情資料，再評估進場風險。'];return {fields:titles.map((title,i)=>({title,value:values[i]})),note:GUIDE_NOTE};}
+ const z=a.sourceBars.at(-1),c=a.tradeContext,scenarios=g.active?u.scenarios||[]:[],price=v=>shortPrice(v)+' 元';
+ const good=scenarios.filter(x=>x.signalStatus==='CONFIRMED'&&x.riskDecision==='ACCEPTABLE_FOR_EVALUATION'&&x.riskReward?.status==='KNOWN'),blocked=scenarios.filter(x=>x.signalStatus==='CONFIRMED'&&x.riskDecision==='BLOCKED');
+ const buyReady=a.state!=='BREAKOUT_FAILURE'&&g.active&&u.entryDecision==='CONDITIONAL_ENTRY'&&good.length>0&&!g.volumeUnknown;
+ const trend=g.weak?'短線偏弱':g.active&&u.stage==='HIGH_CONSOLIDATION'?'偏多高檔整理':g.active&&['BULL_START','BULL_CONTINUE'].includes(u.stage)?'短線偏強':g.active&&u.stage==='PULLBACK'?'多頭回檔':'方向待確認';
+ const pending=g.volumeUnknown?'量能來源／口徑待核':!g.basisVerified?'價格口徑待核':!g.calendarVerified?'完成交易日曆待核':null;
+ const decision=a.state==='BREAKOUT_FAILURE'?'🔴 結構已失敗，目前不宜新進場':buyReady?'🟢 條件可供評估，須重算實際成交風險':pending?'⚪ 必要資料待核，尚無法確認新買點':blocked.length||g.active&&u.entryDecision==='DO_NOT_ENTER'?'🔴 風險未通過，目前不宜新進場':'🟠 先觀察，尚未確認買點';
+ const check=good[0]||scenarios.find(x=>x.id==='PULLBACK'&&x.signalStatus==='PENDING_CONFIRMATION'&&x.applicable)||scenarios.find(x=>x.id==='BREAKOUT')||null;
  let condition='先建立可核驗的觸發與防守位置';
- if(check?.triggerPrice>0){
-  condition=check.id==='PULLBACK'?`回踩 ${price(check.triggerPrice)}附近後收復前日高點`:
-   check.id==='RETEST'?`回測原突破線 ${price(check.triggerPrice)}守穩再轉強`:
-   check.triggerPrice>=z.close?`完成收盤越過 ${price(check.triggerPrice)}及緩衝`:`原突破線 ${price(check.triggerPrice)}續守，仍須量價確認`;
- }
- const volumeCondition=check?.id==='PULLBACK'?'前日量縮、今日價量改善':`當日量／前5日均量至少 ${u.parameters.volume} 倍（分母不含當日）`;
- const near=(u.levels||[]).filter(x=>x.price>z.close+.000001).sort((a,b)=>a.price-b.price)[0];
- if(weak&&near&&check?.triggerPrice>near.price*1.02)condition=`先觀察收盤收復 ${price(near.price)}近壓，且結構轉強`;
- const buyText=`① ${condition}。\n② ${pending?pending+'；核實後再驗證':volumeCondition}，並確認防守及成本後空間。`;
+ if(check?.triggerPrice>0)condition=check.id==='PULLBACK'?`回踩 ${price(check.triggerPrice)}附近後收復前日高點`:check.id==='RETEST'?`回測原突破線 ${price(check.triggerPrice)}守穩再轉強`:check.triggerPrice>=z.close?`完成收盤越過 ${price(check.triggerPrice)}及緩衝`:`原突破線 ${price(check.triggerPrice)}續守，仍須量價確認`;
+ const near=g.upper[0];if((g.weak||!check)&&near)condition=`先觀察收盤收復 ${price(near.price)}近壓（${near.sources[0]}），回測守住再看下一關`;
+ else if(!check&&!near)condition='上方歷史關卡不足，先等待可核驗的新結構';
+ const volumeCondition=check?.id==='PULLBACK'?'前日量縮、今日價量改善':g.weak||!check?'依反彈或回檔情境觀察量價延續':`當日量／前5日均量至少 ${u.parameters.volume} 倍（分母不含當日）`;
+ const volumeFact=Number.isFinite(g.ratio5)?`當日${g.movement}；${g.volumeLabel}，前5日量比 ${fmt(g.ratio5)} 倍`:'量能基準待核';
+ const buy=`① ${condition}。\n② ${pending?pending+'；核實後再驗證':volumeCondition}，並確認防守及成本後空間。`;
  const riskNames={LOW_VOLUME:'低量不等於洗盤',NEAR_RESISTANCE:'最近上方關卡太近',VOLUME_UPPER_WICK:'放量上影',FAILED_BREAKOUT:'突破後收回',EXTENDED:'離結構防守較遠',GAP:'跳空須重算',SUPPORT_BROKEN:'已建立防守失效',MOMENTUM_DIVERGENCE:'動能背離觀察'};
- const riskWords=[...new Set((u.risks||[]).map(x=>riskNames[x.code]).filter(Boolean))].slice(0,2);
- const defense=good[0]?.invalidationPrice;
- const guard=check?.defensePrice;
- const danger=`${pending?pending+'；':''}${riskWords.join('；')||'留意假突破與執行價格'}。${defense>0?`此情境收盤失效 ${price(defense)}，非成交停損保證。`:guard>0?`候選防守參考 ${price(guard)}，尚非已確認支撐；暫不提供停損組合。`:'防守位置未核實，無法計算報酬風險。'}`;
- const upper=(u.levels||[]).filter(x=>x.price>z.close+.000001).sort((a,b)=>a.price-b.price).filter((x,i,all)=>!i||Math.abs(x.price-all[i-1].price)>1e-8);
- const one=upper[0],two=upper[1];
- const resistance=one?`${price(one.price)}為最近上方關卡（${one.source}）${two?`；再看 ${price(two.price)}`:''}。不可跳過近壓或預設必達。`:'上方歷史關卡不足，暫不設定停利目標。';
- const conclusion=buyReady?`僅取得附帶條件的評估資格；依實際進場價重算。`:`目前${trend}，${pending?'先補核資料':weak?'先等結構轉強':'等待對應情境確認'}；不急著買。`;
- return {fields:[
-  {title:'現在適合進場嗎？',value:`${decision}\n趨勢：${trend}。${pending||reason}。`},
-  {title:'什麼情況可以考慮買？',value:buyText},
-  {title:'什麼情況要小心？',value:danger},
-  {title:'漲到哪裡要注意？',value:resistance},
-  {title:'一句話結論',value:conclusion}
- ],note:'盤後條件研究，未驗證績效；入榜不等於可新買，跳空須重算。來源與確認條件見完整研究。'};
+ const riskWords=[...new Set((g.active?u.risks||[]:[]).map(x=>riskNames[x.code]).filter(Boolean))].slice(0,2),guard=check?.defensePrice,defense=good[0]?.invalidationPrice;
+ const danger=`${pending?pending+'；':''}${riskWords.join('；')||(g.weak?'反彈不等於反轉':'留意假突破與執行價格')}。${defense>0?`此情境收盤失效 ${price(defense)}，非成交停損保證。`:guard>0?`當日低點 ${price(g.currentLow)}${g.previousLow>0?'／前低 '+price(g.previousLow):''}為風險觀察，尚非已確認支撐。`:`當日低點 ${price(g.currentLow)}${g.previousLow>0?'／前低 '+price(g.previousLow):''}為風險觀察，尚非已確認支撐。`}`;
+ const resistance=g.upper.length?g.upper.slice(0,3).map((x,i)=>`${i?'再看':'最近上方關卡 '}${price(x.price)}（${x.sources.slice(0,2).join('／')}）`).join('；')+'。不可跳過近壓或預設必達。':'上方歷史關卡不足，暫不設定停利目標。';
+ const conclusion=buyReady?'僅取得附帶條件的評估資格；依實際進場價重算。':`目前${trend}，${pending?'先補核資料':g.weak?'先等結構轉強':'等待對應情境確認'}；不急著買。`;
+ return {fields:titles.map((title,i)=>({title,value:[decision+'\n趨勢：'+trend+'。'+volumeFact+'。'+(pending||''),buy,danger,resistance,conclusion][i]})),note:'盤後條件研究，未驗證績效；入榜不等於可新買，跳空須重算。量比、均線方向與全部關卡見完整研究。'};
 }
 function conflictSummary(a){
  if(a.validation?.technicalModelAvailable!==true)return '基礎日K未通過，不能比較策略意見';
@@ -307,6 +280,7 @@ function view(a){
  const favourable=!valid?'基礎日K未通過，無法核驗有利依據':Object.entries(a.families||{}).filter(([k,v])=>v===true&&k!=='DATA_QUALITY').map(([k])=>({PRICE_STRUCTURE:'突破／結構',TREND_MA:'均線趨勢',VOLUME:'量能',MOMENTUM:'動能',FLOW:'資金',FUNDAMENTAL:'基本面'}[k])).filter(Boolean).join('、')||'尚無正向家族共振；仍可依已知價量判讀現況';
  const details=[
   ...technicalSummary,
+  ...evidenceDetails(a,guideContext(a)),
   {title:'目前行情階段',value:stageLabel(a)},
   {title:'突破層級與確認',value:breakoutSummary(a)},
   {title:'原策略價位',value:`${a.originalB==null?'原策略B價未提供／不適用':`原策略B價 ${fmt(a.originalB)}（${a.priceLevels?.originalB?.verified?'已核驗':'來源待核'}）`}；${a.originalInvalidation==null?'原策略失效價未提供':`原策略失效 ${fmt(a.originalInvalidation)}`}；研究失效 ${fmt(a.researchInvalidation)}，非預設交易停損`},
@@ -342,21 +316,21 @@ function view(a){
   // Keep original strategy levels, formula ownership, technical facts and dual
   // checks in the full report. The five-field summary remains a single card.
   const merged=all.filter(x=>{if(seen.has(x.title))return false;seen.add(x.title);return true;});
-  return {presentation:'BEGINNER_GUIDE_R18',guideNote:compact.note,schemaVersion:'UNIFIED_RESEARCH_R18',code:a.code,name:a.name,date:a.date,sourceSnapshotId:a.sourceSnapshotId,stage,summary,details:merged};
+  return {presentation:'BEGINNER_GUIDE_R19',guideNote:compact.note,schemaVersion:'UNIFIED_RESEARCH_R19',code:a.code,name:a.name,date:a.date,sourceSnapshotId:a.sourceSnapshotId,stage,summary,details:merged};
  }
- return {presentation:'BEGINNER_GUIDE_R18',guideNote:compact.note,schemaVersion:'UNIFIED_RESEARCH_REPORT_R18',code:a.code,name:a.name,date:a.date,sourceSnapshotId:a.sourceSnapshotId||null,stage:stageLabel(a),summary,details};
+ return {presentation:'BEGINNER_GUIDE_R19',guideNote:compact.note,schemaVersion:'UNIFIED_RESEARCH_REPORT_R19',code:a.code,name:a.name,date:a.date,sourceSnapshotId:a.sourceSnapshotId||null,stage:stageLabel(a),summary,details};
 }
 function lines(a){
  const v=view(a);
- return [globalThis.ShitouReleaseV50?.displayRelease||'石頭少爺 V8.2.2-R18｜四策略研究',`${a.name}（${a.code}）｜${a.date||'日期待確認'}`,`【現況】${v.stage}`,...[...v.summary,...v.details].map(f=>`【${f.title}】${f.value}`),'原榜分數、資格與排序保留；本區僅提供研究摘要。'];
+ return [globalThis.ShitouReleaseV50?.displayRelease||'石頭少爺 V8.2.2-R19｜四策略研究',`${a.name}（${a.code}）｜${a.date||'日期待確認'}`,`【現況】${v.stage}`,...[...v.summary,...v.details].map(f=>`【${f.title}】${f.value}`),'原榜分數、資格與排序保留；本區僅提供研究摘要。'];
 }
 function text(a){return lines(a).join('\n');}
-function wrap(ctx,s,width){const out=[];for(const p of String(s).split('\n')){let row='';for(const token of p.match(/[A-Za-z0-9][A-Za-z0-9._/%+\-]*[，。！？；：、）】」』]?|[\s\S][，。！？；：、）】」』]?/g)||[]){
+function wrap(ctx,s,width){const out=[];for(const p of String(s).split('\n')){let row='';for(const token of p.match(/[A-Za-z0-9][A-Za-z0-9._/%+\-]*[，。！？；：、）】」』]*|[\s\S][，。！？；：、）】」』]*/g)||[]){
  if(ctx.measureText(token).width>width){for(const ch of token){if(row&&ctx.measureText(row+ch).width>width){out.push(row);row=ch;}else row+=ch;}continue;}
  if(row&&ctx.measureText(row+token).width>width){out.push(row);row=token;}else row+=token;
  }out.push(row);}return out;}
 function roundRectPath(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
-function pages(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouReleaseV50?.displayCode||'V8.2.2-R18',watermark=false,stockMetrics=null,stockMode=!!stockMetrics,detail=false}={}){
+function pages(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouReleaseV50?.displayCode||'V8.2.2-R19',watermark=false,stockMetrics=null,stockMode=!!stockMetrics,detail=false}={}){
  const W=1284,H=2778,M=54,FIELD_FONT=56,FIELD_LINE=77,LABEL_FONT=40,MAX_BOTTOM=2430;
  const ctx=doc.createElement('canvas').getContext('2d');
  if(!ctx)throw Error('Canvas 2D unavailable');
@@ -479,5 +453,5 @@ function guidePages(a,report,{doc,displayCode,watermark,stockMode}){
  });
 }
 function candlePage(a,options={}){const chart=typeof module==='object'&&module.exports?require('./research-chart-v1.js'):globalThis.ShitouResearchChart;return chart?.page(a,options)||null;}
-return Object.freeze({entryGuide,GUIDE_NOTE,breakoutSummary,scenarioSummary,provenanceSummary,fmt,STAGES,stageLabel,technicalOutlook,modelSummary,view,lines,text,wrap,pages,candlePage,STATES});
+return Object.freeze({guideContext,entryGuide,GUIDE_NOTE,breakoutSummary,scenarioSummary,provenanceSummary,fmt,STAGES,stageLabel,technicalOutlook,modelSummary,view,lines,text,wrap,pages,candlePage,STATES});
 });

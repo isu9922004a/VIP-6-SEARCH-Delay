@@ -1,0 +1,77 @@
+{
+  "release": "V8.2.2-R19",
+  "validatedAt": "2026-10-28T14:54:01.771790+00:00",
+  "offline": {
+    "files": 30,
+    "passed": 30,
+    "failed": 0,
+    "newUniversalTests": 8
+  },
+  "syntheticPresentationCoverage": {
+    "tickers": 1959,
+    "source": "local recorded data/market/latest.json",
+    "scope": "Ticker identity and quote-scaled synthetic presentation invariants, not real full-universe history evaluations"
+  },
+  "browser": [
+    {
+      "name": "historical",
+      "status": "PASS",
+      "fallback": false,
+      "journeys": 7,
+      "adapters": 49,
+      "summaryPages": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "historical-fallback",
+      "status": "PASS",
+      "fallback": true,
+      "journeys": 7,
+      "adapters": 49,
+      "summaryPages": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "8039",
+      "status": "PASS",
+      "fallback": false,
+      "journeys": 1,
+      "adapters": 7,
+      "summaryPages": [
+        1
+      ]
+    },
+    {
+      "name": "8039-fallback",
+      "status": "PASS",
+      "fallback": true,
+      "journeys": 1,
+      "adapters": 7,
+      "summaryPages": [
+        1
+      ]
+    }
+  ],
+  "browserScope": "Recorded API mobile Chromium replay; not native Safari or live full-market scan",
+  "sourceHistoryPreserved": true,
+  "formalScannerRulesChanged": false,
+  "workerRuntimeChanged": false,
+  "limits": [
+    "Unknown evidence remains unknown",
+    "No profitability backtest"
+  ]
+}

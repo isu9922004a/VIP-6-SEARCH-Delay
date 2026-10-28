@@ -25,7 +25,9 @@ const normalize=s=>String(s).replace(/[\s｜]/g,'');
   const recordedDate=String(fixture.snapshot.meta.targetTradeDate).replace(/-/g,'');
   const replayDate=recordedDate.slice(0,4)+'-'+recordedDate.slice(4,6)+'-'+recordedDate.slice(6,8);
   await page.clock.setFixedTime(new Date(replayDate+'T11:00:00Z'));
+  if(process.env.RESEARCH_FALLBACK==='1')await page.addInitScript(()=>localStorage.setItem('shitou-research-flags-v1',JSON.stringify({unifiedResearchEnabled:false})));
   await page.goto(origin,{waitUntil:'load'});
+  if(process.env.RESEARCH_FALLBACK==='1')assert.equal(await page.evaluate(()=>ShitouResearchIntegration.getFlags().unifiedResearchEnabled),false);
   const version=await page.evaluate(()=>({display:ShitouReleaseV50.displayCode,badge:document.querySelector('.version-pill').textContent,title:document.title,chart:ShitouResearchChart.VERSION,context:ShitouStructureContext.VERSION}));
   assert.equal(version.display,currentVersion);assert.ok(version.badge.includes(currentVersion));assert.ok(version.title.includes(currentVersion));
   const controls=await page.evaluate(()=>['momentumScanButton','dayTradeScanButton','strongStockScanButton','towerRun','restaurantRun','structureRun'].map(id=>!!document.getElementById(id)));assert.ok(controls.every(Boolean));
@@ -46,8 +48,9 @@ const normalize=s=>String(s).replace(/[\s｜]/g,'');
     const summary=R.pages(a,{stockMode:true}),full=R.pages(a,{stockMode:true,detail:true}),chart=R.candlePage(a),pages=[...summary,...full,...(chart?[chart]:[])],printed=[],overflow=[];
     const proto=CanvasRenderingContext2D.prototype,old=proto.fillText;proto.fillText=function(text,x,y,...rest){const w=this.measureText(String(text)).width;if(x<0||x+w>1284.5||y<0||y>2778)overflow.push({text:String(text),x,y,width:w});printed.push(String(text));return old.call(this,text,x,y,...rest);};
     try{for(const p of pages){const c=p.renderExportRegion();c.width=c.height=1;}}finally{proto.fillText=old;}
-    return {code:a.code,date:a.date,state:a.state,priceBasis:a.unifiedResearch?.chart?.basisVerified,calendarVerified:a.unifiedResearch?.chart?.calendarVerified,entry:a.unifiedResearch?.entryDecision,entries,dom,expected:[...v.summary,...v.details],summaryExpected:v.summary,summary:summary.map(x=>JSON.parse(x.dataset.researchAudit)),full:full.map(x=>JSON.parse(x.dataset.researchAudit)),chart:chart?JSON.parse(chart.dataset.researchAudit):null,overflow,unchanged:before===JSON.stringify(a),summaryCount:summary.length};
+    return {guideEvidence:R.guideContext(a),code:a.code,date:a.date,state:a.state,priceBasis:a.unifiedResearch?.chart?.basisVerified,calendarVerified:a.unifiedResearch?.chart?.calendarVerified,entry:a.unifiedResearch?.entryDecision,entries,dom,expected:[...v.summary,...v.details],summaryExpected:v.summary,summary:summary.map(x=>JSON.parse(x.dataset.researchAudit)),full:full.map(x=>JSON.parse(x.dataset.researchAudit)),chart:chart?JSON.parse(chart.dataset.researchAudit):null,overflow,unchanged:before===JSON.stringify(a),summaryCount:summary.length};
    });
+   if(result.guideEvidence){const g=result.guideEvidence;assert.ok(g.upper.every((x,i)=>!i||x.price>g.upper[i-1].price));if(process.env.RESEARCH_FALLBACK==='1')assert.equal(g.active,false);}
    assert.ok(result.entries.every(x=>x.inputUnchanged&&x.sameReport),JSON.stringify({entries:result.entries,expected:result.expected.filter(x=>['價格與交易日證據','資料狀態','行情資料完整性','技術現況'].includes(x.title))}));assert.deepEqual(result.dom,result.expected);assert.ok(result.unchanged);assert.deepEqual(result.overflow,[]);
    for(const [pages,expected] of [[result.summary,result.summaryExpected],[result.full,result.expected]]){
     assert.ok(pages.every(x=>x.noClipping));for(const field of expected){const s=pages.flatMap(x=>x.fields).filter(x=>x.title.replace('（續）','')===field.title).map(x=>x.value).join('');assert.equal(normalize(s),normalize(field.value),record.code+' lost image field '+field.title);}
@@ -62,10 +65,11 @@ const normalize=s=>String(s).replace(/[\s｜]/g,'');
      for(const [kind,url] of Object.entries(images))fs.writeFileSync(path.join(out,`${record.code}-${kind}.png`),Buffer.from(url.split(',')[1],'base64'));
     }
    }
+   if(!result.chart&&record.code==='8039'){const url=await page.evaluate(()=>ShitouResearchReport.pages(ShitouResearchIntegration.getCurrentStock().analysis,{stockMode:true})[0].renderExportRegion().toDataURL('image/png'));fs.writeFileSync(path.join(out,'8039-summary.png'),Buffer.from(url.split(',')[1],'base64'));}
    const bounds=await page.evaluate(()=>[...document.querySelectorAll('#researchStock,#researchPanel,.version-pill')].map(x=>({id:x.id,left:x.getBoundingClientRect().left,right:x.getBoundingClientRect().right,scroll:x.scrollWidth,width:x.clientWidth})));assert.ok(bounds.every(x=>x.left>=0&&x.right<=428.5&&x.scroll<=x.width+1),JSON.stringify(bounds));
    console.log(JSON.stringify({code:result.code,state:result.state,summaryPages:result.summaryCount,chart:!!result.chart,entry:result.entry}));results.push(result);
   }
   assert.deepEqual(errors,[]);assert.deepEqual(missing,[]);
-  fs.writeFileSync(path.join(out,'results.json'),JSON.stringify({status:'PASS',version,scope:'Recorded API responses through actual stock lookup button; seven research adapters each; original candidate objects preserved; mobile Chromium emulation, not native iPhone Safari; no full-market scan or profitability test',results,errors,missing},null,2));
+  fs.writeFileSync(path.join(out,'results.json'),JSON.stringify({status:'PASS',version,fallback:process.env.RESEARCH_FALLBACK==='1',scope:'Recorded API responses through actual stock lookup button; seven research adapters each; original candidate objects preserved; mobile Chromium emulation, not native iPhone Safari; no full-market scan or profitability test',results,errors,missing},null,2));
  }finally{await browser?.close();await new Promise(r=>server.close(r));}
 })().catch(e=>{console.error(e);process.exitCode=1;});

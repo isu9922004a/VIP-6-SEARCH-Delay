@@ -9,7 +9,7 @@ test('reference guide preserves five sections and conditional R18 scenario evide
  assert.deepEqual(v.summary.map(x=>x.title),titles);assert.equal(a.beginner,undefined);
  assert.equal(a.tradeContext.recent,187);assert.equal(a.tradeContext.prior60,201);
  assert.match(v.summary[1].value,/原突破線 187 元續守.*量價確認/);
- assert.match(v.summary[3].value,/192.5 元.*最近上方關卡.*201 元/);
+ assert.match(v.summary[3].value,/最近上方關卡 192.5 元.*201 元/);
  assert.match(v.summary[2].value,/最近上方關卡太近/);assert.match(v.summary[2].value,/尚非已確認支撐/);
  assert.match(v.summary[1].value,/前5日均量至少 1.2 倍（分母不含當日）/);
  assert.doesNotMatch(v.summary[0].value,/🟢/);assert.match(v.summary[4].value,/不急著買/);assert.match(v.guideNote,/未驗證績效/);
@@ -35,6 +35,7 @@ test('weak, unbroken, invalid, disabled and short-history stocks retain the form
 test('volume conflicts remain visible and missing upper levels do not become targets',()=>{
  const a=C.evaluate(example()),c=structuredClone(a);c.tradeContext.provenance.volumeConflict=true;
  assert.match(R.view(c).summary[0].value,/量能來源／口徑待核/);assert.doesNotMatch(R.view(c).summary[0].value,/🟢/);
- c.unifiedResearch.levels=[];assert.match(R.view(c).summary[3].value,/上方歷史關卡不足/);assert.doesNotMatch(R.view(c).summary[3].value,/一定會漲到 \d/);
+ const b=bars(160,()=>100);b.at(-1).close=110;b.at(-1).high=110;const high=C.evaluate(report(b,{originalB:999}));
+ assert.match(R.view(high).summary[3].value,/上方歷史關卡不足/);assert.doesNotMatch(R.view(high).summary[3].value,/999|一定會漲到 \d/);
 });
 module.exports={example};
