@@ -16,6 +16,10 @@ jobs:
           node-version: '24'
       - name: Read current price evidence
         run: node scripts/diagnose-research-live.cjs
+      - name: Inspect actual frontend ownership
+        run: |
+          npm install --prefix /tmp/research-browser --no-package-lock --no-save playwright-core@1.56.1
+          node scripts/live-frontend-diagnostic.cjs
       - uses: actions/upload-artifact@v4
         with:
           name: research-live-source
