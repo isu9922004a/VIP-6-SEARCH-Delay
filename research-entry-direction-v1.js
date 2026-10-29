@@ -23,7 +23,7 @@ function candles(b,p=PARAM){const out=[];
 function direction(b){const f=U.features(b),z=b.at(-1),prev=b.at(-2),m20=f.ma[20],m60=f.ma[60];let code='SIDEWAYS',label='多空拉鋸，方向還不清楚';
  if(z.close>m20.value&&m20.value>m60.value&&m20.slope>0){code='BULL';label='偏多，價格與均價方向一致';}
  else if(z.close<m20.value&&z.close>m60.value&&m60.slope>0){code='PULLBACK';label='中期偏多，短線正在回落';}
- else if(z.close<m20.value&&z.close<m60.value&&m20.slope<0){code=z.close>prev.close?'REBOUND':'BEAR';label=code==='REBOUND'?'短線反彈，整體仍偏弱':'偏空，價格在下彎均價下方';}
+ else if(z.close<m20.value&&z.close<m60.value){code=z.close>prev.close?'REBOUND':'BEAR';label=code==='REBOUND'?'短線反彈，仍在兩條均價下方':m20.slope<0?'偏空，價格在下彎均價下方':'價格偏弱，低於20日與60日均價';}
  else if(z.close>m20.value&&m20.value<m60.value){code='REBOUND';label='正在反彈，尚未轉成穩定多頭';}
  return {code,label,close:z.close,ma20:m20.value,ma60:m60.value,ma20Slope:m20.slope,reason:`收盤${money(z.close)}；20日均價${money(m20.value)}${m20.slope>0?'上彎':m20.slope<0?'下彎':'走平'}；60日均價${money(m60.value)}。`};
 }

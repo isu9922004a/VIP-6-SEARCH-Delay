@@ -259,7 +259,7 @@ function directionGuide(a,guide){
  const fields=guide.fields.map(x=>({...x})),prefix={EVALUATE:'🟢 偏多且條件通過，可進一步評估',WAIT:'🟠 '+d.direction.label+'，先等確認',AVOID:'🔴 '+d.direction.label+'，目前不宜新買',DATA:'⚪ '+d.direction.label+'；必要資料待核'};
  const old=fields[0].value.split('\n');fields[0].value=(a.state==='BREAKOUT_FAILURE'?old[0]:prefix[d.entry])+'\n'+old.slice(1).join('\n');
  if(d.direction.code==='REBOUND')fields[0].value=fields[0].value.replace(/趨勢：[^。]+/,'趨勢：短線反彈，仍待轉強');
- if(d.entry!=='EVALUATE')fields[4].value=d.reason+' 先等結構轉強或確認，再評估；不急著買。';
+ if(d.entry==='DATA')fields[4].value='必要資料還沒確認；先等結構轉強並核對風險，不急著買。';else if(d.entry!=='EVALUATE')fields[4].value=d.reason+' 先等結構轉強或確認，再評估；不急著買。';
  return {...guide,fields};
 }
 function nResearchFields(a){return B?.nFields(a)||[];}
