@@ -258,7 +258,9 @@ function directionGuide(a,guide){
  const d=a.entryDirection;if(d?.state!=='RESEARCH_ONLY')return guide;
  const fields=guide.fields.map(x=>({...x})),prefix={EVALUATE:'🟢 偏多且條件通過，可進一步評估',WAIT:'🟠 '+d.direction.label+'，先等確認',AVOID:'🔴 '+d.direction.label+'，目前不宜新買',DATA:'⚪ '+d.direction.label+'；必要資料待核'};
  const old=fields[0].value.split('\n');fields[0].value=(a.state==='BREAKOUT_FAILURE'?old[0]:prefix[d.entry])+'\n'+old.slice(1).join('\n');
+ fields[0].value+='\n'+d.reason;
  if(d.direction.code==='REBOUND')fields[0].value=fields[0].value.replace(/趨勢：[^。]+/,'趨勢：短線反彈，仍待轉強');
+ if(d.entry!=='EVALUATE')fields[1].value=d.reason+'\n'+fields[1].value;
  if(d.entry==='DATA')fields[4].value='必要資料還沒確認；先等結構轉強並核對風險，不急著買。';else if(d.entry!=='EVALUATE')fields[4].value=d.reason+' 先等結構轉強或確認，再評估；不急著買。';
  return {...guide,fields};
 }
@@ -330,13 +332,13 @@ function view(a){
   // Keep original strategy levels, formula ownership, technical facts and dual
   // checks in the full report. The five-field summary remains a single card.
   const merged=all.filter(x=>{if(seen.has(x.title))return false;seen.add(x.title);return true;});
-  return {presentation:'BEGINNER_GUIDE_8_2_5',guideNote:compact.note,schemaVersion:'UNIFIED_REPORT_8_2_5',code:a.code,name:a.name,date:a.date,sourceSnapshotId:a.sourceSnapshotId,stage,summary,details:merged};
+  return {presentation:'BEGINNER_GUIDE_8_2_6',guideNote:compact.note,schemaVersion:'UNIFIED_REPORT_8_2_6',code:a.code,name:a.name,date:a.date,sourceSnapshotId:a.sourceSnapshotId,stage,summary,details:merged};
  }
- return {presentation:'BEGINNER_GUIDE_8_2_5',guideNote:compact.note,schemaVersion:'UNIFIED_RESEARCH_REPORT_8_2_5',code:a.code,name:a.name,date:a.date,sourceSnapshotId:a.sourceSnapshotId||null,stage:stageLabel(a),summary,details};
+ return {presentation:'BEGINNER_GUIDE_8_2_6',guideNote:compact.note,schemaVersion:'UNIFIED_RESEARCH_REPORT_8_2_6',code:a.code,name:a.name,date:a.date,sourceSnapshotId:a.sourceSnapshotId||null,stage:stageLabel(a),summary,details};
 }
 function lines(a){
  const v=view(a);
- return [globalThis.ShitouReleaseV50?.displayRelease||'石頭少爺 V8.2.5｜四策略研究',`${a.name}（${a.code}）｜${a.date||'日期待確認'}`,`【現況】${v.stage}`,...[...v.summary,...v.details].map(f=>`【${f.title}】${f.value}`),'原榜分數、資格與排序保留；本區僅提供研究摘要。'];
+ return [globalThis.ShitouReleaseV50?.displayRelease||'石頭少爺 V8.2.6｜四策略研究',`${a.name}（${a.code}）｜${a.date||'日期待確認'}`,`【現況】${v.stage}`,...[...v.summary,...v.details].map(f=>`【${f.title}】${f.value}`),'原榜分數、資格與排序保留；本區僅提供研究摘要。'];
 }
 function text(a){return lines(a).join('\n');}
 function wrap(ctx,s,width){const out=[];for(const p of String(s).split('\n')){let row='';for(const token of p.match(/[A-Za-z0-9][A-Za-z0-9._/%+\-]*[，。！？；：、）】」』]*|[\s\S][，。！？；：、）】」』]*/g)||[]){
@@ -344,7 +346,7 @@ function wrap(ctx,s,width){const out=[];for(const p of String(s).split('\n')){le
  if(row&&ctx.measureText(row+token).width>width){out.push(row);row=token;}else row+=token;
  }out.push(row);}return out;}
 function roundRectPath(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
-function pages(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouReleaseV50?.displayCode||'V8.2.5',watermark=false,stockMetrics=null,stockMode=!!stockMetrics,detail=false}={}){
+function pages(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouReleaseV50?.displayCode||'V8.2.6',watermark=false,stockMetrics=null,stockMode=!!stockMetrics,detail=false}={}){
  const W=1284,H=2778,M=54,FIELD_FONT=56,FIELD_LINE=77,LABEL_FONT=40,MAX_BOTTOM=2430;
  const ctx=doc.createElement('canvas').getContext('2d');
  if(!ctx)throw Error('Canvas 2D unavailable');
@@ -470,3 +472,4 @@ function guidePages(a,report,{doc,displayCode,watermark,stockMode}){
 function candlePage(a,options={}){const chart=typeof module==='object'&&module.exports?require('./research-chart-v1.js'):globalThis.ShitouResearchChart;return chart?.page(a,options)||null;}
 return Object.freeze({guideContext,entryGuide,GUIDE_NOTE,breakoutSummary,scenarioSummary,provenanceSummary,fmt,STAGES,stageLabel,technicalOutlook,modelSummary,view,lines,text,wrap,pages,candlePage,STATES});
 });
+

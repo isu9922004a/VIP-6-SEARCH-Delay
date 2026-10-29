@@ -9,9 +9,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <link rel="stylesheet" href="./tower-design.css?v=V8.2.2-R13-UNIFIED1">
 
-<title>石頭少爺 V8.2.5｜四策略研究</title>
+<title>石頭少爺 V8.2.6｜四策略研究</title>
 <script src="./scan-exclusions-rsi-v5328.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./version-v50.js?v=V8.2.5-ENTRY1"></script>
+<script src="./stock-query-runtime-v826.js?v=V8.2.6-QUERY1"></script>
+<script src="./version-v50.js?v=V8.2.6-ENTRY1"></script>
 
 <style>
 
@@ -4886,11 +4887,7 @@ function writeStockDirectoryCache(directory){
 
 async function fetchJsonForDirectory(url){
 
-  const response=await fetch(url,{headers:{Accept:"application/json"},cache:"no-store"});
-
-  if(!response.ok)throw new Error(`HTTP ${response.status}`);
-
-  const data=await response.json();
+  const data=await ShitouQueryRuntime.json(url,7000);
 
   if(!Array.isArray(data))throw new Error("股票清單格式錯誤");
 
@@ -5152,11 +5149,7 @@ async function fetchSingleOfficialStockName(code,market){
 
     const url=`${TWSE_MIS_STOCK_INFO_URL}?ex_ch=${encodeURIComponent(channels.join("|"))}&json=1&delay=0&_=${Date.now()}`;
 
-    const response=await fetch(url,{headers:{Accept:"application/json"},cache:"no-store"});
-
-    if(!response.ok)return null;
-
-    const data=await response.json();
+    const data=await ShitouQueryRuntime.json(url,4000);
 
     const rows=Array.isArray(data?.msgArray)?data.msgArray:[];
 
@@ -23686,7 +23679,9 @@ async function fetchStockAnalysisV3742(stock,maxAttempts=3,timeoutMs=STOCK_ANALY
   return {response:lastResponse,data:lastData,attempts:maxAttempts};
 }
 
+let stockAnalysisBusyV826=false;
 async function analyzeStock(){
+  if(stockAnalysisBusyV826)return;
 
   const input=document.getElementById("stockInput");
 
@@ -23722,13 +23717,16 @@ async function analyzeStock(){
 
   button.textContent="分析中...";
 
+  stockAnalysisBusyV826=true;
+  const startedAt=Date.now(),progress=setInterval(()=>{loading.textContent=`分析中，已等待 ${Math.floor((Date.now()-startedAt)/1000)} 秒；正在取得完成行情，請勿重複送出。`;},1000);
+  loading.textContent="正在確認股票與取得完成行情…";
+  button.setAttribute("aria-busy","true");
   lastReportData=null;
 
-  set("copyMessage","");
-
   try{
+    set("copyMessage","");
 
-    const resolvedInput=await resolveStockInput(rawInput);
+    const resolvedInput=await ShitouQueryRuntime.deadline(()=>resolveStockInput(rawInput),16000,"股票名稱查詢超時，請改用股票代號重試。");
 
     const stock=resolvedInput.code;
 
@@ -23742,7 +23740,7 @@ async function analyzeStock(){
 
       :stock;
 
-    const stockFetchV3742=await fetchStockAnalysisV3742(stock,3);
+    const stockFetchV3742=await ShitouQueryRuntime.deadline(()=>fetchStockAnalysisV3742(stock,2,28000),60000,"行情服務回應超時，請稍後再按開始分析。");
     const response=stockFetchV3742.response;
     const data=stockFetchV3742.data;
 
@@ -23902,12 +23900,6 @@ async function analyzeStock(){
 
     };
 
-    // V47：新增證據只寫入 shitoAssistantEvidence；任何失敗都不影響原報告。
-    if(typeof loadShitoAssistantEvidenceV47==="function"){
-      try{await loadShitoAssistantEvidenceV47(lastReportData);}catch(assistantError){
-        console.warn("少爺助理補充資料暫時無法載入：",assistantError);
-      }
-    }
 
     renderTradeabilityPanelV377733(lastReportData);
     set("stockName",hasRealStockName(name,code)?name:`股票代號 ${code}`);
@@ -23989,6 +23981,11 @@ async function analyzeStock(){
     renderBeginnerCommandCenterV46(lastReportData);
 
     result.style.display="block";
+    const completedReport=lastReportData;
+    if(typeof loadShitoAssistantEvidenceV47==="function"){
+      loadShitoAssistantEvidenceV47(completedReport,{isCurrent:()=>lastReportData===completedReport})
+        .catch(e=>console.warn("補充資料暫未取得，主報告已顯示：",e));
+    }
 
     setTimeout(()=>{
 
@@ -24006,6 +24003,8 @@ async function analyzeStock(){
 
   }finally{
 
+    clearInterval(progress);stockAnalysisBusyV826=false;
+    button.removeAttribute("aria-busy");
     loading.style.display="none";
 
     button.disabled=false;
@@ -32440,8 +32439,8 @@ upgradeVisibleTextV40(document.body);
 
 </script>
 
-<script src="./shito-assistant-v47.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./industry-context-v47.js?v=V8.2.2-R13-UNIFIED1"></script>
+<script src="./shito-assistant-v47.js?v=V8.2.6-QUERY1"></script>
+<script src="./industry-context-v47.js?v=V8.2.6-QUERY1"></script>
 
 <script>
 // ========================================================================
@@ -35043,7 +35042,7 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 <script src="./tower-design-ui.js?v=V8.2.2-R13-UNIFIED1"></script>
 <script src="./tower-scan-export.js?v=V8.2.2-R13-UNIFIED1"></script>
 <script src="./tower-fast-a.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./tower-integration.js?v=V8.2.2-R13-UNIFIED1"></script>
+<script src="./tower-integration.js?v=V8.2.6-QUERY1"></script>
 <script src="./tower-scan-copy.js?v=V8.2.2-R13-UNIFIED1"></script>
 <script src="./tower-beginner-guide.js?v=V8.2.2-R13-UNIFIED1"></script>
 <script src="./tower-stock-report.js?v=V8.2.2-R13-UNIFIED1"></script>
@@ -35075,22 +35074,22 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 })();
 </script>
 <link rel="stylesheet" href="./research-mobile-v1.css?v=V8.2.2-R13-UNIFIED1-DRAX1">
-<script src="./research-common-v1.js?v=V8.2.5-ENTRY1"></script>
+<script src="./research-common-v1.js?v=V8.2.6-ENTRY1"></script>
 <script src="./research-foundation-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
 <script src="./indicator-multi-v1.js?v=V8.2.2-R17-EVIDENCE1"></script>
 <script src="./research-history-v1.js?v=V8.2.2-R16-CONTEXT1"></script>
 <script src="./structure-context-v1.js?v=V8.2.2-R17-EVIDENCE1"></script>
-<script src="./research-beginner-v1.js?v=V8.2.5-ENTRY1"></script>
-<script src="./research-chart-v1.js?v=V8.2.5-ENTRY1"></script>
-<script src="./unified-analysis-v1.js?v=V8.2.5-PLAIN1"></script>
-<script src="./research-n-continuation-v1.js?v=V8.2.5-PLAIN1"></script>
-<script src="./research-entry-direction-v1.js?v=V8.2.5-ENTRY1"></script>
-<script src="./four-models-research-v1.js?v=V8.2.5-ENTRY1"></script>
+<script src="./research-beginner-v1.js?v=V8.2.6-ENTRY1"></script>
+<script src="./research-chart-v1.js?v=V8.2.6-ENTRY1"></script>
+<script src="./unified-analysis-v1.js?v=V8.2.6-PLAIN1"></script>
+<script src="./research-n-continuation-v1.js?v=V8.2.6-PLAIN1"></script>
+<script src="./research-entry-direction-v1.js?v=V8.2.6-ENTRY1"></script>
+<script src="./four-models-research-v1.js?v=V8.2.6-ENTRY1"></script>
 <script src="./research-zh-tw-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./research-report-v1.js?v=V8.2.5-ENTRY1"></script>
+<script src="./research-report-v1.js?v=V8.2.6-ENTRY1"></script>
 <script src="./drax-price-reminder-v1.js?v=V8.2.2-R13-UNIFIED1-DRAX1"></script>
-<script src="./research-integration-v1.js?v=V8.2.5-ENTRY1"></script>
-<script src="./stock-audit-alert-v82.js?v=V8.2.2-R13-UNIFIED1"></script>
+<script src="./research-integration-v1.js?v=V8.2.6-ENTRY1"></script>
+<script src="./stock-audit-alert-v82.js?v=V8.2.6-QUERY1"></script>
 <script src="./release-compact-v1.js?v=V8.2.2-R16-CONTEXT1"></script>
 </body>
 
@@ -35099,3 +35098,4 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 
 <script src="./market-research-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
 <script src="./research-market-integration-r13.js?v=V8.2.2-R13-UNIFIED1"></script>
+

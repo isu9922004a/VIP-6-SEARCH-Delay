@@ -158,7 +158,7 @@ function entryMode(kind=activeKind){return flags.entryDirectionEnabled===false?'
 function researchPool(){return baselines.get(activeKind)?.analyses||[...records.values()].filter(a=>!date||a.date===date);}
 function selectedRows(){return Entry.select(researchPool(),entryMode()).map(x=>({analysis:x.analysis,rank:x.index+1}));}
 function entryControls(analyses,kind,onChange){const box=el('div');box.className='research-tools';const label=el('label','多方進場二次篩選：'),select=el('select');select.setAttribute('aria-label','多方進場二次篩選');select.className='research-entry-selector';select.style.maxWidth='100%';
- for(const mode of ['EVALUATE','WAIT','AVOID','DATA','ALL']){const option=el('option',Entry.LABELS[mode]);option.value=mode;select.append(option);}select.value=entryMode(kind);select.disabled=flags.entryDirectionEnabled===false;select.onchange=()=>{entryModes.set(kind,select.value);onChange();};label.append(select);box.append(label);
+ for(const mode of ['EVALUATE','WAIT','AVOID','DATA','BULL','BEAR','ALL']){const option=el('option',Entry.LABELS[mode]);option.value=mode;select.append(option);}select.value=entryMode(kind);select.disabled=flags.entryDirectionEnabled===false;select.onchange=()=>{entryModes.set(kind,select.value);onChange();};label.append(select);box.append(label);
  const c=Entry.counts(analyses);box.append(el('p',`可評估 ${c.EVALUATE}｜先等 ${c.WAIT}｜不宜新買 ${c.AVOID}｜待核 ${c.DATA}。只檢查本次已取得的股票，不是全市場買進名單。`));return box;}
 function schedule(){if(scheduled)return;scheduled=true;setTimeout(()=>{scheduled=false;safely(sync);safely(render);},100);}
 function save(blob,name){const url=URL.createObjectURL(blob),a=el('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);}
@@ -226,6 +226,7 @@ function mount(){const panel=el('section');panel.id='researchPanel';panel.classN
 }
 for(const name of ['buildReportText','buildReportTextV32','buildLegacyReportText']){const old=root[name];if(typeof old==='function')root[name]=function(input,...args){const out=old.call(this,input,...args);if(!flags.fourModelsEnabled&&!flags.threeDayStructureEnabled&&!flags.granvilleContextEnabled&&!flags.candlePatternEnabled&&!flags.dualScanEnabled&&!flags.alertPlanEnabled)return out;return typeof out==='string'&&!out.includes('【V8研究附錄】')?out+'\n\n【V8研究附錄】\n'+R.text(forReport(input)):out;};}
 const oldAnalyze=root.analyzeStock;if(typeof oldAnalyze==='function')root.analyzeStock=async function(...args){
+ if(by('searchButton')?.disabled)return;
  const seq=++stockQuerySerial;
  const stockInput=by('stockInput'),hasSearch=!!(stockInput?.value?.trim()||!stockInput);
  const previous=typeof lastReportData!=='undefined'?lastReportData:null;
@@ -236,7 +237,9 @@ const oldAnalyze=root.analyzeStock;if(typeof oldAnalyze==='function')root.analyz
   // The original UI can return before resetting lastReportData on empty input.
   // Never re-use an older query after a failed or empty search.
   if(seq===stockQuerySerial&&hasSearch&&newest&&newest!==previous&&by('result')?.style.display==='block'){
-   const prepared=await prepareStockQuery(newest);
+   let prepared;
+   try{prepared=await root.ShitouQueryRuntime.deadline(()=>prepareStockQuery(newest),22000,'研究補充資料超時，主結果仍可閱讀；可稍後重新分析。');}
+   catch(e){prepared={...newest,researchAcquisitionError:e.message,researchInputErrors:[...(newest.researchInputErrors||[]),e.message]};}
    if(seq===stockQuerySerial)safely(()=>{captureStockQuery(prepared,{activate:true});mountStock(prepared);});
   }
   return result;
@@ -250,3 +253,4 @@ mount();const snapshot=root.ShitouSelectionDataV2?.getSnapshot?.();if(snapshot)b
 for(const id of ['momentumResult','dayTradeResult','strongStockResult','towerGoldPanel','restaurantResult','structureResult']){const host=by(id);if(host)new MutationObserver(changes=>{if(changes.some(c=>!c.target.closest?.('.research-inline')))schedule();}).observe(host,{childList:true,subtree:true});}
 render();
 })(globalThis);
+

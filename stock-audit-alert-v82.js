@@ -57,8 +57,7 @@
   function install(root){
     if(!root.document||typeof root.analyzeStock!=='function')return;
     const original=root.analyzeStock;
-    let memo=null;const load=()=>memo||(memo=fetch('./data/market/latest.json',{cache:'no-store'})
-      .then(r=>r.ok?r.json():null).catch(()=>null));
+    let memo=null;const load=()=>memo||(memo=root.ShitouQueryRuntime.json('./data/market/latest.json',7000).catch(()=>{memo=null;return null;}));
     const copy=async(text,button)=>{try{await navigator.clipboard.writeText(text);button.textContent='已複製';}
       catch(_){const input=el('textarea');input.value=text;input.readOnly=true;button.after(input);input.select();button.textContent='請選取文字複製';}};
     async function render(report){
@@ -105,3 +104,4 @@
   }
   return Object.freeze({tick,legal,roundLegal,nextTick,alertPlan,check,install});
 });
+

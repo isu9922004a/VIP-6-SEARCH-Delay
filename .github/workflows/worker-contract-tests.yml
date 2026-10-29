@@ -45,6 +45,12 @@ jobs:
           CHROME_BIN: /usr/bin/google-chrome
           RESEARCH_FALLBACK: ${{ matrix.fallback }}
         run: node scripts/tests/research-context-r16-browser.cjs /tmp/research-evidence
+      - name: Exercise stock query responsiveness and recovery
+        if: matrix.fallback == '0'
+        env:
+          PLAYWRIGHT_MODULE: /tmp/research-browser/node_modules/playwright-core
+          CHROME_BIN: /usr/bin/google-chrome
+        run: node scripts/tests/stock-query-v826-browser.cjs /tmp/research-evidence/query
       - name: Capture generated chart for review
         if: matrix.fallback == '0'
         run: node -e 'console.log("CHART_REVIEW_PNG="+require("node:fs").readFileSync("/tmp/research-evidence/8039-chart.png").toString("base64"))'
@@ -75,6 +81,12 @@ jobs:
           CHROME_BIN: /usr/bin/google-chrome
           RESEARCH_BROWSER_ORIGIN: https://isu9922004a.github.io/VIP-BOWTOWER-4-SEARCH/
         run: node scripts/tests/research-context-r16-browser.cjs /tmp/deployed-research-evidence
+      - name: Verify deployed query responsiveness
+        env:
+          PLAYWRIGHT_MODULE: /tmp/research-browser/node_modules/playwright-core
+          CHROME_BIN: /usr/bin/google-chrome
+          RESEARCH_BROWSER_ORIGIN: https://isu9922004a.github.io/VIP-BOWTOWER-4-SEARCH/
+        run: node scripts/tests/stock-query-v826-browser.cjs /tmp/deployed-research-evidence/query
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -82,3 +94,4 @@ jobs:
           path: |
             /tmp/deployed-research-evidence
             /tmp/deployed-frontend-verification.json
+

@@ -1,9 +1,9 @@
 /* Draw only precomputed, dated research evidence. Rendering never changes a signal. */
 (function(root,factory){const api=factory(typeof module==='object'&&module.exports?require('./research-beginner-v1.js'):root.ShitouResearchBeginner);if(typeof module==='object'&&module.exports)module.exports=api;else root.ShitouResearchChart=api;})(globalThis,function(B){
 'use strict';
-const VERSION='RESEARCH_CHART_8_2_5',W=1284,H=2778;
+const VERSION='RESEARCH_CHART_8_2_6',W=1284,H=2778;
 const fmt=x=>Number.isFinite(x)?String(+x.toFixed(2)):'待核';
-function page(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouReleaseV50?.displayCode||'V8.2.5',watermark=false}={}){
+function page(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouReleaseV50?.displayCode||'V8.2.6',watermark=false}={}){
  const u=a?.unifiedResearch,n=a?.nContinuation,d=u?.state==='RESEARCH_ONLY'?u.chart:n?.state==='RESEARCH_ONLY'?n.chart:null;if(!d?.bars?.length)return null;
  const bars=d.bars.slice(-80),start=bars[0].index,end=bars.at(-1).index,patterns=d.patterns.filter(x=>x.type==='DOUBLE_BOTTOM'?x.points.some(v=>v.index>=start):x.endIndex>=start).slice(0,2);
  const guide=B.chartContext(a,d);
@@ -63,3 +63,4 @@ function page(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouR
 }
 return Object.freeze({VERSION,page});
 });
+

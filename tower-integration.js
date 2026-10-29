@@ -12,7 +12,8 @@ function wrap(name,fn){const old=root[name];if(typeof old==='function')root[name
 function appendScanText(text,scan){const list=scan?.candidates||[],results=list.filter(c=>c.report).map(c=>get(c.report));return text+'\n\n【寶塔線SHADOW觀察層｜原資格、計分与排名保留】\n'+results.map(a=>`${a.name}（${a.code}） ${a.trend.label}／${a.status}｜${a.reasonCodes.join('、')}｜日期 ${a.date}｜${root.ShitouReleaseV50.displayCode}`).join('\n');}
 function mountScan(scan,hostId){const host=by(hostId);if(!host)return;let box=by(hostId+'TowerShadow');if(!box){box=document.createElement('section');box.id=hostId+'TowerShadow';host.appendChild(box);}box.innerHTML='<h3>寶塔線SHADOW觀察層｜原排序保留</h3>'+(scan?.candidates||[]).filter(c=>c.report).map(c=>R.html(get(c.report))).join('');}
 for(const loader of ['loadDayTradeMarketBundleV377736','loadMomentumMarketBundleV377737'])wrap(loader,async function(old,...args){const b=await old.apply(this,args),v=root.ShitouStrongStockFilterV47.validateMarket(b.meta,b.snapshotRows);if(v.ok){verifiedDate=v.date;verifiedSnapshot=b;}return b;});
-wrap('analyzeStock',async function(old,...args){try{await root.loadDayTradeMarketBundleV377736();}catch(_){verifiedDate=null;verifiedSnapshot=null;}return old.apply(this,args);});
+// V8.2.6: single-stock analysis starts immediately. Verified market evidence
+// is acquired by prepareStockQuery; an absent snapshot never upgrades completion.
 for(const name of ['momentumCandidateV3768','dayTradeCandidateV1'])wrap(name,function(old,report,...args){const c=old.call(this,report,...args);if(c&&typeof c==='object')c.towerShadow=get(report);return c;});
 for(const name of ['buildMomentumScanTextReportV3763','buildMomentumScanCompactTextReportV377713','buildDayTradeTextReportV1'])wrap(name,function(old,scan,...args){return appendScanText(old.call(this,scan,...args),scan);});
 for(const name of ['renderMomentumScanResultV3762','renderMomentumScanResultV3765','renderDayTradeScanResultV1'])wrap(name,function(old,scan,...args){const out=old.call(this,scan,...args);mountScan(scan,name.includes('Momentum')?'momentumList':'dayTradeList');return out;});
@@ -135,5 +136,6 @@ function install(){const host=by('strongStockShortcut')||by('strongStockResult')
 root.ShitouTowerIntegration=Object.freeze({get,run,render,appendScanText,completed,exportImages,getLast:()=>last,getVerifiedDate:()=>verifiedDate,getSnapshot:()=>verifiedSnapshot});
 install();
 })(typeof window!=='undefined'?window:globalThis);
+
 
 

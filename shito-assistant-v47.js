@@ -152,7 +152,7 @@ function buildShitoAssistantEvidence(report,raw){
 }
 
 async function fetchJson(url,ms=18000){const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);try{const r=await fetch(url,{cache:"no-store",headers:{Accept:"application/json"},signal:c.signal});if(!r.ok)throw new Error(`HTTP ${r.status}`);return await r.json();}finally{clearTimeout(t);}}
-async function loadShitoAssistantEvidenceV47(report){
+async function loadShitoAssistantEvidenceV47(report,{isCurrent=()=>true}={}){
   const code=String(report?.code||report?.stock||"");
   const base=typeof API_BASE_URL!=="undefined"?API_BASE_URL:"";
   const url=`${base}/?assistant=1&stock=${encodeURIComponent(code)}&market=${encodeURIComponent(report?.market||"")}`;
@@ -161,7 +161,7 @@ async function loadShitoAssistantEvidenceV47(report){
   const stat=staticResult.status==="fulfilled"?{stocks:{[code]:staticResult.value}}:{};
   const raw=mergeSnapshots(live,stat,code),evidence=buildShitoAssistantEvidence(report,raw);
   evidence.loadWarnings=[];if(liveResult.status!=="fulfilled")evidence.loadWarnings.push("官方補充資料服務暫時無法連線，已保留原報告並把缺少項目標為不計分");
-  report.shitoAssistantEvidence=evidence;renderShitoAssistantV47(evidence);return evidence;
+  report.shitoAssistantEvidence=evidence;if(isCurrent())renderShitoAssistantV47(evidence);return evidence;
 }
 
 function gateHtml(title,g){return `<article class="sa-gate" data-status="${g.status}"><div class="sa-gate-title"><span>${STATUS_ICON[g.status]} ${title}</span><strong>${STATUS_LABEL[g.status]}</strong></div><div class="sa-gate-note">${(g.checks||[]).length?summaryText(g.checks):g.label}</div></article>`;}
@@ -215,3 +215,4 @@ window.buildShitoAssistantEvidence=buildShitoAssistantEvidence;
 window.loadShitoAssistantEvidenceV47=loadShitoAssistantEvidenceV47;
 window.ShitoAssistantV47={rules:SHITO_ASSISTANT_RULES_V1,anchoredVolumeProfileEvidence,operatingGateEvidence,holderGateEvidence,capitalGateEvidence,momentumBreakoutEvidence,buildShitoAssistantEvidence,summaryText,appendCanvas:appendAssistantCanvasV47};
 })();
+

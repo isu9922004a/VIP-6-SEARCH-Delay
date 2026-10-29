@@ -1,6 +1,6 @@
 (function(r,f){const n=typeof module==='object'&&module.exports,a=f(n?require('./research-common-v1.js'):r.ShitouResearchCommon,n?require('./research-foundation-v1.js'):r.ShitouResearchFoundation,n?require('./indicator-multi-v1.js'):r.ShitouIndicatorMultiV1,n?require('./unified-analysis-v1.js'):r.ShitouUnifiedAnalysis,n?require('./research-n-continuation-v1.js'):r.ShitouNContinuation,n?require('./research-entry-direction-v1.js'):r.ShitouEntryDirection);if(n)module.exports=a;else r.ShitouFourModels=a;})(globalThis,function(U,F,I,Unified,N,Entry){
 'use strict';
-const VERSION='CONTEXT.V825-ENTRY1-BREAKOUT.1-PULLBACK.1-MOMENTUM.1-FLOW.1',RANK='PRECISION_RESEARCH_RANK_V1';
+const VERSION='CONTEXT.V826-ENTRY1-BREAKOUT.1-PULLBACK.1-MOMENTUM.1-FLOW.1',RANK='PRECISION_RESEARCH_RANK_V1';
 const {ma,mean,pct,check,status,PARAM:P}=U;
 const FILTERS=Object.freeze({MAIN:['A','C','D'],DAYTRADE:['A','C'],STRONG:['A','B','C','D'],TOWER:['D'],RESTAURANT:['A','B'],STRUCTURE:['B']});
 const rsiMomentumPass=value=>U.num(value)!==null&&value>65+1e-10&&value<85-1e-10;
@@ -110,3 +110,4 @@ function rank(analyses,{kind='STRONG',enabledModels=FILTERS[kind]||FILTERS.STRON
 }
 return Object.freeze({VERSION,RANK,FILTERS,rsiMomentumPass,evaluate,candidate,rank});
 });
+

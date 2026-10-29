@@ -10,7 +10,9 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 BASE = "https://isu9922004a.github.io/VIP-BOWTOWER-4-SEARCH/"
 FILES = ["index.html", "version-v50.js", "research-beginner-v1.js",
          "research-chart-v1.js", "research-report-v1.js", "unified-analysis-v1.js", "research-entry-direction-v1.js",
-         "four-models-research-v1.js", "research-common-v1.js", "research-integration-v1.js"]
+         "four-models-research-v1.js", "research-common-v1.js", "research-integration-v1.js",
+         "stock-query-runtime-v826.js", "tower-integration.js", "shito-assistant-v47.js",
+         "industry-context-v47.js", "stock-audit-alert-v82.js"]
 
 
 def check(name):
@@ -45,3 +47,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
