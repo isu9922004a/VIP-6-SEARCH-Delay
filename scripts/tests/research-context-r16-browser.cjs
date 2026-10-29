@@ -32,7 +32,7 @@ const normalize=s=>String(s).replace(/[\s｜]/g,'');
   assert.equal(version.display,currentVersion);assert.ok(version.badge.includes(currentVersion));assert.ok(version.title.includes(currentVersion));
   const controls=await page.evaluate(()=>['momentumScanButton','dayTradeScanButton','strongStockScanButton','towerRun','restaurantRun','structureRun'].map(id=>!!document.getElementById(id)));assert.ok(controls.every(Boolean));
   await page.evaluate(names=>{globalThis.__names=names;globalThis.resolveStockInput=async()=>{const code=document.getElementById('stockInput').value;return {code,officialName:__names[code],directory:{}};};globalThis.loadShitoAssistantEvidenceV47=async()=>null;},Object.fromEntries(fixture.snapshot.rows.map(x=>[x.code,x.name])));
-  const results=[];
+  const results=[];let openingChecks=0;
   for(const record of fixture.records){
    await page.evaluate(()=>{ShitouResearchIntegration.clearStockQuery();ShitouSelectionDataV2.reset();});
    await page.locator('#stockInput').fill(record.code);await page.locator('#searchButton').click();
@@ -67,8 +67,10 @@ const normalize=s=>String(s).replace(/[\s｜]/g,'');
    }
    if(!result.chart&&record.code==='8039'){const url=await page.evaluate(()=>ShitouResearchReport.pages(ShitouResearchIntegration.getCurrentStock().analysis,{stockMode:true})[0].renderExportRegion().toDataURL('image/png'));fs.writeFileSync(path.join(out,'8039-summary.png'),Buffer.from(url.split(',')[1],'base64'));}
    const bounds=await page.evaluate(()=>[...document.querySelectorAll('#researchStock,#researchPanel,.version-pill')].map(x=>({id:x.id,left:x.getBoundingClientRect().left,right:x.getBoundingClientRect().right,scroll:x.scrollWidth,width:x.clientWidth})));assert.ok(bounds.every(x=>x.left>=0&&x.right<=428.5&&x.scroll<=x.width+1),JSON.stringify(bounds));
+   const openingInput=page.locator('#researchStock input[aria-label="明日實際開盤價"]');if(await openingInput.count()){await page.locator('#researchStock .research-opening-calculator').evaluate(e=>e.open=true);await openingInput.fill(String(record.full.close));assert.match(await page.locator('#researchStock .research-opening-calculator [role=status]').textContent(),/開盤/);openingChecks++;}
    console.log(JSON.stringify({code:result.code,state:result.state,summaryPages:result.summaryCount,chart:!!result.chart,entry:result.entry}));results.push(result);
   }
+  assert.ok(openingChecks>0,'actual opening-price calculator was exercised');
   await page.selectOption('#researchKind','STRONG');
   for(const mode of ['EVALUATE','WAIT','AVOID','DATA','ALL']){
    await page.selectOption('#researchEntryTools select',mode);
@@ -81,3 +83,4 @@ const normalize=s=>String(s).replace(/[\s｜]/g,'');
   fs.writeFileSync(path.join(out,'results.json'),JSON.stringify({status:'PASS',version,fallback:process.env.RESEARCH_FALLBACK==='1',scope:'Recorded API responses through actual stock lookup button; seven research adapters each; original candidate objects preserved; mobile Chromium emulation, not native iPhone Safari; no full-market scan or profitability test',results,errors,missing},null,2));
  }finally{await browser?.close();await new Promise(r=>server.close(r));}
 })().catch(e=>{console.error(e);process.exitCode=1;});
+

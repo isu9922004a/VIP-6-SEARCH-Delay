@@ -19,7 +19,8 @@ const fixture=require('../fixtures/multi-stock-worker-responses-20261022.json'),
  assert.equal(await page.evaluate(()=>ShitouReleaseV50.displayCode),'V8.2.7');assert.match(await page.title(),/V8.2.7/);
  // The market snapshot is still stalled: it must not block the primary report.
  assert.equal(requests,1);releaseMarket();await page.waitForFunction(()=>!!ShitouResearchIntegration.getCurrentStock(),null,{timeout:25000});
- await page.locator('#researchStock input[aria-label="明日實際開盤價"]').fill(String(record.full.close));assert.match(await page.locator('#researchStock .research-opening-calculator [role=status]').textContent(),/開盤/);
+ // With the market intentionally unavailable, incomplete history must not fabricate a calculator.
+ assert.match(await page.locator('#researchStock').textContent(),/行情還沒確認完整|日線還沒確認完整|無法安全計算/);
  workerMode='error';await page.locator('#searchButton').click();await page.waitForFunction(()=>document.getElementById('error').style.display==='block'&&!document.getElementById('searchButton').disabled,null,{timeout:7000});
  assert.match(await page.locator('#error').textContent(),/資料暫時不可用/);assert.equal(await page.evaluate(()=>ShitouResearchIntegration.getCurrentStock()),null);
  workerMode='ok';await page.locator('#searchButton').click();await page.waitForFunction(()=>document.getElementById('result').style.display==='block'&&!document.getElementById('searchButton').disabled,null,{timeout:7000});
