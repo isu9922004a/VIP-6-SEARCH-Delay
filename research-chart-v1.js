@@ -1,15 +1,15 @@
 /* Draw only precomputed, dated research evidence. Rendering never changes a signal. */
 (function(root,factory){const api=factory(typeof module==='object'&&module.exports?require('./research-beginner-v1.js'):root.ShitouResearchBeginner);if(typeof module==='object'&&module.exports)module.exports=api;else root.ShitouResearchChart=api;})(globalThis,function(B){
 'use strict';
-const VERSION='RESEARCH_CHART_8_2_4',W=1284,H=2778;
+const VERSION='RESEARCH_CHART_8_2_5',W=1284,H=2778;
 const fmt=x=>Number.isFinite(x)?String(+x.toFixed(2)):'待核';
-function page(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouReleaseV50?.displayCode||'V8.2.4',watermark=false}={}){
+function page(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouReleaseV50?.displayCode||'V8.2.5',watermark=false}={}){
  const u=a?.unifiedResearch,n=a?.nContinuation,d=u?.state==='RESEARCH_ONLY'?u.chart:n?.state==='RESEARCH_ONLY'?n.chart:null;if(!d?.bars?.length)return null;
  const bars=d.bars.slice(-80),start=bars[0].index,end=bars.at(-1).index,patterns=d.patterns.filter(x=>x.type==='DOUBLE_BOTTOM'?x.points.some(v=>v.index>=start):x.endIndex>=start).slice(0,2);
  const guide=B.chartContext(a,d);
  const shown=[{title:guide.levels[0].title,price:d.trigger,color:'#f6cf65',solid:false},{title:guide.levels[1].title,price:d.invalidation,color:'#ff858f',solid:true},{title:guide.levels[2].title,price:d.defenseReference,color:'#8dc9c2',solid:false},{title:guide.levels[3].title,price:d.nextResistance?.price,color:'#d6aeff',solid:false}];
  const nq=n?.pattern,nOverlay=nq?{id:nq.id,stage:nq.stage,knownAt:nq.knownAt,points:['A','B','C'].map(key=>({key,...nq[key],visible:nq[key].index>=start})),projection:{...nq.projection}}:null;
- const audit={code:a.code,date:a.date,sourceSnapshotId:a.sourceSnapshotId,schemaVersion:u?.schemaVersion||n?.version||VERSION,chartVersion:VERSION,section:'STRUCTURE_CHART',width:W,height:H,noClipping:true,barCount:bars.length,firstDate:bars[0].date,lastDate:bars.at(-1).date,priceBasis:d.priceBasis,volumeStatus:d.volume.status,nContinuation:nOverlay,beginnerGuide:guide,
+ const audit={code:a.code,date:a.date,sourceSnapshotId:a.sourceSnapshotId,schemaVersion:u?.schemaVersion||n?.version||VERSION,chartVersion:VERSION,section:'STRUCTURE_CHART',width:W,height:H,noClipping:true,barCount:bars.length,firstDate:bars[0].date,lastDate:bars.at(-1).date,priceBasis:d.priceBasis,volumeStatus:d.volume.status,entryDirection:a.entryDirection||null,nContinuation:nOverlay,beginnerGuide:guide,
   levels:shown.map(x=>({title:x.title,price:x.price??null})),patterns:patterns.map(x=>({type:x.type,status:x.status,formedAt:x.formedAt,confirmedAt:x.confirmedAt})),fields:shown.map(x=>({title:x.title,value:fmt(x.price)})),note:'虛線為參考／形成中；無已確認進場情境則不畫失效線；所有型態為未驗證績效的研究'};
  const dataset={researchAudit:JSON.stringify(audit),fullBleed:'true',release:displayCode};
  function paint(ctx){
@@ -20,7 +20,7 @@ function page(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouR
   text('四策略研究｜結構證據圖・白話版',68,100,46);
   text(`${a.name}（${a.code}）`,68,180,66);
   text(`${a.date}｜${bars.length}個交易日，一根代表一天｜${displayCode}`,68,235,36,'#bcd1e2');
-  text('先看現在能否評估，再看哪些價位要留意',68,320,43,'#ffdc8c');
+  text(a.entryDirection?.state==='RESEARCH_ONLY'?a.entryDirection.direction.label+'｜'+a.entryDirection.label:'先看現在能否評估，再看哪些價位要留意',68,320,39,'#ffdc8c');
   for(const [i,[label,color]] of [['5日均價 MA5','#f6cf65'],['20日均價 MA20','#65c5f2'],['60日均價 MA60','#c1a0ff']].entries())text(label,68+i*395,389,36,color);
   const x0=120,y0=435,pw=1050,ph=800,vy=1335,vh=220,dx=pw/bars.length;
   const raw=bars.flatMap(x=>[x.low,x.high,x.ma5,x.ma20,x.ma60]).filter(Number.isFinite),rawMin=Math.min(...raw),rawMax=Math.max(...raw),pad=Math.max((rawMax-rawMin)*.08,rawMax*.01),min=rawMin-pad,max=rawMax+pad;

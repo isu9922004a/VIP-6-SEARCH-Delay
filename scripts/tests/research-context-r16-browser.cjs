@@ -69,6 +69,14 @@ const normalize=s=>String(s).replace(/[\s｜]/g,'');
    const bounds=await page.evaluate(()=>[...document.querySelectorAll('#researchStock,#researchPanel,.version-pill')].map(x=>({id:x.id,left:x.getBoundingClientRect().left,right:x.getBoundingClientRect().right,scroll:x.scrollWidth,width:x.clientWidth})));assert.ok(bounds.every(x=>x.left>=0&&x.right<=428.5&&x.scroll<=x.width+1),JSON.stringify(bounds));
    console.log(JSON.stringify({code:result.code,state:result.state,summaryPages:result.summaryCount,chart:!!result.chart,entry:result.entry}));results.push(result);
   }
+  await page.selectOption('#researchKind','STRONG');
+  for(const mode of ['EVALUATE','WAIT','AVOID','DATA','ALL']){
+   await page.selectOption('#researchEntryTools select',mode);
+   const checked=await page.evaluate(mode=>{const I=ShitouResearchIntegration,base=I.getState().baselines.find(([k])=>k==='STRONG')?.[1]?.analyses||[],expected=ShitouEntryDirection.select(base,mode).map(x=>x.analysis.code),actual=[...document.querySelectorAll('#researchRows details.research-stock-card')].map(x=>x.dataset.code);return {expected,actual,selected:I.selectedRows().map(x=>x.analysis.code),disabled:document.querySelector('#researchPreview').disabled};},mode);
+   assert.deepEqual(checked.actual,checked.expected.slice(0,8));assert.deepEqual(checked.selected,checked.expected);assert.equal(checked.disabled,!checked.expected.length);
+  }
+  await page.selectOption('#researchKind','STOCK_QUERY');
+  assert.equal(await page.evaluate(()=>ShitouResearchIntegration.getCurrentStock().analysis.code),fixture.records.at(-1).code);
   assert.deepEqual(errors,[]);assert.deepEqual(missing,[]);
   fs.writeFileSync(path.join(out,'results.json'),JSON.stringify({status:'PASS',version,fallback:process.env.RESEARCH_FALLBACK==='1',scope:'Recorded API responses through actual stock lookup button; seven research adapters each; original candidate objects preserved; mobile Chromium emulation, not native iPhone Safari; no full-market scan or profitability test',results,errors,missing},null,2));
  }finally{await browser?.close();await new Promise(r=>server.close(r));}
