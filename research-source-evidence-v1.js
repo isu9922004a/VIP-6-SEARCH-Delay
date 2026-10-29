@@ -38,5 +38,12 @@ function officialPriceBasis(bars,reference,quote){
  return {status:'VERIFIED',value:{verified:true,basis:'UNADJUSTED_OFFICIAL_OHLC',source,method:'共用序列每一根OHLC皆與官方完整歷史一致，末日再核對同日官方市場快照',matchedBars:bars.length,firstDate:bars[0].date,lastDate:bars.at(-1).date,referenceFingerprint:c.normalizedHistoryFingerprint,referenceSourceVersion:c.sourceVersion,corporateActionsVerified:false},reason:null};
 }
 function inspectGaps(bars,cal){if(!cal?.verified||!bars?.length||cal.start>bars[0].date||cal.end<bars.at(-1).date)return {status:'UNKNOWN',reason:'官方實際交易日期涵蓋範圍不足',missing:[],extra:[]};const actual=new Set(bars.map(x=>x.date)),expected=cal.dates.filter(d=>d>=bars[0].date&&d<=bars.at(-1).date),expectedSet=new Set(expected);const missing=expected.filter(x=>!actual.has(x)),extra=[...actual].filter(x=>!expectedSet.has(x));return {status:missing.length||extra.length?'CONFLICT':'VERIFIED',missing,extra,expectedBars:expected.length};}
-return Object.freeze({VERSION,SCHEMA,calendar,loadCalendar,officialPriceBasis,inspectGaps});
+function priceStepBasis(quote,meta){
+ const code=String(quote?.code||''),market=String(quote?.market||'').toUpperCase(),kind=String(quote?.securityType||quote?.productType||'').toUpperCase(),date=iso(quote?.quoteDate),target=iso(meta?.targetTradeDate);
+ const explicit=/^(COMMON|COMMON_STOCK|ORDINARY|普通股)$/.test(kind),company=meta?.companySourcesReady?.[market==='TWSE'?'twse':'tpex']===true&&meta?.ordinaryValidTotal===meta?.total&&Number(meta?.total)>0&&!!quote?.industryCode;
+ const ok=['TWSE','TPEX'].includes(market)&&date&&date===target&&/^[1-9]\d{3}$/.test(code)&&!/^91/.test(code)&&(!kind||explicit)&&!quote?.isPreferredStock&&!quote?.isSpecialProduct&&(explicit||company);
+ return {verified:!!ok,securityType:ok?'COMMON':null,source:ok?'同日官方普通股公司主檔與交易所行情；台股普通股價格跳動規則':null,date,reason:ok?null:'尚未取得同日官方普通股身分，不能只看四碼代號就套用股票跳動規則'};
+}
+return Object.freeze({VERSION,SCHEMA,calendar,loadCalendar,officialPriceBasis,inspectGaps,priceStepBasis});
 });
+

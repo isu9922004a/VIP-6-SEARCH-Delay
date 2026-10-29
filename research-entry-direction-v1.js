@@ -1,8 +1,8 @@
 /* Causal second-pass research filter. Never changes source rankings or orders. */
 (function(root,factory){const node=typeof module==='object'&&module.exports,api=factory(node?require('./research-common-v1.js'):root.ShitouResearchCommon,node?require('./structure-context-v1.js'):root.ShitouStructureContext);if(node)module.exports=api;else root.ShitouEntryDirection=api;})(globalThis,function(U,S){
 'use strict';
-const VERSION='ENTRY_DIRECTION_8_2_6',PARAM=Object.freeze({bodyMax:.35,wickBody:2,shortWickMax:.15,trendDays:5,trendATR:.5,nearATR:.5,signalAge:3,maxBiasPct:8,maxReturn5:15,maxRSI5:80});
-const LABELS=Object.freeze({EVALUATE:'可評估多方新買',WAIT:'先等價格確認',AVOID:'目前不宜新買',DATA:'必要資料待核',ALL:'全部研究股票',BULL:'偏多／多頭回落，仍須核對買點',BEAR:'偏空／弱勢反彈，先看風險'});
+const VERSION='ENTRY_DIRECTION_8_2_7',PARAM=Object.freeze({bodyMax:.35,wickBody:2,shortWickMax:.15,trendDays:5,trendATR:.5,nearATR:.5,signalAge:3,maxBiasPct:8,maxReturn5:15,maxRSI5:80});
+const LABELS=Object.freeze({EVALUATE:'可評估多方新買',WAIT:'先等價格確認',AVOID:'目前不宜新買',DATA:'行情還沒確認完整，先不下單',ALL:'全部研究股票',BULL:'偏多／多頭回落，仍須核對買點',BEAR:'偏空／弱勢反彈，先看風險'});
 const money=x=>Number.isFinite(x)?String(+x.toFixed(2))+'元':'尚未確認';
 function knownLevels(b){const p=S.pivots(b),levels=p.map(x=>({price:x.price,type:x.type,source:'已確認波段'+(x.type==='HIGH'?'高點':'低點'),knownAt:x.confirmedAt}));if(b.length>=20)for(const [type,key,op] of [['HIGH','high',Math.max],['LOW','low',Math.min]])levels.push({price:op(...b.slice(-20).map(x=>x[key])),type,source:'前20天'+(type==='HIGH'?'高點':'低點'),knownAt:b.at(-1).date});return levels;}
 function candles(b,p=PARAM){const out=[];
@@ -61,7 +61,7 @@ function evaluate(input,options={}){
  const good=u?.scenarios?.filter(x=>x.applicable!==false&&x.signalStatus==='CONFIRMED'&&x.riskDecision==='ACCEPTABLE_FOR_EVALUATION'&&x.riskReward?.status==='KNOWN')||[];
  let entry=missing.length?'DATA':blockers.length?'AVOID':warning||cautions.length||!good.length||u.entryDecision!=='CONDITIONAL_ENTRY'?'WAIT':'EVALUATE';
  let why=entry==='EVALUATE'?'多方方向、價格確認與原有成本後風險均通過，仍須按實際成交價重算。':'尚無同時通過價格與風險確認的買法，先等。';
- if(missing.length)why='先補核：'+missing.join('、')+'。';else if(blockers.length)why=blockers[0]+'。';else if(warning)why='出現上漲後的風險影線，先等下一根收盤確認。';else if(cautions.length)why=cautions[0]+'。';
+ if(missing.length)why='系統尚未確認：'+missing.join('、')+'；確認前先不下單，不需要你補填資料。';else if(blockers.length)why=blockers[0]+'。';else if(warning)why='出現上漲後的風險影線，先等下一根收盤確認。';else if(cautions.length)why=cautions[0]+'。';
  const nearest=u?.chart?.nextResistance||null;
  return U.freeze({version:VERSION,state:'RESEARCH_ONLY',code:r.stock,date:z.date,direction:dir,entry,label:LABELS[entry],reason:why,blockers,cautions,missing,signals,supportObservation,resistanceObservation,candles:events,bullishCandle:bull||null,bearishCandle:bear||null,pendingBearishCandle:warning||null,nearestResistance:nearest,knownLevels:refs,parameters:p,conditionalScenarios:good.map(x=>x.id),filterScope:'本次已取得的個股與原策略候選之多方進場二次篩選，非全市場績效認證',performanceValidated:false,affectsOriginalScore:false,affectsOriginalRanking:false});
 }

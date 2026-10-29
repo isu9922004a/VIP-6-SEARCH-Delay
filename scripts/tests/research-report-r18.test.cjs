@@ -28,7 +28,7 @@ test('stage label, text and every image page agree with the unified scenario sta
 test('explicit structure failure takes precedence over stale favorable scenario and indicator labels',()=>{
  const a=C.evaluate(report(bars(160))),b={...a,state:'BREAKOUT_FAILURE',compactStateLabel:'結構失敗',indicatorStudy:{...a.indicatorStudy,phase:'多頭續強'}};
  const v=R.view(b);assert.equal(v.stage,'結構失敗');assert.equal(field(v,'目前行情階段'),v.stage);
- assert.ok(field(v,'行情階段與依據').startsWith(v.stage+'；'));assert.match(v.summary[0].value,/結構已失敗/);assert.doesNotMatch(v.summary[0].value,/🟢/);
+ assert.ok(field(v,'行情階段與依據').startsWith(v.stage+'；'));assert.match(v.summary[0].value,/買進理由已失效/);assert.doesNotMatch(v.summary[0].value,/🟢/);
  assert.match(field(v,'策略意見與衝突'),/多頭續強.*結構失敗.*風險優先/);
 });
 test('full exported image retains every original-level explanation across pagination',()=>{
@@ -36,3 +36,4 @@ test('full exported image retains every original-level explanation across pagina
  const chunks=audit.flatMap(x=>x.fields).filter(x=>x.title.replace('（續）','')==='原策略價位').map(x=>x.value).join('');
  assert.equal(chunks.replace(/\s/g,''),field(v,'原策略價位').replace(/\s/g,''));assert.ok(audit.every(x=>x.noClipping));
 });
+

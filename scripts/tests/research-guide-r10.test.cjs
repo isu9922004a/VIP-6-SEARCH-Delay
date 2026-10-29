@@ -8,10 +8,10 @@ test('reference guide preserves five sections and conditional R18 scenario evide
  const a=C.evaluate(example()),before=JSON.stringify(a),v=R.view(a),text=v.summary.map(x=>x.value).join('\n');
  assert.deepEqual(v.summary.map(x=>x.title),titles);assert.equal(a.beginner,undefined);
  assert.equal(a.tradeContext.recent,187);assert.equal(a.tradeContext.prior60,201);
- assert.match(v.summary[1].value,/原突破線 187 元續守.*量價確認/);
- assert.match(v.summary[3].value,/最近上方關卡 192.5 元.*201 元/);
- assert.match(v.summary[2].value,/最近上方關卡太近/);assert.match(v.summary[2].value,/尚非已確認支撐/);
- assert.match(v.summary[1].value,/前5日均量至少 1.2 倍（分母不含當日）/);
+ assert.match(v.summary[1].value,/192.5 元.*守穩/);
+ assert.match(v.summary[3].value,/201 元/);
+ assert.match(v.summary[2].value,/停損試算/);assert.match(v.summary[2].value,/不是已確認支撐/);
+ assert.equal(a.openingPlan.entryRange,null);assert.equal(a.openingPlan.candidateEntry,193);assert.equal(a.openingPlan.stop,183);assert.ok(a.openingPlan.maximumEntry<193);
  assert.doesNotMatch(v.summary[0].value,/🟢/);assert.match(v.summary[4].value,/不急著買/);assert.match(v.guideNote,/未驗證績效/);
  assert.match(v.details.find(x=>x.title==='追價風險檢查').value,/RSI5/);assert.match(v.details.find(x=>x.title==='原策略價位').value,/201.00.*來源待核/);
  assert.equal(JSON.stringify(a),before);assert.ok(v.details.some(x=>x.title==='研究A/B'));
@@ -19,8 +19,8 @@ test('reference guide preserves five sections and conditional R18 scenario evide
 test('all ticker identities use their own scaled prices, no fixed example text',()=>{
  for(const [code,scale] of [['9001',.5],['9002',2],['9003',10]]){
   const a=C.evaluate(example(code,scale)),v=R.view(a),text=v.summary.map(x=>x.value).join('\n');
-  assert.match(v.summary[1].value,new RegExp('原突破線 '+187*scale+' 元續守'));
-  assert.ok(v.summary[3].value.includes(String(192.5*scale)+' 元'));assert.ok(v.summary[3].value.includes(String(201*scale)+' 元'));
+  assert.match(v.summary[1].value,new RegExp(String(192.5*scale)+' 元'));
+  assert.equal(a.openingPlan.watch,192.5*scale);assert.ok(v.summary[3].value.includes(String(201*scale)+' 元'));
   assert.equal(a.sourceBars.at(-1).low,183.5*scale);assert.doesNotMatch(text,/已確認支撐為當日低點/);
   assert.equal(v.code,code);assert.doesNotMatch(text,/安碁資訊|6690/);
   for(const kind of ['MAIN','DAYTRADE','STRONG','TOWER','RESTAURANT','STRUCTURE_A','STRUCTURE_B'])assert.deepEqual(R.view(C.evaluate({code,report:example(code,scale),kind})),v);
@@ -34,8 +34,9 @@ test('weak, unbroken, invalid, disabled and short-history stocks retain the form
 });
 test('volume conflicts remain visible and missing upper levels do not become targets',()=>{
  const a=C.evaluate(example()),c=structuredClone(a);c.tradeContext.provenance.volumeConflict=true;
- assert.match(R.view(c).summary[0].value,/量能來源／口徑待核/);assert.doesNotMatch(R.view(c).summary[0].value,/🟢/);
+ assert.match(R.view(c).summary[0].value,/成交量有差/);assert.doesNotMatch(R.view(c).summary[0].value,/🟢/);
  const b=bars(160,()=>100);b.at(-1).close=110;b.at(-1).high=110;const high=C.evaluate(report(b,{originalB:999}));
  assert.match(R.view(high).summary[3].value,/上方歷史關卡不足/);assert.doesNotMatch(R.view(high).summary[3].value,/999|一定會漲到 \d/);
 });
 module.exports={example};
+

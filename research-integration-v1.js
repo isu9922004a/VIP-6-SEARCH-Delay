@@ -74,6 +74,11 @@ function researchCard(a,number,prefix='研究',expanded=false){
  const note=el('p',report.guideNote);note.className='research-guide-note';guide.append(note);body.append(guide);
  const evidence=el('details');evidence.className='research-guide-evidence';evidence.append(el('summary','查看完整研究與資料驗證'));
  for(const item of report.details)evidence.append(field(item));body.append(evidence);
+ if(a.openingPlan){
+  const calc=el('details');calc.className='research-guide-evidence research-opening-calculator';calc.append(el('summary','明天開盤後，輸入實際開盤價試算'));
+  const label=el('label','明日實際開盤價（元）'),input=el('input');input.type='number';input.min='0.01';input.step='0.01';input.inputMode='decimal';input.setAttribute('aria-label','明日實際開盤價');input.style.cssText='max-width:100%;box-sizing:border-box;padding:10px;font-size:18px;margin:10px 0';
+  label.append(input);const output=el('p','開盤前先看計畫；開盤後再輸入券商顯示的實際價格。本頁沒有即時5分鐘行情。');output.setAttribute('role','status');input.addEventListener('input',()=>{output.textContent=root.ShitouOpeningPlan.atOpen(a.openingPlan,input.value).text;});calc.append(label,output);body.append(calc);
+ }
  const actions=el('div');actions.className='research-card-actions';
  const button=el('button','查看摘要圖片');button.type='button';button.onclick=()=>preview([a]);actions.append(button);
  const fullButton=el('button','查看完整研究圖片');fullButton.type='button';fullButton.onclick=()=>preview([a],{stockMode:prefix==='個股',detail:true});actions.append(fullButton);
@@ -159,7 +164,7 @@ function researchPool(){return baselines.get(activeKind)?.analyses||[...records.
 function selectedRows(){return Entry.select(researchPool(),entryMode()).map(x=>({analysis:x.analysis,rank:x.index+1}));}
 function entryControls(analyses,kind,onChange){const box=el('div');box.className='research-tools';const label=el('label','多方進場二次篩選：'),select=el('select');select.setAttribute('aria-label','多方進場二次篩選');select.className='research-entry-selector';select.style.maxWidth='100%';
  for(const mode of ['EVALUATE','WAIT','AVOID','DATA','BULL','BEAR','ALL']){const option=el('option',Entry.LABELS[mode]);option.value=mode;select.append(option);}select.value=entryMode(kind);select.disabled=flags.entryDirectionEnabled===false;select.onchange=()=>{entryModes.set(kind,select.value);onChange();};label.append(select);box.append(label);
- const c=Entry.counts(analyses);box.append(el('p',`可評估 ${c.EVALUATE}｜先等 ${c.WAIT}｜不宜新買 ${c.AVOID}｜待核 ${c.DATA}。只檢查本次已取得的股票，不是全市場買進名單。`));return box;}
+ const c=Entry.counts(analyses);box.append(el('p',`可評估 ${c.EVALUATE}｜先等 ${c.WAIT}｜不宜新買 ${c.AVOID}｜行情未確認 ${c.DATA}。只檢查本次已取得的股票，不是全市場買進名單。`));return box;}
 function schedule(){if(scheduled)return;scheduled=true;setTimeout(()=>{scheduled=false;safely(sync);safely(render);},100);}
 function save(blob,name){const url=URL.createObjectURL(blob),a=el('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);}
 function exportChineseResearchCsv(){

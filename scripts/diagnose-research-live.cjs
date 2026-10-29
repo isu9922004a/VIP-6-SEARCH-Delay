@@ -1,8 +1,0 @@
-'use strict';
-const fs=require('node:fs'),E=require('../research-source-evidence-v1.js'),C=require('../worker-data-contract-v1.js');
-(async()=>{const endpoints={full:'https://shitou-agent-fib-api.d318426.workers.dev/?stock=8039',daily:'https://shitou-taiwanmarket-api.d318426.workers.dev/?market=DEEP_SCAN&codes=8039&profile=DAILY_ONLY&markets=TWSE',snapshot:'https://shitou-taiwanmarket-api.d318426.workers.dev/?market=ALL_STOCKS'};
- const data={};await Promise.all(Object.entries(endpoints).map(async([k,url])=>{try{const r=await fetch(url,{signal:AbortSignal.timeout(65000)});data[k]=await r.json();const a=k==='daily'?data[k].results?.[0]?.data:data[k];console.log(JSON.stringify({endpoint:k,status:r.status,date:a?.closeDate,close:a?.close,source:a?.dailySeriesMeta?.source,meta:a?.dailySeriesMeta,contract:a?.dataContract,priceAdjustment:a?.priceAdjustment,hotfix:a?.latestDailyHotfix,error:a?.error,expectedDates:a?.expectedTradingDates?.length}));}catch(e){console.log(JSON.stringify({endpoint:k,error:e.message}));}}));
- const daily=data.daily?.results?.[0]?.data,full=data.full,rows=data.snapshot?.rows||[];const quote=rows.find(x=>String(x.code)==='8039');if(daily&&full&&quote)console.log('PRICE_PROOF='+JSON.stringify(E.officialPriceBasis(daily.dailySeries,full,quote)));console.log('FULL_CONTRACT='+JSON.stringify(full&&C.verify(full)));fs.writeFileSync('/tmp/research-live.json',JSON.stringify(data));
-})().catch(e=>{console.error(e);process.exitCode=1;});
-
-// Frontend trace enabled.
