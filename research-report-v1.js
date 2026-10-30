@@ -253,7 +253,7 @@ function compactUnifiedGuide(a,u){
  const danger=`${pending?pending+'；':''}${riskWords.join('；')||(g.weak?'反彈不等於反轉':'留意假突破與執行價格')}。${defense>0?`此情境收盤失效 ${price(defense)}，非成交停損保證。`:guard>0?`當日低點 ${price(g.currentLow)}${g.previousLow>0?'／前低 '+price(g.previousLow):''}為風險觀察，尚非已確認支撐。`:`當日低點 ${price(g.currentLow)}${g.previousLow>0?'／前低 '+price(g.previousLow):''}為風險觀察，尚非已確認支撐。`}`;
  const resistance=g.upper.length?g.upper.slice(0,3).map((x,i)=>`${i?'再看':'最近上方關卡 '}${price(x.price)}（${x.sources.slice(0,2).join('／')}）`).join('；')+'。不可跳過近壓或預設必達。':'上方歷史關卡不足，暫不設定停利目標。';
  const conclusion=buyReady?'僅取得附帶條件的評估資格；依實際進場價重算。':`目前${trend}，${pending?'先補核資料':g.weak?'先等結構轉強':'等待對應情境確認'}；不急著買。`;
- return {fields:titles.map((title,i)=>({title,value:[decision+'\n趨勢：'+trend+'。'+volumeFact+'。'+(pending||''),buy,danger,resistance,conclusion][i]})),note:'明天的開盤價尚未出現，以上是盤後準備、未驗證績效。先等守穩再轉強；跳空重算，不保證停損能成交在原價。'};
+ return {fields:titles.map((title,i)=>({title,value:[decision+'\n趨勢：'+trend+'。'+volumeFact+'。'+(pending||''),buy,danger,resistance,conclusion][i]})),note:'下一交易日的開盤價尚未出現，以上是盤後準備、未驗證績效。先等守穩再轉強；跳空重算，不保證停損能成交在原價。'};
 }
 function directionGuide(a,guide){
  const d=a.entryDirection;if(d?.state!=='RESEARCH_ONLY')return guide;
@@ -293,6 +293,7 @@ function view(a){
  const level=(key,label)=>{const item=a.priceLevels?.[key],formula=key==='researchBreakout'?'前20根完成日K最高價（不含當日）':item?.formula?.startsWith('max(')?'已守住的前日均線支撐最高值':'前20根完成日K最低價（不含當日）';return item?.verified&&Number.isFinite(item.value)?`${label} ${fmt(item.value)}；${formula}；行情 ${item.sourceDate}`:'資料不足，暫無法核驗價位';};
  const favourable=!valid?'基礎日K未通過，無法核驗有利依據':Object.entries(a.families||{}).filter(([k,v])=>v===true&&k!=='DATA_QUALITY').map(([k])=>({PRICE_STRUCTURE:'突破／結構',TREND_MA:'均線趨勢',VOLUME:'量能',MOMENTUM:'動能',FLOW:'資金',FUNDAMENTAL:'基本面'}[k])).filter(Boolean).join('、')||'尚無正向家族共振；仍可依已知價量判讀現況';
  const details=[
+  ...(a.evidenceDiagnostics?.technicalOnlyFallback?[{title:'本次查詢使用的資料',value:'完整分析服務暫不可用，已改讀經來源檢查的完成日線；四策略仍可判讀。月線資格與固定倍數暫不提供，不能當成已通過。原因：'+a.evidenceDiagnostics.technicalOnlyFallback.reason}]:[]),
   ...Opening.details(a.openingPlan),
   ...(D?.fields(a)||[]),
   ...(B?.parameterFields(a)||[]),
@@ -334,13 +335,13 @@ function view(a){
   // Keep original strategy levels, formula ownership, technical facts and dual
   // checks in the full report. The five-field summary remains a single card.
   const merged=all.filter(x=>{if(seen.has(x.title))return false;seen.add(x.title);return true;});
-  return {presentation:'BEGINNER_GUIDE_8_2_7',guideNote:compact.note,schemaVersion:'UNIFIED_REPORT_8_2_7',code:a.code,name:a.name,date:a.date,sourceSnapshotId:a.sourceSnapshotId,stage,summary,details:merged};
+  return {presentation:'BEGINNER_GUIDE_8_2_8',guideNote:compact.note,schemaVersion:'UNIFIED_REPORT_8_2_8',code:a.code,name:a.name,date:a.date,sourceSnapshotId:a.sourceSnapshotId,stage,summary,details:merged};
  }
- return {presentation:'BEGINNER_GUIDE_8_2_7',guideNote:compact.note,schemaVersion:'UNIFIED_RESEARCH_REPORT_8_2_7',code:a.code,name:a.name,date:a.date,sourceSnapshotId:a.sourceSnapshotId||null,stage:stageLabel(a),summary,details};
+ return {presentation:'BEGINNER_GUIDE_8_2_8',guideNote:compact.note,schemaVersion:'UNIFIED_RESEARCH_REPORT_8_2_8',code:a.code,name:a.name,date:a.date,sourceSnapshotId:a.sourceSnapshotId||null,stage:stageLabel(a),summary,details};
 }
 function lines(a){
  const v=view(a);
- return [globalThis.ShitouReleaseV50?.displayRelease||'石頭少爺 V8.2.7｜四策略研究',`${a.name}（${a.code}）｜${a.date||'日期待確認'}`,`【現況】${v.stage}`,...[...v.summary,...v.details].map(f=>`【${f.title}】${f.value}`),'原榜分數、資格與排序保留；本區僅提供研究摘要。'];
+ return [globalThis.ShitouReleaseV50?.displayRelease||'石頭少爺 V8.2.8｜四策略研究',`${a.name}（${a.code}）｜${a.date||'日期待確認'}`,`【現況】${v.stage}`,...[...v.summary,...v.details].map(f=>`【${f.title}】${f.value}`),'原榜分數、資格與排序保留；本區僅提供研究摘要。'];
 }
 function text(a){return lines(a).join('\n');}
 function wrap(ctx,s,width){const out=[];for(const p of String(s).split('\n')){let row='';for(const token of p.match(/[A-Za-z0-9][A-Za-z0-9._/%+\-]*[，。！？；：、）】」』]*|[\s\S][，。！？；：、）】」』]*/g)||[]){
@@ -348,7 +349,7 @@ function wrap(ctx,s,width){const out=[];for(const p of String(s).split('\n')){le
  if(row&&ctx.measureText(row+token).width>width){out.push(row);row=token;}else row+=token;
  }out.push(row);}return out;}
 function roundRectPath(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
-function pages(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouReleaseV50?.displayCode||'V8.2.7',watermark=false,stockMetrics=null,stockMode=!!stockMetrics,detail=false}={}){
+function pages(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouReleaseV50?.displayCode||'V8.2.8',watermark=false,stockMetrics=null,stockMode=!!stockMetrics,detail=false}={}){
  const W=1284,H=2778,M=54,FIELD_FONT=56,FIELD_LINE=77,LABEL_FONT=40,MAX_BOTTOM=2430;
  const ctx=doc.createElement('canvas').getContext('2d');
  if(!ctx)throw Error('Canvas 2D unavailable');

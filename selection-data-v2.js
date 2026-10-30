@@ -58,6 +58,7 @@ function bind(bundle){
 }
 function context(code){const q=snapshot?.map.get(String(code));if(!q)fail('尚未取得此股票同日市場快照 '+code);return {q,date:snapshot.date,key:[snapshot.identity,String(code),q.market,q.open,q.high,q.low,q.close,q.volume].join('|')};}
 function get(code){try{return cache.get(context(code).key)||null;}catch{return null;}}
+function quoteEvidence(code,asOf){try{const c=context(code);if(E.date(asOf)!==c.date||E.date(c.q.quoteDate)!==c.date||!(c.q.close>0))return null;return {verified:true,stock:String(code),market:c.q.market,date:c.date,close:c.q.close,source:c.q.volumeSource||snapshot.meta.source||'同日官方市場快照',scope:'OFFICIAL_CLOSE_ONLY_NOT_HISTORY_APPROVAL'};}catch{return null;}}
 // Project Worker daily-ohlcv-v1 uses explicit completion metadata, not a top-level
 // completed flag. FULL declares shares at volume.unit. Its R4.9.3 DAILY_ONLY
 // sibling declares the same shares field through the named source contract.
@@ -111,7 +112,7 @@ function normalizeWorkerReport(report,code){
  if(r.dataContract&&Array.isArray(r.canonicalBars)&&r.canonicalBars.length&&C.fingerprint(r.canonicalBars)!==C.fingerprint(rows))fail('Worker兩個日K陣列範圍或內容衝突 '+code);
  return {...r,completed:true,isComplete:true,volumeUnit:'shares',dailySeriesMeta:{...meta,volumeUnit:'shares'},workerDataAudit:{schema:meta.schema,completionSource:'dailySeriesMeta.onlyCompletedBars + completedDailyRowsAvailable + completeOhlcvRowsAvailable',historyBarCount:rows.length,volumeUnit:'shares',volumeUnitSource:unitSource,source:meta.source,sourceDate:E.date(meta.lastDate),originalCompleted:r.completed??null,originalVolumeUnit:r.volumeUnit??null}};
 }
-function validate(report,code){
+function validate(report,code,options={}){
  report=normalizeWorkerReport(report,code);
  if(!report.dataContract&&(report.dailySeriesMeta?.schema!=='daily-ohlcv-v1'||!report.workerDataAudit?.volumeUnitSource))fail('DAILY_ONLY成交量單位缺少可核驗來源契約 '+code);
  const c=context(code),q=c.q;
@@ -127,7 +128,14 @@ function validate(report,code){
  const rows=Array.isArray(report.dailySeries)&&report.dailySeries.length?report.dailySeries:report.canonicalBars;
  if([...(Array.isArray(rows)?rows:[]),...(Array.isArray(report.canonicalBars)?report.canonicalBars:[])].some(b=>b.stock&&String(b.stock)!==String(code)||b.code&&String(b.code)!==String(code)||b.market&&market(b.market)!==q.market))fail('日K股票代號／市場別不符 '+code);
  const checked=E.normalize(rows,c.date);if(!checked.ok)fail(checked.reason+' '+code);
- const b=checked.bars;if(b.some(x=>x.volume===0))fail('日K含零量，不視為可成交歷史 '+code);const last=b.at(-1),eq=(a,b)=>num(a)!==null&&num(b)!==null&&Math.abs(Number(a)-Number(b))<=Math.max(.02,Number(b)*.0001);
+ const b=checked.bars;
+ // A FULL reference can extend far before the independently validated common
+ // research window. Old zero-volume rows are not inputs to that window.
+ // Default validation and every canonical research bar remain strictly positive.
+ const positiveSince=options.referenceOnly===true?E.date(options.positiveVolumeSince):null;
+ if(options.referenceOnly===true&&!positiveSince)fail('完整歷史參考缺少研究區間起日 '+code);
+ if(b.some(x=>x.volume===0&&(!positiveSince||x.date>=positiveSince)))fail('日K含零量，不視為可成交歷史 '+code);
+ const last=b.at(-1),eq=(a,b)=>num(a)!==null&&num(b)!==null&&Math.abs(Number(a)-Number(b))<=Math.max(.02,Number(b)*.0001);
  if(!eq(report.close,last.close)||!['open','high','low','close'].every(k=>eq(q[k],last[k])))fail('同日市場與日K的OHLC未對齊 '+code);
  if(!(q.volume>0&&last.volume>0)||Math.abs(q.volume-last.volume)/q.volume>.2)fail('市場與日K成交量差異超過20% '+code);
  const rawBars=structuredClone(b),sourceVolume=last.volume,responseHistoryFingerprint=C.fingerprint(rawBars),originalHistoryFingerprint=report.dataContract?.originalHistoryFingerprint||responseHistoryFingerprint;
@@ -172,12 +180,18 @@ async function ensure(items){
  await evidenceJob;assertCurrent();for(const item of items){const c=context(item.code);if(pending.has(c.key))await pending.get(c.key);assertCurrent();if(acquisitionErrors.has(c.key))fail(acquisitionErrors.get(c.key));const p=cache.get(c.key);if(!p||p.error)fail(p?.error||'尚未取得共用日K '+item.code);}
 }
 function apply(report,code){
+ const receiptAudit=report.dailyBasisV2?report.referenceHistoryAudit:null;
  const c=context(code),p=cache.get(c.key);if(!p||p.error)fail(p?.error||'共用日K未完成 '+code);
  if(String(report.stock||report.code||'')!==String(code)||report.market&&market(report.market)!==p.q.market)fail('原報告代號／市場別不同 '+code);
  if(report.completed===false||report.isComplete===false||E.date(report.closeDate||report.dataDate)!==p.date)fail('原報告完成狀態／日期不符 '+code);
  if(!(num(report.close)>0)||Math.abs(Number(report.close)-p.q.close)>Math.max(.02,p.q.close*.0001))fail('原報告收盤價不同 '+code);
  if(report.dailySeries?.length||report.canonicalBars?.length)report=normalizeWorkerReport(report,code);
- if(report.dailySeries?.length||report.canonicalBars?.length)validate(report,code);
+ let referenceHistoryAudit=null;
+ if(report.dailySeries?.length||report.canonicalBars?.length){
+  validate(report,code,{referenceOnly:true,positiveVolumeSince:p.bars[0].date});
+  const referenceRows=report.dailySeries||report.canonicalBars;
+  referenceHistoryAudit=receiptAudit||{researchStart:p.bars[0].date,researchEnd:p.date,researchBars:p.bars.length,referenceBars:referenceRows.length,zeroVolumeOutsideResearch:referenceRows.filter(x=>Number(x.volume)===0&&x.date<p.bars[0].date).map(x=>x.date),policy:'完整歷史只作參考；研究區間每根仍要求正成交量，原始資料未刪改'};
+ }
  const proofKey=c.key+'|'+p.normalizedHistoryFingerprint;
  const freshProof=Evidence.officialPriceBasis(p.bars,report,c.q);
  if(freshProof.status==='VERIFIED'||freshProof.status==='CONFLICT'||!priceProofs.has(proofKey))priceProofs.set(proofKey,freshProof);
@@ -189,7 +203,7 @@ function apply(report,code){
  const bars=p.bars.map(b=>({...b})),sourceVolDiffPct=(p.q.volume>0&&p.sourceVolume>0)?Math.abs(p.q.volume-p.sourceVolume)/p.q.volume*100:null,provenance={model:MODEL,profile:'DAILY_ONLY',date:p.date,fingerprint:p.fingerprint,originalHistoryFingerprint:p.originalHistoryFingerprint,responseHistoryFingerprint:p.responseHistoryFingerprint,normalizedHistoryFingerprint:p.normalizedHistoryFingerprint,historyIdentity:p.historyIdentity,bars:bars.length,snapshotVerified:true,latestVolumeReconciled:true,sourceVolume:p.sourceVolume,snapshotVolume:p.q.volume,sourceVolumeDiffPct:sourceVolDiffPct,sourceVolumeWarning:sourceVolDiffPct!==null&&sourceVolDiffPct>.5,sourceVolumeUnit:'shares',snapshotVolumeApplied:p.q.volumeScopeVerified===true&&p.q.volumeScope==='DAILY_OHLCV_EQUIVALENT',volumeBasis:'已核驗日K來源量；市場量僅交叉驗證，統計範圍未核對時不覆寫'};
  const rsiSourceAudit=report.rsiSourceAudit||{source:report.dailyBasisV2?'PRIOR_CANONICAL_UNVERIFIED':'UPSTREAM_REPORT',value:report.dailyRsi5??report.dailyRsi??null,date:E.date(report.dailyRsi5Date||report.rsiDate||report.closeDate||report.dataDate),code:String(report.stock||report.code||''),market:report.market||p.q.market,meta:report.rsi5Meta||null};
  return {...report,dataContract:undefined,upstreamDataContract:structuredClone(p.dataContract),originalDailySeries:structuredClone(p.originalBars),sourceDailySeries:structuredClone(p.rawBars),sourceDailySeriesMeta:structuredClone(p.sourceMeta),rsiSourceAudit,workerDataAudit:p.workerDataAudit||report.workerDataAudit||null,stock:String(code),code:String(code),market:p.q.market,marketDate:p.date,completed:true,isComplete:true,dataTiming:'POST_CLOSE_ONLY',dailySeries:bars,canonicalBars:bars,close:p.q.close,volumeUnit:'shares',dailyRsi5:E.rsi(bars),dailyBasisV2:provenance,
-  securityType:report.securityType||Evidence.priceStepBasis?.(p.q,snapshot.meta).securityType,
+  referenceHistoryAudit,securityType:report.securityType||Evidence.priceStepBasis?.(p.q,snapshot.meta).securityType,
   tickRuleVerified:report.tickRuleVerified===false?false:report.tickRuleVerified===true||Evidence.priceStepBasis?.(p.q,snapshot.meta).verified===true,tickRuleEvidence:Evidence.priceStepBasis?.(p.q,snapshot.meta),
   monthlyReviewV2:months.get(c.key)||{status:'UNAVAILABLE',source:'NO_FULL_MONTHLY',verified:false,date:p.date},priceAdjustment:{...priceAdjustment},researchInputErrors:inputErrors,researchEvidence:{version:Evidence.VERSION,priceBasis:proof,calendar:{status:gaps.status==='UNKNOWN'?'UNKNOWN':researchCalendar.status,reason:gaps.status==='UNKNOWN'?(gaps.reason||researchCalendar.reason):researchCalendar.reason},sessions:gaps},quoteEvidence:{verified:true,date:p.date,close:p.q.close,source:p.q.volumeSource||snapshot.meta.source||'同日官方市場快照'},tradingCalendar:cal&&gaps.status!=='UNKNOWN'?cal:report.tradingCalendar,dailySeriesMeta:{...p.sourceMeta,returnedBars:bars.length,completedDailyRowsAvailable:bars.length,completeOhlcvRowsAvailable:bars.length,dailySeriesCount:bars.length,canonicalBarCount:bars.length,firstDate:bars[0]?.date,lastDate:bars.at(-1)?.date,countScope:'RETURNED_SERIES',volumeUnit:'shares',source:'共用DAILY_ONLY；同日市場OHLC與成交量交叉驗證'},expectedTradingDates:cal&&gaps.status!=='UNKNOWN'?cal.dates:p.expectedTradingDates,corporateActions:p.corporateActions||report.corporateActions};
 }
@@ -210,6 +224,6 @@ async function harmonize(items,payload,profile='FULL'){
  return {...payload,results};
 }
 function fromUrl(url){const u=new URL(url,'https://local.invalid'),codes=(u.searchParams.get('codes')||'').split(',').filter(Boolean);return {items:codes.map(code=>({code,q:snapshot?.map.get(code)})),profile:u.searchParams.get('profile')||'FULL'};}
-return Object.freeze({MODEL,prepareResearchEvidence,getResearchEvidence:()=>({calendar:researchCalendar,verifiedPriceProofs:priceProofs.size}),classifyFailure,isDataFailure,failureRecord,inspectSnapshot,bind,context,get,normalizeWorkerReport,validate,remember,ensure,apply,harmonize,fromUrl,fingerprint,setFetcher:f=>{fetcher=f;},getSnapshot:()=>snapshot,reset:()=>{snapshot=null;cache.clear();pending.clear();months.clear();priceProofs.clear();researchCalendar={status:'UNKNOWN',reason:'尚未載入'};globalThis.ShitouPriceActionIntegration?.bind(null);try{globalThis.ShitouResearchIntegration?.bind(null);}catch(_){}}});
+return Object.freeze({MODEL,prepareResearchEvidence,getResearchEvidence:()=>({calendar:researchCalendar,verifiedPriceProofs:priceProofs.size}),classifyFailure,isDataFailure,failureRecord,inspectSnapshot,bind,context,get,normalizeWorkerReport,validate,remember,ensure,apply,harmonize,fromUrl,fingerprint,setFetcher:f=>{fetcher=f;},quoteEvidence,getSnapshot:()=>snapshot,reset:()=>{snapshot=null;cache.clear();pending.clear();months.clear();priceProofs.clear();researchCalendar={status:'UNKNOWN',reason:'尚未載入'};globalThis.ShitouPriceActionIntegration?.bind(null);try{globalThis.ShitouResearchIntegration?.bind(null);}catch(_){}}});
 });
 

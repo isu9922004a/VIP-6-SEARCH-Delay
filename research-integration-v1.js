@@ -75,8 +75,8 @@ function researchCard(a,number,prefix='研究',expanded=false){
  const evidence=el('details');evidence.className='research-guide-evidence';evidence.append(el('summary','查看完整研究與資料驗證'));
  for(const item of report.details)evidence.append(field(item));body.append(evidence);
  if(a.openingPlan){
-  const calc=el('details');calc.className='research-guide-evidence research-opening-calculator';calc.append(el('summary','明天開盤後，輸入實際開盤價試算'));
-  const label=el('label','明日實際開盤價（元）'),input=el('input');input.type='number';input.min='0.01';input.step='0.01';input.inputMode='decimal';input.setAttribute('aria-label','明日實際開盤價');input.style.cssText='max-width:100%;box-sizing:border-box;padding:10px;font-size:18px;margin:10px 0';
+  const calc=el('details');calc.className='research-guide-evidence research-opening-calculator';calc.append(el('summary','計畫交易日開盤後，輸入實際開盤價試算'));
+  const label=el('label','計畫交易日實際開盤價（元）'),input=el('input');input.type='number';input.min='0.01';input.step='0.01';input.inputMode='decimal';input.setAttribute('aria-label','計畫交易日實際開盤價');input.style.cssText='max-width:100%;box-sizing:border-box;padding:10px;font-size:18px;margin:10px 0';
   label.append(input);const output=el('p','開盤前先看計畫；開盤後再輸入券商顯示的實際價格。本頁沒有即時5分鐘行情。');output.setAttribute('role','status');input.addEventListener('input',()=>{output.textContent=root.ShitouOpeningPlan.atOpen(a.openingPlan,input.value).text;});calc.append(label,output);body.append(calc);
  }
  const actions=el('div');actions.className='research-card-actions';
@@ -102,6 +102,7 @@ function source(input){const raw=U.normalizeInput(input),r={...raw};
    r.researchAcquisitionError=canonical.error;
   }else try{Object.assign(r,D.apply(r,code));}catch(e){r.researchInputErrors=[...new Set([...(r.researchInputErrors||[]),e.message])];}
  }
+ r.quoteEvidence=D?.quoteEvidence?.(code,sourceDate)||r.quoteEvidence;
  if(U.num(r.originalB)===null){const state=safely(()=>root.stockInfographicStateV3328?.(raw));if(state?.B>0){r.originalB=state.B;r.originalBSource='stockInfographicStateV3328(report).B';}}
  // Candidate levels.invalidation is a research/strategy-specific field, not proof
  // of the original strategy's invalidation. Keep it out of originalInvalidation.
@@ -115,7 +116,7 @@ async function prepareStockQuery(input){
  // Explicitly unfinished or suspended input cannot be upgraded by cached history.
  if(raw.completed===false||raw.isComplete===false||raw.suspended)return raw;
  try{
-  if(!D.getSnapshot()){
+  if(!D.getSnapshot()||D.getSnapshot().date!==date){
    if(typeof root.loadMarketBundleFromWorkerV3766!=='function')throw Error('共用市場快照載入器未載入');
    await root.loadMarketBundleFromWorkerV3766('?market=ALL_STOCKS');
   }
@@ -129,7 +130,7 @@ async function prepareStockQuery(input){
   // ensure() adds an aggregate error prefix. Prefer the same bound per-stock
   // failure used by every scan adapter, preserving independent input errors.
   const reason=D.getSnapshot()?.date===date&&D.get(code)?.error||String(e.message||e);
-  return {...raw,researchAcquisitionError:reason,researchInputErrors:[...new Set([...(raw.researchInputErrors||[]),reason])]};
+  return {...raw,quoteEvidence:D.quoteEvidence?.(code,date)||raw.quoteEvidence,researchAcquisitionError:reason,researchInputErrors:[...new Set([...(raw.researchInputErrors||[]),reason])]};
  }
 }
 function forReport(input){const r=source(input),key=U.hash([root.ShitouUnifiedAnalysis.VERSION,r,flags]);if(!cache.has(key)){if(cache.size>=512)cache.delete(cache.keys().next().value);const result=C.evaluate(r,{flags});cache.set(key,result);if(result.unifiedResearch?.code)try{root.ShitouResearchHistory?.append(localStorage,result.unifiedResearch);}catch(e){console.warn('歷史研究快照未保存：'+e.message);}}return cache.get(key);}

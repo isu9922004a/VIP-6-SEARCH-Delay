@@ -9,10 +9,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <link rel="stylesheet" href="./tower-design.css?v=V8.2.2-R13-UNIFIED1">
 
-<title>石頭少爺 V8.2.7｜四策略研究</title>
+<title>石頭少爺 V8.2.8｜四策略研究</title>
 <script src="./scan-exclusions-rsi-v5328.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./stock-query-runtime-v826.js?v=V8.2.7-QUERY1"></script>
-<script src="./version-v50.js?v=V8.2.7-ENTRY1"></script>
+<script src="./stock-query-runtime-v826.js?v=V8.2.8-QUERY1"></script>
+<script src="./version-v50.js?v=V8.2.8-ENTRY1"></script>
 
 <style>
 
@@ -23630,7 +23630,7 @@ function waitMsV3742(ms){
 }
 
 const STOCK_ANALYSIS_TIMEOUT_MS_V40=45000;
-async function fetchStockAnalysisV3742(stock,maxAttempts=3,timeoutMs=STOCK_ANALYSIS_TIMEOUT_MS_V40){
+async function fetchStockAnalysisV3742(stock,maxAttempts=3,timeoutMs=STOCK_ANALYSIS_TIMEOUT_MS_V40,options={}){
   let lastResponse=null,lastData=null,lastError=null;
   for(let attempt=1;attempt<=maxAttempts;attempt++){
     const controller=new AbortController();
@@ -23651,6 +23651,7 @@ async function fetchStockAnalysisV3742(stock,maxAttempts=3,timeoutMs=STOCK_ANALY
         throw invalidJsonError;
       }
       lastData=data;
+      if(options.allowDailyFallback&&ShitouResearchQueryFallback.shouldUseDaily(response,data))return await fetchStockDailyFallbackV828(stock,data);
 
       // Worker月K採漸進式官方快取。若回傳retrySuggested，
       // 前端自動再補查，不用使用者手動連按；每次成功月份仍由Worker保存。
@@ -23665,6 +23666,7 @@ async function fetchStockAnalysisV3742(stock,maxAttempts=3,timeoutMs=STOCK_ANALY
     }catch(error){
       lastError=error;
       const networkFailure=error?.retryable===true||error?.name==="AbortError"||/Failed to fetch|fetch failed|NetworkError|Load failed|network|連線|timeout|timed out/i.test(String(error?.message||error));
+      if(networkFailure&&options.allowDailyFallback)return await fetchStockDailyFallbackV828(stock,{error:String(error.message||error)});
       if(networkFailure&&attempt<maxAttempts){
         await waitMsV3742(500*attempt);
         continue;
@@ -23679,9 +23681,15 @@ async function fetchStockAnalysisV3742(stock,maxAttempts=3,timeoutMs=STOCK_ANALY
   return {response:lastResponse,data:lastData,attempts:maxAttempts};
 }
 
-let stockAnalysisBusyV827=false;
+async function fetchStockDailyFallbackV828(stock,failure){
+ const local=getEmbeddedStockDirectory().byCode?.[stock],hint=String(local?.market||'').toUpperCase(),market=['TWSE','TPEX'].includes(hint)?hint:null;
+ const url=`${API_BASE_URL}/?stock=${encodeURIComponent(stock)}&mode=DAILY_ONLY${market?'&marketHint='+market:''}`;
+ const controller=new AbortController();
+ try{return await ShitouQueryRuntime.deadline(async()=>{const response=await fetch(url,{headers:{Accept:'application/json'},cache:'no-store',signal:controller.signal});const daily=await response.json();if(!response.ok)throw Error('日線備援服務暫不可用：'+(daily.error||daily.title||daily.message||response.status));const data=ShitouResearchQueryFallback.adapt(daily,{stock,market,reason:failure.error||failure.title||failure.message||'完整分析服務資源限制',failureCode:failure.error_code||null});return {response,data,attempts:1,partial:true};},15000,'完整分析暫不可用，日線備援也連線超時。');}finally{controller.abort();}
+}
+let stockAnalysisBusyV828=false;
 async function analyzeStock(){
-  if(stockAnalysisBusyV827)return;
+  if(stockAnalysisBusyV828)return;
 
   const input=document.getElementById("stockInput");
 
@@ -23717,7 +23725,7 @@ async function analyzeStock(){
 
   button.textContent="分析中...";
 
-  stockAnalysisBusyV827=true;
+  stockAnalysisBusyV828=true;
   const startedAt=Date.now(),progress=setInterval(()=>{loading.textContent=`分析中，已等待 ${Math.floor((Date.now()-startedAt)/1000)} 秒；正在取得完成行情，請勿重複送出。`;},1000);
   loading.textContent="正在確認股票與取得完成行情…";
   button.setAttribute("aria-busy","true");
@@ -23740,7 +23748,7 @@ async function analyzeStock(){
 
       :stock;
 
-    const stockFetchV3742=await ShitouQueryRuntime.deadline(()=>fetchStockAnalysisV3742(stock,2,28000),60000,"行情服務回應超時，請稍後再按開始分析。");
+    const stockFetchV3742=await ShitouQueryRuntime.deadline(()=>fetchStockAnalysisV3742(stock,2,20000,{allowDailyFallback:true}),60000,"行情服務回應超時，請稍後再按開始分析。");
     const response=stockFetchV3742.response;
     const data=stockFetchV3742.data;
 
@@ -23896,7 +23904,7 @@ async function analyzeStock(){
       dataContract:data?.dataContract,upstreamDataContract:data?.upstreamDataContract,
       sourceDailySeries:data?.sourceDailySeries,sourceDailySeriesMeta:data?.sourceDailySeriesMeta,
       originalDailySeries:data?.originalDailySeries,scanMode:data?.scanMode,dailyOnly:data?.dailyOnly,
-      decisionLayer,tradeability,trendPersistence,maDeduction,volumePriceHealth,reboundQuality,pressureMap,remainingOpportunity,entryQualityVNext,chaseRisk,exitRisk
+      decisionLayer,tradeability,trendPersistence,maDeduction,volumePriceHealth,reboundQuality,pressureMap,remainingOpportunity,entryQualityVNext,chaseRisk,exitRisk,technicalOnlyFallback:data?.technicalOnlyFallback
 
     };
 
@@ -23906,6 +23914,7 @@ async function analyzeStock(){
 
     set("stockMeta",`${code}｜${market}｜${source}｜後端分析 ${version}｜${V40_RELEASE_LABEL}｜漲跌力道全白話`);
 
+    if(lastReportData.technicalOnlyFallback)set("stockMeta",`${code}｜${market}｜完整分析暫不可用，已改用完成日線；四策略可檢查，月線暫不判讀｜${V40_RELEASE_LABEL}`);
     set("closeDate",`最新交易日：${datefmt(closeDate)}`);
 
     const status=document.getElementById("status");
@@ -24003,7 +24012,7 @@ async function analyzeStock(){
 
   }finally{
 
-    clearInterval(progress);stockAnalysisBusyV827=false;
+    clearInterval(progress);stockAnalysisBusyV828=false;
     button.removeAttribute("aria-busy");
     loading.style.display="none";
 
@@ -32439,8 +32448,8 @@ upgradeVisibleTextV40(document.body);
 
 </script>
 
-<script src="./shito-assistant-v47.js?v=V8.2.7-QUERY1"></script>
-<script src="./industry-context-v47.js?v=V8.2.7-QUERY1"></script>
+<script src="./shito-assistant-v47.js?v=V8.2.8-QUERY1"></script>
+<script src="./industry-context-v47.js?v=V8.2.8-QUERY1"></script>
 
 <script>
 // ========================================================================
@@ -34814,8 +34823,8 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 <script src="./price-action-context-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
 <script src="./selection-evidence-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
 <script src="./worker-data-contract-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./research-source-evidence-v1.js?v=V8.2.7-OPEN1"></script>
-<script src="./selection-data-v2.js?v=V8.2.7-OPEN1"></script>
+<script src="./research-source-evidence-v1.js?v=V8.2.8-OPEN1"></script>
+<script src="./selection-data-v2.js?v=V8.2.8-WINDOW1"></script>
 <script src="./selection-decision-v2.js?v=V8.2.2-R13-UNIFIED1"></script>
 <script src="./strong-stock-filter-v47.js?v=V8.2.2-R13-UNIFIED1"></script>
 <script src="./deep-scan-health-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
@@ -35042,7 +35051,7 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 <script src="./tower-design-ui.js?v=V8.2.2-R13-UNIFIED1"></script>
 <script src="./tower-scan-export.js?v=V8.2.2-R13-UNIFIED1"></script>
 <script src="./tower-fast-a.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./tower-integration.js?v=V8.2.7-QUERY1"></script>
+<script src="./tower-integration.js?v=V8.2.8-QUERY1"></script>
 <script src="./tower-scan-copy.js?v=V8.2.2-R13-UNIFIED1"></script>
 <script src="./tower-beginner-guide.js?v=V8.2.2-R13-UNIFIED1"></script>
 <script src="./tower-stock-report.js?v=V8.2.2-R13-UNIFIED1"></script>
@@ -35074,23 +35083,24 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 })();
 </script>
 <link rel="stylesheet" href="./research-mobile-v1.css?v=V8.2.2-R13-UNIFIED1-DRAX1">
-<script src="./research-common-v1.js?v=V8.2.7-ENTRY1"></script>
+<script src="./research-common-v1.js?v=V8.2.8-ENTRY1"></script>
 <script src="./research-foundation-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
 <script src="./indicator-multi-v1.js?v=V8.2.2-R17-EVIDENCE1"></script>
 <script src="./research-history-v1.js?v=V8.2.2-R16-CONTEXT1"></script>
 <script src="./structure-context-v1.js?v=V8.2.2-R17-EVIDENCE1"></script>
-<script src="./research-beginner-v1.js?v=V8.2.7-ENTRY1"></script>
-<script src="./research-chart-v1.js?v=V8.2.7-ENTRY1"></script>
-<script src="./unified-analysis-v1.js?v=V8.2.7-PLAIN1"></script>
-<script src="./research-n-continuation-v1.js?v=V8.2.7-PLAIN1"></script>
-<script src="./research-entry-direction-v1.js?v=V8.2.7-ENTRY1"></script>
-<script src="./research-opening-plan-v1.js?v=V8.2.7-OPEN2"></script>
-<script src="./four-models-research-v1.js?v=V8.2.7-ENTRY1"></script>
+<script src="./research-beginner-v1.js?v=V8.2.8-ENTRY1"></script>
+<script src="./research-chart-v1.js?v=V8.2.8-ENTRY1"></script>
+<script src="./unified-analysis-v1.js?v=V8.2.8-PLAIN1"></script>
+<script src="./research-n-continuation-v1.js?v=V8.2.8-PLAIN1"></script>
+<script src="./research-entry-direction-v1.js?v=V8.2.8-ENTRY1"></script>
+<script src="./research-query-fallback-v1.js?v=V8.2.8-FALLBACK1"></script>
+<script src="./research-opening-plan-v1.js?v=V8.2.8-OPEN2"></script>
+<script src="./four-models-research-v1.js?v=V8.2.8-ENTRY1"></script>
 <script src="./research-zh-tw-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./research-report-v1.js?v=V8.2.7-ENTRY1"></script>
+<script src="./research-report-v1.js?v=V8.2.8-ENTRY1"></script>
 <script src="./drax-price-reminder-v1.js?v=V8.2.2-R13-UNIFIED1-DRAX1"></script>
-<script src="./research-integration-v1.js?v=V8.2.7-ENTRY1"></script>
-<script src="./stock-audit-alert-v82.js?v=V8.2.7-QUERY1"></script>
+<script src="./research-integration-v1.js?v=V8.2.8-ENTRY1"></script>
+<script src="./stock-audit-alert-v82.js?v=V8.2.8-QUERY1"></script>
 <script src="./release-compact-v1.js?v=V8.2.2-R16-CONTEXT1"></script>
 </body>
 

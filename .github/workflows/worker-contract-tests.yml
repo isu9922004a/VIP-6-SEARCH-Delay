@@ -87,11 +87,11 @@ jobs:
           CHROME_BIN: /usr/bin/google-chrome
           RESEARCH_BROWSER_ORIGIN: https://isu9922004a.github.io/VIP-BOWTOWER-4-SEARCH/
         run: node scripts/tests/stock-query-v826-browser.cjs /tmp/deployed-research-evidence/query
-      - name: Verify live 8039 price evidence and next-session plan
+      - name: Verify live 7704 and 8039 canonical research windows
         env:
           PLAYWRIGHT_MODULE: /tmp/research-browser/node_modules/playwright-core
           CHROME_BIN: /usr/bin/google-chrome
-        run: node scripts/tests/research-live-frontend-v827.cjs
+        run: node scripts/tests/research-live-frontend-v828.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -99,6 +99,7 @@ jobs:
           path: |
             /tmp/deployed-research-evidence
             /tmp/deployed-frontend-verification.json
-            /tmp/live-opening-verification.json
-            /tmp/live-8039-V8.2.7.png
+            /tmp/live-window-verification.json
+            /tmp/live-8039-V8.2.8.png
+            /tmp/live-7704-V8.2.8.png
 

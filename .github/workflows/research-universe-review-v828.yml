@@ -1,0 +1,30 @@
+name: Revalidate all recorded research queries with V8.2.8
+on:
+  push:
+    branches: ['codex/v8.2.8']
+    paths: ['scripts/review-research-universe.cjs', '.github/workflows/research-universe-review-v828.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: 41001832329
+          github-token: ${{ github.token }}
+          pattern: research-audit-*
+          path: /tmp/audits
+      - name: Re-evaluate all 1952 captured stocks without issuing another bulk live scan
+        run: node scripts/review-research-universe.cjs /tmp/audits
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reviewed-research-universe
+          path: /tmp/research-universe-reviewed.json

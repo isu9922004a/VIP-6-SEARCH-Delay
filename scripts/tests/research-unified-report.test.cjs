@@ -63,7 +63,7 @@ test('an indicator phase cannot replace the four-strategy situation in one outpu
 });
 test('invalid bars do not get false completed models or invented K/D and levels',()=>{
  const a=C.evaluate({stock:'9001',name:'測試',market:'TWSE',closeDate:'2026-10-22',close:100,completed:true}),v=R.view(a);
- assert.equal(a.validation.technicalModelAvailable,false);assert.match(v.summary[0].value,/行情還沒確認完整/);assert.match(v.summary[0].value,/日線還沒確認完整|日線只有/);
+ assert.equal(a.validation.technicalModelAvailable,false);assert.match(v.summary[0].value,/行情還沒確認完整/);assert.match(v.summary[0].value,/日線還沒確認完整|日線只有|日線天數不足/);
  assert.ok(v.details.filter(x=>/^策略[一二三四]｜/.test(x.title)).every(x=>/無法判定/.test(x.value)));
  assert.match(v.details.find(x=>x.title==='關鍵支撐價位').value,/無法核驗/);
  assert.match(v.details.find(x=>x.title==='日週月週期研判').value,/資料不足/);
