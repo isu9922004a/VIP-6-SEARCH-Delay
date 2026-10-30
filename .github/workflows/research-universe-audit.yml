@@ -1,0 +1,73 @@
+name: Full universe research audit
+on:
+  push:
+    branches: ['codex/research-universe-audit']
+    paths: ['scripts/audit-research-universe.cjs', '.github/workflows/research-universe-audit.yml']
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Compare live 7704 and 8039
+        env:
+          AUDIT_PROBE: '1'
+        run: node scripts/audit-research-universe.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: research-probe
+          path: /tmp/research-universe
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Inspect every assigned stock through the shared query pipeline
+        env:
+          AUDIT_SHARD: ${{ matrix.shard }}
+          AUDIT_SHARDS: '8'
+        run: node scripts/audit-research-universe.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: research-audit-${{ matrix.shard }}
+          path: /tmp/research-universe
+  report:
+    needs: [audit]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: research-audit-*
+          path: /tmp/audits
+      - name: Require complete unique stock coverage and summarize all outcomes
+        run: |
+          python3 - <<'PY'
+          import pathlib,json,collections
+          reports=[json.loads(p.read_text()) for p in pathlib.Path('/tmp/audits').glob('**/audit-*.json')]
+          rows=[x for r in reports for x in r['results']]
+          codes={x['code'] for x in rows}
+          assert len(reports)==8
+          assert len(rows)==len(codes)==reports[0]['universe']
+          result={'dates':sorted({r['date'] for r in reports}),'checked':len(rows),'counts':dict(collections.Counter(x['category'] for x in rows)),'issues':[{'code':x['code'],'name':x['name'],'category':x['category'],'reason':x.get('reason')} for x in rows if not x.get('technical')]}
+          pathlib.Path('/tmp/universe-summary.json').write_text(json.dumps(result,ensure_ascii=False,indent=2))
+          print('AUDIT_FINAL='+json.dumps(result,ensure_ascii=False))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: research-universe-summary
+          path: /tmp/universe-summary.json
