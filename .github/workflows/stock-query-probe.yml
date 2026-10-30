@@ -1,0 +1,27 @@
+name: Investigate actual stock-query frontend
+on:
+  push:
+    branches: ['codex/research-universe-audit']
+    paths: ['scripts/probe-stock-frontend.cjs', '.github/workflows/stock-query-probe.yml']
+permissions:
+  contents: read
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --prefix /tmp/research-browser --no-package-lock --no-save playwright-core@1.56.1
+      - name: Probe actual frontend and request timings
+        env:
+          PLAYWRIGHT_MODULE: /tmp/research-browser/node_modules/playwright-core
+          CHROME_BIN: /usr/bin/google-chrome
+        run: node scripts/probe-stock-frontend.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-stock-probe
+          path: /tmp/frontend-*.json
