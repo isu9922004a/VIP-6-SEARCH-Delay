@@ -1,0 +1,37 @@
+name: Recover current completed market snapshot for research
+on:
+  push:
+    branches: ['codex/v8.2.8']
+    paths: ['.github/workflows/recover-research-snapshot-v828.yml']
+permissions:
+  contents: write
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Fetch and publish verified same-date official data from current main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git checkout -B research-snapshot-recovery origin/main
+            node scripts/update-market-snapshot.mjs
+            node scripts/verify-market-snapshot.mjs
+            node scripts/update-research-calendar.mjs || true
+            git add -- data/market
+            if git diff --cached --quiet; then exit 0; fi
+            git commit -m 'data: recover verified completed snapshot for V8.2.8 research'
+            if git push origin HEAD:main; then exit 0; fi
+          done
+          exit 1
