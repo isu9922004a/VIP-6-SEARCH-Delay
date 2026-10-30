@@ -13,7 +13,7 @@ FILES = ["index.html", "version-v50.js", "research-beginner-v1.js",
          "four-models-research-v1.js", "research-common-v1.js", "research-integration-v1.js",
          "stock-query-runtime-v826.js", "tower-integration.js", "shito-assistant-v47.js",
          "industry-context-v47.js", "stock-audit-alert-v82.js",
-         "research-query-fallback-v1.js", "research-opening-plan-v1.js", "research-source-evidence-v1.js", "selection-data-v2.js"]
+         "scan-report-rsi-v5328.js", "research-query-fallback-v1.js", "research-opening-plan-v1.js", "research-source-evidence-v1.js", "selection-data-v2.js"]
 
 
 def check(name):

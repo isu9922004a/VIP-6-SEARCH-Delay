@@ -25832,7 +25832,7 @@ function fetchWithAbortV3766(url,timeoutMs=MOMENTUM_MARKET_BUNDLE_TIMEOUT_MS_V37
   return fetch(url,{headers:{Accept:"application/json"},cache:"no-store",signal:controller.signal})
     .finally(()=>{clearTimeout(timer);releaseScanControllerV39B12OPT(controller);});
 }
-async function loadMarketBundleFromWorkerV3766(bundlePath=MOMENTUM_MARKET_BUNDLE_PATH_V3766){
+async function loadMarketBundleFromWorkerV3766(bundlePath=MOMENTUM_MARKET_BUNDLE_PATH_V3766,options={}){
   const url=`${MARKET_API_BASE_URL}/${bundlePath}`.replace(/\/\?/,"?");
   let lastErr=null;
   for(let attempt=1;attempt<=MOMENTUM_MARKET_BUNDLE_RETRIES_V3766;attempt++){
@@ -25883,7 +25883,7 @@ async function loadMarketBundleFromWorkerV3766(bundlePath=MOMENTUM_MARKET_BUNDLE
       return {map:quoteMap,sectorMap,meta:data.meta||{},exclusionStatus:data.exclusionStatus||null,cached:data.cached===true,source:data.source||"Cloudflare Market Worker",snapshotRows:data.rows.length,snapshotDropped:data.rows.length-quoteMap.size};
     }catch(e){
       lastErr=e;
-      if(e?.noRetry)break;
+      if(options.researchOnly===true||e?.noRetry)break;
       if(e?.marketSyncPending&&attempt<MOMENTUM_MARKET_BUNDLE_RETRIES_V3766){
         showMarketSyncNoticeV53282(e.marketMeta,attempt);
         await sleepMomentumV3763(MARKET_SYNC_RETRY_DELAYS_V53282[attempt-1]||10000);
@@ -35041,7 +35041,7 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 
 <script src="./teacher-three-pan-ui.js?v=V8.2.2-R13-UNIFIED1"></script>
 <script src="./data/market/scan-exclusions.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./scan-report-rsi-v5328.js?v=V8.2.2-R13-UNIFIED1"></script>
+<script src="./scan-report-rsi-v5328.js?v=V8.2.8-RESEARCH2"></script>
 <script src="./stock-image-colors-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
 <script src="./tower-line-core.js?v=V8.2.2-R13-UNIFIED1"></script>
 <script src="./tower-risk-adapter.js?v=V8.2.2-R13-UNIFIED1"></script>
@@ -35099,7 +35099,7 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 <script src="./research-zh-tw-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
 <script src="./research-report-v1.js?v=V8.2.8-ENTRY1"></script>
 <script src="./drax-price-reminder-v1.js?v=V8.2.2-R13-UNIFIED1-DRAX1"></script>
-<script src="./research-integration-v1.js?v=V8.2.8-ENTRY1"></script>
+<script src="./research-integration-v1.js?v=V8.2.8-ENTRY2"></script>
 <script src="./stock-audit-alert-v82.js?v=V8.2.8-QUERY1"></script>
 <script src="./release-compact-v1.js?v=V8.2.2-R16-CONTEXT1"></script>
 </body>

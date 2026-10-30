@@ -70,15 +70,19 @@ function snapshotBundle(s,url){
   }
  };
 }
-async function fetchSnapshotCandidate(url){
+async function fetchSnapshotCandidate(url,timeoutMs=15000){
  const join=url.includes('?')?'&':'?',requestUrl=url+join+'_fresh='+Date.now();
- const r=await fetch(requestUrl,{cache:'no-store',headers:{Accept:'application/json'},signal:AbortSignal.timeout(15000)});
+ const r=await fetch(requestUrl,{cache:'no-store',headers:{Accept:'application/json'},signal:AbortSignal.timeout(timeoutMs)});
  if(!r.ok)return null;
  const s=await r.json();
  if(!validMarketSnapshot(s))return null;
  return {snapshot:s,url};
 }
-async function freshGithubBundleFallback(originalError){
+async function freshGithubBundleFallback(originalError,{researchOnly=false}={}){
+ if(researchOnly){
+  try{return await Promise.any([CANONICAL_MARKET_BASE+'latest.json',LOCAL_MARKET_LATEST].map(async url=>{const hit=await fetchSnapshotCandidate(url,6000);if(!hit)throw Error('官方市場快照暫時無法讀取');return snapshotBundle(hit.snapshot,hit.url);}));}
+  catch(error){throw Error('行情還沒確認完整：'+[...new Set((error.errors||[error]).map(e=>String(e.message||e)))].join('；'));}
+ }
  const diagnostics=[];
  for(let i=0;i<FRESHNESS_RETRY_DELAYS.length;i++){
   const delay=FRESHNESS_RETRY_DELAYS[i];if(delay)await new Promise(resolve=>setTimeout(resolve,delay));
@@ -135,10 +139,10 @@ const loader=root.loadMarketBundleFromWorkerV3766;
 if(typeof loader==='function')root.loadMarketBundleFromWorkerV3766=async function(...args){
  let b;
  try{b=await loader.apply(this,args);const audit=root.ShitouSelectionDataV2?.inspectSnapshot?.(b);if(audit&&!audit.ok)throw Error('Worker快照交接未通過：'+audit.issues.join('；'));}
- catch(error){b=await freshGithubBundleFallback(error);}
+ catch(error){b=await freshGithubBundleFallback(error,{researchOnly:args[1]?.researchOnly===true});}
  try{
   const meta=b?.meta||{},target=P.date(meta.targetTradeDate||meta.completedTradeDate),today=P.date(taipeiClock().compact);
-  if(shouldRequireToday({marketCalendar:meta.marketCalendar})&&target&&today&&target!==today)b=await freshGithubBundleFallback(new Error('今日盤後市場快照尚未同步'));
+  if(shouldRequireToday({marketCalendar:meta.marketCalendar})&&target&&today&&target!==today)b=await freshGithubBundleFallback(new Error('今日盤後市場快照尚未同步'),{researchOnly:args[1]?.researchOnly===true});
  }catch(_){/* 由後續正式驗證處理 */}
  return P.applyStatus(b,await statusFor(b));
 };
@@ -165,3 +169,4 @@ const contrast={'#60748a':'#3d536b','#66758a':'#3d5269','#677386':'#3b4e65','#53
 if(root.CanvasRenderingContext2D){const proto=root.CanvasRenderingContext2D.prototype;for(const method of ['fillText','strokeText']){const original=proto[method];proto[method]=function(...args){const saved=this.fillStyle;let replacement=typeof saved==='string'?contrast[saved.toLowerCase()]:null;const color=String(saved),match=String(args[0]).match(/RSI 5T\s+(\d+(?:\.\d+)?)/);if(match&&/^#[0-9a-f]{6}$/i.test(color)&&parseInt(color.slice(1,3),16)+parseInt(color.slice(3,5),16)+parseInt(color.slice(5,7),16)<420)replacement=String(args[0]).includes('跌回70')?'#a01f37':P.rsiStatus({dailyRsi5:Number(match[1])}).color;if(replacement)this.fillStyle=replacement;try{return original.apply(this,args);}finally{this.fillStyle=saved;}};}}
 root.ShitouScanReport5328=Object.freeze({restricted,reportText,decorateRows,statusFor});
 })(typeof globalThis!=='undefined'?globalThis:this);
+

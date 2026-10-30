@@ -118,13 +118,19 @@ async function prepareStockQuery(input){
  try{
   if(!D.getSnapshot()||D.getSnapshot().date!==date){
    if(typeof root.loadMarketBundleFromWorkerV3766!=='function')throw Error('共用市場快照載入器未載入');
-   await root.loadMarketBundleFromWorkerV3766('?market=ALL_STOCKS');
+   await root.loadMarketBundleFromWorkerV3766('?market=ALL_STOCKS',{researchOnly:true});
   }
   if(D.getSnapshot()?.date!==date)throw Error(`查詢日期 ${date||'未知'} 與共用快照 ${D.getSnapshot()?.date||'未知'} 不同，不跨日補值`);
   await D.prepareResearchEvidence?.();
   const q=D.context(code).q;
   if(raw.market&&raw.market!==q.market)throw Error('查詢與共用快照市場別不符');
-  if(!D.get(code)||D.get(code).error)await D.ensure([{code,name:raw.name,q}]);
+  if(!D.get(code)||D.get(code).error){
+   // A verified DAILY_ONLY fallback is already the common research response.
+   // Validate it against the bound snapshot instead of making the same source
+   // request again and discarding good history when that second request fails.
+   if(raw.dataContract?.sourceMode==='DAILY_ONLY')D.remember(raw,code);
+   else await D.ensure([{code,name:raw.name,q}]);
+  }
   return D.apply(raw,code);
  }catch(e){
   // ensure() adds an aggregate error prefix. Prefer the same bound per-stock
