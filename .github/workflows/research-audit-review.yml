@@ -1,0 +1,31 @@
+name: Review completed research-audit batches
+on:
+  push:
+    branches: ['audit/review']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          run-id: 41001832329
+          github-token: ${{ github.token }}
+          pattern: research-audit-*
+          path: /tmp/audits
+      - name: Inspect actual failed FULL responses
+        run: |
+          python3 - <<'PY'
+          import pathlib,json,collections
+          counts=collections.Counter(); examples={}; total=0
+          for p in pathlib.Path('/tmp/audits').glob('**/raw-*.json'):
+            for r in json.loads(p.read_text()):
+              total+=1
+              if r.get('fullHttp')!=200:
+                d=r.get('full') or {}; msg=str(d.get('error') or d.get('message') or d)[:300]
+                key=str(r.get('fullHttp'))+' '+msg
+                counts[key]+=1;examples.setdefault(key,{'code':r['code'],'body':d})
+          print('PARTIAL_RAW='+json.dumps({'records':total,'errors':dict(counts),'examples':list(examples.values())[:12]},ensure_ascii=False))
+          PY
