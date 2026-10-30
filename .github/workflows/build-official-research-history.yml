@@ -1,0 +1,43 @@
+name: Build official research history for every stock
+on:
+  workflow_dispatch:
+  push:
+    branches: ['codex/v8.2.9-data']
+    paths: ['scripts/build-official-research-history.mjs', '.github/workflows/build-official-research-history.yml']
+permissions:
+  contents: write
+jobs:
+  official-history:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/cache@v4
+        with:
+          path: data/research/days
+          key: official-research-days-v1-${{ github.run_id }}
+          restore-keys: official-research-days-v1-
+      - name: Collect actual exchange sessions and audit every current stock
+        run: node scripts/build-official-research-history.mjs
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: data/research/days
+          key: official-research-days-v1-${{ github.run_id }}-partial
+      - name: Publish verified history to this isolated branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- data/research evidence/official-research-universe-*.json
+          git commit -m 'data: official daily research archive and per-stock universe audit'
+          git push origin HEAD:${{ github.ref_name }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: official-research-universe
+          path: evidence/official-research-universe-*.json
