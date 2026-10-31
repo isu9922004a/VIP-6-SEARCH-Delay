@@ -2,12 +2,12 @@
 import concurrent.futures
 import hashlib
 import json
+import os
 import pathlib
 import time
 import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-BASE = "https://isu9922004a.github.io/VIP-BOWTOWER-4-SEARCH/"
 FILES = ["research-official-history-v1.js", "index.html", "version-v50.js", "research-beginner-v1.js",
          "research-chart-v1.js", "research-report-v1.js", "unified-analysis-v1.js", "research-entry-direction-v1.js",
          "four-models-research-v1.js", "research-common-v1.js", "research-integration-v1.js",
@@ -16,10 +16,23 @@ FILES = ["research-official-history-v1.js", "index.html", "version-v50.js", "res
          "scan-report-rsi-v5328.js", "research-query-fallback-v1.js", "research-opening-plan-v1.js", "research-source-evidence-v1.js", "selection-data-v2.js"]
 
 
-def check(name):
+def deployment_base(environ=None):
+    environ = os.environ if environ is None else environ
+    explicit = environ.get("RESEARCH_BROWSER_ORIGIN", "").strip()
+    if explicit:
+        return explicit.rstrip("/") + "/"
+    repository = environ.get("GITHUB_REPOSITORY", "").strip()
+    parts = repository.split("/")
+    if len(parts) != 2 or not all(parts):
+        raise ValueError("Set RESEARCH_BROWSER_ORIGIN or GITHUB_REPOSITORY to select the deployment")
+    owner, name = parts
+    return f"https://{owner.lower()}.github.io/{name}/"
+
+
+def check(name, base):
     try:
         request = urllib.request.Request(
-            BASE + name + "?verify=" + str(time.time_ns()),
+            base + name + "?verify=" + str(time.time_ns()),
             headers={"User-Agent": "Mozilla/5.0", "Cache-Control": "no-cache"})
         with urllib.request.urlopen(request, timeout=20) as response:
             actual = response.read()
@@ -30,12 +43,13 @@ def check(name):
 
 
 def main():
+    base = deployment_base()
     deadline = time.monotonic() + 480
     while True:
         with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
-            results = list(executor.map(check, FILES))
+            results = list(executor.map(lambda name: check(name, base), FILES))
         evidence = {"status": "PASS" if all(x["match"] for x in results) else "WAIT",
-                    "site": BASE, "files": results}
+                    "site": base, "files": results}
         pathlib.Path("/tmp/deployed-frontend-verification.json").write_text(
             json.dumps(evidence, indent=2) + "\n")
         print(json.dumps(evidence), flush=True)

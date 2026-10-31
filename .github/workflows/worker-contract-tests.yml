@@ -84,6 +84,8 @@ jobs:
     needs: [contracts, browser, universe]
     runs-on: ubuntu-latest
     timeout-minutes: 12
+    env:
+      RESEARCH_BROWSER_ORIGIN: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -99,13 +101,11 @@ jobs:
         env:
           PLAYWRIGHT_MODULE: /tmp/research-browser/node_modules/playwright-core
           CHROME_BIN: /usr/bin/google-chrome
-          RESEARCH_BROWSER_ORIGIN: https://isu9922004a.github.io/VIP-BOWTOWER-4-SEARCH/
         run: node scripts/tests/research-context-r16-browser.cjs /tmp/deployed-research-evidence
       - name: Verify deployed query responsiveness
         env:
           PLAYWRIGHT_MODULE: /tmp/research-browser/node_modules/playwright-core
           CHROME_BIN: /usr/bin/google-chrome
-          RESEARCH_BROWSER_ORIGIN: https://isu9922004a.github.io/VIP-BOWTOWER-4-SEARCH/
         run: node scripts/tests/stock-query-v826-browser.cjs /tmp/deployed-research-evidence/query
       - name: Verify live official price, calendar and long/short plan for 7704 and 8039
         env:
