@@ -66,18 +66,46 @@ function bearishPlan(a,long){
  return {state:long.dataIssues.length?'DATA':!entryRange?'NO_TRADE':['BEAR','REBOUND'].includes(dir)?'WATCH':'COUNTER_TREND',watch,entryRange,stop,target,borrowVerified:false,borrowCostIncluded:false,costs:{fee,tax,slippage:slip,minRR:rr,minSpacePct:space,maxStopPct:maxStop},note:'空單是先賣後買；漲到停損價要買回。券源、放空資格與借券費尚未確認，這是情境試算。'};
 }
 function evaluate(a){const long=evaluateLong(a);return U.freeze({...long,bear:bearishPlan(a,long),historyBars:a.validation?.historyBarCount||0,directionCode:a.entryDirection?.direction?.code||'UNKNOWN',directionLabel:a.entryDirection?.direction?.label||long.trendText||'方向暫時無法判斷',officialHistory:!!a.evidenceDiagnostics?.officialHistoryEvidence});}
-function summary(plan,prior){if(!plan)return prior;
+// Read-only wording from the same validated bars. These descriptions never gate a trade.
+function plainContext(a){
+ if(a?.validation?.technicalModelAvailable!==true)return null;
+ const b=a.sourceBars||[],z=b.at(-1),previous=b.at(-2),m=a.features?.ma?.[20];
+ if(!z||!finite(z.close)||z.close<=0||a.date&&z.date!==a.date)return null;
+ let direction='',directionDetail='';
+ if(finite(m?.value)&&m.value>0){
+  const gap=z.close-m.value,near=Math.abs(gap)<.005,relation=near?'接近':gap>0?'高於':'低於',slope=m.slope;
+  const trend=!finite(slope)?'平均價的方向還缺少資料。':slope<0?(Math.abs(slope)<1?'平均價還略往下走，轉強仍需確認。':'平均價仍往下走，先等價格回穩。'):slope>0?(gap<0?'平均價仍往上，但股價還沒站回。':'平均價也在往上，仍要看價格能否守穩。'):'平均價大致持平，先等方向更清楚。';
+  direction=`收盤${price(z.close)}，${relation}最近20天平均${price(m.value)}。\n${trend}`;
+  directionDetail=direction+`\n這是最近20個交易日收盤價的平均。${near?'兩者接近。':`相差${price(Math.abs(gap))}，約${(Math.abs(gap)/m.value*100).toFixed(2)}%。`}`+(finite(slope)?`平均價比${U.PARAM.slopeBars}個交易日前${slope>0?'增加':slope<0?'減少':'持平'}${Math.abs(slope).toFixed(2)}%。`:'');
+ }
+ const v=a.unifiedResearch?.structureContext?.volume,conflict=v?.status==='CONFLICT'||a.tradeContext?.provenance?.volumeConflict;
+ if(conflict||v?.usable!==true)return U.freeze({direction,directionDetail,volumeShort:conflict?'成交量來源有差異，先不解讀量增減。':'成交量來源還沒核對，先不解讀量增減。',volumeDetail:conflict?'兩個來源或單位尚未對齊，不能只靠其中一個量比判斷回穩。':'成交量來源或單位尚未通過核對；保留價格觀察，不推測買賣力道。',volumeVerified:false});
+ const day=previous?.volume>0&&finite(z.volume)?(z.volume/previous.volume-1)*100:null,ratio=finite(v.ratio5)?v.ratio5:null;
+ const change=finite(day)?Math.round(Math.abs(day))===0?'量和昨天差不多':`量比昨天${day>0?'多':'少'}約${Math.round(Math.abs(day))}%`:finite(ratio)?`量約為前5天平均的${ratio.toFixed(2)}倍`:'交易量還缺少比較基準';
+ const location=a.features?.candle?.closeLocation,down=previous&&z.close<previous.close;
+ const observation=finite(location)&&location<=.25?(down?'收盤仍近低點':'收盤靠近低點'):finite(location)&&location>=.75?'收盤接近高點':down?'價格仍比昨天下跌':previous&&z.close>previous.close?'價格比昨天高':'價格方向仍待確認';
+ const interpretation=finite(location)&&location<=.25&&down?'交易量變少或變多，都還沒改變收盤偏弱的現況；先看價格能否回穩。':down?'今天仍較昨天下跌；量能變化需搭配後續價格一起看。':'收盤位置只說明今天的價格表現，後續仍需守穩並確認原有條件。';
+ const volumeDetail=(finite(day)?day===0?'今天量與昨天相同。':`今天量比昨天${day>0?'多':'少'}${Math.abs(day).toFixed(2)}%。`:'昨天成交量不足，無法比較。')+(finite(ratio)?`約為前5天平均的${ratio.toFixed(2)}倍，平均不含今天。`:'前5天均量尚未取得。')+`\n${observation}。${interpretation}\n成交量本身無法辨認是誰買賣，也不能直接確認洗盤或出貨。`;
+ return U.freeze({direction,directionDetail,volumeShort:change+'，'+observation+'。',volumeDetail,volumeVerified:true});
+}
+function summary(plan,prior,a){if(!plan)return prior;
  const fields=prior.map(x=>({...x})),bear=plan.bear||{},issues=plan.dataIssues||[],good=plan.state==='CONDITIONAL';
  const failed=/買進理由已失效/.test(plan.reason||'');
- const decision=failed?'🔴 原買進理由已失效，先不買':plan.state==='DATA'?'⚪ 先不下單：'+(issues[0]?.reason||plan.reason):good?'🟢 多方條件已通過，開盤仍要等確認':plan.weak?'🔴 短線偏弱，先不買；等站回轉強線':'🟠 先觀察，現在不追價';
+ const decision=failed?'🔴 原買進理由已失效，先不買':plan.state==='DATA'?'⚪ 先不下單：'+(issues[0]?.reason||plan.reason):good?'🟢 多方條件已通過，開盤仍要等確認':plan.weak?'🔴 短線偏弱，先觀察':'🟠 先觀察，現在不追價';
  const data=issues.length?'資料原因詳見完整研究':`${plan.historyBars}天${plan.officialHistory?'官方':''}日線已核對`;
  fields[0]={title:'現在方向與資料狀態',value:decision+'\n'+(plan.state==='DATA'&&plan.weak?'短線偏弱；':'')+plan.directionLabel+'；'+data+'。'};
- fields[1]={title:'多方｜什麼價格考慮買？',value:plan.watch>0?`轉強觀察線：${price(plan.watch)}，先等站回守穩。\n`+(plan.entryRange?`守穩再轉強，才評估${price(plan.entryRange.low)}～${price(plan.entryRange.high)}；超過不追。${good?'':'目前條件尚未完成，僅作觀察。'}`:'目前沒有合適買價，先不買。'):plan.reason+'；'+(plan.close>0?'官方收盤 '+price(plan.close)+' 已取得，但暫不列買價。':'暫不列買價。')};
+ fields[1]={title:'多方｜什麼價格考慮買？',value:plan.watch>0?`轉強觀察線：${price(plan.watch)}，${plan.close<plan.watch?'先等站回守穩':'先看能否守穩'}。\n`+(plan.entryRange?`守穩再轉強，才評估${price(plan.entryRange.low)}～${price(plan.entryRange.high)}；超過不追。${good?'':'目前條件尚未完成，僅作觀察。'}`:'目前沒有合適買價，先不買。'):plan.reason+'；'+(plan.close>0?'官方收盤 '+price(plan.close)+' 已取得，但暫不列買價。':'暫不列買價。')};
  fields[2]={title:'多單｜跌到哪裡要停損？',value:plan.stop>0?`多單停損試算：${price(plan.stop)}；若買進後跌到，按計畫賣出。\n`+(plan.target>0?`第一減碼觀察：${price(plan.target)}。`:'上方歷史關卡不足，暫不建立新單。'):'未取得可核對的日線，不猜停損價。'};
  fields[3]={title:'空方｜跌破價與回補停損',value:bear.watch>0?`跌破${price(bear.watch)}才看轉弱。\n空單停損試算：${price(bear.stop)}；漲到要買回。\n`+(bear.entryRange&&bear.state==='WATCH'?`回抽不過才觀察${price(bear.entryRange.low)}～${price(bear.entryRange.high)}；券源未確認。`:'目前沒有適合的放空計畫，不追空。'):'這次日線未通過，暫不列放空價位。'};
  fields[4]={title:'開盤後怎麼判斷？',value:plan.state==='DATA'?'這次先不下單；系統需處理的原因：'+(issues[0]?.reason||plan.reason)+'。':plan.entryRange?`高於${price(plan.entryRange.high)}不追；跌到${price(plan.stop)}取消買進計畫。範圍內仍須守穩轉強，不能開盤直接買。`:'先看'+(plan.watch>0?price(plan.watch)+'能否守穩轉強':'價格能否轉強')+'；目前買進空間或風險不合適，先等。'};
+ const context=plan.state!=='DATA'?plainContext(a):null;
+ if(context?.direction)fields[0].value=decision+'\n'+context.direction;
+ if(context&&!plan.entryRange){
+  fields[4].value=context.volumeShort+'\n'+(failed?'原買進理由已失效，先等新結構。':plan.watch>0?plan.close<plan.watch?`先等${price(plan.watch)}站回，再確認能否守穩轉強。`:`先等${price(plan.watch)}守穩轉強，再評估。`:'先等價格回穩，再確認新的觀察價。');
+ }
  return fields;
 }
+function plainDetails(a){const context=plainContext(a);return context?[{title:'現在的股價，用白話怎麼看',value:context.directionDetail||'20天平均價尚未取得，暫不比較。'},{title:'交易量變了，代表什麼',value:context.volumeDetail}]:[];}
 function details(plan){if(!plan)return [];return [{title:'多單停損的依據',value:'多單停損試算 '+price(plan.stop)+'；'+(plan.stopSource||'日線未完成，暫不列停損')+'。這不是已確認支撐，不能保證守住，也不是未買進就要賣出的指令。'},...(plan.bear?[{title:'多單與空單停損怎麼分',value:'多單＝先買後賣，跌到多單停損價要賣出。空單＝先賣後買，漲到空單停損價要買回；兩個方向不能混用。\n'+plan.bear.note},{title:'空方進出場試算',value:plan.bear.entryRange?'放空觀察區間 '+price(plan.bear.entryRange.low)+'～'+price(plan.bear.entryRange.high)+'；漲到 '+price(plan.bear.stop)+' 回補停損；獲利回補觀察 '+price(plan.bear.target)+'。成本包含手續費、證交稅與滑價；借券費、券源與放空限制尚未確認，不能當成可直接放空。':'目前沒有同時通過價格與風險的空方區間。'}]:[]),{title:'下一交易日開盤怎麼判斷',value:(plan.openingRules||[]).map(x=>x.text).join('\n')+'\n'+(plan.note||'日線尚未確認完整，不建立買進計畫。')},{title:'為什麼現在不能下單',value:plan.dataIssues.length?plan.dataIssues.map(x=>x.reason+'：'+(x.detail||'系統會在下次查詢重新比對。')).join('\n'):'目前沒有未完成的基本行情比對。若仍不能買，是價格、趨勢或風險條件沒有通過，不是請使用者補資料。'}];}
-return Object.freeze({VERSION,evaluate,failureReason,issues,atOpen,bearishPlan,summary,details,legal,price});
+return Object.freeze({VERSION,evaluate,failureReason,issues,atOpen,bearishPlan,summary,details,plainContext,plainDetails,legal,price});
 });

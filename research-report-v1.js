@@ -295,6 +295,7 @@ function view(a){
  const details=[
   ...(a.evidenceDiagnostics?.technicalOnlyFallback?[{title:'本次查詢使用的資料',value:'完整分析服務暫不可用，已改讀經來源檢查的完成日線；四策略仍可判讀。月線資格與固定倍數暫不提供，不能當成已通過。原因：'+a.evidenceDiagnostics.technicalOnlyFallback.reason}]:[]),
   ...Opening.details(a.openingPlan),
+  ...Opening.plainDetails(a),
   ...(D?.fields(a)||[]),
   ...(B?.parameterFields(a)||[]),
   ...technicalSummary,
@@ -329,7 +330,7 @@ function view(a){
   {title:'行情資料完整性',value:dataSummary(a)},
   {title:'研究來源',value:`行情 ${a.date||'待核驗'}；${a.validation?.technicalModelAvailable?'使用同一份已核驗日K計算':'日K尚未通過核驗'}；僅盤後研究，訊號尚未驗證績效`}
  ];
- const unified=a.unifiedResearch,compact=directionGuide(a,compactUnifiedGuide(a,unified)),summary=Opening.summary(Opening.evaluate(a),compact.fields);
+ const unified=a.unifiedResearch,compact=directionGuide(a,compactUnifiedGuide(a,unified)),summary=Opening.summary(Opening.evaluate(a),compact.fields,a);
  if(unified&&unified.state==='RESEARCH_ONLY'){
   const stage=stageLabel(a),all=[...(D?.fields(a)||[]),...(B?.parameterFields(a)||[]),...unified.details.map(x=>x.title==='行情階段與依據'?{...x,value:x.value.replace(/^[^；]+/,stage)}:x),{title:'風險觸發與解除',value:unified.risks.map(x=>x.explanation+' 解除：'+x.clearCondition).join('\n')||'未觸發研究警示，仍需確認實際成交與風險。'},...details,{title:'原策略來源',value:'四策略為不同模型來源；原資格、分數、排名未改動。'}],seen=new Set(summary.map(x=>x.title));
   // Keep original strategy levels, formula ownership, technical facts and dual
