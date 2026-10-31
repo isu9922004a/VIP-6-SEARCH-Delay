@@ -1,6 +1,7 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),assert=require('node:assert/strict'),{chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright-core');
 const root=path.resolve(__dirname,'../..'),out=process.argv[2]||'/tmp/v826-query';fs.mkdirSync(out,{recursive:true});
+const currentVersion=require('../../version-v50.js').displayCode;
 const fixture=require('../fixtures/multi-stock-worker-responses-20261022.json'),record=fixture.records.find(x=>x.code==='2330')||fixture.records[0];
 (async()=>{const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+(new URL(req.url,'http://local').pathname==='/'?'/index.html':new URL(req.url,'http://local').pathname));if(!file.startsWith(root+path.sep)){res.writeHead(403);return res.end();}fs.readFile(file,(e,b)=>{res.writeHead(e?404:200,{'Content-Type':file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':file.endsWith('.html')?'text/html':'application/json'});res.end(e?'':b);});});await new Promise(r=>server.listen(0,'127.0.0.1',r));let browser;
  try{browser=await chromium.launch({executablePath:process.env.CHROME_BIN||'/usr/bin/google-chrome',headless:true,args:['--no-sandbox']});const page=await browser.newPage({viewport:{width:428,height:926},isMobile:true,hasTouch:true}),errors=[];page.on('pageerror',e=>errors.push(e.message));
@@ -16,7 +17,7 @@ const fixture=require('../fixtures/multi-stock-worker-responses-20261022.json'),
  await page.evaluate(()=>{document.getElementById('stockInput').dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));analyzeStock();});
  await page.waitForFunction(()=>document.getElementById('loading').textContent.includes('秒'),null,{timeout:3000});assert.equal(requests,1,'one worker request despite repeated Enter/click');
  releaseWorker();await page.waitForFunction(()=>document.getElementById('result').style.display==='block'&&!document.getElementById('searchButton').disabled,null,{timeout:7000});
- assert.equal(await page.evaluate(()=>ShitouReleaseV50.displayCode),'V8.2.9');assert.match(await page.title(),/V8.2.9/);
+ assert.equal(await page.evaluate(()=>ShitouReleaseV50.displayCode),currentVersion);assert.ok((await page.title()).includes(currentVersion));
  // The market snapshot is still stalled: it must not block the primary report.
  assert.equal(requests,1);releaseMarket();await page.waitForFunction(()=>!!ShitouResearchIntegration.getCurrentStock(),null,{timeout:25000});
  // With the market intentionally unavailable, incomplete history must not fabricate a calculator.
@@ -25,5 +26,5 @@ const fixture=require('../fixtures/multi-stock-worker-responses-20261022.json'),
  assert.match(await page.locator('#error').textContent(),/資料暫時不可用/);assert.equal(await page.evaluate(()=>ShitouResearchIntegration.getCurrentStock()),null);
  workerMode='ok';await page.locator('#searchButton').click();await page.waitForFunction(()=>document.getElementById('result').style.display==='block'&&!document.getElementById('searchButton').disabled,null,{timeout:7000});
  await page.locator('#stockInput').fill('');await page.locator('#searchButton').click();await page.waitForFunction(()=>document.getElementById('error').textContent.includes('請輸入'));assert.equal(await page.locator('#searchButton').isEnabled(),true);
- assert.deepEqual(errors,[]);await page.screenshot({path:path.join(out,'query-recovery.png')});const result={status:'PASS',version:'V8.2.9',code:record.code,workerRequests:requests,checks:['stalled market does not block query','immediate loading feedback','duplicate Enter ignored','primary report before enrichment','error is visible and button recovers','retry after failure succeeds','empty query is actionable'],pageErrors:errors};fs.writeFileSync(path.join(out,'results.json'),JSON.stringify(result,null,2));console.log(JSON.stringify(result));
+ assert.deepEqual(errors,[]);await page.screenshot({path:path.join(out,'query-recovery.png')});const result={status:'PASS',version:currentVersion,code:record.code,workerRequests:requests,checks:['stalled market does not block query','immediate loading feedback','duplicate Enter ignored','primary report before enrichment','error is visible and button recovers','retry after failure succeeds','empty query is actionable'],pageErrors:errors};fs.writeFileSync(path.join(out,'results.json'),JSON.stringify(result,null,2));console.log(JSON.stringify(result));
  }finally{if(browser)await browser.close();server.close();}})().catch(e=>{console.error(e);process.exitCode=1;});
