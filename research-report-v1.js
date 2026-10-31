@@ -190,6 +190,7 @@ function glanceAction(a){
  return a.state==='BREAKOUT_LAUNCH'&&c?`觀察守穩 ${shortPrice(c.breakout.price)}${c.nearest?`、再過 ${shortPrice(c.nearest.price)}`:''}；不單憑突破追價。`:actionSummary(a);
 }
 // R10 calculations remain unchanged. This schema drives every stock entrance.
+const PLAIN_GUIDE_NOTE='依標示日期的收盤資料判讀，非即時訊號；試算未驗證績效，不是已確認支撐。觀察價不等於買點；已有持股依自己的原計畫管理。';
 const GUIDE_NOTE='以上為歷史行情的條件式研究示例，非已觸發的買進訊號；持股者需依成本與風險上限另行評估。';
 // One evidence and wording path for all tickers, including saved legacy flags.
 function guideContext(a,u=a.unifiedResearch){
@@ -336,9 +337,9 @@ function view(a){
   // Keep original strategy levels, formula ownership, technical facts and dual
   // checks in the full report. The five-field summary remains a single card.
   const merged=all.filter(x=>{if(seen.has(x.title))return false;seen.add(x.title);return true;});
-  return {presentation:'BEGINNER_GUIDE_8_2_9',guideNote:'盤後試算，未驗證績效；不是已確認支撐。多單跌到停損賣出；空單漲到停損買回。跳空可能以更差價格成交。',schemaVersion:'UNIFIED_REPORT_8_2_9',code:a.code,name:a.name,date:a.date,sourceSnapshotId:a.sourceSnapshotId,stage,summary,details:merged};
+  return {presentation:'BEGINNER_GUIDE_8_2_9',guideNote:PLAIN_GUIDE_NOTE,schemaVersion:'UNIFIED_REPORT_8_2_9',code:a.code,name:a.name,date:a.date,sourceSnapshotId:a.sourceSnapshotId,stage,summary,details:merged};
  }
- return {presentation:'BEGINNER_GUIDE_8_2_9',guideNote:'盤後試算，未驗證績效；不是已確認支撐。多單跌到停損賣出；空單漲到停損買回。跳空可能以更差價格成交。',schemaVersion:'UNIFIED_RESEARCH_REPORT_8_2_9',code:a.code,name:a.name,date:a.date,sourceSnapshotId:a.sourceSnapshotId||null,stage:stageLabel(a),summary,details};
+ return {presentation:'BEGINNER_GUIDE_8_2_9',guideNote:PLAIN_GUIDE_NOTE,schemaVersion:'UNIFIED_RESEARCH_REPORT_8_2_9',code:a.code,name:a.name,date:a.date,sourceSnapshotId:a.sourceSnapshotId||null,stage:stageLabel(a),summary,details};
 }
 function lines(a){
  const v=view(a);
@@ -453,7 +454,7 @@ function guidePages(a,report,{doc,displayCode,watermark,stockMode}){
  }
  function paint(x,plan,index){
   x.fillStyle='#102235';x.fillRect(0,0,W,H);x.fillStyle='#1b3c59';roundRectPath(x,M,36,W-2*M,headerBottom-36,34);x.fill();
-  x.fillStyle='#b7d9ed';x.font='700 42px "Microsoft JhengHei",sans-serif';x.fillText('四策略研究｜新手進出場指南',M+40,100);
+  x.fillStyle='#b7d9ed';x.font='700 42px "Microsoft JhengHei",sans-serif';x.fillText('四策略研究｜現況與後續觀察',M+40,100);
   x.fillStyle='#fff';x.font='850 76px "Microsoft JhengHei",sans-serif';names.forEach((v,i)=>x.fillText(v,M+40,195+i*88));
   x.fillStyle='#b7d9ed';x.font='650 40px "Microsoft JhengHei",sans-serif';x.fillText(`行情基準 ${(a.date||'待核驗').replaceAll('-','/')}｜${Number.isFinite(a.sourceBars?.at(-1)?.close??a.quote?.close)?'收盤 '+shortPrice(a.sourceBars?.at(-1)?.close??a.quote?.close)+' 元':'價格待核對'}`,M+40,headerBottom-35);
   for(const {box,top:y} of plan){const decision=box.section===0,last=box.section===4;

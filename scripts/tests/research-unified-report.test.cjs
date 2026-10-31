@@ -3,7 +3,7 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const C=require('../../four-models-research-v1.js'),R=require('../../research-report-v1.js'),D=require('../../selection-data-v2.js');
 const fixture=require('../fixtures/multi-stock-worker-responses-20261022.json');
 const {report,bars}=require('../research-fixtures.cjs');
-const summaryTitles=['現在方向與資料狀態','多方｜什麼價格考慮買？','多單｜跌到哪裡要停損？','空方｜跌破價與回補停損','開盤後怎麼判斷？'];
+const summaryTitles=['目前股價是什麼狀況？','還沒買，接下來看什麼？','圖上的價位代表什麼？','交易量變了，代表什麼？','下一個交易日觀察什麼？'];
 const document={createElement:()=>({getContext:()=>({font:'',measureText(s){return {width:[...s].length*56};}})})};
 function audits(a,options={}){return R.pages(a,{document,...options}).map(x=>JSON.parse(x.dataset.researchAudit));}
 function squeeze(s){return s.replace(/[\s｜]/g,'');}
