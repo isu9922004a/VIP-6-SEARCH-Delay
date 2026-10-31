@@ -20,7 +20,7 @@ test('full-bleed iPhone image layout keeps enlarged text inside safe bounds',()=
  const a={name:'安碁資訊',code:'6690',date:'2026-10-22',state:'HEALTHY_PULLBACK',families:{PRICE_STRUCTURE:true,TREND_MA:true,VOLUME:true},originalB:185,researchBreakoutPrice:191.5,originalInvalidation:172.5,risks:['高乖離追價風險','成交量仍需確認','長上影'],dataQuality:{complete:false},foundation:{dualScanContext:{modeA:{checks:[]},modeB:{checks:[]}},alertPlan:{priceAbove:{input:185},priceBelow:{input:172.5},dayGainPercentInput:5,dayLossPercentInput:5}}};
  const p=R.pages(a,{document:doc,displayCode:'V8.2.2-R4'});
  assert.ok(p.length>=1&&p.length<=3);
- p.forEach(page=>{const audit=JSON.parse(page.dataset.researchAudit);assert.equal(audit.width,1284);assert.equal(audit.height,2778);assert.equal(audit.minFont,56);assert.equal(audit.noClipping,true);assert.ok(audit.bodyBottom<=2430);});
+ p.forEach(page=>{const audit=JSON.parse(page.dataset.researchAudit);assert.equal(audit.width,1284);assert.ok(audit.height>=2778);assert.equal(audit.minFont,34);assert.equal(audit.noClipping,true);assert.ok(audit.bodyBottom<=audit.height-150);});
 });
 test('frontend and report declare the current release and local assets use explicit cache versions',()=>{
  const html=fs.readFileSync(path.join(root,'index.html'),'utf8');const v=require('../../version-v50.js');

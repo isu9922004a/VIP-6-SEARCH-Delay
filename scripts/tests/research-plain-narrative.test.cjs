@@ -10,7 +10,7 @@ test('weak-price summary uses the actual daily average and preserves a small slo
 });
 test('yesterday volume and prior-five-session mean remain distinct and do not imply a washout',()=>{
  const a=actual(),x=O.plainContext(a);assert.match(x.volumeShort,/昨天少約13%.*收盤仍近低點/);assert.match(x.volumeDetail,/昨天少13.19%.*前5天平均的0.47倍.*不含今天/);assert.match(x.volumeDetail,/不能直接確認洗盤或出貨/);
- const v=R.view(a);assert.match(v.summary[4].value,/253 元.*站回.*守穩轉強/);assert.equal(a.openingPlan.entryRange,null);assert.doesNotMatch(v.summary.map(x=>x.value).join(''),/洗盤完成|主力買進|即將大漲/);
+ const v=R.view(a);assert.match(v.summary[1].value,/253 元[\s\S]*未站回/);assert.equal(a.openingPlan.entryRange,null);assert.doesNotMatch(v.summary.map(x=>x.value).join(''),/洗盤完成|主力買進|即將大漲/);
 });
 test('rising-average pullbacks and strong closes do not inherit the weak-close wording',()=>{
  const a=clone(actual());a.features.ma[20].slope=.3;assert.match(O.plainContext(a).direction,/平均價仍往上，但股價還沒站回/);
@@ -26,5 +26,5 @@ test('unverified history keeps the data-first summary despite a computable trend
  const a=clone(actual());a.unifiedResearch.chart.basisVerified=false;a.openingPlan=O.evaluate(a);const v=R.view(a);assert.equal(a.openingPlan.state,'DATA');assert.match(v.summary[0].value,/先不下單/);assert.doesNotMatch(v.summary[0].value,/最近20天平均/);assert.doesNotMatch(v.summary[4].value,/昨天少約13%/);
 });
 test('presentation leaves the analysis, plan, states, prices and original summary fields untouched',()=>{
- const a=actual(),before=JSON.stringify(a),prior=Array.from({length:5},(_,i)=>({title:String(i),value:'old'})),original=JSON.stringify(prior);O.summary(a.openingPlan,prior,a);R.view(a);assert.equal(JSON.stringify(a),before);assert.equal(JSON.stringify(prior),original);assert.equal(R.view(a).summary.length,5);
+ const a=actual(),before=JSON.stringify(a),prior=Array.from({length:5},(_,i)=>({title:String(i),value:'old'})),original=JSON.stringify(prior);O.summary(a.openingPlan,prior,a);R.view(a);assert.equal(JSON.stringify(a),before);assert.equal(JSON.stringify(prior),original);assert.equal(R.view(a).summary.length,6);
 });

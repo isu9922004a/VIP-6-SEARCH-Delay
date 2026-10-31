@@ -9,7 +9,7 @@ test('recorded 8039 OHLCV has the same ordered nearby references in normal and d
  for(const fallback of [false,true]){
   const a=replay(fallback),before=JSON.stringify(a),g=R.guideContext(a),v=R.view(a);
   assert.deepEqual(g.upper.slice(0,5).map(x=>+x.price.toFixed(2)),[274.12,275,276.5,285.5,288.85]);
-  assert.match(v.summary[1].value,/274.12.*守穩/);assert.doesNotMatch(v.summary[1].value,/331.5|先等價格重新站穩 MA20/);
+  assert.match(v.summary[1].value,/274.12[\s\S]*未站回/);assert.doesNotMatch(v.summary[1].value,/331.5|先等價格重新站穩 MA20/);
   assert.match(a.openingPlan.volumeText,/前5天平均的 0.36 倍/);assert.equal(g.baseline5,49423231.8);
   assert.ok(Math.abs(g.ratioPrevious-.7283391832384756)<1e-12);assert.equal(JSON.stringify(a),before);
   assert.ok(v.details.some(x=>x.title==='關卡順序與來源'));assert.ok(v.details.some(x=>x.title==='研究模式與邊界'));
@@ -47,7 +47,7 @@ test('TWSE and TPEX prices from sub-ten to high-priced shares preserve monotonic
   const scaled=b.map(x=>({...x,open:x.open*scale,high:x.high*scale,low:x.low*scale,close:x.close*scale}));
   const a=C.evaluate(report(scaled,{market}),{flags:{unifiedResearchEnabled:enabled}}),g=R.guideContext(a);
   assert.ok(g.upper.every((x,i)=>x.price>a.sourceBars.at(-1).close&&(!i||x.price>g.upper[i-1].price)));
-  assert.equal(R.view(a).summary.length,5);assert.doesNotMatch(text(a),/NaN|undefined|— 元/);
+  assert.equal(R.view(a).summary.length,6);assert.doesNotMatch(text(a),/NaN|undefined|— 元/);
  }
 });
 test('every supplied market ticker and quote price uses the shared presentation invariants (synthetic history)',()=>{

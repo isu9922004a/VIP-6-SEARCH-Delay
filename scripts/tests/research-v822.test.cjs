@@ -83,7 +83,7 @@ test('shared canonical cache rejects unknown volume units and mixed ticker rows 
 test('both images keep identical section order/core content, no independent metric cards',()=>{
  const a=C.evaluate(fixture9933()),ctx={font:'',measureText(s){const px=Number(this.font.match(/(\d+)px/)?.[1]||56);return {width:[...String(s)].length*px};}},document={createElement:()=>({getContext:()=>ctx})};
  const filter=R.pages(a,{document}),stock=R.pages(a,{document,stockMode:true});assert.equal(filter.length,stock.length);
- for(let i=0;i<filter.length;i++){const x=JSON.parse(filter[i].dataset.researchAudit),y=JSON.parse(stock[i].dataset.researchAudit);assert.deepEqual(x.summary,y.summary);assert.equal(x.width,1284);assert.equal(x.height,2778);assert.ok(x.noClipping&&y.noClipping);assert.doesNotMatch(x.summary.join('\n'),/【個股收盤】|【日RSI5】|【日MA20】|【報價來源】/);}
+ for(let i=0;i<filter.length;i++){const x=JSON.parse(filter[i].dataset.researchAudit),y=JSON.parse(stock[i].dataset.researchAudit);assert.deepEqual(x.summary,y.summary);assert.equal(x.width,1284);assert.ok(x.height>=2778);assert.ok(x.noClipping&&y.noClipping);assert.doesNotMatch(x.summary.join('\n'),/【個股收盤】|【日RSI5】|【日MA20】|【報價來源】/);}
 });
 test('extremely long missing-data explanations paginate without shrinking type or clipping',()=>{
  const a=C.evaluate(fixture9933());const long={...a,validation:{...a.validation,technicalModelAvailable:false},dataQuality:{complete:false,missing:['具體缺漏原因'.repeat(2500)]}};

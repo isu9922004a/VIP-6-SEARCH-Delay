@@ -8,7 +8,7 @@ import time
 import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-FILES = ["research-official-history-v1.js", "index.html", "version-v50.js", "research-beginner-v1.js",
+FILES = ["research-action-guide-v1.js", "research-mobile-v1.css", "research-official-history-v1.js", "index.html", "version-v50.js", "research-beginner-v1.js",
          "research-chart-v1.js", "research-report-v1.js", "unified-analysis-v1.js", "research-entry-direction-v1.js",
          "four-models-research-v1.js", "research-common-v1.js", "research-integration-v1.js",
          "stock-query-runtime-v826.js", "tower-integration.js", "shito-assistant-v47.js",

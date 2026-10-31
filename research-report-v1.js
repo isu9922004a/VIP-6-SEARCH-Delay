@@ -4,6 +4,7 @@ const B=typeof module==='object'&&module.exports?require('./research-beginner-v1
 const D=typeof module==='object'&&module.exports?require('./research-entry-direction-v1.js'):globalThis.ShitouEntryDirection;
 const Z=globalThis.ShitouResearchZhTW||(typeof require==='function'?require('./research-zh-tw-v1.js'):null);
 const Opening=typeof module==='object'&&module.exports?require('./research-opening-plan-v1.js'):globalThis.ShitouOpeningPlan;
+const Action=typeof module==='object'&&module.exports?require('./research-action-guide-v1.js'):globalThis.ShitouResearchActionGuide;
 const chinese=value=>Z?Z.humanize(value):String(value??'—');
 const fmt=v=>typeof v==='number'&&Number.isFinite(v)?v.toFixed(2):'—';
 const STAGES={BREAKOUT_LAUNCH:'突破發動',HEALTHY_PULLBACK:'健康回踩',MOMENTUM_CONTINUATION:'強勢延續',FLOW_CONFIRMATION:'資金確認',OVEREXTENDED:'短線過熱',BREAKOUT_FAILURE:'結構失敗',INSUFFICIENT_DATA:'資料不足',OBSERVATION:'觀察中',DISABLED:'已關閉'};
@@ -330,19 +331,19 @@ function view(a){
   {title:'行情資料完整性',value:dataSummary(a)},
   {title:'研究來源',value:`行情 ${a.date||'待核驗'}；${a.validation?.technicalModelAvailable?'使用同一份已核驗日K計算':'日K尚未通過核驗'}；僅盤後研究，訊號尚未驗證績效`}
  ];
- const unified=a.unifiedResearch,compact=directionGuide(a,compactUnifiedGuide(a,unified)),summary=Opening.summary(Opening.evaluate(a),compact.fields,a);
+ const unified=a.unifiedResearch,compact=directionGuide(a,compactUnifiedGuide(a,unified)),actionGuide=Action.build(a,Opening.evaluate(a),Opening.plainContext(a)),summary=actionGuide.summary;
  if(unified&&unified.state==='RESEARCH_ONLY'){
   const stage=stageLabel(a),all=[...(D?.fields(a)||[]),...(B?.parameterFields(a)||[]),...unified.details.map(x=>x.title==='行情階段與依據'?{...x,value:x.value.replace(/^[^；]+/,stage)}:x),{title:'風險觸發與解除',value:unified.risks.map(x=>x.explanation+' 解除：'+x.clearCondition).join('\n')||'未觸發研究警示，仍需確認實際成交與風險。'},...details,{title:'原策略來源',value:'四策略為不同模型來源；原資格、分數、排名未改動。'}],seen=new Set(summary.map(x=>x.title));
   // Keep original strategy levels, formula ownership, technical facts and dual
   // checks in the full report. The five-field summary remains a single card.
   const merged=all.filter(x=>{if(seen.has(x.title))return false;seen.add(x.title);return true;});
-  return {presentation:'BEGINNER_GUIDE_8_2_9',guideNote:'盤後試算，未驗證績效；不是已確認支撐。多單跌到停損賣出；空單漲到停損買回。跳空可能以更差價格成交。',schemaVersion:'UNIFIED_REPORT_8_2_9',code:a.code,name:a.name,date:a.date,sourceSnapshotId:a.sourceSnapshotId,stage,summary,details:merged};
+  return {presentation:'ACTION_GUIDE_8_2_10',actionGuide,guideNote:actionGuide.guideNote,schemaVersion:'UNIFIED_REPORT_8_2_10',code:a.code,name:a.name,date:a.date,sourceSnapshotId:a.sourceSnapshotId,stage,summary,details:merged};
  }
- return {presentation:'BEGINNER_GUIDE_8_2_9',guideNote:'盤後試算，未驗證績效；不是已確認支撐。多單跌到停損賣出；空單漲到停損買回。跳空可能以更差價格成交。',schemaVersion:'UNIFIED_RESEARCH_REPORT_8_2_9',code:a.code,name:a.name,date:a.date,sourceSnapshotId:a.sourceSnapshotId||null,stage:stageLabel(a),summary,details};
+ return {presentation:'ACTION_GUIDE_8_2_10',actionGuide,guideNote:actionGuide.guideNote,schemaVersion:'UNIFIED_RESEARCH_REPORT_8_2_10',code:a.code,name:a.name,date:a.date,sourceSnapshotId:a.sourceSnapshotId||null,stage:stageLabel(a),summary,details};
 }
 function lines(a){
  const v=view(a);
- return [globalThis.ShitouReleaseV50?.displayRelease||'石頭少爺 V8.2.9｜四策略研究',`${a.name}（${a.code}）｜${a.date||'日期待確認'}`,`【現況】${v.stage}`,...[...v.summary,...v.details].map(f=>`【${f.title}】${f.value}`),'原榜分數、資格與排序保留；本區僅提供研究摘要。'];
+ return [globalThis.ShitouReleaseV50?.displayRelease||'石頭少爺 V8.2.10｜四策略研究',`${a.name}（${a.code}）｜${a.date||'日期待確認'}`,`【現況】${v.stage}`,...[...v.summary,...v.details].map(f=>`【${f.title}】${f.value}`),'原榜分數、資格與排序保留；本區僅提供研究摘要。'];
 }
 function text(a){return lines(a).join('\n');}
 function wrap(ctx,s,width){const out=[];for(const p of String(s).split('\n')){let row='';for(const token of p.match(/[A-Za-z0-9][A-Za-z0-9._/%+\-]*[，。！？；：、）】」』]*|[\s\S][，。！？；：、）】」』]*/g)||[]){
@@ -350,12 +351,12 @@ function wrap(ctx,s,width){const out=[];for(const p of String(s).split('\n')){le
  if(row&&ctx.measureText(row+token).width>width){out.push(row);row=token;}else row+=token;
  }out.push(row);}return out;}
 function roundRectPath(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
-function pages(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouReleaseV50?.displayCode||'V8.2.9',watermark=false,stockMetrics=null,stockMode=!!stockMetrics,detail=false}={}){
+function pages(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouReleaseV50?.displayCode||'V8.2.10',watermark=false,stockMetrics=null,stockMode=!!stockMetrics,detail=false}={}){
  const W=1284,H=2778,M=54,FIELD_FONT=56,FIELD_LINE=77,LABEL_FONT=40,MAX_BOTTOM=2430;
  const ctx=doc.createElement('canvas').getContext('2d');
  if(!ctx)throw Error('Canvas 2D unavailable');
  // Summary first, followed by complete research; no field is silently filtered out.
- const report=view(a);if(!detail)return guidePages(a,report,{doc,displayCode,watermark,stockMode});
+ const report=view(a);if(!detail)return Action.pages(a,report,{doc,displayCode,watermark,stockMode,wrap,roundRectPath});
  const strings=lines(a),fields=[...report.summary.map(f=>({...f,group:'SUMMARY'})),...(detail?report.details.map(f=>({...f,group:'DETAIL'})):[])];
  function measuredWrap(value,font,width){
   if(String(value)==='')return [''];
@@ -432,45 +433,6 @@ function pages(a,{document:doc=globalThis.document,displayCode=globalThis.Shitou
    const c=render();if(watermark&&globalThis.applyAntiTheftWatermarkV3761)globalThis.applyAntiTheftWatermarkV3761(c,'all');
    c.toBlob(b=>{c.width=c.height=1;callback(b);},type);
   }};
- });
-}
-function guidePages(a,report,{doc,displayCode,watermark,stockMode}){
- const W=1284,H=2778,M=54,FONT=56,LINE=76,MAX=2420,ctx=doc.createElement('canvas').getContext('2d');
- ctx.font='850 76px "Microsoft JhengHei",sans-serif';
- const names=wrap(ctx,`${a.name}（${a.code}）`,W-2*M-80),headerBottom=300+(names.length-1)*88;
- ctx.font=`700 ${FONT}px "Microsoft JhengHei",sans-serif`;
- const boxes=report.summary.flatMap((f,section)=>{
-  const body=String(f.value).split('\n').flatMap((line,i)=>{ctx.font=`${section===0&&i===0?'850 66':'700 '+FONT}px "Microsoft JhengHei",sans-serif`;return wrap(ctx,line,W-2*M-80).map(value=>({value,bold:section===0&&i===0}));});
-  const chunks=[];for(let i=0;i<body.length;i+=20){const part=body.slice(i,i+20);chunks.push({title:f.title+(i?'（續）':''),section,body:part,size:102+part.length*LINE});}return chunks;
- });
- const plans=[];let items=[],top=headerBottom+45;
- for(const box of boxes){if(items.length&&top+box.size>MAX){plans.push(items);items=[];top=headerBottom+45;}items.push({box,top});top+=box.size+25;}if(items.length)plans.push(items);
- function icon(x,section,cx,cy){
-  x.save();x.strokeStyle=['#e5c77a','#6ac7b8','#e5bc79','#9cccf2'][section]||'#9cccf2';x.lineWidth=4;
-  if(section===2){x.beginPath();x.moveTo(cx,cy-18);x.lineTo(cx+17,cy-9);x.lineTo(cx+15,cy+10);x.lineTo(cx,cy+22);x.lineTo(cx-15,cy+10);x.lineTo(cx-17,cy-9);x.closePath();x.stroke();}
-  else {x.beginPath();x.arc(cx,cy,18,0,Math.PI*2);x.stroke();if(section===3){x.beginPath();x.arc(cx,cy,10,0,Math.PI*2);x.stroke();x.beginPath();x.arc(cx,cy,3,0,Math.PI*2);x.stroke();}else if(section===1){x.beginPath();x.moveTo(cx-10,cy);x.lineTo(cx-2,cy+8);x.lineTo(cx+11,cy-9);x.stroke();}else{x.beginPath();x.moveTo(cx,cy-9);x.lineTo(cx,cy+4);x.stroke();}}
-  x.restore();
- }
- function paint(x,plan,index){
-  x.fillStyle='#102235';x.fillRect(0,0,W,H);x.fillStyle='#1b3c59';roundRectPath(x,M,36,W-2*M,headerBottom-36,34);x.fill();
-  x.fillStyle='#b7d9ed';x.font='700 42px "Microsoft JhengHei",sans-serif';x.fillText('四策略研究｜新手進出場指南',M+40,100);
-  x.fillStyle='#fff';x.font='850 76px "Microsoft JhengHei",sans-serif';names.forEach((v,i)=>x.fillText(v,M+40,195+i*88));
-  x.fillStyle='#b7d9ed';x.font='650 40px "Microsoft JhengHei",sans-serif';x.fillText(`行情基準 ${(a.date||'待核驗').replaceAll('-','/')}｜${Number.isFinite(a.sourceBars?.at(-1)?.close??a.quote?.close)?'收盤 '+shortPrice(a.sourceBars?.at(-1)?.close??a.quote?.close)+' 元':'價格待核對'}`,M+40,headerBottom-35);
-  for(const {box,top:y} of plan){const decision=box.section===0,last=box.section===4;
-   if(decision||last){x.fillStyle=decision?'#2a4c63':'#1b364c';roundRectPath(x,M,y,W-2*M,box.size,28);x.fill();}
-   x.font=`800 ${decision||last?43:54}px "Microsoft JhengHei",sans-serif`;x.fillStyle=decision||last?'#b7d9ed':'#f2f6fa';
-   if(!decision&&!last)icon(x,box.section,M+22,y+41);
-   x.fillText(box.title,M+40+(decision||last?0:28),y+58);
-   x.fillStyle='#f4f8ff';box.body.forEach((line,i)=>{x.font=`${line.bold?'850 66':'700 '+FONT}px "Microsoft JhengHei",sans-serif`;if(/^[①②]/.test(line.value)){const cy=y+115+i*LINE;x.strokeStyle='#c3d5e2';x.lineWidth=2;x.beginPath();x.arc(M+62,cy,21,0,Math.PI*2);x.stroke();x.save();x.font='650 34px sans-serif';x.fillText(line.value[0]==='①'?'1':'2',M+52,cy+12);x.restore();x.fillText(line.value.slice(1).trimStart(),M+96,y+135+i*LINE);}else x.fillText(line.value,M+40,y+135+i*LINE);});
-   if(!decision&&!last){x.strokeStyle='#385b70';x.lineWidth=2;x.beginPath();x.moveTo(M+10,y+box.size+12);x.lineTo(W-M-10,y+box.size+12);x.stroke();}
-  }
-  x.fillStyle='#adbfce';x.font='650 37px "Microsoft JhengHei",sans-serif';
-  const notes=wrap(x,report.guideNote,W-2*M);notes.forEach((v,i)=>x.fillText(v,M,2495+i*48));
-  x.font='650 30px "Microsoft JhengHei",sans-serif';x.fillText(`${displayCode}｜${index+1}/${plans.length}`,M,2740);
- }
- return plans.map((plan,index)=>{const bodyBottom=Math.max(...plan.map(x=>x.top+x.box.size)),dataset={researchAudit:JSON.stringify({code:a.code,date:a.date,sourceSnapshotId:a.sourceSnapshotId,originalB:a.originalB,alertPlan:a.foundation?.alertPlan,width:W,height:H,index:index+1,total:plans.length,minFont:FONT,bodyBottom,noClipping:bodyBottom<=MAX,mode:stockMode?'SINGLE_STOCK':'FILTER_RESEARCH',schemaVersion:report.schemaVersion,stage:report.stage,fields:plan.map(x=>({title:x.box.title,value:x.box.body.map(l=>l.value).join('\n')})),section:'SUMMARY',summary:lines(a)}),release:a.version,fullBleed:'true'};
-  const render=({top=0,height=H,scale=1}={})=>{const canvas=doc.createElement('canvas');canvas.width=Math.floor(W*scale);canvas.height=Math.floor(height*scale);const x=canvas.getContext('2d');x.setTransform(scale,0,0,scale,0,-top*scale);paint(x,plan,index);Object.assign(canvas.dataset,dataset);return canvas;};
-  return {width:W,height:H,dataset,renderExportRegion:render,toBlob(callback,type='image/png'){const canvas=render();if(watermark&&globalThis.applyAntiTheftWatermarkV3761)globalThis.applyAntiTheftWatermarkV3761(canvas,'all');canvas.toBlob(blob=>{canvas.width=canvas.height=1;callback(blob);},type);}};
  });
 }
 function candlePage(a,options={}){const chart=typeof module==='object'&&module.exports?require('./research-chart-v1.js'):globalThis.ShitouResearchChart;return chart?.page(a,options)||null;}

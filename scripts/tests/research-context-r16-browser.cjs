@@ -46,8 +46,8 @@ const normalize=s=>String(s).replace(/[\s｜]/g,'');
     }
     const dom=[...document.querySelectorAll('#researchStock .research-card-field')].map(e=>({title:e.querySelector('.research-card-label').textContent,value:e.querySelector('.research-card-value').textContent}));
     const summary=R.pages(a,{stockMode:true}),full=R.pages(a,{stockMode:true,detail:true}),chart=R.candlePage(a),pages=[...summary,...full,...(chart?[chart]:[])],printed=[],overflow=[];
-    const proto=CanvasRenderingContext2D.prototype,old=proto.fillText;proto.fillText=function(text,x,y,...rest){const w=this.measureText(String(text)).width;if(x<0||x+w>1284.5||y<0||y>2778)overflow.push({text:String(text),x,y,width:w});printed.push(String(text));return old.call(this,text,x,y,...rest);};
-    try{for(const p of pages){const c=p.renderExportRegion();c.width=c.height=1;}}finally{proto.fillText=old;}
+    let activeHeight=2778;const proto=CanvasRenderingContext2D.prototype,old=proto.fillText;proto.fillText=function(text,x,y,...rest){const w=this.measureText(String(text)).width;if(x<0||x+w>1284.5||y<0||y>activeHeight)overflow.push({text:String(text),x,y,width:w});printed.push(String(text));return old.call(this,text,x,y,...rest);};
+    try{for(const p of pages){activeHeight=p.height;const c=p.renderExportRegion();c.width=c.height=1;}}finally{proto.fillText=old;}
     return {guideEvidence:R.guideContext(a),code:a.code,date:a.date,state:a.state,priceBasis:a.unifiedResearch?.chart?.basisVerified,calendarVerified:a.unifiedResearch?.chart?.calendarVerified,entry:a.unifiedResearch?.entryDecision,entries,dom,expected:[...v.summary,...v.details],summaryExpected:v.summary,summary:summary.map(x=>JSON.parse(x.dataset.researchAudit)),full:full.map(x=>JSON.parse(x.dataset.researchAudit)),chart:chart?JSON.parse(chart.dataset.researchAudit):null,overflow,unchanged:before===JSON.stringify(a),summaryCount:summary.length};
    });
    if(result.guideEvidence){const g=result.guideEvidence;assert.ok(g.upper.every((x,i)=>!i||x.price>g.upper[i-1].price));if(process.env.RESEARCH_FALLBACK==='1')assert.equal(g.active,false);}
