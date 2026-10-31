@@ -62,7 +62,7 @@ function researchCard(a,number,prefix='研究',expanded=false){
  const body=el('div');body.className='research-card-body';
  details.dataset.reportSchema=report.schemaVersion;
  const guide=el('section');guide.className='research-entry-guide';
- const intro=el('div');intro.className='research-guide-header';intro.append(el('span','四策略研究｜現況與後續觀察'),el('strong',`${a.name}（${a.code}）`),el('span',`行情基準 ${(a.date||'待核驗').replaceAll('-','/')}｜${Number.isFinite(a.sourceBars?.at(-1)?.close)?'收盤 '+R.fmt(a.sourceBars.at(-1).close)+' 元':'價格待核對'}`));guide.append(intro);
+ const intro=el('div');intro.className='research-guide-header';intro.append(el('span','四策略研究｜新手進出場指南'),el('strong',`${a.name}（${a.code}）`),el('span',`行情基準 ${(a.date||'待核驗').replaceAll('-','/')}｜${Number.isFinite(a.sourceBars?.at(-1)?.close)?'收盤 '+R.fmt(a.sourceBars.at(-1).close)+' 元':'價格待核對'}`));guide.append(intro);
  function field(item,guideIndex){
   const row=el('div');row.className='research-card-field'+(guideIndex!==undefined?' research-guide-field research-guide-section-'+guideIndex:'');
   const key=el('span',item.title);key.className='research-card-label';
@@ -72,12 +72,12 @@ function researchCard(a,number,prefix='研究',expanded=false){
  }
  report.summary.forEach((item,i)=>guide.append(field(item,i)));
  const note=el('p',report.guideNote);note.className='research-guide-note';guide.append(note);body.append(guide);
- const evidence=el('details');evidence.className='research-guide-evidence';evidence.append(el('summary','查看完整研究、空方情境與資料驗證'));
+ const evidence=el('details');evidence.className='research-guide-evidence';evidence.append(el('summary','查看完整研究與資料驗證'));
  for(const item of report.details)evidence.append(field(item));body.append(evidence);
  if(a.openingPlan){
   const calc=el('details');calc.className='research-guide-evidence research-opening-calculator';calc.append(el('summary','計畫交易日開盤後，輸入實際開盤價試算'));
   const label=el('label','計畫交易日實際開盤價（元）'),input=el('input');input.type='number';input.min='0.01';input.step='0.01';input.inputMode='decimal';input.setAttribute('aria-label','計畫交易日實際開盤價');input.style.cssText='max-width:100%;box-sizing:border-box;padding:10px;font-size:18px;margin:10px 0';
-  label.append(input);const output=el('p','輸入實際開盤價，只能核對價格位置，不會自動成立買進計畫。本頁沒有即時5分鐘行情。');output.setAttribute('role','status');input.addEventListener('input',()=>{output.textContent=root.ShitouOpeningPlan.atOpen(a.openingPlan,input.value).text;});calc.append(label,output);body.append(calc);
+  label.append(input);const output=el('p','開盤前先看計畫；開盤後再輸入券商顯示的實際價格。本頁沒有即時5分鐘行情。');output.setAttribute('role','status');input.addEventListener('input',()=>{output.textContent=root.ShitouOpeningPlan.atOpen(a.openingPlan,input.value).text;});calc.append(label,output);body.append(calc);
  }
  const actions=el('div');actions.className='research-card-actions';
  const button=el('button','查看摘要圖片');button.type='button';button.onclick=()=>preview([a]);actions.append(button);
@@ -211,7 +211,7 @@ async function preview(analyses,{stockMode=false,detail=false,chartOnly=false}={
  const pages=analyses.flatMap(a=>{const metrics=stockMode&&latestStockQuery?.analysis===a?latestStockQuery.metrics:null;
  if(chartOnly){const c=R.candlePage(a,{displayCode:root.ShitouReleaseV50.displayCode});return c?[c]:[];}
  return R.pages(a,{displayCode:root.ShitouReleaseV50.displayCode,stockMetrics:metrics,stockMode,detail});});
- return root.strongStockShowPagesV47(pages,{title:chartOnly?'四策略研究｜結構證據圖':'四策略研究｜現況與後續觀察',prefix:root.ShitouReleaseV50.displayCode+(stockMode?'_個股研究':'_研究')+(chartOnly?'_結構圖':''),date:analyses[0].date,kind:'v8-research',note:stockMode?'個股研究不列入濾網排名｜非買進訊號':'精簡摘要僅供研究觀察；原榜資格與排序保留。'});}
+ return root.strongStockShowPagesV47(pages,{title:chartOnly?'四策略研究｜結構證據圖':'四策略研究｜新手進出場指南',prefix:root.ShitouReleaseV50.displayCode+(stockMode?'_個股研究':'_研究')+(chartOnly?'_結構圖':''),date:analyses[0].date,kind:'v8-research',note:stockMode?'個股研究不列入濾網排名｜非買進訊號':'精簡摘要僅供研究觀察；原榜資格與排序保留。'});}
 function mountStock(input){const host=by('result');if(!host)return;by('researchStock')?.remove();const a=forReport(input);if(!Object.values(flags).some((v,i)=>v&&Object.keys(flags)[i].endsWith('Enabled')))return;const box=el('section');box.id='researchStock';box.className='research-inline';const card=researchCard(a,1,'個股',true);card.querySelector('.research-card-actions>button').onclick=()=>preview([a],{stockMode:true});box.append(el('h3','四策略研究摘要'),card);host.append(box);}
 function setFlags(next){flags=U.flags({...flags,...next});cache.clear();seen.clear();records.clear();revision++;try{localStorage.setItem('shitou-research-flags-v1',JSON.stringify(flags));}catch(_){}const snapshot=root.ShitouSelectionDataV2?.getSnapshot?.();if(snapshot){const results=[...sourceRecords].map(([code,data])=>({ok:true,code,data}));capture({snapshot,items:results.map(x=>({code:x.code})),results});}if(typeof lastReportData!=='undefined'&&lastReportData){captureStockQuery(lastReportData);mountStock(lastReportData);}schedule();return {...flags};}
 function render(){const panel=by('researchPanel');if(!panel)return;
