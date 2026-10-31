@@ -1,31 +1,72 @@
-# 石頭少爺 Agent V50｜寶塔線白話雙報告 SHADOW.5
+# 石頭少爺 V8.2.9｜台股選股與研究
 
-**目前版號：`R5.3.2.8.1-TOWER-SHADOW.5`**（2026-10-11）
+原生 JavaScript 靜態網站，提供選股掃描、個股研究、寶塔線及文字／圖片報告。版本資訊以 `version-v50.js` 為準，最近一版功能說明見 [RELEASE_V8.2.9.md](docs/RELEASE_V8.2.9.md)。
 
-此 ZIP 以使用者本次提供的 `VIP-BOWTOWER-4-SEARCH-main.zip` 為唯一母版，實際只修改 `tower-beginner-guide.js`、`tower-stock-report.js`、`version-v50.js`、`index.html`，並新增檢查與說明檔。其他既有策略、行情讀取及評分核心保留原始位元內容；本版不宣稱改進隔日勝率，也沒有修改正式網站或外部 Worker。
+## 專案結構
 
-## 本次修改
+| 路徑 | 用途 |
+| --- | --- |
+| `index.html`、根目錄 `.js`／`.css` | 前端介面、策略、研究分析與報告匯出 |
+| `stock-worker.mjs` | 個股資料 Cloudflare Worker |
+| `market-worker.mjs` | 市場資料 Cloudflare Worker |
+| `worker-data-contract-v1.js` | 前端與 Worker 共用資料契約 |
+| `data/market/` | 市場快照、實際交易日曆與交易排除資料 |
+| `data/research/` | 個股歷史日線、逐日來源與發布清單 |
+| `config/` | 已核實的市場休市設定 |
+| `scripts/` | 資料更新、契約同步、驗證及測試工具 |
+| `.github/workflows/` | GitHub Actions 更新與驗證流程 |
+| `evidence/` | 測試及維護工具所需的原始回應、來源資訊與研究稽核結果 |
 
-1. **一致的風險語言**：個股文字報告與獨立寶塔圖片共用 `ShitouTowerBeginner.guide()`；趨勢強度與當下追價風險分別顯示。RSI5 >=80、日20MA正乖離 >=8%、近5日漲 >=15%，以及距第一道壓力過近，僅作「新手觀察提醒」，不修改原模型 HEAT 硬性風控。
-2. **價位來源透明**：第一道上方候選壓力從今天之前最多 60 根完整日K的單日高點中，選出高於當日收盤、距離最近者；第二道從同一視窗辨識更高的局部高點（左右各2根已完成日K高點均較低），沒有則明說資料不足；歷史低點候選從今日以前最多20根日K中低於現價的低點求最近者。這些都只是工程定義的「候選關卡」，不是反覆驗證的強支撐／強壓力，也不是買賣價。
-3. **T3 分層**：當日翻色前3根與下一日最近3根分開列；下一日收盤高於T3上緣只是寶塔條件，不能等同突破第一壓力或第二道局部高點。第一、第二壓力都另需收盤驗證；當日低點跌破是早期警戒，不等於正式T3翻黑；T3下緣也不自動視為個人停損。
-4. **白話三情境**：A續強、B整理、C轉弱均列觸發、觀察及限制；空手與已持有分開提示。文字報告另外列出每一價位的日期／來源以及「為什麼不能直接追」。不杜撰不存在的高點與支撐。
-5. **原比例保留**：獨立寶塔圖片 1284×2778，T3/T5 圖形、TXT、PNG及原浮水印操作入口不變。一般個股專業圖／三盤報告未修改。
+主升段、盤前／當沖、強勢股、寶塔、餐廳與結構反轉功能由既有前端及各自模組提供。資料完整性、日期、成交量單位及風險閘門由程式檢查；研究分數不代表獲利機率。
 
-## 部署前務必注意：本次使用者提供的 ZIP 並不包含完整部署資料
+## 本機預覽與測試
 
-上傳的母版壓縮檔只有 63 個 ZIP 項目，根目錄下**沒有** `.github/`、`scripts/`、`data/` 等資料夾。故本修正版也**不是**可獨立重建全部定時行情更新流程的全站備份。
+從專案根目錄啟動靜態 HTTP 服務，例如已安裝 Python 時：
 
-- 請在既有 GitHub Repository 保留 `.github/`、`scripts/`、`data/`、Worker 設定與原有機密金鑰，**不要刪掉整個 Repo 後只上傳本 ZIP**。
-- 先備份現有 Repo，再以相同相對路徑合併本 ZIP 中的網站檔案。`index.html` 應位於網站根目錄；不要把 `VIP-BOWTOWER-4-SEARCH-main/` 額外保留成多一層網站目錄。
-- 合併後打開正式網頁，確認底部顯示 `.5`，進入「寶塔線個股分析」，使用已完成日K產出文字及圖片，核對日期與價格。若使用者下載快取或 GitHub Pages 舊檔，請先確定網頁版號更新。
-- 要測試定時掃描和完整行情，還需使用 Repository 原先具有的資料及工作流程。這個 ZIP 沒有隨附那些檔案，因此無法對其實際部署結果作保證。
+```sh
+python -m http.server 8765 --bind 127.0.0.1
+```
 
-## 本次本地驗證
+開啟 `http://127.0.0.1:8765/`。資料服務仍使用程式中既有的網址與設定。
 
-- `node tests/test-tower-report-shadow5.cjs`：14 項合成單元／文字報告一致性情境通過。
-- Playwright／Chromium 以合成行情跑獨立寶塔圖片：成功建立 1284×2778 PNG，12 個區塊無重疊、沒有因文字超出安全區而中止。測試頁面：`tests/preview-shadow5.html`；它是合成資料，不是廣穎真實行情。
-- `RELEASE-SHADOW5-MANIFEST.json` 記錄本次 ZIP 內實際檔案 SHA256。核心位元比對與修改清單詳見 `SHADOW5-CHANGELOG.md`。
-- **未驗證**：真實股票所有情境、正式 GitHub Pages／Worker、iPhone 實機 Safari、即時行情正確性、交易績效。現有舊版 `changes.patch`／`delivery-sha256.json`／`integrity-check.json`／`modified-files.json` 是更早期研究包的歷史證據，**不代表 SHADOW.5 的校驗結果**；請以本次新檔案為準。
+使用 Node.js 24 安裝鎖定依賴並執行回歸：
 
-沒有新增任何隱藏保證：寶塔紅線不是買進建議，風險評語不是獲利機率。
+```sh
+npm ci
+npm test
+```
+
+其他檢查指令：
+
+```sh
+npm run test:contract
+npm run research:validate
+```
+
+`npm test` 執行離線回歸；瀏覽器測試需另外具備 Chromium 環境，不能以離線測試結果取代正式網站驗證。`data/research/` 的 SHA256 檢查使用原始檔案位元，下載或工具改寫換行可能造成不一致。
+
+## 資料與自動更新
+
+有效的 Actions 設定位於 `.github/workflows/`。市場更新流程先驗證上市、上櫃日期及完整性，取得有效資料後才發布。個股歷史更新與全市場研究稽核另有工作流程。
+
+手動執行資料工具會向外部服務取得資料並寫入工作目錄，例如：
+
+```sh
+node scripts/update-market-snapshot.mjs
+node scripts/verify-market-snapshot.mjs
+node scripts/update-research-calendar.mjs
+node scripts/build-official-research-history.mjs
+node scripts/audit-official-research-v829.cjs
+```
+
+`data/`、測試 fixtures 及仍被工具讀取的 `evidence/` 都是維護流程的一部分。歷史截圖、巢狀交付包及過期版本文件已清理；舊內容可從 Git 歷史取得。
+
+## 部署與回復
+
+前端以整個專案根目錄發布，讓 `index.html`、相關腳本、樣式及 `data/` 保持相對路徑。GitHub Pages 的發布來源須依該儲存庫的實際設定確認。
+
+`stock-worker.mjs` 與 `market-worker.mjs` 是兩個獨立 Cloudflare Worker，沿用各自服務的環境變數、bindings、路由及權限設定。只更新 GitHub 前端檔案不會自動部署這兩個 Worker。
+
+共用資料契約修改後，執行 `npm run build:worker-contract` 同步 Worker 內嵌契約，再跑測試。部署後核對實際網站的 `version-v50.js`、資料日期、個股查詢與報告匯出；Actions 執行成功與前端發布成功需分別確認。
+
+需要回復時，使用 Git 歷史還原對應檔案，或以 `git revert <commit>` 建立回復提交。資料更新與 Worker 部署應分別核對，避免用舊行情覆蓋後續已發布的資料。
