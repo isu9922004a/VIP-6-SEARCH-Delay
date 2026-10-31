@@ -24,6 +24,8 @@ jobs:
           restore-keys: official-research-days-v1-
       - name: Collect actual exchange sessions and audit every current stock
         run: node scripts/build-official-research-history.mjs
+      - name: Recompute every stock through the common research models
+        run: node scripts/audit-official-research-v829.cjs
       - uses: actions/cache/save@v4
         if: always()
         with:
@@ -33,7 +35,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- data/research evidence/official-research-universe-*.json
+          git add -- data/research evidence/official-research-universe-*.json evidence/research-v829-all-stocks.*
           git commit -m 'data: official daily research archive and per-stock universe audit'
           git push origin HEAD:${{ github.ref_name }}
       - uses: actions/upload-artifact@v4

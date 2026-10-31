@@ -1,7 +1,7 @@
 /* Shared explanations only: no recalculation of signals, eligibility or ranking. */
 (function(root,factory){const api=factory(typeof module==='object'&&module.exports?require('./research-common-v1.js'):root.ShitouResearchCommon);if(typeof module==='object'&&module.exports)module.exports=api;else root.ShitouResearchBeginner=api;})(globalThis,function(U){
 'use strict';
-const VERSION='BEGINNER_EXPLANATIONS_8_2_8',finite=Number.isFinite;
+const VERSION='BEGINNER_EXPLANATIONS_8_2_9',finite=Number.isFinite;
 const number=x=>finite(x)?String(+x.toFixed(2)):'尚無資料',money=x=>finite(x)?number(x)+'元':'尚未確認';
 const percent=x=>finite(x)?String(+(x*100).toFixed(4))+'%':'尚未設定';
 const stages={NOT_FORMED:'還找不到清楚的「漲一段、退一些、再上攻」走勢',AB_CONFIRMED:'已看到第一段上漲，還要等回落後止跌',C_CANDIDATE:'可能正在止跌，還沒有足夠後續日K確認',C_CONFIRMED:'回落低點已確認，接下來看能否越過前高',WAIT_NEW_C:'前次回落低點已被跌破，先等新的止跌位置',BREAKOUT_CONFIRMED:'收盤已越過前高，仍要檢查成交量與追價風險',RETEST_PENDING:'越過前高後正在回來測試，還要等守穩',RETEST_CONFIRMED:'回來測試後已再轉強，仍須檢查買進風險',RETEST_FAILED:'回來測試時沒有守住，原買進想法要重查',PROJECTION_TOUCHED:'曾碰到試算價，這不代表真的成交或賺到',INVALIDATED:'已跌到起漲低點，原本的上漲走勢假設不成立',AMBIGUOUS:'同一天碰到風險價與試算價，日K看不出先後'};

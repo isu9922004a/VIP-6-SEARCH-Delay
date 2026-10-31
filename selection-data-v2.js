@@ -140,7 +140,7 @@ function validate(report,code,options={}){
  if(!(q.volume>0&&last.volume>0)||Math.abs(q.volume-last.volume)/q.volume>.2)fail('市場與日K成交量差異超過20% '+code);
  const rawBars=structuredClone(b),sourceVolume=last.volume,responseHistoryFingerprint=C.fingerprint(rawBars),originalHistoryFingerprint=report.dataContract?.originalHistoryFingerprint||responseHistoryFingerprint;
  // Original response and source volume are preserved BEFORE snapshot reconciliation.
- if(q.volumeScopeVerified===true&&q.volumeScope==='DAILY_OHLCV_EQUIVALENT')last.volume=q.volume;
+ if(q.volumeScopeVerified===true&&q.volumeScope==='DAILY_OHLCV_EQUIVALENT'&&!globalThis.ShitouOfficialResearchHistory?.proof(report))last.volume=q.volume;
  return freeze({bars:b,rawBars,originalBars:structuredClone(report.originalDailySeries||rawBars),date:c.date,q:structuredClone(q),key:c.key,fingerprint:fingerprint(b),originalHistoryFingerprint,responseHistoryFingerprint,normalizedHistoryFingerprint:C.fingerprint(b),historyIdentity:[snapshot.identity,String(code),report.dataContract?.sourceVersion||report.version||'LEGACY',originalHistoryFingerprint,responseHistoryFingerprint].join('|'),dataContract:structuredClone(report.dataContract||null),sourceVolume,sourceMeta:structuredClone(report.dailySeriesMeta||{}),workerDataAudit:structuredClone(report.workerDataAudit||null),priceAdjustment:structuredClone(report.priceAdjustment||{verified:false,basis:'UNKNOWN'}),expectedTradingDates:structuredClone(report.expectedTradingDates),corporateActions:structuredClone(report.corporateActions)});
 }
 function historyMismatch(a,b){
@@ -160,7 +160,8 @@ function verifiedRevision(old,p){
  return p.rawBars.every(b=>prior.has(b.date)?C.fingerprint([b])===C.fingerprint([prior.get(b.date)]):evidence.has(b.date))&&old.rawBars.every(b=>p.rawBars.some(x=>x.date===b.date));
 }
 function remember(report,code){const p=validate(report,code),old=cache.get(p.key);
- if(old&&!old.error&&(old.originalHistoryFingerprint!==p.originalHistoryFingerprint||old.responseHistoryFingerprint!==p.responseHistoryFingerprint||old.fingerprint!==p.fingerprint)&&!verifiedRevision(old,p))fail('同一快照收到不同歷史序列 '+code+'｜'+historyMismatch(old.rawBars,p.rawBars)+'｜舊日K指紋 '+old.originalHistoryFingerprint+'／新日K指紋 '+p.originalHistoryFingerprint+'｜來源 '+String(old.sourceMeta?.source||'未提供').slice(0,90)+'／'+String(p.sourceMeta?.source||'未提供').slice(0,90)+'；請由Worker固定歷史版本，已隔離新序列，未覆蓋已驗證快取');
+ const officialUpgrade=!!globalThis.ShitouOfficialResearchHistory?.proof(report)&&old?.sourceMeta?.source!=='Verified official exchange daily archive';
+ if(old&&!old.error&&!officialUpgrade&&(old.originalHistoryFingerprint!==p.originalHistoryFingerprint||old.responseHistoryFingerprint!==p.responseHistoryFingerprint||old.fingerprint!==p.fingerprint)&&!verifiedRevision(old,p))fail('同一快照收到不同歷史序列 '+code+'｜'+historyMismatch(old.rawBars,p.rawBars)+'｜舊日K指紋 '+old.originalHistoryFingerprint+'／新日K指紋 '+p.originalHistoryFingerprint+'｜來源 '+String(old.sourceMeta?.source||'未提供').slice(0,90)+'／'+String(p.sourceMeta?.source||'未提供').slice(0,90)+'；請由Worker固定歷史版本，已隔離新序列，未覆蓋已驗證快取');
  cache.set(p.key,p);return p;
 }
 async function ensure(items){
@@ -169,6 +170,14 @@ async function ensure(items){
  const acquisitionErrors=new Map();
  const assertCurrent=()=>{if(snapshot?.identity!==requestedIdentity)fail('取得日K期間市場快照已改變，請重新查詢');};
  const need=[];for(const i of items){const c=context(i.code);if((!cache.has(c.key)||cache.get(c.key)?.error)&&!pending.has(c.key))need.push({...i,q:c.q});}
+ if(need.length&&globalThis.ShitouOfficialResearchHistory){
+  const authoritative=new Set();
+  for(let start=0;start<need.length;start+=8)await Promise.all(need.slice(start,start+8).map(async item=>{
+   try{const official=await globalThis.ShitouOfficialResearchHistory.load(item.code,{date:snapshot.date,market:item.q.market});assertCurrent();authoritative.add(String(item.code));try{remember(official,item.code);}catch(e){const key=context(item.code).key;cache.set(key,freeze({error:String(e.message||e),failureCode:classifyFailure(e),officialSource:true}));}}
+   catch(e){if(snapshot?.identity!==requestedIdentity)throw e;}
+  }));
+  for(let i=need.length-1;i>=0;i--)if(authoritative.has(String(need[i].code)))need.splice(i,1);
+ }
  if(need.length){
   if(!fetcher)fail('共用DAILY_ONLY取得函式未載入');
   for(let start=0;start<need.length;start+=8){const part=need.slice(start,start+8),keys=part.map(i=>context(i.code).key);
@@ -186,25 +195,26 @@ function apply(report,code){
  if(report.completed===false||report.isComplete===false||E.date(report.closeDate||report.dataDate)!==p.date)fail('原報告完成狀態／日期不符 '+code);
  if(!(num(report.close)>0)||Math.abs(Number(report.close)-p.q.close)>Math.max(.02,p.q.close*.0001))fail('原報告收盤價不同 '+code);
  if(report.dailySeries?.length||report.canonicalBars?.length)report=normalizeWorkerReport(report,code);
- let referenceHistoryAudit=null;
+ const officialReference=globalThis.ShitouOfficialResearchHistory?.get(code,p.date),officialProof=officialReference&&globalThis.ShitouOfficialResearchHistory.proof(officialReference);
+ let referenceHistoryAudit=null,referenceWarning=null;
  if(report.dailySeries?.length||report.canonicalBars?.length){
-  validate(report,code,{referenceOnly:true,positiveVolumeSince:p.bars[0].date});
+  try{validate(report,code,{referenceOnly:true,positiveVolumeSince:p.bars[0].date});}catch(e){if(!officialProof)throw e;referenceWarning=String(e.message||e);}
   const referenceRows=report.dailySeries||report.canonicalBars;
   referenceHistoryAudit=receiptAudit||{researchStart:p.bars[0].date,researchEnd:p.date,researchBars:p.bars.length,referenceBars:referenceRows.length,zeroVolumeOutsideResearch:referenceRows.filter(x=>Number(x.volume)===0&&x.date<p.bars[0].date).map(x=>x.date),policy:'完整歷史只作參考；研究區間每根仍要求正成交量，原始資料未刪改'};
  }
  const proofKey=c.key+'|'+p.normalizedHistoryFingerprint;
- const freshProof=Evidence.officialPriceBasis(p.bars,report,c.q);
+ const freshProof=Evidence.officialPriceBasis(p.bars,officialProof?officialReference:report,c.q);
  if(freshProof.status==='VERIFIED'||freshProof.status==='CONFLICT'||!priceProofs.has(proofKey))priceProofs.set(proofKey,freshProof);
  const proof=priceProofs.get(proofKey)||freshProof,cal=researchCalendar.status==='VERIFIED'?researchCalendar.value:null,gaps=Evidence.inspectGaps(p.bars,cal);
  const priceAdjustment=proof.status==='VERIFIED'?proof.value:p.priceAdjustment;
  const inputErrors=[...(report.researchInputErrors||[])];
  if(proof.status==='CONFLICT')inputErrors.push('官方價格交叉核對不一致：'+proof.dates.join('、'));
  if(gaps.status==='CONFLICT')inputErrors.push('官方實際交易日期與日K不一致；缺少 '+(gaps.missing.join('、')||'無')+'；多出 '+(gaps.extra.join('、')||'無'));
- const bars=p.bars.map(b=>({...b})),sourceVolDiffPct=(p.q.volume>0&&p.sourceVolume>0)?Math.abs(p.q.volume-p.sourceVolume)/p.q.volume*100:null,provenance={model:MODEL,profile:'DAILY_ONLY',date:p.date,fingerprint:p.fingerprint,originalHistoryFingerprint:p.originalHistoryFingerprint,responseHistoryFingerprint:p.responseHistoryFingerprint,normalizedHistoryFingerprint:p.normalizedHistoryFingerprint,historyIdentity:p.historyIdentity,bars:bars.length,snapshotVerified:true,latestVolumeReconciled:true,sourceVolume:p.sourceVolume,snapshotVolume:p.q.volume,sourceVolumeDiffPct:sourceVolDiffPct,sourceVolumeWarning:sourceVolDiffPct!==null&&sourceVolDiffPct>.5,sourceVolumeUnit:'shares',snapshotVolumeApplied:p.q.volumeScopeVerified===true&&p.q.volumeScope==='DAILY_OHLCV_EQUIVALENT',volumeBasis:'已核驗日K來源量；市場量僅交叉驗證，統計範圍未核對時不覆寫'};
+ const bars=p.bars.map(b=>({...b})),sourceVolDiffPct=(p.q.volume>0&&p.sourceVolume>0)?Math.abs(p.q.volume-p.sourceVolume)/p.q.volume*100:null,provenance={model:MODEL,profile:'DAILY_ONLY',date:p.date,fingerprint:p.fingerprint,originalHistoryFingerprint:p.originalHistoryFingerprint,responseHistoryFingerprint:p.responseHistoryFingerprint,normalizedHistoryFingerprint:p.normalizedHistoryFingerprint,historyIdentity:p.historyIdentity,bars:bars.length,snapshotVerified:true,latestVolumeReconciled:true,sourceVolume:p.sourceVolume,snapshotVolume:p.q.volume,sourceVolumeDiffPct:sourceVolDiffPct,sourceVolumeWarning:!officialProof&&sourceVolDiffPct!==null&&sourceVolDiffPct>.5,alternativeOfficialScopeDifference:!!officialProof&&sourceVolDiffPct!==null&&sourceVolDiffPct>.5,sourceVolumeUnit:'shares',snapshotVolumeApplied:p.q.volumeScopeVerified===true&&p.q.volumeScope==='DAILY_OHLCV_EQUIVALENT',volumeBasis:officialProof?'官方逐日成交股數；全期間使用同一官方來源，市場快照只列對照，不混算':'已核驗日K來源量；市場量僅交叉驗證，統計範圍未核對時不覆寫'};
  const rsiSourceAudit=report.rsiSourceAudit||{source:report.dailyBasisV2?'PRIOR_CANONICAL_UNVERIFIED':'UPSTREAM_REPORT',value:report.dailyRsi5??report.dailyRsi??null,date:E.date(report.dailyRsi5Date||report.rsiDate||report.closeDate||report.dataDate),code:String(report.stock||report.code||''),market:report.market||p.q.market,meta:report.rsi5Meta||null};
  return {...report,dataContract:undefined,upstreamDataContract:structuredClone(p.dataContract),originalDailySeries:structuredClone(p.originalBars),sourceDailySeries:structuredClone(p.rawBars),sourceDailySeriesMeta:structuredClone(p.sourceMeta),rsiSourceAudit,workerDataAudit:p.workerDataAudit||report.workerDataAudit||null,stock:String(code),code:String(code),market:p.q.market,marketDate:p.date,completed:true,isComplete:true,dataTiming:'POST_CLOSE_ONLY',dailySeries:bars,canonicalBars:bars,close:p.q.close,volumeUnit:'shares',dailyRsi5:E.rsi(bars),dailyBasisV2:provenance,
-  referenceHistoryAudit,securityType:report.securityType||Evidence.priceStepBasis?.(p.q,snapshot.meta).securityType,
-  tickRuleVerified:report.tickRuleVerified===false?false:report.tickRuleVerified===true||Evidence.priceStepBasis?.(p.q,snapshot.meta).verified===true,tickRuleEvidence:Evidence.priceStepBasis?.(p.q,snapshot.meta),
+  officialHistoryEvidence:officialProof||null,referenceHistoryAudit:referenceHistoryAudit?{...referenceHistoryAudit,referenceWarning,canonicalSource:officialProof?'OFFICIAL_EXCHANGE_ARCHIVE':'WORKER_DAILY_ONLY'}:null,securityType:officialProof&&/^91/.test(String(code))?'UNVERIFIED':report.securityType||Evidence.priceStepBasis?.(p.q,snapshot.meta).securityType,
+  tickRuleVerified:officialProof&&/^91/.test(String(code))?false:report.tickRuleVerified===false?false:report.tickRuleVerified===true||Evidence.priceStepBasis?.(p.q,snapshot.meta).verified===true,tickRuleEvidence:Evidence.priceStepBasis?.(p.q,snapshot.meta),
   monthlyReviewV2:months.get(c.key)||{status:'UNAVAILABLE',source:'NO_FULL_MONTHLY',verified:false,date:p.date},priceAdjustment:{...priceAdjustment},researchInputErrors:inputErrors,researchEvidence:{version:Evidence.VERSION,priceBasis:proof,calendar:{status:gaps.status==='UNKNOWN'?'UNKNOWN':researchCalendar.status,reason:gaps.status==='UNKNOWN'?(gaps.reason||researchCalendar.reason):researchCalendar.reason},sessions:gaps},quoteEvidence:{verified:true,date:p.date,close:p.q.close,source:p.q.volumeSource||snapshot.meta.source||'同日官方市場快照'},tradingCalendar:cal&&gaps.status!=='UNKNOWN'?cal:report.tradingCalendar,dailySeriesMeta:{...p.sourceMeta,returnedBars:bars.length,completedDailyRowsAvailable:bars.length,completeOhlcvRowsAvailable:bars.length,dailySeriesCount:bars.length,canonicalBarCount:bars.length,firstDate:bars[0]?.date,lastDate:bars.at(-1)?.date,countScope:'RETURNED_SERIES',volumeUnit:'shares',source:'共用DAILY_ONLY；同日市場OHLC與成交量交叉驗證'},expectedTradingDates:cal&&gaps.status!=='UNKNOWN'?cal.dates:p.expectedTradingDates,corporateActions:p.corporateActions||report.corporateActions};
 }
 async function harmonize(items,payload,profile='FULL'){

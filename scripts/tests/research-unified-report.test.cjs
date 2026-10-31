@@ -3,7 +3,7 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const C=require('../../four-models-research-v1.js'),R=require('../../research-report-v1.js'),D=require('../../selection-data-v2.js');
 const fixture=require('../fixtures/multi-stock-worker-responses-20261022.json');
 const {report,bars}=require('../research-fixtures.cjs');
-const summaryTitles=['現在適合進場嗎？','什麼情況可以考慮買？','什麼情況要小心？','漲到哪裡要注意？','一句話結論'];
+const summaryTitles=['現在方向與資料狀態','多方｜什麼價格考慮買？','多單｜跌到哪裡要停損？','空方｜跌破價與回補停損','開盤後怎麼判斷？'];
 const document={createElement:()=>({getContext:()=>({font:'',measureText(s){return {width:[...s].length*56};}})})};
 function audits(a,options={}){return R.pages(a,{document,...options}).map(x=>JSON.parse(x.dataset.researchAudit));}
 function squeeze(s){return s.replace(/[\s｜]/g,'');}
@@ -63,7 +63,7 @@ test('an indicator phase cannot replace the four-strategy situation in one outpu
 });
 test('invalid bars do not get false completed models or invented K/D and levels',()=>{
  const a=C.evaluate({stock:'9001',name:'測試',market:'TWSE',closeDate:'2026-10-22',close:100,completed:true}),v=R.view(a);
- assert.equal(a.validation.technicalModelAvailable,false);assert.match(v.summary[0].value,/行情還沒確認完整/);assert.match(v.summary[0].value,/日線還沒確認完整|日線只有|日線天數不足/);
+ assert.equal(a.validation.technicalModelAvailable,false);assert.match(v.summary[0].value,/先不下單/);assert.match(v.summary[0].value,/日線還沒確認完整|日線只有|日線天數不足/);
  assert.ok(v.details.filter(x=>/^策略[一二三四]｜/.test(x.title)).every(x=>/無法判定/.test(x.value)));
  assert.match(v.details.find(x=>x.title==='關鍵支撐價位').value,/無法核驗/);
  assert.match(v.details.find(x=>x.title==='日週月週期研判').value,/資料不足/);

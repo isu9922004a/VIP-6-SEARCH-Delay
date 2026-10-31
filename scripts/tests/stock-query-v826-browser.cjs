@@ -16,14 +16,14 @@ const fixture=require('../fixtures/multi-stock-worker-responses-20261022.json'),
  await page.evaluate(()=>{document.getElementById('stockInput').dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));analyzeStock();});
  await page.waitForFunction(()=>document.getElementById('loading').textContent.includes('秒'),null,{timeout:3000});assert.equal(requests,1,'one worker request despite repeated Enter/click');
  releaseWorker();await page.waitForFunction(()=>document.getElementById('result').style.display==='block'&&!document.getElementById('searchButton').disabled,null,{timeout:7000});
- assert.equal(await page.evaluate(()=>ShitouReleaseV50.displayCode),'V8.2.8');assert.match(await page.title(),/V8.2.8/);
+ assert.equal(await page.evaluate(()=>ShitouReleaseV50.displayCode),'V8.2.9');assert.match(await page.title(),/V8.2.9/);
  // The market snapshot is still stalled: it must not block the primary report.
  assert.equal(requests,1);releaseMarket();await page.waitForFunction(()=>!!ShitouResearchIntegration.getCurrentStock(),null,{timeout:25000});
  // With the market intentionally unavailable, incomplete history must not fabricate a calculator.
- assert.match(await page.locator('#researchStock').textContent(),/行情還沒確認完整|日線還沒確認完整|無法安全計算/);
+ assert.match(await page.locator('#researchStock').textContent(),/先不下單|日線尚未取得|無法安全計算/);
  workerMode='error';await page.locator('#searchButton').click();await page.waitForFunction(()=>document.getElementById('error').style.display==='block'&&!document.getElementById('searchButton').disabled,null,{timeout:7000});
  assert.match(await page.locator('#error').textContent(),/資料暫時不可用/);assert.equal(await page.evaluate(()=>ShitouResearchIntegration.getCurrentStock()),null);
  workerMode='ok';await page.locator('#searchButton').click();await page.waitForFunction(()=>document.getElementById('result').style.display==='block'&&!document.getElementById('searchButton').disabled,null,{timeout:7000});
  await page.locator('#stockInput').fill('');await page.locator('#searchButton').click();await page.waitForFunction(()=>document.getElementById('error').textContent.includes('請輸入'));assert.equal(await page.locator('#searchButton').isEnabled(),true);
- assert.deepEqual(errors,[]);await page.screenshot({path:path.join(out,'query-recovery.png')});const result={status:'PASS',version:'V8.2.8',code:record.code,workerRequests:requests,checks:['stalled market does not block query','immediate loading feedback','duplicate Enter ignored','primary report before enrichment','error is visible and button recovers','retry after failure succeeds','empty query is actionable'],pageErrors:errors};fs.writeFileSync(path.join(out,'results.json'),JSON.stringify(result,null,2));console.log(JSON.stringify(result));
+ assert.deepEqual(errors,[]);await page.screenshot({path:path.join(out,'query-recovery.png')});const result={status:'PASS',version:'V8.2.9',code:record.code,workerRequests:requests,checks:['stalled market does not block query','immediate loading feedback','duplicate Enter ignored','primary report before enrichment','error is visible and button recovers','retry after failure succeeds','empty query is actionable'],pageErrors:errors};fs.writeFileSync(path.join(out,'results.json'),JSON.stringify(result,null,2));console.log(JSON.stringify(result));
  }finally{if(browser)await browser.close();server.close();}})().catch(e=>{console.error(e);process.exitCode=1;});

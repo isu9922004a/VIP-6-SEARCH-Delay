@@ -54,17 +54,26 @@ jobs:
       - name: Publish official completed-session calendar for research
         continue-on-error: true
         run: node scripts/update-research-calendar.mjs
+      - name: Update official research history for all stocks
+        continue-on-error: true
+        run: node scripts/build-official-research-history.mjs
+      - name: Audit all updated research results
+        continue-on-error: true
+        run: |
+          if ! git diff --quiet -- data/research/manifest.json; then
+            node scripts/audit-official-research-v829.cjs
+          fi
       - name: Commit verified market data
         shell: bash
         run: |
           set -euo pipefail
-          if [ -z "$(git status --porcelain -- data/market)" ]; then
+          if [ -z "$(git status --porcelain -- data/market data/research evidence/research-v829-all-stocks.json evidence/research-v829-all-stocks.csv)" ]; then
             echo 'Verified snapshot unchanged.'
             exit 0
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- data/market
+          git add -- data/market data/research evidence/research-v829-all-stocks.json evidence/research-v829-all-stocks.csv
           TRADE_DATE=$(node -e "process.stdout.write(String(require('./data/market/latest.json').tradeDate))")
           git commit -m "data: verified complete market snapshot ${TRADE_DATE}"
           for attempt in 1 2 3; do

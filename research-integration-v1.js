@@ -124,6 +124,9 @@ async function prepareStockQuery(input){
   await D.prepareResearchEvidence?.();
   const q=D.context(code).q;
   if(raw.market&&raw.market!==q.market)throw Error('查詢與共用快照市場別不符');
+  if((!D.get(code)||D.get(code).error)&&root.ShitouOfficialResearchHistory){
+   try{const official=await root.ShitouOfficialResearchHistory.load(code,{date,market:q.market});D.remember(official,code);}catch(e){if(root.ShitouOfficialResearchHistory.get(code,date))throw e;}
+  }
   if(!D.get(code)||D.get(code).error){
    // A verified DAILY_ONLY fallback is already the common research response.
    // Validate it against the bound snapshot instead of making the same source

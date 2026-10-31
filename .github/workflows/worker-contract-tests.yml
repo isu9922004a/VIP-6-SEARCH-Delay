@@ -24,6 +24,20 @@ jobs:
           git diff --exit-code -- stock-worker.mjs market-worker.mjs
       - name: Run all offline regression tests
         run: node scripts/run-all-tests.cjs
+  universe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Recompute every current stock and validate both stop directions
+        run: node scripts/audit-official-research-v829.cjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: full-universe-research-V8.2.9
+          path: evidence/research-v829-all-stocks.*
   browser:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -45,6 +59,12 @@ jobs:
           CHROME_BIN: /usr/bin/google-chrome
           RESEARCH_FALLBACK: ${{ matrix.fallback }}
         run: node scripts/tests/research-context-r16-browser.cjs /tmp/research-evidence
+      - name: Verify official history and novice long/short plan on mobile
+        if: matrix.fallback == '0'
+        env:
+          PLAYWRIGHT_MODULE: /tmp/research-browser/node_modules/playwright-core
+          CHROME_BIN: /usr/bin/google-chrome
+        run: node scripts/tests/research-official-v829-browser.cjs /tmp/research-evidence/official
       - name: Exercise stock query responsiveness and recovery
         if: matrix.fallback == '0'
         env:
@@ -61,7 +81,7 @@ jobs:
           path: /tmp/research-evidence
   deployed-frontend:
     if: github.ref == 'refs/heads/main'
-    needs: [contracts, browser]
+    needs: [contracts, browser, universe]
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
@@ -87,11 +107,11 @@ jobs:
           CHROME_BIN: /usr/bin/google-chrome
           RESEARCH_BROWSER_ORIGIN: https://isu9922004a.github.io/VIP-BOWTOWER-4-SEARCH/
         run: node scripts/tests/stock-query-v826-browser.cjs /tmp/deployed-research-evidence/query
-      - name: Verify live 7704 and 8039 canonical research windows
+      - name: Verify live official price, calendar and long/short plan for 7704 and 8039
         env:
           PLAYWRIGHT_MODULE: /tmp/research-browser/node_modules/playwright-core
           CHROME_BIN: /usr/bin/google-chrome
-        run: node scripts/tests/research-live-frontend-v828.cjs
+        run: RESEARCH_LIVE=1 node scripts/tests/research-official-v829-browser.cjs /tmp/deployed-research-evidence/official
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -99,7 +119,5 @@ jobs:
           path: |
             /tmp/deployed-research-evidence
             /tmp/deployed-frontend-verification.json
-            /tmp/live-window-verification.json
-            /tmp/live-8039-V8.2.8.png
-            /tmp/live-7704-V8.2.8.png
+            /tmp/deployed-research-evidence/official
 

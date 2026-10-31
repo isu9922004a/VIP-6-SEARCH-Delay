@@ -10,7 +10,7 @@ test('recorded 8039 OHLCV has the same ordered nearby references in normal and d
   const a=replay(fallback),before=JSON.stringify(a),g=R.guideContext(a),v=R.view(a);
   assert.deepEqual(g.upper.slice(0,5).map(x=>+x.price.toFixed(2)),[274.12,275,276.5,285.5,288.85]);
   assert.match(v.summary[1].value,/274.12.*守穩/);assert.doesNotMatch(v.summary[1].value,/331.5|先等價格重新站穩 MA20/);
-  assert.match(v.summary[0].value,/前5天平均的 0.36 倍/);assert.equal(g.baseline5,49423231.8);
+  assert.match(a.openingPlan.volumeText,/前5天平均的 0.36 倍/);assert.equal(g.baseline5,49423231.8);
   assert.ok(Math.abs(g.ratioPrevious-.7283391832384756)<1e-12);assert.equal(JSON.stringify(a),before);
   assert.ok(v.details.some(x=>x.title==='關卡順序與來源'));assert.ok(v.details.some(x=>x.title==='研究模式與邊界'));
   assert.doesNotMatch(text(a),/🟢/);
@@ -38,7 +38,7 @@ test('disabled-unified mode never grants a green entry or silently enables the s
 test('unknown strategy B is retained as a reference without becoming a fabricated upper target',()=>{
  const b=bars(160,()=>100);b[b.length-1]={...b.at(-1),open:105,high:110,low:104,close:110};
  for(const enabled of [true,false]){const a=C.evaluate(report(b,{originalB:999}),{flags:{unifiedResearchEnabled:enabled}}),g=R.guideContext(a);
-  assert.deepEqual(g.upper,[]);assert.match(R.view(a).summary[3].value,/上方歷史關卡不足/);assert.doesNotMatch(R.view(a).summary[3].value,/999/);
+  assert.deepEqual(g.upper,[]);assert.match(R.view(a).summary[2].value,/上方歷史關卡不足/);assert.doesNotMatch(R.view(a).summary[3].value,/999/);
   assert.match(R.view(a).details.find(x=>x.title==='原策略價位').value,/999.00.*來源待核/);}
 });
 test('TWSE and TPEX prices from sub-ten to high-priced shares preserve monotonic references in both modes',()=>{

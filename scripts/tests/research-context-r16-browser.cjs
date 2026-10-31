@@ -26,7 +26,7 @@ const normalize=s=>String(s).replace(/[\s｜]/g,'');
   const replayDate=recordedDate.slice(0,4)+'-'+recordedDate.slice(4,6)+'-'+recordedDate.slice(6,8);
   await page.clock.setFixedTime(new Date(replayDate+'T11:00:00Z'));
   if(process.env.RESEARCH_FALLBACK==='1')await page.addInitScript(()=>localStorage.setItem('shitou-research-flags-v1',JSON.stringify({unifiedResearchEnabled:false})));
-  await page.goto(base,{waitUntil:'load'});
+  await page.goto(base,{waitUntil:'load'});await page.evaluate(()=>{globalThis.ShitouOfficialResearchHistory=undefined;});
   if(process.env.RESEARCH_FALLBACK==='1')assert.equal(await page.evaluate(()=>ShitouResearchIntegration.getFlags().unifiedResearchEnabled),false);
   const version=await page.evaluate(()=>({display:ShitouReleaseV50.displayCode,badge:document.querySelector('.version-pill').textContent,title:document.title,chart:ShitouResearchChart.VERSION,context:ShitouStructureContext.VERSION}));
   assert.equal(version.display,currentVersion);assert.ok(version.badge.includes(currentVersion));assert.ok(version.title.includes(currentVersion));
