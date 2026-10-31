@@ -95,7 +95,7 @@ function summary(plan,prior,a){if(!plan)return prior;
  const data=issues.length?'資料原因詳見完整研究':`${plan.historyBars}天${plan.officialHistory?'官方':''}日線已核對`;
  fields[0]={title:'現在方向與資料狀態',value:decision+'\n'+(plan.state==='DATA'&&plan.weak?'短線偏弱；':'')+plan.directionLabel+'；'+data+'。'};
  fields[1]={title:'多方｜什麼價格考慮買？',value:plan.watch>0?`轉強觀察線：${price(plan.watch)}，${plan.close<plan.watch?'先等站回守穩':'先看能否守穩'}。\n`+(plan.entryRange?`守穩再轉強，才評估${price(plan.entryRange.low)}～${price(plan.entryRange.high)}；超過不追。${good?'':'目前條件尚未完成，僅作觀察。'}`:'目前沒有合適買價，先不買。'):plan.reason+'；'+(plan.close>0?'官方收盤 '+price(plan.close)+' 已取得，但暫不列買價。':'暫不列買價。')};
- fields[2]={title:'多單｜跌到哪裡要停損？',value:plan.stop>0?`多單停損試算：${price(plan.stop)}；若買進後跌到，按計畫賣出。\n`+(plan.target>0?`第一減碼觀察：${price(plan.target)}。`:'上方歷史關卡不足，暫不建立新單。'):'未取得可核對的日線，不猜停損價。'};
+ fields[2]={title:'多單｜跌到哪裡要停損？',value:plan.stop>0?`多單停損試算：${price(plan.stop)}；若買進後跌到，按計畫賣出。\n`+(plan.target>0?`停利點說明：如果漲到這個價位，可考慮停利部分落袋為安？\n${price(plan.target)}附近：已有持股的人，可以在這裡重新觀察走勢，再依原本計畫決定是否賣出一部分，落袋為安。`:'上方歷史關卡不足，暫不建立新單。'):'未取得可核對的日線，不猜停損價。'};
  fields[3]={title:'空方｜跌破價與回補停損',value:bear.watch>0?`跌破${price(bear.watch)}才看轉弱。\n空單停損試算：${price(bear.stop)}；漲到要買回。\n`+(bear.entryRange&&bear.state==='WATCH'?`回抽不過才觀察${price(bear.entryRange.low)}～${price(bear.entryRange.high)}；券源未確認。`:'目前沒有適合的放空計畫，不追空。'):'這次日線未通過，暫不列放空價位。'};
  fields[4]={title:'開盤後怎麼判斷？',value:plan.state==='DATA'?'這次先不下單；系統需處理的原因：'+(issues[0]?.reason||plan.reason)+'。':plan.entryRange?`高於${price(plan.entryRange.high)}不追；跌到${price(plan.stop)}取消買進計畫。範圍內仍須守穩轉強，不能開盤直接買。`:'先看'+(plan.watch>0?price(plan.watch)+'能否守穩轉強':'價格能否轉強')+'；目前買進空間或風險不合適，先等。'};
  const context=plan.state!=='DATA'?plainContext(a):null;
