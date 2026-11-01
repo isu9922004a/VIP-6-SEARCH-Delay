@@ -68,7 +68,7 @@ function build(a,plan,context){
  pending.push('日線站回須看收盤；盤中仍需另行確認，本頁沒有即時分K。');
  // V8.3 reads per-stock real model results; other strategy sections remain unchanged.
  const forecastSection=globalThis.ShitouForecastPreview?.fifth(a,plan,pending,context);
- if(forecastSection){sections[4]=forecastSection;if(globalThis.ShitouReleaseV50?.displayCode==='V8.3'&&globalThis.ShitouIPhoneSummary){const compact=globalThis.ShitouIPhoneSummary.compactFifth(a,{sections});sections[4]={...forecastSection,narrative:null,fullNarrative:forecastSection.narrative,rows:[{icon:'search',price:'',label:'',bullets:compact.lines.map(x=>x.text)}]};}}
+ if(forecastSection){sections[4]=forecastSection;if(['V8.3','V8.4'].includes(globalThis.ShitouReleaseV50?.displayCode)&&globalThis.ShitouIPhoneSummary){const compact=globalThis.ShitouIPhoneSummary.compactFifth(a,{sections});sections[4]={...forecastSection,narrative:null,fullNarrative:forecastSection.narrative,rows:[{icon:'search',price:'',label:'',bullets:compact.lines.map(x=>x.text)}]};}}
  const status={title:TITLES[0],headline,lines:statusLines,tone:failed?'red':good?'aqua':'yellow'};
  const summary=[{title:status.title,value:[headline,...status.lines].join('\n')},...sections.map(s=>({title:s.title,value:sectionText(s)}))];
  return {version:VERSION,title:TITLE,badge:forecastSection?(globalThis.ShitouKronosData?'盤後研究':'本機模擬'):'白話版研究',code:a.code,name:a.name,date:a.date,close:plan.close,status,sections,summary,comparison,guideNote:'盤後研究｜未提供即時盤中確認｜非個人持倉計畫\n試算未驗證績效；價位不是已確認支撐；跳空可能以更差價格成交。'};
