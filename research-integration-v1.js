@@ -82,7 +82,7 @@ function researchCard(a,number,prefix='研究',expanded=false){
  const fullButton=el('button','查看完整研究圖片');fullButton.type='button';fullButton.onclick=()=>preview([a],{stockMode:prefix==='個股',detail:true});actions.append(fullButton);
  if(a.unifiedResearch?.chart||a.nContinuation?.chart){const chartButton=el('button','查看結構證據圖');chartButton.type='button';chartButton.onclick=()=>preview([a],{stockMode:prefix==='個股',chartOnly:true});actions.append(chartButton);}
  if(a.foundation?.alertPlan)actions.append(alertControls(a));
- body.append(actions);details.append(body);root.ShitouKronosData?.ensure(a).then(changed=>{if(changed&&details.isConnected){const fresh=researchCard(a,number,prefix,details.open);details.replaceWith(fresh);}}).catch(()=>{});return details;
+ body.append(actions);details.append(body);root.ShitouKronosData?.ensure(a).then(changed=>{if(changed&&details.isConnected){const fresh=root.ShitouResearchActionGuide.mount(document,R.view(a).actionGuide);guide.replaceChildren(...fresh.childNodes);}}).catch(()=>{});return details;
 }
 
 function bind(snapshot){if(snapshot?.identity!==identity){identity=snapshot?.identity||null;date=snapshot?.date||null;records.clear();sourceRecords.clear();baselines.clear();seen.clear();cache.clear();revision++;schedule();}}
