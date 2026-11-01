@@ -26,6 +26,22 @@ test('official TAIEX history produces complete 1284x2778 independent PNG',()=>{
  assert.ok(output.blocks.some(b=>b.text.includes('① 下一交易日')));
  assert.ok(output.blocks.some(b=>b.text.includes('⑤ 明天實際怎麼做')));
 });
+test('V8.3.1 market clean and watermark variants keep exactly the same analysis',()=>{
+ const clean=report.model(snapshot,{watermarked:false});
+ const watermarked=report.model(snapshot,{watermarked:true});
+ assert.equal(clean.title,'大盤精簡分析');
+ assert.equal(watermarked.title,'大盤精簡分析石頭少爺台股分析V8.3.1版');
+ assert.deepEqual(watermarked.blocks,clean.blocks);
+ assert.deepEqual(watermarked.levels,clean.levels);
+ for(const mode of [false,true]){
+  const canvas=report.page(snapshot,{document:fakeDocument(),watermarked:mode}),audit=JSON.parse(canvas.dataset.researchAudit);
+  assert.equal(audit.watermarked,mode);
+  assert.equal(audit.title,mode?watermarked.title:clean.title);
+  assert.equal(audit.version,'V8.3.1');
+  assert.equal(canvas.width,1284);assert.equal(canvas.height,2778);
+  assert.equal(audit.noClipping,true);
+ }
+});
 test('no valid Kronos means history-only, never invent sampled percentages',()=>{
  const without={...snapshot,forecast:{state:'UNAVAILABLE',reason:'尚未實跑'}};
  const reportModel=report.model(without),audit=JSON.parse(report.page(without,{document:fakeDocument()}).dataset.researchAudit);
