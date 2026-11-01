@@ -54,7 +54,30 @@ try{const page=await browser.newPage({viewport:{width:428,height:926},isMobile:t
  assert.deepEqual(evergreen.audit,{width:1284,height:2778,noOverlap:true});
  const png=Buffer.from(evergreen.png.split(',')[1],'base64');assert.equal(png.subarray(1,4).toString(),'PNG');
  fs.writeFileSync(path.join(out,'2603-professional.png'),png);
+ assert.equal(evergreen.audit.noOverlap,true);
  checks.push({code:evergreen.code,date:evergreen.date,trend:evergreen.trend.label,pngBytes:png.length});console.log('PASS live stock 2603 trend and PNG',evergreen.trend.label);
+ // Compare actual 6756 OHLCV from the exchange-backed worker to the dual timeframe report.
+ await page.locator('#stockInput').fill('6756');await page.locator('#searchButton').click();
+ await page.waitForFunction(()=>shitouGetLastReportV82()?.code==='6756'||document.querySelector('#error')?.textContent.trim(),{},{timeout:120000});
+ const weifeng=await page.evaluate(async()=>{
+  await document.fonts.ready;
+  const report=shitouGetLastReportV82(),canvas=report&&renderStockProfessionalInfographicV51(report);
+  const audit=canvas&&JSON.parse(decodeURIComponent(canvas.dataset.layoutAudit));
+  return {code:report?.code,date:report?.closeDate,close:report?.close,medium:audit?.trend,short:audit?.shortTrend,audit:{width:audit?.width,height:audit?.height,noOverlap:audit?.noOverlap},png:canvas?.toDataURL('image/png')};
+ });
+ assert.equal(weifeng.code,'6756',JSON.stringify({date:weifeng.date,code:weifeng.code}));
+ assert.equal(weifeng.medium?.verified,true,'6756 MA20 trend must be grounded in actual completed-day evidence');
+ assert.equal(weifeng.short?.verified,true,'6756 must have verified completed-day MA5 and previous close');
+ if(weifeng.date==='2026-10-30'&&Math.abs(weifeng.close-120)<.01){
+  assert.equal(weifeng.medium.label,'偏多','6756 MA20 remained rising and below close on 10/30');
+  assert.equal(weifeng.short.label,'急跌轉弱','6756 -9.43% and below MA5 must not be presented as short-term bullish');
+  assert.ok(Math.abs(weifeng.short.ma5-126.6)<.15,'MA5 must match the actual daily bars');
+ }
+ assert.deepEqual(weifeng.audit,{width:1284,height:2778,noOverlap:true});
+ const wfPng=Buffer.from(weifeng.png.split(',')[1],'base64');assert.equal(wfPng.subarray(1,4).toString(),'PNG');
+ fs.writeFileSync(path.join(out,'6756-professional.png'),wfPng);
+ checks.push({code:'6756',date:weifeng.date,close:weifeng.close,medium:weifeng.medium.label,short:weifeng.short.label,ma5:weifeng.short.ma5,pngBytes:wfPng.length});
+ console.log('PASS live stock 6756 dual trend',weifeng.medium.label,weifeng.short.label);
  await page.goto('https://isu9922004a.github.io/VIP-6-SEARCH-Delay/market-outlook.html?audit=V8.4',{waitUntil:'networkidle'});await page.waitForFunction(()=>independentMarketState()?.state==='AVAILABLE',{},{timeout:45000});
  for(const id of ['marketSimpleAnalysisButton','marketSimpleAnalysisWatermarkButton']){
   await page.locator('#'+id).click();await page.waitForFunction(()=>document.querySelector('#simpleMarketReportDialog')?.open);
