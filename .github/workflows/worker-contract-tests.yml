@@ -113,6 +113,11 @@ jobs:
           PLAYWRIGHT_MODULE: /tmp/research-browser/node_modules/playwright-core
           CHROME_BIN: /usr/bin/google-chrome
         run: node scripts/tests/stock-query-v826-browser.cjs /tmp/deployed-research-evidence/query
+      - name: Verify V8.4 live stock and market PNG downloads
+        env:
+          PLAYWRIGHT_MODULE: /tmp/research-browser/node_modules/playwright-core
+          CHROME_BIN: /usr/bin/google-chrome
+        run: node scripts/tests/v84-live-smoke.cjs
       - name: Verify live official price, calendar and long/short plan for 7704 and 8039
         env:
           PLAYWRIGHT_MODULE: /tmp/research-browser/node_modules/playwright-core
@@ -126,4 +131,5 @@ jobs:
             /tmp/deployed-research-evidence
             /tmp/deployed-frontend-verification.json
             /tmp/deployed-research-evidence/official
+            evidence/v84-live
 
