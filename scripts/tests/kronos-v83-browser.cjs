@@ -28,5 +28,36 @@ await p.waitForFunction(()=>window.__compactLineClipboard?.count===1);
 const clipboardAudit=await p.evaluate(()=>window.__compactLineClipboard);
 assert.ok(clipboardAudit.types.includes('image/png'),'desktop copy should preserve PNG');
 await p.screenshot({path:path.join(out,'stock-mobile.png'),fullPage:false});
-await p.goto(base+'/market-outlook.html',{waitUntil:'networkidle'});await p.waitForFunction(()=>independentMarketState()?.state==='AVAILABLE');assert.match(await p.locator('#market-next').textContent(),/Kronos指數實跑/);assert.equal(await p.locator('#market-chart svg').count(),1);assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await p.screenshot({path:path.join(out,'market-mobile.png'),fullPage:true});assert.deepEqual(errors,[]);fs.writeFileSync(path.join(out,'verification.json'),JSON.stringify({checks,errors,market:await p.locator('#market-next').textContent()},null,2));console.log('PASS actual Kronos loader, three stocks, complete images, independent index and mobile width');
+await p.goto(base+'/market-outlook.html',{waitUntil:'networkidle'});await p.waitForFunction(()=>independentMarketState()?.state==='AVAILABLE');assert.match(await p.locator('#market-next').textContent(),/Kronos指數實跑/);assert.equal(await p.locator('#market-chart svg').count(),1);assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await p.screenshot({path:path.join(out,'market-mobile.png'),fullPage:true});
+assert.equal(await p.locator('#marketSimpleAnalysisButton').count(),1,'independent market image action missing');
+await p.click('#marketSimpleAnalysisButton');
+await p.waitForFunction(()=>document.querySelector('#simpleMarketReportDialog')?.open);
+const marketAudit=await p.evaluate(()=>{
+ const d=document.querySelector('#simpleMarketReportDialog'),a=JSON.parse(d.dataset.reportAudit);
+ return {...a,imgSrc:d.querySelector('img')?.src,download:d.querySelector('a[download]')?.download};
+});
+assert.equal(marketAudit.width,1284);assert.equal(marketAudit.height,2778);
+assert.equal(marketAudit.noClipping,true);assert.ok(marketAudit.bodyBottom<=marketAudit.safeBottom);
+assert.equal(marketAudit.date,require('../../data/index/TAIEX.json').closeDate);
+assert.ok(marketAudit.imgSrc.startsWith('blob:'));assert.match(marketAudit.download,/TAIEX_.+\.png$/);
+await p.evaluate(()=>{
+ Object.defineProperty(navigator,'userAgent',{configurable:true,value:'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1'});
+ Object.defineProperty(navigator,'canShare',{configurable:true,value:data=>data.files?.length===1});
+ Object.defineProperty(navigator,'share',{configurable:true,value:data=>{const file=data.files?.[0];window.__marketShareAudit={size:file?.size,type:file?.type,name:file?.name,count:data.files?.length,url:data.url||null};return Promise.resolve();}});
+});
+await p.click('#simpleMarketLineShareButton');
+await p.waitForFunction(()=>window.__marketShareAudit?.size>0);
+const marketShare=await p.evaluate(()=>window.__marketShareAudit);
+assert.equal(marketShare.type,'image/png');assert.equal(marketShare.count,1);assert.equal(marketShare.url,null);
+assert.match(marketShare.name,/大盤精簡分析_TAIEX_.*\.png$/);
+await p.waitForFunction(()=>!document.querySelector('#simpleMarketLineShareButton')?.disabled);
+await p.evaluate(()=>{
+ Object.defineProperty(navigator,'userAgent',{configurable:true,value:'Mozilla/5.0 (X11; Linux x86_64) Chrome/135.0.0.0 Safari/537.36'});
+ Object.defineProperty(navigator,'clipboard',{configurable:true,value:{write:items=>{window.__marketClipboardAudit=items[0]?.types||[];return Promise.resolve();}}});
+});
+await p.click('#simpleMarketLineShareButton');
+await p.waitForFunction(()=>Array.isArray(window.__marketClipboardAudit));
+assert.ok((await p.evaluate(()=>window.__marketClipboardAudit)).includes('image/png'));
+await p.screenshot({path:path.join(out,'market-compact-mobile.png'),fullPage:false});
+assert.deepEqual(errors,[]);fs.writeFileSync(path.join(out,'verification.json'),JSON.stringify({checks,errors,market:await p.locator('#market-next').textContent()},null,2));console.log('PASS actual Kronos loader, three stocks, complete images, independent index and mobile width');
 }finally{await browser?.close();await new Promise(r=>server.close(r));}})().catch(e=>{console.error(e);process.exitCode=1;});
