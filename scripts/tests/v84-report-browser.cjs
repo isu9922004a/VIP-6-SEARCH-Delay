@@ -44,7 +44,15 @@ fs.mkdirSync(out,{recursive:true});
   assert.ok(!/階段待確認/.test(audit.trend.label),'stage placeholder must not obscure the trend');
   assert.ok(['偏多','偏空','拉回整理','弱勢整理','盤整','反彈觀察','強勢上行','結構受損'].includes(audit.trend.label),JSON.stringify(audit.trend));
   assert.equal(audit.noOverlap,true,'professional report section geometry must remain intact');
-  result.trend=audit.trend;
+  assert.equal(audit.shortTrend?.verified,true,'completed OHLCV bars should yield a short-term state for '+record.code);
+  assert.ok(!/待確認/.test(audit.shortTrend.label),'short trend must be a real condition rather than a generic placeholder');
+  const lastBars=record.full.dailySeries.slice(-5),prior=record.full.dailySeries.at(-2);
+  const ma5=lastBars.reduce((sum,bar)=>sum+bar.close,0)/5,change=(record.full.close/prior.close-1)*100;
+  assert.ok(Math.abs(audit.shortTrend.ma5-ma5)<.02,'short MA5 must match completed OHLCV for '+record.code);
+  assert.ok(Math.abs(audit.shortTrend.changePct-change)<.02,'short daily change must match completed OHLCV for '+record.code);
+  if(change<=-5&&record.full.close<ma5)assert.equal(audit.shortTrend.label,'急跌轉弱','sharp drop below MA5 should be prominent');
+  assert.ok(decodeURIComponent(result.audit).includes('shortTrend'));
+  result.trend=audit.trend;result.shortTrend=audit.shortTrend;
   for(const key of ['base','clean','marked']){const bytes=Buffer.from(result[key].split(',')[1],'base64');fs.writeFileSync(path.join(out,record.code+'-'+key+'.png'),bytes);delete result[key];}
   checks.push(result);console.log('PASS professional PNG',record.code,result.width,result.height);
   if(record.code==='9933'&&!process.env.V84_RENDER_ONLY){
