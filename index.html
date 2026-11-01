@@ -1083,6 +1083,88 @@ body.dark .v46-reason,body.dark .v46-note,body.dark .v46-family{color:#d2dae7}bo
  #imagePreviewModal[data-report-full-bleed="true"] #imagePreviewImg{width:100%;max-width:none;height:auto;margin:0;padding:0;border:0;border-radius:0;box-shadow:none;object-fit:contain}
  #imagePreviewModal[data-report-full-bleed="true"] .image-modal-actions,#imagePreviewModal[data-report-full-bleed="true"] .image-preview-note{padding:10px 12px;margin:0}
 }
+
+/* MARKET-ENTRY-POLISH-V1: homepage market actions only, no analytical changes. */
+.market-shortcut .market-action-row{
+  display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);
+  align-items:stretch;gap:12px;margin-top:12px
+}
+.market-shortcut .market-outlook-entry{
+  position:relative;z-index:1;box-sizing:border-box;display:flex;align-items:center;
+  gap:13px;min-width:0;min-height:76px;padding:13px 16px;border-radius:16px;
+  text-decoration:none!important;color:#fff!important;
+  background:linear-gradient(118deg,#153f60 0%,#245b80 100%);
+  border:1px solid #2e6587;box-shadow:0 5px 14px rgba(20,71,103,.15);
+  transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease
+}
+.market-shortcut .market-outlook-entry:hover{
+  color:#fff!important;transform:translateY(-1px);
+  border-color:#6bafcd;box-shadow:0 8px 18px rgba(20,71,103,.22)
+}
+.market-shortcut .market-outlook-entry:active{transform:translateY(0)}
+.market-shortcut .market-outlook-entry-icon{
+  display:grid;place-items:center;flex:none;width:43px;height:43px;
+  border:1px solid rgba(207,234,248,.3);border-radius:12px;
+  background:rgba(255,255,255,.12);font-size:23px;line-height:1
+}
+.market-shortcut .market-outlook-entry-copy{
+  display:flex;flex:1 1 auto;flex-direction:column;min-width:0;gap:4px
+}
+.market-shortcut .market-outlook-entry-copy strong{
+  font-size:17px;line-height:1.35;letter-spacing:.01em;font-weight:800;
+  color:#fff;text-decoration:none
+}
+.market-shortcut .market-outlook-entry-copy small{
+  font-size:12px;line-height:1.5;color:#cce7f5;font-weight:550;
+  white-space:normal;overflow-wrap:anywhere
+}
+.market-shortcut .market-outlook-entry-arrow{
+  flex:none;display:grid;place-items:center;width:28px;height:28px;
+  border-radius:50%;border:1px solid rgba(230,246,255,.33);
+  color:#ecfaff;font-size:18px;font-weight:650
+}
+.market-shortcut #marketAnalyzeButton.market-quick-analyze{
+  position:relative;z-index:1;box-sizing:border-box;width:100%;min-width:0;
+  min-height:76px;margin:0;padding:13px 15px;border-radius:16px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  border:1px solid #b6d4e2;background:#fff;box-shadow:0 3px 10px rgba(20,71,103,.06);
+  color:#1f5879;font-size:15px;font-weight:780;line-height:1.5;
+  text-align:center;white-space:normal;overflow-wrap:anywhere;
+  transition:background .16s ease,border-color .16s ease,transform .16s ease
+}
+.market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
+  background:#ebf6fc;border-color:#6ba6c5;box-shadow:0 5px 12px rgba(20,71,103,.11)
+}
+.market-shortcut #marketAnalyzeButton.market-quick-analyze:disabled{
+  opacity:.65;cursor:wait;transform:none
+}
+.market-shortcut .market-outlook-entry:focus-visible,
+.market-shortcut #marketAnalyzeButton.market-quick-analyze:focus-visible{
+  outline:3px solid #3a97d0;outline-offset:3px
+}
+body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze{
+  background:#18364b;border-color:#42718a;color:#e9f6ff
+}
+body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
+  background:#21506c;border-color:#82bbd4
+}
+@media(max-width:700px){
+  .market-shortcut .market-action-row{grid-template-columns:minmax(0,1fr);gap:10px}
+  .market-shortcut .market-outlook-entry{min-height:72px;padding:12px 14px}
+  .market-shortcut #marketAnalyzeButton.market-quick-analyze{min-height:53px;padding:12px 14px}
+}
+@media(max-width:360px){
+  .market-shortcut .market-outlook-entry{gap:9px;padding:11px}
+  .market-shortcut .market-outlook-entry-icon{width:39px;height:39px}
+  .market-shortcut .market-outlook-entry-copy strong{font-size:16px}
+  .market-shortcut .market-outlook-entry-copy small{font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){
+  .market-shortcut .market-outlook-entry,
+  .market-shortcut #marketAnalyzeButton.market-quick-analyze{transition:none}
+}
+/* /MARKET-ENTRY-POLISH-V1 */
+
 /* RESTAURANT_FULLBLEED_1_END */
 </style>
 
@@ -1144,8 +1226,15 @@ body.dark .v46-reason,body.dark .v46-note,body.dark .v46-family{color:#d2dae7}bo
     <div class="market-shortcut">
       <div class="section-title" style="font-size:16px;margin-bottom:10px">📈 台股大盤加權指數</div>
       <div class="market-action-row">
-        <a class="btn market-btn" href="./market-outlook.html">獨立大盤趨勢推演</a>
-        <button id="marketAnalyzeButton" class="btn market-btn" type="button" onclick="analyzeMarketIndex()">📈 一鍵分析台股大盤加權指數</button>
+        <a class="market-outlook-entry" href="./market-outlook.html" aria-label="開啟獨立大盤趨勢推演">
+          <span class="market-outlook-entry-icon" aria-hidden="true">📈</span>
+          <span class="market-outlook-entry-copy">
+            <strong>獨立大盤趨勢推演</strong>
+            <small>隔日走勢劇本・重要點位・風險提醒</small>
+          </span>
+          <span class="market-outlook-entry-arrow" aria-hidden="true">↗</span>
+        </a>
+        <button id="marketAnalyzeButton" class="btn market-btn market-quick-analyze" type="button" onclick="analyzeMarketIndex()">📈 一鍵分析台股大盤加權指數</button>
       </div>
       <div class="hint">按一次取得臺灣加權股價指數正式盤後資料；先看市場是順風、震盪還是偏弱，再看價格三線、量能三線與波段回撤位置。ABC／N字保留作輔助，不把單一比例當成反轉答案。</div>
       <div id="marketLoading" class="loading">⏳ 正在取得臺灣加權股價指數資料並分析...</div>
