@@ -7,12 +7,14 @@
 <meta charset="UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<link rel="stylesheet" href="./tower-design.css?v=V8.2.2-R13-UNIFIED1">
+<link rel="stylesheet" href="./tower-design.css?v=V8.4">
 
-<title>石頭少爺 V8.3｜四策略研究</title>
-<script src="./scan-exclusions-rsi-v5328.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./stock-query-runtime-v826.js?v=V8.2.10-QUERY1"></script>
-<script src="./version-v50.js?v=V8.3"></script>
+<title>石頭少爺 V8.4｜四策略研究</title>
+<script src="./scan-exclusions-rsi-v5328.js?v=V8.4"></script>
+<script src="./stock-query-runtime-v826.js?v=V8.4"></script>
+<script src="./report-watermark-v84.js?v=V8.4"></script>
+<link rel="stylesheet" href="./frontend-v84.css?v=V8.4">
+<script src="./version-v50.js?v=V8.4"></script>
 
 <style>
 
@@ -1178,8 +1180,8 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
 .strong-stock-progress>div{width:0;height:100%;background:#24628a;transition:width .15s}
 .strong-stock-reminder{background:#fff8df;border:1px solid #e9d588;border-radius:10px;padding:12px;line-height:1.7}
 </style>
-<link rel="stylesheet" href="./filter-unified-mobile-v1.css?v=V8.2.2-R13-UNIFIED1">
-<link rel="stylesheet" href="./research-v83/workspace-v831.css?v=V8.3.1-WORKSPACE-B1">
+<link rel="stylesheet" href="./filter-unified-mobile-v1.css?v=V8.4">
+<link rel="stylesheet" href="./research-v83/workspace-v831.css?v=V8.4">
 </head>
 
 <body>
@@ -23071,53 +23073,7 @@ function renderMarketInfographicV3328(data){
 }
 
 // V40｜C版防盜浮水印：只在使用者按「防盜浮水印」按鈕時疊加；原始無浮水印輸出完全保留。
-function applyAntiTheftWatermarkV3761(canvas,type="stock"){
-  if(!canvas)return canvas;
-  const ctx=canvas.getContext("2d");
-  if(!ctx)return canvas;
-  const W=canvas.width,H=canvas.height;
-  ctx.save();
-  if(ctx.resetTransform)ctx.resetTransform();else ctx.setTransform(1,0,0,1,0,0);
-  ctx.imageSmoothingEnabled=true;
-  if("imageSmoothingQuality" in ctx)ctx.imageSmoothingQuality="high";
-
-  const brand="石頭少爺分析助手｜僅供授權使用";
-  const micro="石頭少爺分析助手｜防盜浮水印版｜未經授權請勿轉載";
-
-  // ① 主浮水印：固定放在真實日K圖表區，斜向跨圖；明顯但不壓住密集文字區。
-  const chartCx=type==="market"?W*0.69:W*0.69;
-  const chartCy=type==="market"?H*0.165:H*0.155;
-  ctx.translate(chartCx,chartCy);
-  ctx.rotate(-Math.PI/9); // 約 -20°
-  ctx.textAlign="center";
-  ctx.textBaseline="middle";
-  ctx.font=`800 ${Math.round(W*(type==="market"?0.034:0.032))}px "Noto Sans TC","Microsoft JhengHei",sans-serif`;
-  ctx.fillStyle="rgba(45,78,115,0.16)";
-  ctx.strokeStyle="rgba(255,255,255,0.28)";
-  ctx.lineWidth=Math.max(1,W/900);
-  ctx.strokeText(brand,0,0);
-  ctx.fillText(brand,0,0);
-  ctx.restore();
-
-  // ② 底部次浮水印：淡淡橫放，不蓋價格作戰地圖與密集總結文字。
-  ctx.save();
-  if(ctx.resetTransform)ctx.resetTransform();else ctx.setTransform(1,0,0,1,0,0);
-  ctx.textAlign="center";
-  ctx.textBaseline="middle";
-  ctx.font=`800 ${Math.round(W*0.018)}px "Noto Sans TC","Microsoft JhengHei",sans-serif`;
-  ctx.fillStyle="rgba(45,78,115,0.10)";
-  ctx.fillText(brand,W*0.50,H*(type==="market"?0.944:0.974));
-
-  // ③ 邊框微浮水印：即使局部裁圖仍較容易保留來源資訊。
-  ctx.font=`700 ${Math.max(9,Math.round(W*0.0095))}px "Noto Sans TC","Microsoft JhengHei",sans-serif`;
-  ctx.fillStyle="rgba(38,63,89,0.36)";
-  ctx.textAlign="left";
-  ctx.fillText(micro,W*0.025,H-10);
-  ctx.textAlign="right";
-  ctx.fillText("僅供授權使用",W*0.975,H-10);
-  ctx.restore();
-  return canvas;
-}
+function applyAntiTheftWatermarkV3761(canvas,type="stock"){return ShitouReportWatermark.apply(canvas,type);}
 
 function sanitizeFilenameV3328(s){
   return String(s||"分析圖").replace(/[\\/:*?"<>|]+/g,"_").replace(/\s+/g,"_");
@@ -23203,7 +23159,7 @@ async function generateMarketInfographicV3328(withWatermark=false){
   try{
     if(document.fonts?.ready)await document.fonts.ready;
     if(globalThis.ShitouMarketResearchIntegration&&ShitouResearchIntegration.getFlags().marketContextEnabled!==false&&ShitouMarketResearchIntegration.analysis(lastMarketReportData).state==='RESEARCH_ONLY'){
-      await ShitouResearchIntegration.preview([ShitouMarketResearchIntegration.report(lastMarketReportData)]);
+      await ShitouResearchIntegration.preview([ShitouMarketResearchIntegration.report(lastMarketReportData)],{watermark:withWatermark});
       message.textContent='✅ 大盤研究多頁圖已產生；資料未核驗項目明確標示。';return;
     }
     const canvas=renderMarketInfographicV3328(lastMarketReportData);
@@ -24833,50 +24789,7 @@ function renderMomentumScanInfographicV3762(scan){
 // V40｜主升兩種圖片專用防盜浮水印
 // 只疊在已完成的 Canvas 上；不改資料、不重算候選、不重新排序。
 // ========================================================================
-function drawMomentumImageWatermarkV377716(canvas,type="top8"){
-  if(!canvas)return canvas;
-  const ctx=canvas.getContext("2d");
-  if(!ctx)return canvas;
-  const W=canvas.width,H=canvas.height;
-  const brand="石頭少爺的ABC飆股";
-  const mark="石頭少爺的ABC飆股｜僅供內部研究使用｜禁止未經同意轉傳";
-
-  ctx.save();
-  if(ctx.resetTransform)ctx.resetTransform();else ctx.setTransform(1,0,0,1,0,0);
-  ctx.imageSmoothingEnabled=true;
-  ctx.textAlign="center";
-  ctx.textBaseline="middle";
-
-  // 長圖採低透明度重複斜向平鋪；TOP8同樣使用相同來源標記。
-  const fontSize=type==="all"?Math.max(25,Math.round(W*0.024)):Math.max(24,Math.round(W*0.025));
-  ctx.font=`850 ${fontSize}px -apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif`;
-  ctx.fillStyle="rgba(39,72,108,0.075)";
-  ctx.strokeStyle="rgba(255,255,255,0.16)";
-  ctx.lineWidth=1;
-
-  const stepX=type==="all"?560:540;
-  const stepY=type==="all"?330:360;
-  for(let yy=150;yy<H-80;yy+=stepY){
-    for(let xx=-120;xx<W+180;xx+=stepX){
-      ctx.save();
-      ctx.translate(xx,yy);
-      ctx.rotate(-Math.PI/10);
-      ctx.strokeText(mark,0,0);
-      ctx.fillText(mark,0,0);
-      ctx.restore();
-    }
-  }
-
-  // Footer來源字，即使局部截圖也保留辨識資訊。
-  ctx.font=`800 ${Math.max(10,Math.round(W*0.0105))}px -apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif`;
-  ctx.fillStyle="rgba(38,63,89,0.52)";
-  ctx.textAlign="left";
-  ctx.fillText(mark,Math.round(W*0.025),H-14);
-  ctx.textAlign="right";
-  ctx.fillText(brand,Math.round(W*0.975),H-14);
-  ctx.restore();
-  return canvas;
-}
+function drawMomentumImageWatermarkV377716(canvas,type="top8"){return ShitouReportWatermark.apply(canvas,'all');}
 
 function downloadMomentumTop8ImageWatermarkV377716(){
   return generateMomentumScanImageV3762(true);
@@ -32542,8 +32455,8 @@ upgradeVisibleTextV40(document.body);
 
 </script>
 
-<script src="./shito-assistant-v47.js?v=V8.2.10-QUERY1"></script>
-<script src="./industry-context-v47.js?v=V8.2.10-QUERY1"></script>
+<script src="./shito-assistant-v47.js?v=V8.4"></script>
+<script src="./industry-context-v47.js?v=V8.4"></script>
 
 <script>
 // ========================================================================
@@ -34907,26 +34820,26 @@ document.documentElement.dataset.releaseVersion=R43_RELEASE_LABEL;document.title
 document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭少爺 Agent V47/.test(el.textContent||""))el.textContent=R43_RELEASE_LABEL+(el.classList?.contains("version-pill")?"｜盤後資料｜雙通道＋自動擴掃":"");});
 </script>
 
-<script src="./technical-evidence-r45.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./r45-integration.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./r45-report-suite.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./teacher-three-pan-core.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./shitou-wave-core-v48.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./xiaomingdao-course-v52.js?v=V8.2.2-R13-UNIFIED1"></script>
+<script src="./technical-evidence-r45.js?v=V8.4"></script>
+<script src="./r45-integration.js?v=V8.4"></script>
+<script src="./r45-report-suite.js?v=V8.4"></script>
+<script src="./teacher-three-pan-core.js?v=V8.4"></script>
+<script src="./shitou-wave-core-v48.js?v=V8.4"></script>
+<script src="./xiaomingdao-course-v52.js?v=V8.4"></script>
 <!-- STRUCTURE-DEP.1-STRUCTURE-QUAL.1: load completed-bar price-action core before selection evidence/data and sixth scanner; no additional UI is activated. -->
-<script src="./price-action-context-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./selection-evidence-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./worker-data-contract-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./research-official-history-v1.js?v=V8.2.10-OFFICIAL1"></script>
-<script src="./research-source-evidence-v1.js?v=V8.2.10-OPEN1"></script>
-<script src="./selection-data-v2.js?v=V8.2.10-WINDOW1"></script>
-<script src="./selection-decision-v2.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./strong-stock-filter-v47.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./deep-scan-health-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./strong-stock-ui-v47.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./shitou-wave-ui-v48.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./book-evidence-r495.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./shitou-v50-core.js?v=V8.2.2-R13-UNIFIED1"></script>
+<script src="./price-action-context-v1.js?v=V8.4"></script>
+<script src="./selection-evidence-v1.js?v=V8.4"></script>
+<script src="./worker-data-contract-v1.js?v=V8.4"></script>
+<script src="./research-official-history-v1.js?v=V8.4"></script>
+<script src="./research-source-evidence-v1.js?v=V8.4"></script>
+<script src="./selection-data-v2.js?v=V8.4"></script>
+<script src="./selection-decision-v2.js?v=V8.4"></script>
+<script src="./strong-stock-filter-v47.js?v=V8.4"></script>
+<script src="./deep-scan-health-v1.js?v=V8.4"></script>
+<script src="./strong-stock-ui-v47.js?v=V8.4"></script>
+<script src="./shitou-wave-ui-v48.js?v=V8.4"></script>
+<script src="./book-evidence-r495.js?v=V8.4"></script>
+<script src="./shitou-v50-core.js?v=V8.4"></script>
 
 <script>
 // ========================================================================
@@ -35131,44 +35044,44 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 })();
 </script>
 
-<script src="./report-layout-v563.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./shitou-v50-ui.js?v=V8.2.2-R13-UNIFIED1"></script>
+<script src="./report-layout-v563.js?v=V8.4"></script>
+<script src="./shitou-v50-ui.js?v=V8.4"></script>
 
-<script src="./teacher-three-pan-ui.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./data/market/scan-exclusions.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./scan-report-rsi-v5328.js?v=V8.2.10-RESEARCH2"></script>
-<script src="./stock-image-colors-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./tower-line-core.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./tower-risk-adapter.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./tower-trend-classifier.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./tower-gold-scanner.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./tower-report.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./tower-design-ui.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./tower-scan-export.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./tower-fast-a.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./tower-integration.js?v=V8.2.10-QUERY1"></script>
-<script src="./tower-scan-copy.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./tower-beginner-guide.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./tower-stock-report.js?v=V8.2.2-R13-UNIFIED1"></script>
+<script src="./teacher-three-pan-ui.js?v=V8.4"></script>
+<script src="./data/market/scan-exclusions.js?v=V8.4"></script>
+<script src="./scan-report-rsi-v5328.js?v=V8.4"></script>
+<script src="./stock-image-colors-v1.js?v=V8.4"></script>
+<script src="./tower-line-core.js?v=V8.4"></script>
+<script src="./tower-risk-adapter.js?v=V8.4"></script>
+<script src="./tower-trend-classifier.js?v=V8.4"></script>
+<script src="./tower-gold-scanner.js?v=V8.4"></script>
+<script src="./tower-report.js?v=V8.4"></script>
+<script src="./tower-design-ui.js?v=V8.4"></script>
+<script src="./tower-scan-export.js?v=V8.4"></script>
+<script src="./tower-fast-a.js?v=V8.4"></script>
+<script src="./tower-integration.js?v=V8.4"></script>
+<script src="./tower-scan-copy.js?v=V8.4"></script>
+<script src="./tower-beginner-guide.js?v=V8.4"></script>
+<script src="./tower-stock-report.js?v=V8.4"></script>
 <!-- DAYTRADE-140-FIX.1: activate existing bounded FULL candidate enrichment; no ranking or Gate changes -->
-<script src="./daytrade-r11-performance.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./selection-evidence-integration-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./rsi-extended-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./indicator-shadow-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./indicator-shadow-ui-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./restaurant-filter-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./restaurant-scanner-v1.js?v=V8.2.2-R15-TRANSPORT2"></script>
-<script src="./mobile-image-share-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./mobile-png-export-r5329.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./restaurant-report-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./restaurant-ui-v1.js?v=V8.2.2-R15-TRANSPORT2"></script>
-<script src="./structure-reversal-config-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./structure-reversal-core-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./structure-reversal-scanner-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./structure-reversal-backtest-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./structure-reversal-report-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./structure-reversal-ui-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./filter-unified-mobile-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
+<script src="./daytrade-r11-performance.js?v=V8.4"></script>
+<script src="./selection-evidence-integration-v1.js?v=V8.4"></script>
+<script src="./rsi-extended-v1.js?v=V8.4"></script>
+<script src="./indicator-shadow-v1.js?v=V8.4"></script>
+<script src="./indicator-shadow-ui-v1.js?v=V8.4"></script>
+<script src="./restaurant-filter-v1.js?v=V8.4"></script>
+<script src="./restaurant-scanner-v1.js?v=V8.4"></script>
+<script src="./mobile-image-share-v1.js?v=V8.4"></script>
+<script src="./mobile-png-export-r5329.js?v=V8.4"></script>
+<script src="./restaurant-report-v1.js?v=V8.4"></script>
+<script src="./restaurant-ui-v1.js?v=V8.4"></script>
+<script src="./structure-reversal-config-v1.js?v=V8.4"></script>
+<script src="./structure-reversal-core-v1.js?v=V8.4"></script>
+<script src="./structure-reversal-scanner-v1.js?v=V8.4"></script>
+<script src="./structure-reversal-backtest-v1.js?v=V8.4"></script>
+<script src="./structure-reversal-report-v1.js?v=V8.4"></script>
+<script src="./structure-reversal-ui-v1.js?v=V8.4"></script>
+<script src="./filter-unified-mobile-v1.js?v=V8.4"></script>
 <script>
 // BPREWATCH.1: separate B-mode stop-falling observation from formally confirmed reversals.
 (function(){const v=window.ShitouReleaseV50;if(!v)return;
@@ -35177,41 +35090,43 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
   document.querySelectorAll('.version-pill,footer strong').forEach(el=>{el.textContent=v.release+(el.classList?.contains('version-pill')?'｜盤後資料｜資料認證另查':'');});
 })();
 </script>
-<link rel="stylesheet" href="./research-mobile-v1.css?v=V8.2.10-ACTION1">
-<script src="./research-common-v1.js?v=V8.2.10-ENTRY1"></script>
-<script src="./research-foundation-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./indicator-multi-v1.js?v=V8.2.2-R17-EVIDENCE1"></script>
-<script src="./research-history-v1.js?v=V8.2.2-R16-CONTEXT1"></script>
-<script src="./structure-context-v1.js?v=V8.2.2-R17-EVIDENCE1"></script>
-<script src="./research-beginner-v1.js?v=V8.2.10-ENTRY1"></script>
-<script src="./research-chart-v1.js?v=V8.2.10-ENTRY1"></script>
-<script src="./unified-analysis-v1.js?v=V8.2.10-PLAIN1"></script>
-<script src="./research-n-continuation-v1.js?v=V8.2.10-PLAIN1"></script>
-<script src="./research-entry-direction-v1.js?v=V8.2.10-ENTRY1"></script>
-<script src="./research-query-fallback-v1.js?v=V8.2.10-FALLBACK1"></script>
-<script src="./research-opening-plan-v1.js?v=V8.2.10-PROFIT2"></script>
-<script src="./four-models-research-v1.js?v=V8.2.10-ENTRY1"></script>
-<script src="./research-zh-tw-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
-<!-- V8.3: real, identity-checked Kronos results; missing results remain unavailable. -->
-<link rel="stylesheet" href="./research-v83/stock-fifth-module.css?v=V8.3">
-<link rel="stylesheet" href="./research-v83/stock-simple-report.css?v=V8.3.1-WATERMARK1">
-<script src="./research-v83/iphone-summary-renderer.js?v=V8.3"></script>
-<script src="./research-v83/stock-fifth-module.js?v=V8.3"></script>
-<script src="./research-v83/forecast-engine.js?v=V8.3"></script>
-<script src="./research-v83/kronos-data.js?v=V8.3"></script>
-<script src="./research-action-guide-v1.js?v=V8.3"></script>
-<script src="./research-report-v1.js?v=V8.3"></script>
-<script src="./drax-price-reminder-v1.js?v=V8.2.2-R13-UNIFIED1-DRAX1"></script>
-<script src="./research-integration-v1.js?v=V8.3"></script>
-<script src="./research-v83/stock-simple-report.js?v=V8.3.1-WATERMARK1"></script>
-<script src="./stock-audit-alert-v82.js?v=V8.2.10-QUERY1"></script>
-<script src="./release-compact-v1.js?v=V8.2.2-R16-CONTEXT1"></script>
+<link rel="stylesheet" href="./research-mobile-v1.css?v=V8.4">
+<script src="./research-common-v1.js?v=V8.4"></script>
+<script src="./research-foundation-v1.js?v=V8.4"></script>
+<script src="./indicator-multi-v1.js?v=V8.4"></script>
+<script src="./research-history-v1.js?v=V8.4"></script>
+<script src="./structure-context-v1.js?v=V8.4"></script>
+<script src="./research-beginner-v1.js?v=V8.4"></script>
+<script src="./research-chart-v1.js?v=V8.4"></script>
+<script src="./unified-analysis-v1.js?v=V8.4"></script>
+<script src="./research-n-continuation-v1.js?v=V8.4"></script>
+<script src="./research-entry-direction-v1.js?v=V8.4"></script>
+<script src="./research-query-fallback-v1.js?v=V8.4"></script>
+<script src="./research-opening-plan-v1.js?v=V8.4"></script>
+<script src="./four-models-research-v1.js?v=V8.4"></script>
+<script src="./research-zh-tw-v1.js?v=V8.4"></script>
+<!-- V8.4: real, identity-checked Kronos results; missing results remain unavailable. -->
+<link rel="stylesheet" href="./research-v83/stock-fifth-module.css?v=V8.4">
+<link rel="stylesheet" href="./research-v83/stock-simple-report.css?v=V8.4">
+<script src="./research-v83/iphone-summary-renderer.js?v=V8.4"></script>
+<script src="./research-v83/stock-fifth-module.js?v=V8.4"></script>
+<script src="./research-v83/forecast-engine.js?v=V8.4"></script>
+<script src="./research-v83/kronos-data.js?v=V8.4"></script>
+<script src="./research-action-guide-v1.js?v=V8.4"></script>
+<script src="./research-report-v1.js?v=V8.4"></script>
+<script src="./drax-price-reminder-v1.js?v=V8.4"></script>
+<script src="./research-integration-v1.js?v=V8.4"></script>
+<script src="./research-v83/stock-simple-report.js?v=V8.4"></script>
+<script src="./stock-audit-alert-v82.js?v=V8.4"></script>
+<script src="./release-compact-v1.js?v=V8.4"></script>
 </body>
 
 </html>
 
 
-<script src="./market-research-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./research-market-integration-r13.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./research-v83/workspace-v831.js?v=V8.3.1-WORKSPACE-B1"></script>
+<script src="./market-research-v1.js?v=V8.4"></script>
+<script src="./research-market-integration-r13.js?v=V8.4"></script>
+<script src="./research-v83/workspace-v831.js?v=V8.4"></script>
 
+
+<script src="./stock-professional-v84.js?v=V8.4"></script>

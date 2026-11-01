@@ -58,8 +58,8 @@ function page(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouR
   wrapped(`資料確認：${d.basisVerified?'價格使用同一種計算方式':'價格計算方式還沒確認'}；${d.volume.status==='CONFLICT'?'交易量來源數字不一致':d.volume.usable?'可使用這個來源的日K交易量':'交易量來源還沒確認'}。虛線只供觀察；這些走勢沒有保證獲利。`,68,2590,W-136,31,40);
   text(`${displayCode}｜行情 ${a.date}｜紅漲綠跌`,68,2740,32,'#9cb8cc');
  }
- const render=({top=0,height=H,scale=1}={})=>{const canvas=doc.createElement('canvas');canvas.width=Math.floor(W*scale);canvas.height=Math.floor(height*scale);const ctx=canvas.getContext('2d');if(!ctx)throw Error('Canvas 2D unavailable');ctx.setTransform(scale,0,0,scale,0,-top*scale);paint(ctx);Object.assign(canvas.dataset,dataset);return canvas;};
- return {width:W,height:H,dataset,renderExportRegion:render,toBlob(callback,type='image/png'){const canvas=render();if(watermark&&globalThis.applyAntiTheftWatermarkV3761)globalThis.applyAntiTheftWatermarkV3761(canvas,'all');canvas.toBlob(blob=>{canvas.width=canvas.height=1;callback(blob);},type);}};
+ const render=({top=0,height=H,scale=1}={})=>{const canvas=doc.createElement('canvas');canvas.width=Math.floor(W*scale);canvas.height=Math.floor(height*scale);const ctx=canvas.getContext('2d');if(!ctx)throw Error('Canvas 2D unavailable');ctx.setTransform(scale,0,0,scale,0,-top*scale);paint(ctx);if(watermark)globalThis.ShitouReportWatermark.paint(ctx,{width:W,height:H,type:'all'});Object.assign(canvas.dataset,dataset);return canvas;};
+ return {width:W,height:H,dataset,renderExportRegion:render,toBlob(callback,type='image/png'){const canvas=render();canvas.toBlob(blob=>{canvas.width=canvas.height=1;callback(blob);},type);}};
 }
 return Object.freeze({VERSION,page});
 });

@@ -1,0 +1,46 @@
+/* V8.4: a calm research desk, consistent actions and readable mobile previews. */
+:root{--v84-navy:#12364e;--v84-teal:#0b807e;--v84-line:#d8e6ed}
+body{background:#f1f6f8;font-family:"Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif}
+.header{background:linear-gradient(115deg,#102e45,#164b60 70%,#176a70);color:#fff;border-bottom:3px solid #41b9ae}
+.header h1{letter-spacing:.025em;color:#fff}.header p{color:#d7e6ed}
+.header .container{max-width:1180px}.container{max-width:1180px}
+main.container{padding-top:22px;padding-bottom:40px}
+.panel{border:1px solid var(--v84-line);box-shadow:0 5px 22px #173b5010;border-radius:18px}
+#workspaceV831{padding:22px;border:1px solid var(--v84-line);border-top:4px solid var(--v84-teal);border-radius:18px;box-shadow:0 8px 28px #183f5010;margin-bottom:20px}
+#workspaceV831 .workspace-v831-title{font-size:22px;color:var(--v84-navy)}
+#workspaceV831 .workspace-v831-version{background:#e7f5f2;color:#17645e;padding:6px 11px;border-radius:7px;white-space:nowrap}
+#workspaceV831 .workspace-v831-tabs{gap:10px;margin-top:17px}
+#workspaceV831 .workspace-v831-tab{min-height:56px;border-radius:12px;background:#f5f9fb;border-color:#d9e6ec;color:#345268;transition:background .15s,box-shadow .15s}
+#workspaceV831 .workspace-v831-tab[aria-selected=true]{background:var(--v84-navy);border-color:var(--v84-navy);box-shadow:0 4px 12px #17364c24}
+#workspaceV831 .workspace-v831-intro{font-size:14px;margin-top:16px;line-height:1.7}
+#workspaceV831 .workspace-v831-filter-tabs{gap:9px;margin-top:16px}
+#workspaceV831 .workspace-v831-filter{font-size:14px;min-height:48px}
+#workspaceV831 .workspace-v831-filter[aria-pressed=true]{background:#e7f5f2;border-color:#32988d;color:#13645a}
+#workspaceV831 .workspace-v831-advanced{border-top:1px solid #e4edf2;margin-top:16px;padding-top:9px}
+#workspaceSearchPanel{padding:22px}#workspaceSearchPanel .search-row{gap:12px}
+#stockInput{min-height:52px;border:1px solid #b9ceda;border-radius:11px;font-size:17px;padding:12px 15px}
+#searchButton{min-height:52px;background:var(--v84-teal);border-radius:11px;padding:12px 25px;font-weight:750}
+#workspaceStockSummary{border:1px solid var(--v84-line);border-left:4px solid var(--v84-teal);padding:22px;border-radius:16px;box-shadow:0 5px 22px #183f5010}
+.copy-actions{gap:10px}.copy-actions button,.copy-actions a{min-height:44px;line-height:1.5;border-radius:9px}
+.watermark-image-btn{border:1px solid #90b5c6!important;background:#edf5fa!important;color:#234f6b!important}
+button:disabled{cursor:not-allowed;opacity:.58}button[aria-busy=true]{cursor:wait}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #16a59b;outline-offset:3px}
+.image-modal-card{border-radius:16px}.image-modal-title{overflow-wrap:anywhere}
+/* Image preview must sit above the full-report workspace and its toolbar. */
+#imagePreviewModal{z-index:100010}
+#simpleStockReportDialog,#simpleMarketReportDialog{padding:20px;border:1px solid #cfdee7;border-radius:18px;box-shadow:0 24px 90px #102f4860;max-height:92dvh;box-sizing:border-box}
+#simpleStockReportDialog::backdrop,#simpleMarketReportDialog::backdrop{background:#09283eaa;backdrop-filter:blur(4px)}
+#simpleStockReportDialog h2,#simpleMarketReportDialog h2{font-size:18px;line-height:1.6;margin:0 0 14px;overflow-wrap:anywhere}
+.simple-stock-report-controls,.simple-market-report-controls{display:flex;gap:9px;flex-wrap:wrap;position:sticky;top:-20px;background:var(--card,#fff);padding:12px 0;z-index:1}
+#simpleStockReportDialog .simple-stock-report-controls,#simpleMarketReportDialog .simple-market-report-controls{background:#071f32}
+.simple-stock-report-controls>* ,.simple-market-report-controls>*{min-height:44px;padding:10px 16px;border-radius:9px;box-sizing:border-box}
+#simpleStockReportDialog img,#simpleMarketReportDialog img{display:block;max-width:100%;height:auto;border-radius:8px;margin:auto}
+body>.top{background:linear-gradient(110deg,#102e45,#17626a);padding:18px 5%;border-bottom:3px solid #41b9ae;color:#fff}
+body>.top a{color:#b8eee7}body>.top .tag{color:#dbf7f3;background:#ffffff15;border:1px solid #ffffff30}
+.intro h1{letter-spacing:-.025em}.controls{gap:12px}.controls button{min-height:48px;border-radius:10px}
+body.dark-mode{background:#0c1e2c}body.dark-mode #workspaceV831,body.dark-mode #workspaceStockSummary{background:#123247;border-color:#30566d}
+body.dark-mode #workspaceV831 .workspace-v831-title{color:#e3f0f6}body.dark-mode #workspaceV831 .workspace-v831-version{background:#174b4a;color:#b5eee4}
+body.dark-mode .watermark-image-btn{background:#173f54!important;color:#d0edf7!important;border-color:#41697d!important}
+@media(min-width:800px){#stockReportActionsPanel .copy-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){main.container{padding-top:12px}#workspaceV831{padding:16px;margin-bottom:12px}#workspaceV831 .workspace-v831-title{font-size:19px}#workspaceV831 .workspace-v831-version{font-size:11px;padding:5px 8px}#workspaceV831 .workspace-v831-tabs{gap:6px;margin-top:13px}#workspaceV831 .workspace-v831-tab{font-size:13px;min-height:50px}#workspaceSearchPanel,#workspaceStockSummary{padding:16px}.copy-actions>*{width:100%;box-sizing:border-box}#simpleStockReportDialog,#simpleMarketReportDialog{padding:12px;width:calc(100vw - 16px);max-width:720px}.simple-stock-report-controls,.simple-market-report-controls{top:-12px}.controls button{width:100%}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}

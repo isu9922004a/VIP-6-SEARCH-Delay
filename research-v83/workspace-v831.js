@@ -86,17 +86,17 @@ function select(tab,filter){
  for(const b of tabs){const yes=b.dataset.target===tab;b.setAttribute('aria-selected',String(yes));b.tabIndex=yes?0:-1;}
  for(const b of filterButtons)b.setAttribute('aria-pressed',String(b.dataset.filter===currentFilter));
  setHidden($('workspaceFilterPicker'),tab!=='filters');
- $('workspaceTabIntroduction').textContent=tab==='stock'?'查詢後只保留重點，完整研究請點按鈕查看。':tab==='market'?'保留原本大盤行情與趨勢研究，僅顯示大盤相關入口。':'一次顯示一套選股工具；候選排行、停止及圖片匯出均保留。';
+ $('workspaceTabIntroduction').textContent=tab==='stock'?'輸入股票代號或名稱，完成查詢後即可查看研究、下載或分享圖片報告。':tab==='market'?'保留原本大盤行情與趨勢研究，僅顯示大盤相關入口。':'一次顯示一套選股工具；候選排行、停止及圖片匯出均保留。';
  if(tab==='stock')renderSummary();
  if(tab==='filters'&&currentFilter==='tower')$('towerGoldPanel')?.scrollIntoView({block:'nearest'});
 }
-function heading(title){const div=el('div','workspace-v831-header');div.append(el('span','workspace-v831-title',title),el('span','workspace-v831-version','V8.3.1｜精簡工作台'));return div;}
+function heading(title){const div=el('div','workspace-v831-header');div.append(el('span','workspace-v831-title',title),el('span','workspace-v831-version','V8.4｜研究工作台'));return div;}
 function build(){
  const main=doc.querySelector('main.container'),first=main?.querySelector(':scope > section.panel');
  if(!first||$('workspaceV831'))return;
  first.id='workspaceSearchPanel';
  const nav=el('section');nav.id='workspaceV831';nav.setAttribute('aria-label','石頭少爺功能分頁');
- nav.append(heading('選擇要研究的內容'));
+ nav.append(heading('研究工作台'));
  const tabRow=el('div','workspace-v831-tabs');tabRow.setAttribute('role','tablist');tabRow.setAttribute('aria-label','研究分類');
  for(const [key,label] of [['stock','🔎 個股查詢'],['market','📈 大盤研究'],['filters','🚀 策略選股']]){
   const b=el('button','workspace-v831-tab',label);b.type='button';b.dataset.target=key;b.id='workspaceTab'+key;b.setAttribute('role','tab');b.setAttribute('aria-controls','workspaceSearchPanel');b.addEventListener('click',()=>select(key));tabs.push(b);tabRow.append(b);

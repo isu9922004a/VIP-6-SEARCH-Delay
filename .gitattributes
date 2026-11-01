@@ -1,0 +1,5 @@
+data/research/** -text
+worker-data-contract-v1.js text eol=lf
+stock-worker.mjs text eol=lf
+market-worker.mjs text eol=lf
+*.gz binary

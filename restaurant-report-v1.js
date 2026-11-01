@@ -89,6 +89,7 @@ function overview(scan,{watermark=false}={}){
    p.lines.forEach(l=>draw(l,x+25,y+l.y,l.color));
   });
   ctx.fillStyle='#123a5a';ctx.fillRect(0,FOOTER,WIDTH,HEIGHT-FOOTER);footers.forEach(l=>draw(l,28,l.y,l.color));
+  if(watermark)root.ShitouReportWatermark.paint(ctx,{width:WIDTH,height:HEIGHT,type:'all'});
 }
  // The preview descriptor is NOT a CanvasImageSource. Web Share needs a
  // drawable canvas region to encode a standalone JPEG before the user taps.

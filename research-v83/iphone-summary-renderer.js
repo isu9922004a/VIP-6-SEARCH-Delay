@@ -17,7 +17,7 @@ function compactFifth(a,g){const s=g.sections[4],f=s.forecast||{},p=root.ShitouO
   {text:'依據：'+proof},
   {text:`站不回觀察價或續跌，${bear?'勿急著搶反彈或只因模型偏空追空':'勿因模型偏多而貿然進場'}；跳空重算價位與風險，已持股者按原計畫。`}
  ]};}
-function pages(a,report,{doc,displayCode='V8.3',wrap}){
+function pages(a,report,{doc,displayCode='V8.4',wrap,watermark=false}){
  const guide=report.actionGuide,canvas=doc.createElement('canvas');canvas.width=W;canvas.height=H;const ctx=canvas.getContext('2d'),compact=compactFifth(a,guide),trace=[];
  const font=(size,bold=false)=>{ctx.font=`${bold?750:600} ${size}px "Microsoft JhengHei","Segoe UI Emoji",sans-serif`;};
  const measure=(text,width,size,bold=false)=>{font(size,bold);return wrap(ctx,String(text),width);};
@@ -57,7 +57,8 @@ function pages(a,report,{doc,displayCode='V8.3',wrap}){
  const footerTop=y+16;ctx.strokeStyle=PALETTE.line;ctx.beginPath();ctx.moveTo(M,footerTop);ctx.lineTo(W-M,footerTop);ctx.stroke();const foot=measure(guide.guideNote,CW-40,27);draw(foot,M+12,footerTop+38,27,PALETTE.muted,false,35);draw([displayCode+'｜1/1'],W-M-225,H-108,29,PALETTE.muted,true);
  const original=guide.sections.slice(0,4).flatMap(s=>[s.title,...s.rows.flatMap(r=>[r.price,r.label,...r.bullets].filter(Boolean)),...(s.callout?[s.callout.title,...s.callout.lines]:[])]);
  if(JSON.stringify(trace)!==JSON.stringify(original))throw Error('第一至第四項文字核對失敗');
- const audit={fields:guide.summary,width:W,height:H,minBodyFont:l.size,topSafeArea:140,bottomSafeArea:104,footerBottom:footerTop+38+(foot.length-1)*35,firstFourPreserved:true,firstFourText:trace,originalFirstFour:guide.sections.slice(0,4),headerPreserved:{title:guide.title,name:guide.name,code:guide.code,date:guide.date,close:guide.close,badge:guide.badge},statusPreserved:guide.status,fifthCondensed:true,fifthLines:compact.lines.map(t=>t.text),guideNote:guide.guideNote,noClipping:fy<=y&&footerTop+38+(foot.length-1)*35<=H-104,fullBleed:true,modelRun:guide.sections[4].forecast?.modelRun===true};
+ if(watermark)root.ShitouReportWatermark.apply(canvas,'all');
+ const audit={watermarked:watermark,watermarkStyle:watermark?'REFERENCE_DIAGONAL_V84':null,fields:guide.summary,width:W,height:H,minBodyFont:l.size,topSafeArea:140,bottomSafeArea:104,footerBottom:footerTop+38+(foot.length-1)*35,firstFourPreserved:true,firstFourText:trace,originalFirstFour:guide.sections.slice(0,4),headerPreserved:{title:guide.title,name:guide.name,code:guide.code,date:guide.date,close:guide.close,badge:guide.badge},statusPreserved:guide.status,fifthCondensed:true,fifthLines:compact.lines.map(t=>t.text),guideNote:guide.guideNote,noClipping:fy<=y&&footerTop+38+(foot.length-1)*35<=H-104,fullBleed:true,modelRun:guide.sections[4].forecast?.modelRun===true};
  canvas.dataset.researchAudit=JSON.stringify(audit);return [{width:W,height:H,dataset:{researchAudit:JSON.stringify(audit)},renderExportRegion(){return canvas;},toBlob(cb,type='image/png'){canvas.toBlob(cb,type);}}];
 }
 root.ShitouIPhoneSummary={pages,compactFifth};

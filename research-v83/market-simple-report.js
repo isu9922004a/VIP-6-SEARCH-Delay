@@ -5,8 +5,8 @@
  else root.ShitouMarketSimpleReport=api;
 })(globalThis,function(root){
 'use strict';
-const TITLE='大盤精簡分析',VERSION='V8.3.1',WATERMARK='石頭少爺台股分析'+VERSION+'版',W=1284,H=2778;
-const titleFor=watermarked=>TITLE+(watermarked?WATERMARK:'');
+const TITLE='大盤精簡分析',VERSION='V8.4',WATERMARK='石頭少爺台股分析'+VERSION+'版',W=1284,H=2778;
+const titleFor=()=>TITLE;
 const colors={background:'#071f32',card:'#10344f',border:'#28627d',text:'#f0f6fb',muted:'#b8d9e9',yellow:'#f7cf70',aqua:'#79e4d1',red:'#ff9a91'};
 const num=v=>Number.isFinite(v)?Number(v).toFixed(2):'待核對';
 function model(snapshot,{watermarked=false}={}){
@@ -113,7 +113,8 @@ function page(snapshot,{document:doc=root.document,watermarked=false}={}){
  }
  if(y>panelBottom-22)throw Error('大盤報告內容超過畫布安全區，已停止輸出避免裁切。');
  draw([VERSION+'｜1/1'],W-M-205,H-77,29,colors.muted,true);
- const audit={title:data.title,watermarked:data.watermarked,version:VERSION,width:W,height:H,date:data.date,close:data.close,bodyFont:layout.size,bodyBottom:y,safeBottom:panelBottom-22,noClipping:true,modelRun:data.modelRun,forecastState:data.forecastState,source:data.source,levels:data.levels,completeNarrative:true,blockCount:data.blocks.length};
+ if(watermarked)(root.ShitouReportWatermark||(typeof require==='function'?require('../report-watermark-v84.js'):null)).apply(canvas,'market');
+ const audit={watermarkStyle:watermarked?'REFERENCE_DIAGONAL_V84':null,title:data.title,watermarked:data.watermarked,version:VERSION,width:W,height:H,date:data.date,close:data.close,bodyFont:layout.size,bodyBottom:y,safeBottom:panelBottom-22,noClipping:true,modelRun:data.modelRun,forecastState:data.forecastState,source:data.source,levels:data.levels,completeNarrative:true,blockCount:data.blocks.length};
  canvas.dataset.researchAudit=JSON.stringify(audit);
  return {width:W,height:H,dataset:{researchAudit:JSON.stringify(audit)},renderExportRegion:()=>canvas,toBlob:(cb,type='image/png')=>canvas.toBlob(cb,type)};
 }
@@ -147,14 +148,15 @@ function shareCurrentImage(){
  }
  shareNotice('此瀏覽器無法直接分享圖片，請按「下載PNG」再從LINE聊天室傳送。');
 }
-async function open(watermarked=false){
+let opening=false;
+async function open(watermarked=false){if(opening)return null;opening=true;const triggers=["marketSimpleAnalysisButton","marketSimpleAnalysisWatermarkButton"].map(id=>root.document.getElementById(id)).filter(Boolean);triggers.forEach(b=>{b.disabled=true;b.setAttribute('aria-busy','true');});
  try{
   const snapshot=current(),date=snapshot.analysis.date;
   status('正在產生大盤圖片…');
   if(root.document.fonts?.ready)await root.document.fonts.ready;
   if(current().analysis.date!==date)throw Error('大盤資料已更新，請重新產生圖片。');
   const result=page(snapshot,{watermarked}),blob=await new Promise(resolve=>result.toBlob(resolve,'image/png'));
-  if(!blob?.size)throw Error('PNG產生失敗，請重新產生。');
+  if(!blob?.size)throw Error('PNG產生失敗，請重新產生。');if(current().analysis!==snapshot.analysis)throw Error('大盤資料已更新，請重新產生圖片。');
   cleanup();imageBlob=blob;
   const filename=VERSION+'_大盤精簡分析_'+(watermarked?'浮水印版':'無浮水印')+'_TAIEX_'+date+'.png';
   imageFile=typeof root.File==='function'?new root.File([blob],filename,{type:'image/png',lastModified:Date.now()}):null;
@@ -174,7 +176,7 @@ async function open(watermarked=false){
   if(!dialog.open)dialog.showModal();
   status('已產生大盤'+(watermarked?'浮水印版':'無浮水印版')+'精簡分析圖片，請預覽、下載或分享。');
   return result;
- }catch(e){status(e?.message||'大盤報告產生失敗');return null;}
+ }catch(e){status(e?.message||'大盤報告產生失敗');return null;}finally{opening=false;triggers.forEach(b=>{b.disabled=false;b.removeAttribute('aria-busy');});}
 }
 function init(){
  const binds=[['marketSimpleAnalysisButton',false],['marketSimpleAnalysisWatermarkButton',true]];
