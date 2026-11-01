@@ -31,6 +31,14 @@ const normalize=s=>String(s).replace(/[\s｜]/g,'');
   const version=await page.evaluate(()=>({display:ShitouReleaseV50.displayCode,badge:document.querySelector('.version-pill').textContent,title:document.title,chart:ShitouResearchChart.VERSION,context:ShitouStructureContext.VERSION}));
   assert.equal(version.display,currentVersion);assert.ok(version.badge.includes(currentVersion));assert.ok(version.title.includes(currentVersion));
   const controls=await page.evaluate(()=>['momentumScanButton','dayTradeScanButton','strongStockScanButton','towerRun','restaurantRun','structureRun'].map(id=>!!document.getElementById(id)));assert.ok(controls.every(Boolean));
+  assert.equal(await page.locator('#workspaceV831').count(),1);
+  assert.equal(await page.evaluate(()=>document.body.dataset.workspaceV831),'stock');
+  assert.equal(await page.locator('#result').isVisible(),false,'stock report must start collapsed');
+  await page.locator('#workspaceTabmarket').click();assert.equal(await page.locator('#marketAnalyzeButton').isVisible(),true);
+  await page.locator('#workspaceTabfilters').click();assert.equal(await page.locator('#momentumScanButton').isVisible(),true);
+  await page.locator('[data-filter="restaurant"]').click();assert.equal(await page.locator('#restaurantRun').isVisible(),true);
+  await page.locator('[data-filter="structure"]').click();assert.equal(await page.locator('#structureRun').isVisible(),true);
+  await page.locator('#workspaceTabstock').click();
   await page.evaluate(names=>{globalThis.__names=names;globalThis.resolveStockInput=async()=>{const code=document.getElementById('stockInput').value;return {code,officialName:__names[code],directory:{}};};globalThis.loadShitoAssistantEvidenceV47=async()=>null;},Object.fromEntries(fixture.snapshot.rows.map(x=>[x.code,x.name])));
   const results=[];let openingChecks=0;
   for(const record of fixture.records){
@@ -55,6 +63,12 @@ const normalize=s=>String(s).replace(/[\s｜]/g,'');
    for(const [pages,expected] of [[result.summary,result.summaryExpected],[result.full,result.expected]]){
     assert.ok(pages.every(x=>x.noClipping));for(const field of expected){const s=pages.flatMap(x=>x.fields).filter(x=>x.title.replace('（續）','')===field.title).map(x=>x.value).join('');assert.equal(normalize(s),normalize(field.value),record.code+' lost image field '+field.title);}
    }
+   await page.waitForFunction(()=>!!document.querySelector('#workspaceFourReportButton')&&!document.querySelector('#workspaceFourReportButton').disabled);
+   assert.equal(await page.locator('#result').isVisible(),false,'after lookup report stays collapsed');
+   assert.equal(await page.locator('#workspaceStockSummary').isVisible(),true);
+   await page.locator('#workspaceFourReportButton').click();
+   assert.equal(await page.locator('#researchStock').isVisible(),true,'four-strategy study opens inside overlay');
+   assert.equal(await page.locator('#workspaceReportToolbar').isVisible(),true);
    if(result.chart){
     assert.equal(result.chart.date,result.date);assert.equal(result.chart.lastDate,result.date);assert.ok(result.chart.barCount>=60&&result.chart.barCount<=120);
     await page.evaluate(()=>{globalThis.__selected=[];globalThis.__originalPreview=strongStockShowPagesV47;globalThis.strongStockShowPagesV47=(pages,opts)=>__selected.push({title:opts.title,prefix:opts.prefix,audits:pages.map(x=>JSON.parse(x.dataset.researchAudit))});});
@@ -68,9 +82,14 @@ const normalize=s=>String(s).replace(/[\s｜]/g,'');
    if(!result.chart&&record.code==='8039'){const url=await page.evaluate(()=>ShitouResearchReport.pages(ShitouResearchIntegration.getCurrentStock().analysis,{stockMode:true})[0].renderExportRegion().toDataURL('image/png'));fs.writeFileSync(path.join(out,'8039-summary.png'),Buffer.from(url.split(',')[1],'base64'));}
    const bounds=await page.evaluate(()=>[...document.querySelectorAll('#researchStock,#researchPanel,.version-pill')].map(x=>({id:x.id,left:x.getBoundingClientRect().left,right:x.getBoundingClientRect().right,scroll:x.scrollWidth,width:x.clientWidth})));assert.ok(bounds.every(x=>x.left>=0&&x.right<=428.5&&x.scroll<=x.width+1),JSON.stringify(bounds));
    const openingInput=page.locator('#researchStock input[aria-label="計畫交易日實際開盤價"]');if(await openingInput.count()){await page.locator('#researchStock .research-opening-calculator').evaluate(e=>e.open=true);await openingInput.fill(String(record.full.close));assert.match(await page.locator('#researchStock .research-opening-calculator [role=status]').textContent(),/開盤/);openingChecks++;}
+   await page.locator('#workspaceReportClose').click();
+   assert.equal(await page.locator('#result').isVisible(),false,'closing report returns to compact summary');
    console.log(JSON.stringify({code:result.code,state:result.state,summaryPages:result.summaryCount,chart:!!result.chart,entry:result.entry}));results.push(result);
   }
   assert.ok(openingChecks>0,'actual opening-price calculator was exercised');
+  await page.locator('#workspaceTabfilters').click();
+  await page.locator('.workspace-v831-advanced>summary').click();
+  await page.locator('#workspaceAdvancedResearchToggle').click();
   await page.selectOption('#researchKind','STRONG');
   for(const mode of ['EVALUATE','WAIT','AVOID','DATA','ALL']){
    await page.selectOption('#researchEntryTools select',mode);
