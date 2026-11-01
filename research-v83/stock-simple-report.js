@@ -47,6 +47,8 @@ function shareCurrentImage(){
  if(!blob?.size){shareNotice('圖片尚未備妥，請先重新產生報告。');return;}
  // All share/clipboard calls are started directly inside the click event.
  // Do not await image encoding or fetch before invoking native share.
+ const mobile=/iPhone|iPad|iPod|Android/i.test(nav?.userAgent||'')||(nav?.platform==='MacIntel'&&nav?.maxTouchPoints>1);
+ const clipboardAvailable=typeof nav?.clipboard?.write==='function'&&typeof root.ClipboardItem==='function';
  const supportedFileShare=typeof nav?.share==='function'&&file&&
   (typeof nav.canShare!=='function'||(()=>{try{return nav.canShare({files:[file]});}catch(_){return false;}})());
  const applyPending=value=>{sharePending=value;if(button)button.disabled=value;};
@@ -58,14 +60,15 @@ function shareCurrentImage(){
     '分享未完成：'+(error?.message||'裝置未支援')+'。可改用「下載 PNG」，從 LINE 聊天室傳送。');
   }).finally(()=>applyPending(false));
  };
- if(supportedFileShare){
+ // On desktop prefer copying the PNG for direct paste into the LINE desktop app.
+ if(supportedFileShare&&(mobile||!clipboardAvailable)){
   try{
    // Share the actual PNG file, not a webpage URL or a stock-report link.
    finish(nav.share({files:[file]}),'已交給系統分享流程；請在 LINE 聊天室確認是否送出。');
   }catch(error){shareNotice('開啟系統分享失敗：'+(error?.message||'請改用下載 PNG')+'。');}
   return;
  }
- if(typeof nav?.clipboard?.write==='function'&&typeof root.ClipboardItem==='function'){
+ if(clipboardAvailable){
   try{
    finish(nav.clipboard.write([new root.ClipboardItem({'image/png':blob})]),
     '✅ 已複製完整 PNG 圖片。請開啟 LINE 電腦版聊天室，按 Ctrl+V（Mac：⌘V）貼上後送出。');
