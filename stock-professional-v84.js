@@ -9,7 +9,7 @@ const clean=v=>String(v??'資料待確認').replace(/新ABC尚未建立/g,'新�
 function trendFor(report,stage,st){
  const ma=st?.s?.maCtx||null,close=Number(report?.close);
  const slope=String(ma?.slopeClass?.key||'').toLowerCase();
- const hasData=Number.isFinite(close)&&close>0&&/^20\\d{2}-?\\d{2}-?\\d{2}$/.test(String(report?.closeDate||''))&&
+ const hasData=Number.isFinite(close)&&close>0&&/^20\d{2}-?\d{2}-?\d{2}$/.test(String(report?.closeDate||''))&&
   Number.isFinite(ma?.value)&&ma.value>0&&Number.isFinite(ma?.slope)&&
   typeof ma?.above==='boolean'&&['up','down','flat'].includes(slope);
  const abc=String(st?.nStatus||stage?.sourceState?.nStatus||'').toLowerCase();
