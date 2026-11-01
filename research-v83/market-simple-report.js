@@ -105,7 +105,7 @@ function page(snapshot,{document:doc=root.document}={}){
  draw(['行情基準 '+data.date.replaceAll('-','/')+'｜收盤 '+num(data.close)+' 點'],M+IN,top+182,35,colors.muted);
  panel(bodyTop,panelBottom-bodyTop);draw(['明天可能怎麼走？該怎麼做？'],M+IN,bodyTop+52,43,colors.text,true);
  let y=bodyTop+78;
- const spare=Math.max(0,panelBottom-bodyTop-36-layout.total),spread=Math.min(13,spare/Math.max(1,layout.blocks.length-1));
+ const usedHeight=layout.blocks.reduce((sum,b)=>sum+b.height,0);const spare=Math.max(0,panelBottom-24-(bodyTop+78+usedHeight));const spread=Math.min(12,spare/Math.max(1,layout.blocks.length+1));
  for(const b of layout.blocks){
   draw(b.lines,M+IN,y+b.size,b.size,colors[b.tone]||(b.kind==='heading'?colors.muted:b.kind==='notice'?colors.yellow:b.kind==='footnote'?colors.muted:colors.text),b.bold,b.lineH);
   y+=b.height+spread;
