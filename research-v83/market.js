@@ -1,6 +1,6 @@
 'use strict';
 const $=id=>document.getElementById(id),M=ShitouIndependentMarket,F=ShitouForecastPreview,n=v=>String(+v.toFixed(2)),records=new Map(),models=new Map();
-let state=null;
+let state=null,reportSnapshot=null;
 function element(tag,text,cls){const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;}
 function draw(a,forecast){const bars=a.input.bars,visible=bars.slice(-40),future=forecast?.daily||[],W=680,H=320,L=74,R=20,T=25,B=45,total=visible.length+Math.max(5,future.length),values=[...visible.map(b=>b.close),...future.flatMap(b=>[b.low,b.high])],lo=Math.min(...values)*.995,hi=Math.max(...values)*1.005,x=i=>L+i*(W-L-R)/(total-1),y=v=>T+(hi-v)/(hi-lo)*(H-T-B),ma=k=>visible.map((_,i)=>{const end=bars.length-40+i+1;return bars.slice(end-k,end).reduce((s,b)=>s+b.close,0)/k;}),path=(values,start=0)=>values.map((v,i)=>(i?'L':'M')+x(i+start)+','+y(v)).join(' ');
  let svg=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="大盤指數歷史、均線與模型推演，單位為點">`;
@@ -11,10 +11,10 @@ function draw(a,forecast){const bars=a.input.bars,visible=bars.slice(-40),future
  if(future.length===1){const b=future[0],xx=x(40);svg+=`<rect x="${xx-5}" y="${y(b.high)}" width="10" height="${Math.max(1,y(b.low)-y(b.high))}" fill="#79e4d1" opacity=".25"/><line x1="${xx}" y1="${y(b.high)}" x2="${xx}" y2="${y(b.low)}" stroke="#79e4d1"/><circle cx="${xx}" cy="${y(b.median)}" r="3" fill="#79e4d1"/>`;}
  svg+=`<text x="${L}" y="15">指數（點）</text><text x="${L}" y="${H-20}">${visible[0].date}</text><text x="${cut}" y="${H-20}" text-anchor="end">${a.date}</text><text x="${W-R}" y="${H-20}" text-anchor="end">未來</text><text x="${W/2}" y="${H-2}">交易日（日K）</text></svg>`;$('market-chart').innerHTML=svg;
 }
-function render(){const type=$('market-type').value,data=records.get(type),a=M.analyze(data);state=a;
+function render(){const type=$('market-type').value,data=records.get(type),a=M.analyze(data);state=a;reportSnapshot=null;
  $('market-levels').replaceChildren();
  if(a.state!=='AVAILABLE'){$('market-source').textContent='尚未載入'+(type==='TAIEX'?'加權指數':'櫃買指數')+'行情；使用獨立指數資料來源。';$('market-verdict').textContent='等待指數資料';$('market-plain').textContent=a.reason;$('market-next').textContent='下一交易日模型推斷：尚無結果。';$('market-chart').replaceChildren(element('p','尚無指數歷史，暫不畫線。','muted'));$('market-scenarios').textContent='指數資料尚未齊全，暫不填關卡。';$('market-evidence').textContent='等待同一指數的完成日K與來源。';return;}
- const f=F.evaluate(a.input,models.get(type));$('market-source').textContent=(a.illustration?'獨立合成指數示意，非真實行情｜':'指數歷史｜')+`${data.name||type}｜截止 ${a.date}｜來源：${data.dailySeriesMeta.source}`;
+ const f=F.evaluate(a.input,models.get(type));reportSnapshot={analysis:a,forecast:f,source:{name:data.name||type,source:data.dailySeriesMeta.source}};$('market-source').textContent=(a.illustration?'獨立合成指數示意，非真實行情｜':'指數歷史｜')+`${data.name||type}｜截止 ${a.date}｜來源：${data.dailySeriesMeta.source}`;
  $('market-verdict').textContent=a.trend+(a.illustration?'（技術示意）':'（歷史技術）');$('market-plain').textContent=a.conclusion;
  $('market-next').textContent=f.state==='UNAVAILABLE'?'下一交易日模型推斷：尚無結果；不把歷史趨勢當成明日預測。':`【Kronos指數實跑｜${f.dates[0]}】${f.label}，${f.openingLabel}；開盤中位數 ${n(f.opening.median)} 點、收盤中位數 ${n(f.closing.median)} 點。多 ${+(f.bullish*100).toFixed(1)}%／空 ${+(f.bearish*100).toFixed(1)}%／平 ${+(f.flat*100).toFixed(1)}%；32條取樣占比不是實際勝率。`;
  const levels=[['指數收盤',a.close,'本指數研究基準'],['上方候選壓力',a.resistance,'此前20根日K最高點'],['前20日低點關卡',a.support,a.close<a.support?'已跌破，觀察能否收回':'下方候選支撐'],['20日均線',a.ma20,'近20個交易日平均收盤']];
@@ -23,4 +23,4 @@ function render(){const type=$('market-type').value,data=records.get(type),a=M.a
  $('market-evidence').replaceChildren();for(const line of [`MA5 ${n(a.ma5)}、MA20 ${n(a.ma20)}、MA60 ${n(a.ma60)} 點；MA20比3個交易日前${a.slope20>=0?'增加':'減少'} ${n(Math.abs(a.slope20))} 點。`,'候選支壓不含最新一根日K；只代表歷史關卡，不保證守住。',f.reason,f.provenance?.outputQuality?.warning||'','圖中只顯示模型收盤取樣範圍，不把它畫成已確認的未來K棒。','模型推演與上述技術劇本分開顯示；模型輸入與輸出只對應此指數。'])$('market-evidence').append(element('p',line));draw(a,f);
 }
 async function load(){ $('market-refresh').disabled=true;$('market-error').textContent='';try{const base=new URL('../',document.currentScript?.src||new URL('research-v83/market.js',location.href));const get=async path=>{const r=await fetch(new URL(path,base),{cache:'no-store',signal:AbortSignal.timeout(20000)});if(!r.ok)throw Error('資料暫無法取得');return r.json();};const history=await get('data/index/TAIEX.json');records.set('TAIEX',history);models.clear();try{const f=await get('data/kronos/TAIEX.json'),today=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Taipei'}),parts=new Intl.DateTimeFormat('en-GB',{hour:'2-digit',hourCycle:'h23',timeZone:'Asia/Taipei'}).format(new Date());if(f.kind!=='KRONOS_INFERENCE'||f.model?.id!=='NeoQuasar/Kronos-small'||f.codeCommit!=='67b630e67f6a18c9e9be918d9b4337c960db1e9a'||!f.targetDates?.[0]||f.targetDates[0]<today||f.targetDates[0]===today&&Number(parts)>=15)throw Error('模型結果過期或未核驗，等待更新。');models.set('TAIEX',f);}catch(e){$('market-error').textContent=e.message;}}catch(e){$('market-error').textContent=e.message;}finally{render();$('market-refresh').disabled=false;}}
-$('market-refresh').onclick=load;window.independentMarketState=()=>state;load();
+$('market-refresh').onclick=load;window.independentMarketState=()=>state;window.independentMarketReportSnapshot=()=>reportSnapshot;load();
