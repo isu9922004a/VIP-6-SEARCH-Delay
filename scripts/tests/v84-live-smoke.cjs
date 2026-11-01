@@ -12,6 +12,29 @@ try{const page=await browser.newPage({viewport:{width:428,height:926},isMobile:t
  await page.waitForFunction(()=>shitouGetLastReportV82()?.code==='2313'||document.querySelector('#error')?.textContent.trim(),{},{timeout:120000});
  const state=await page.evaluate(()=>({code:shitouGetLastReportV82()?.code,date:shitouGetLastReportV82()?.closeDate,error:document.querySelector('#error')?.textContent}));assert.equal(state.code,'2313',JSON.stringify(state));checks.push(state);console.log('PASS live query',state);
  await page.evaluate(()=>ShitouWorkspaceV831.openReport('full'));
+ // V8.4.1 layout regression: two image cards must not overlap or overflow
+ // when nested inside the desktop two-column copy-actions grid.
+ for(const spec of [{width:1440,expectTwo:true,maxWidth:null},{width:1440,expectTwo:false,maxWidth:460},{width:428,expectTwo:false,maxWidth:null}]){
+  await page.setViewportSize({width:spec.width,height:926});
+  const layout=await page.evaluate(maxWidth=>{
+   const actions=document.querySelector('#stockReportActionsPanel .copy-actions'),grid=actions?.querySelector('.stock-image-generator-grid');
+   if(!grid)throw Error('Stock image generator grid is missing');
+   grid.style.maxWidth=maxWidth?maxWidth+'px':'';
+   const box=e=>{const r=e.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};};
+   const cards=[...grid.querySelectorAll(':scope > .stock-image-generator-card')],buttons=cards.flatMap(c=>[...c.querySelectorAll('.stock-image-generator-actions button')].map(b=>({button:box(b),card:box(c)})));
+   const cr=cards.map(box),inside=buttons.every(({button,card})=>button.width>0&&button.left>=card.left-2&&button.right<=card.right+2),separated=cr.length===2&&!(Math.min(cr[0].right,cr[1].right)-Math.max(cr[0].left,cr[1].left)>2&&Math.min(cr[0].bottom,cr[1].bottom)-Math.max(cr[0].top,cr[1].top)>2);
+   return {cardCount:cards.length,buttonCount:buttons.length,inside,separated,twoColumns:cr.length===2&&Math.abs(cr[0].top-cr[1].top)<3,gridWidth:box(grid).width,outerWidth:box(actions).width,gridOverflow:grid.scrollWidth>grid.clientWidth+2};
+  },spec.maxWidth);
+  assert.equal(layout.cardCount,2,JSON.stringify(layout));assert.equal(layout.buttonCount,4,JSON.stringify(layout));
+  assert.equal(layout.inside,true,'image buttons must stay inside their cards '+JSON.stringify(layout));
+  assert.equal(layout.separated,true,'stock image cards must not overlap '+JSON.stringify(layout));
+  assert.equal(layout.gridOverflow,false,'stock image grid must not overflow '+JSON.stringify(layout));
+  assert.equal(layout.twoColumns,spec.expectTwo,'incorrect responsive card count '+JSON.stringify({spec,layout}));
+  if(spec.expectTwo)assert.ok(layout.gridWidth>=layout.outerWidth-4,'nested grid must span both desktop columns: '+JSON.stringify(layout));
+  const label=spec.maxWidth?'narrow-container':spec.width+'px';
+  await page.locator('#stockReportActionsPanel .stock-image-generator-grid').screenshot({path:path.join(out,'export-cards-'+label+'.png')});
+  checks.push({layout:label,...layout});console.log('PASS export card layout',label);
+ }
  for(const id of ['generateStockProfessionalImageButton','generateStockProfessionalWatermarkImageButton']){
   await page.locator('#'+id).click();await page.waitForFunction(()=>document.querySelector('#imagePreviewModal')?.classList.contains('show')&&document.querySelector('#imageDownloadLink')?.href.startsWith('blob:'),{},{timeout:45000});
   const [download]=await Promise.all([page.waitForEvent('download'),page.locator('#imageDownloadLink').click()]);const file=path.join(out,id+'.png');await download.saveAs(file);const bytes=fs.readFileSync(file);assert.equal(bytes.readUInt32BE(16),1284);assert.equal(bytes.readUInt32BE(20),2778);checks.push({button:id,bytes:bytes.length});await page.evaluate(()=>closeInfographicPreviewV3328());console.log('PASS live report',id);
