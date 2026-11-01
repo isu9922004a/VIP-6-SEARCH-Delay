@@ -20,12 +20,22 @@ function page(a,{document:doc=root.document}={}){const data=model(a),canvas=doc.
  if(!audit.noClipping)throw Error('獨立報告超出安全區，停止匯出。');canvas.dataset.researchAudit=JSON.stringify(audit);return {width:W,height:H,dataset:{researchAudit:JSON.stringify(audit)},renderExportRegion:()=>canvas,toBlob:(cb,type='image/png')=>canvas.toBlob(cb,type)};
 }
 let activeUrl=null;
-function current(){const stock=root.ShitouResearchIntegration?.getCurrentStock?.();if(stock?.analysis){const value=root.document.getElementById('stockInput')?.value?.trim();if(value&&value!==String(stock.analysis.code)&&value!==stock.analysis.name)throw Error('輸入已變更，請先完成這檔股票的查詢。');return stock.analysis;}const p=root.previewState?.();if(p?.analysis)return p.analysis;throw Error('請先完成個股查詢，再產生精簡分析圖片。');}
+// The stock picker displays "名稱 | 代號"; compare its two exact fields,
+ // not the entire decorated input, while still rejecting a different stock.
+function matchesCurrentStockInput(value,a){
+ const entered=String(value??'').normalize('NFKC').trim();
+ if(!entered)return true; // Preserve the existing empty-input behavior.
+ const code=String(a?.code??'').normalize('NFKC').trim(),name=String(a?.name??'').normalize('NFKC').trim();
+ if(entered===code||entered===name)return true;
+ const fields=entered.split(/\s*[|｜／/、，,()（）]\s*/).map(s=>s.trim()).filter(Boolean);
+ return fields.length===2&&((fields[0]===name&&fields[1]===code)||(fields[0]===code&&fields[1]===name));
+}
+function current(){const stock=root.ShitouResearchIntegration?.getCurrentStock?.();if(stock?.analysis){const value=root.document.getElementById('stockInput')?.value;if(!matchesCurrentStockInput(value,stock.analysis))throw Error('輸入已變更，請先完成這檔股票的查詢。');return stock.analysis;}const p=root.previewState?.();if(p?.analysis)return p.analysis;throw Error('請先完成個股查詢，再產生精簡分析圖片。');}
 function status(text){let node=root.document.getElementById('simpleStockReportStatus');if(!node){node=root.document.createElement('p');node.id='simpleStockReportStatus';node.setAttribute('role','status');root.document.getElementById('stockSimpleAnalysisButton')?.parentElement.after(node);}node.textContent=text;}
 function close(){root.document.getElementById('simpleStockReportDialog')?.close();if(activeUrl){URL.revokeObjectURL(activeUrl);activeUrl=null;}}
 async function open(){try{const a=current();await root.ShitouKronosData?.ensure(a);if(current().code!==a.code||current().date!==a.date)throw Error('查詢已變更，請重新產生目前個股的報告。');if(root.document.fonts?.ready)await root.document.fonts.ready;const result=page(a),blob=await new Promise(resolve=>result.toBlob(resolve));if(!blob)throw Error('PNG產生失敗。');if(activeUrl)URL.revokeObjectURL(activeUrl);activeUrl=URL.createObjectURL(blob);let dialog=root.document.getElementById('simpleStockReportDialog');if(!dialog){dialog=root.document.createElement('dialog');dialog.id='simpleStockReportDialog';dialog.setAttribute('aria-label',TITLE+'圖片預覽');root.document.body.append(dialog);}dialog.replaceChildren();const title=root.document.createElement('h2');title.textContent=TITLE+'｜'+a.name+'（'+a.code+'）｜'+(root.ShitouReleaseV50?.displayCode||'V8.3');const image=root.document.createElement('img');image.src=activeUrl;image.alt=TITLE+'完整圖片';const controls=root.document.createElement('div');controls.className='simple-stock-report-controls';const download=root.document.createElement('a');download.href=activeUrl;download.download=(root.ShitouReleaseV50?.displayCode||'V8.3')+'_個股精簡分析_'+a.name+'_'+a.code+'_'+a.date+'.png';download.textContent='下載 PNG';download.className='mini-btn';const dismiss=root.document.createElement('button');dismiss.type='button';dismiss.textContent='關閉';dismiss.className='mini-btn';dismiss.onclick=close;controls.append(download,dismiss);dialog.append(title,controls,image);dialog.dataset.reportAudit=result.dataset.researchAudit;if(!dialog.open)dialog.showModal();status('已產生 '+a.name+'（'+a.code+'）個股精簡分析圖片。');return result;
  }catch(e){status(e.message);return null;}}
 function init(){const button=root.document?.getElementById('stockSimpleAnalysisButton');if(button&&!button.dataset.simpleBound){button.dataset.simpleBound='true';button.setAttribute('aria-haspopup','dialog');button.addEventListener('click',open);}}
 if(root.document){if(root.document.readyState==='loading')root.document.addEventListener('DOMContentLoaded',init,{once:true});else init();}
-return {TITLE,TOPIC,model,page,open,close,init};
+return {TITLE,TOPIC,model,page,open,close,init,matchesCurrentStockInput};
 });
