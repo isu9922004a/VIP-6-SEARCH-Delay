@@ -29,7 +29,7 @@ test('frontend and report declare the current release and local assets use expli
  const src=fs.readFileSync(path.join(root,'research-report-v1.js'),'utf8');assert.ok(src.includes(v.displayCode));
  for(const file of ['version-v50.js','research-report-v1.js'])assert.ok(html.includes(file+'?v='+v.displayCode));
  for(const entry of html.matchAll(/<(?:script|link)\b[^>]*(?:src|href)="(\.\/[^"\s]+)"/g)){
-  const url=entry[1];if(/\.(?:js|css)\?v=/.test(url))assert.match(url,/\?v=V8\.(?:2\.\d+|3)(?:-R\d+)?(?:-[A-Z0-9]+)*$/,url);
+  const url=entry[1];if(/\.(?:js|css)\?v=/.test(url))assert.match(url,/\?v=V8\.(?:2\.\d+|3(?:\.1)?)(?:-R\d+)?(?:-[A-Z0-9]+)*$/,url);
  }
  const css=fs.readFileSync(path.join(root,'research-mobile-v1.css'),'utf8');assert.match(css,/research-stock-card/);assert.match(css,/@media\(max-width:600px\)/);
 });
