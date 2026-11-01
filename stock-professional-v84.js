@@ -18,9 +18,7 @@ function trendFor(report,stage,st){
  if(!hasData)return Object.freeze({label:'資料不足',detail:'日20MA、斜率或完成交易日未核實；暫不判斷多空。',tone:'neutral',color:MUTED,verified:false,abc,phase,wave});
  const abcNote=abc==='failed'?'原ABC結構失效':abc==='confirmed'?'ABC已確認':abc==='abc_ready'?'ABC待突破':'ABC仍在形成';
  let label,detail,role;
- if(abc==='failed'||phase==='FAILED'){
-  label='結構受損';role='red';detail='原ABC結構已失效；短線均線與交易防守須重新核對。';
- }else if(ma.above&&slope==='up'){
+ if(ma.above&&slope==='up'){
   if(wave==='LATE_EXTENSION'){
    label='強勢上行';role='green';detail='股價在上升日20MA上方，但已延伸；留意過熱與追價風險。';
   }else{
@@ -40,12 +38,51 @@ function trendFor(report,stage,st){
  const note=abc==='failed'?'':('｜'+abcNote);
  return Object.freeze({label,detail:detail+note,tone:role,color:tone[role],verified:true,abc,phase,wave,ma20:ma.value,slope:ma.slope,above:ma.above});
 }
+// Short-term state is a separate, descriptive view of completed daily K bars.
+// It never changes ABC, trading gates, stop levels, or the source report.
+function shortTermFor(report,medium,st){
+ const rows=Array.isArray(report?.dailySeries)?report.dailySeries:[];
+ const last=rows[rows.length-1],prev=rows[rows.length-2];
+ const date=v=>String(v||'').replaceAll('/','-').slice(0,10);
+ const validPrice=v=>typeof v==='number'&&Number.isFinite(v)&&v>0;
+ const close=report?.close;
+ const verified=rows.length>=6&&validPrice(close)&&validPrice(last?.close)&&validPrice(prev?.close)&&
+  date(last?.date)===date(report?.closeDate)&&Math.abs(last.close-close)<=Math.max(.02,close*.0001)&&
+  rows.slice(-6).every(r=>validPrice(r?.close)&&/^\d{4}-\d{2}-\d{2}$/.test(date(r?.date)));
+ if(!verified)return Object.freeze({label:'短線資料不足',tone:'neutral',color:MUTED,verified:false,
+  detail:'缺少一致的最近6根完成日K，無法核驗5MA與單日變化。',ma5:null,changePct:null});
+ const ma5=rows.slice(-5).reduce((sum,r)=>sum+r.close,0)/5;
+ const prevMa5=rows.slice(-6,-1).reduce((sum,r)=>sum+r.close,0)/5;
+ const changePct=(close/prev.close-1)*100,above5=close>=ma5;
+ const nStatus=String(st?.nStatus||'').toLowerCase(),nPhase=String(st?.nPhase||'').toUpperCase();
+ const failure=nStatus==='failed'||nPhase==='FAILED';
+ let label,role,detail;
+ if(failure){label='結構受損';role='red';detail='ABC/N字原結構失效，先核對防守與新結構。';}
+ else if(changePct<=-5&&!above5){label='急跌轉弱';role='red';detail='單日明顯下跌且跌破5MA，短線先觀察止跌。';}
+ else if(changePct<=-5){label='急跌警戒';role='red';detail='單日明顯下跌，即使仍在5MA上方也應提高警戒。';}
+ else if(!above5&&changePct<0){label='短線轉弱';role='red';detail='收盤跌破5MA且當日續跌，短線動能偏弱。';}
+ else if(!above5&&changePct>0){label='反彈觀察';role='orange';detail='當日反彈但尚未站回5MA，不視為正式轉強。';}
+ else if(!above5){label='弱勢整理';role='orange';detail='收盤仍在5MA下方，等待重新站回確認。';}
+ else if(changePct>0&&ma5>=prevMa5){label='短線續強';role='green';detail='收盤在5MA上方，且當日上漲、5MA未轉降。';}
+ else if(changePct<0){label='回檔觀察';role='orange';detail='當日拉回，但收盤仍守在5MA上方。';}
+ else{label='整理觀察';role='orange';detail='短線未形成持續推進的確認證據。';}
+ const vol=last?.volume,prevVol=prev?.volume;
+ const volumeChangePct=validPrice(vol)&&validPrice(prevVol)?(vol/prevVol-1)*100:null;
+ return Object.freeze({label,detail,tone:role,color:tone[role],verified:true,ma5,prevMa5,above5,changePct,volumeChangePct,nStatus,nPhase,mediumLabel:medium?.label||'資料不足'});
+}
+function trendSummary(medium,short){
+ if(!medium.verified&&!short.verified)return '中期與短線資料不足，暫不作出方向結論。';
+ const mid=medium.verified?'20MA '+Number(medium.ma20).toFixed(2)+(medium.above?' 上方':' 下方'):'20MA待核驗';
+ const shortText=short.verified?'日'+(short.changePct>=0?'漲':'跌')+Math.abs(short.changePct).toFixed(2)+'%，'+(short.above5?'站上':'跌破')+'5MA '+short.ma5.toFixed(2):'短線日K／5MA待核驗';
+ const volume=short.verified&&short.volumeChangePct!==null?'｜日量較前日'+(short.volumeChangePct>=0?'增':'減')+Math.abs(short.volumeChangePct).toFixed(0)+'%':'';
+ return '中期：'+mid+'｜短線：'+shortText+volume+'；到價仍須核對交易條件。';
+}
 function render(report){
  if(!report?.code&&!report?.stock)throw Error('請先完成個股查詢');
  const st=root.stockInfographicStateV3328(report),layer=root.buildEducationLayerV46(report),L=layer.supportResistanceConfluence;
  const source=root.ShitouReportLayoutV563.captureProfessional(()=>renderStockProfessionalBaseV51(report));
  const captured=JSON.parse(decodeURIComponent(source.dataset.professionalLayoutContent||'%7B%7D'));
- const stage=root.stockStageDisplayAdapterV53245(report),trend=trendFor(report,stage,st),risk=layer.decisionRiskState,exit=layer.exitManagementState;
+ const stage=root.stockStageDisplayAdapterV53245(report),trend=trendFor(report,stage,st),shortTrend=shortTermFor(report,trend,st),risk=layer.decisionRiskState,exit=layer.exitManagementState;
  const c=root.document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d'),sections=[],texts=[];
 
  const font=(size,bold=true)=>{x.font=`${bold?800:600} ${size}px "Microsoft JhengHei","Noto Sans TC","Segoe UI Emoji",sans-serif`;x.textBaseline='top';x.textAlign='left';};
@@ -66,9 +103,15 @@ function render(report){
  text('V8.4｜個股專業分析',1024,98,222,20,{size:15,min:13,color:'#b5cce2'});
  text(`${root.marketNameZh(report.market)}｜最新交易日 ${report.closeDate||'待確認'}｜資料來源：${root.sourceNameZh(report.source)}`,M,105,970,29,{size:21,min:16,color:'#fff'});section('header',0,142);
  panel(M,158,I,149,'#F4F9FD','#CEDDEB');x.fillStyle=trend.color;x.fillRect(M,169,6,125);
- text('📈 目前行情趨勢｜結構狀態與風險',M+23,174,I-46,32,{size:27,color:NAVY});
- text(trend.label,M+23,212,I-46,49,{size:43,min:28,color:trend.color});
- text(trend.detail,M+23,265,I-46,34,{size:23,min:17,color:INK});section('stage',158,149);
+ text('📈 行情雙層判讀｜趨勢不等於進場許可',M+23,168,I-46,30,{size:26,min:21,color:NAVY});
+ const split=M+I/2;
+ x.strokeStyle='#CEDDEB';x.lineWidth=2;x.beginPath();x.moveTo(split,202);x.lineTo(split,264);x.stroke();
+ text('中期趨勢（20MA）',M+23,204,I/2-47,26,{size:20,min:17,color:MUTED});
+ text(trend.label,M+23,228,I/2-47,40,{size:36,min:26,color:trend.color});
+ text('短線狀態（5MA／日K）',split+18,204,I/2-52,26,{size:20,min:17,color:MUTED});
+ text(shortTrend.label,split+18,228,I/2-52,40,{size:36,min:26,color:shortTrend.color});
+ text(trendSummary(trend,shortTrend),M+23,271,I-46,34,{size:19,min:13,color:INK,line:1.06});
+ section('stage',158,149);
  const half=(I-G)/2,audienceY=324,audienceH=212;
  for(const [i,title,action,body,color] of [
   [0,'👤 我現在沒有持股',root.v46ImageHeadline(risk),root.v46ActionFlowV511(report,layer).ifPass,risk.tone==='red'?tone.red:tone.orange],
@@ -117,8 +160,8 @@ function render(report){
  [['公司營運',status(assistant?.operatingGateEvidence)],['法人買盤',status(assistant?.capitalGateEvidence)],['主要成交密集區（估算）',poc?.status==='pass'?`${poc.pocLower?.toFixed(2)}～${poc.pocUpper?.toFixed(2)} 元`:'資料待確認']].forEach(([title,value],i)=>{const px=M+i*(third+G);panel(px,footY+38,third,60);text(title,px+12,footY+44,third-24,24,{size:18,min:15});text(value,px+12,footY+70,third-24,22,{size:19,min:15,color:i===2?tone.blue:tone.orange});});
  text('V8.4｜盤後完成日K研究；條件分不是勝率，到價仍須確認，交易風險自負。',M,H-20,I,18,{size:14,min:12,color:MUTED,bold:false});section('assistant-footer',footY,H-footY);
  c.dataset.reportMode='professional';c.dataset.unifiedReport='true';c.dataset.iphoneFullScreen='1284x2778';c.dataset.fullBleed='true';c.dataset.reportText=encodeURIComponent(JSON.stringify(texts));
- c.dataset.layoutAudit=encodeURIComponent(JSON.stringify({version:'V8.4',template:'USER_REFERENCE_PROFESSIONAL',code:report.code||report.stock,date:report.closeDate,width:W,height:H,noOverlap:sections.every((s,i)=>!i||s.top>=sections[i-1].bottom),sections,metricCount:metrics.length,levelCount:levels.length,abc:{A:st.A,B:st.B,C:st.C},close:L.close,trend,referenceLayout:true}));
+ c.dataset.layoutAudit=encodeURIComponent(JSON.stringify({version:'V8.4',template:'USER_REFERENCE_PROFESSIONAL',code:report.code||report.stock,date:report.closeDate,width:W,height:H,noOverlap:sections.every((s,i)=>!i||s.top>=sections[i-1].bottom),sections,metricCount:metrics.length,levelCount:levels.length,abc:{A:st.A,B:st.B,C:st.C},close:L.close,trend,shortTrend,referenceLayout:true}));
  return c;
 }
-root.ShitouProfessionalV84=Object.freeze({render,trendFor,tone});root.renderStockProfessionalInfographicV51=render;
+root.ShitouProfessionalV84=Object.freeze({render,trendFor,shortTermFor,trendSummary,tone});root.renderStockProfessionalInfographicV51=render;
 })(globalThis);
