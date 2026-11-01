@@ -19,7 +19,7 @@ function page(a,{document:doc=root.document}={}){const data=model(a),canvas=doc.
  const audit={title:TITLE,topic:TOPIC,width:W,height:H,code:data.code,date:data.date,version:data.version,bodyFont:layout.body,bodyBottom:y,onlyFifthSection:true,completeNarrative:true,sourceBlocks:data.blocks,modelRun:data.modelRun,sourceState:data.sourceState,noClipping:y<=H-104,topSafeArea:140,bottomSafeArea:104};
  if(!audit.noClipping)throw Error('獨立報告超出安全區，停止匯出。');canvas.dataset.researchAudit=JSON.stringify(audit);return {width:W,height:H,dataset:{researchAudit:JSON.stringify(audit)},renderExportRegion:()=>canvas,toBlob:(cb,type='image/png')=>canvas.toBlob(cb,type)};
 }
-let activeUrl=null;
+let activeUrl=null,activeImageBlob=null,activeImageFile=null,sharePending=false;
 // The stock picker displays "名稱 | 代號"; compare its two exact fields,
  // not the entire decorated input, while still rejecting a different stock.
 function matchesCurrentStockInput(value,a){
@@ -32,10 +32,51 @@ function matchesCurrentStockInput(value,a){
 }
 function current(){const stock=root.ShitouResearchIntegration?.getCurrentStock?.();if(stock?.analysis){const value=root.document.getElementById('stockInput')?.value;if(!matchesCurrentStockInput(value,stock.analysis))throw Error('輸入已變更，請先完成這檔股票的查詢。');return stock.analysis;}const p=root.previewState?.();if(p?.analysis)return p.analysis;throw Error('請先完成個股查詢，再產生精簡分析圖片。');}
 function status(text){let node=root.document.getElementById('simpleStockReportStatus');if(!node){node=root.document.createElement('p');node.id='simpleStockReportStatus';node.setAttribute('role','status');root.document.getElementById('stockSimpleAnalysisButton')?.parentElement.after(node);}node.textContent=text;}
-function close(){root.document.getElementById('simpleStockReportDialog')?.close();if(activeUrl){URL.revokeObjectURL(activeUrl);activeUrl=null;}}
-async function open(){try{const a=current();await root.ShitouKronosData?.ensure(a);if(current().code!==a.code||current().date!==a.date)throw Error('查詢已變更，請重新產生目前個股的報告。');if(root.document.fonts?.ready)await root.document.fonts.ready;const result=page(a),blob=await new Promise(resolve=>result.toBlob(resolve));if(!blob)throw Error('PNG產生失敗。');if(activeUrl)URL.revokeObjectURL(activeUrl);activeUrl=URL.createObjectURL(blob);let dialog=root.document.getElementById('simpleStockReportDialog');if(!dialog){dialog=root.document.createElement('dialog');dialog.id='simpleStockReportDialog';dialog.setAttribute('aria-label',TITLE+'圖片預覽');root.document.body.append(dialog);}dialog.replaceChildren();const title=root.document.createElement('h2');title.textContent=TITLE+'｜'+a.name+'（'+a.code+'）｜'+(root.ShitouReleaseV50?.displayCode||'V8.3');const image=root.document.createElement('img');image.src=activeUrl;image.alt=TITLE+'完整圖片';const controls=root.document.createElement('div');controls.className='simple-stock-report-controls';const download=root.document.createElement('a');download.href=activeUrl;download.download=(root.ShitouReleaseV50?.displayCode||'V8.3')+'_個股精簡分析_'+a.name+'_'+a.code+'_'+a.date+'.png';download.textContent='下載 PNG';download.className='mini-btn';const dismiss=root.document.createElement('button');dismiss.type='button';dismiss.textContent='關閉';dismiss.className='mini-btn';dismiss.onclick=close;controls.append(download,dismiss);dialog.append(title,controls,image);dialog.dataset.reportAudit=result.dataset.researchAudit;if(!dialog.open)dialog.showModal();status('已產生 '+a.name+'（'+a.code+'）個股精簡分析圖片。');return result;
+function close(){
+ root.document.getElementById('simpleStockReportDialog')?.close();
+ if(activeUrl){URL.revokeObjectURL(activeUrl);activeUrl=null;}
+ activeImageBlob=null;activeImageFile=null;
+}
+function shareNotice(message){
+ const node=root.document.getElementById('simpleStockShareStatus');
+ if(node)node.textContent=message;
+}
+function shareCurrentImage(){
+ const blob=activeImageBlob,file=activeImageFile,button=root.document.getElementById('simpleStockLineShareButton'),nav=root.navigator;
+ if(sharePending)return;
+ if(!blob?.size){shareNotice('圖片尚未備妥，請先重新產生報告。');return;}
+ // All share/clipboard calls are started directly inside the click event.
+ // Do not await image encoding or fetch before invoking native share.
+ const supportedFileShare=typeof nav?.share==='function'&&file&&
+  (typeof nav.canShare!=='function'||(()=>{try{return nav.canShare({files:[file]});}catch(_){return false;}})());
+ const applyPending=value=>{sharePending=value;if(button)button.disabled=value;};
+ const finish=(request,success)=>{
+  applyPending(true);
+  Promise.resolve(request).then(()=>shareNotice(success)).catch(error=>{
+   shareNotice(error?.name==='AbortError'?
+    '已取消系統分享；圖片仍保留，可再次按分享。':
+    '分享未完成：'+(error?.message||'裝置未支援')+'。可改用「下載 PNG」，從 LINE 聊天室傳送。');
+  }).finally(()=>applyPending(false));
+ };
+ if(supportedFileShare){
+  try{
+   // Share the actual PNG file, not a webpage URL or a stock-report link.
+   finish(nav.share({files:[file]}),'已交給系統分享流程；請在 LINE 聊天室確認是否送出。');
+  }catch(error){shareNotice('開啟系統分享失敗：'+(error?.message||'請改用下載 PNG')+'。');}
+  return;
+ }
+ if(typeof nav?.clipboard?.write==='function'&&typeof root.ClipboardItem==='function'){
+  try{
+   finish(nav.clipboard.write([new root.ClipboardItem({'image/png':blob})]),
+    '✅ 已複製完整 PNG 圖片。請開啟 LINE 電腦版聊天室，按 Ctrl+V（Mac：⌘V）貼上後送出。');
+  }catch(error){shareNotice('複製圖片失敗：'+(error?.message||'權限不足')+'。請先下載 PNG，再到 LINE 傳送。');}
+  return;
+ }
+ shareNotice('此瀏覽器不支援直接分享或複製 PNG。請先按「下載 PNG」，再從 LINE 聊天室傳送。手機建議使用 Safari 或 Chrome 開啟。');
+}
+async function open(){try{const a=current();await root.ShitouKronosData?.ensure(a);if(current().code!==a.code||current().date!==a.date)throw Error('查詢已變更，請重新產生目前個股的報告。');if(root.document.fonts?.ready)await root.document.fonts.ready;const result=page(a),blob=await new Promise(resolve=>result.toBlob(resolve));if(!blob?.size)throw Error('PNG產生失敗。');if(activeUrl)URL.revokeObjectURL(activeUrl);activeUrl=URL.createObjectURL(blob);activeImageBlob=blob;let dialog=root.document.getElementById('simpleStockReportDialog');if(!dialog){dialog=root.document.createElement('dialog');dialog.id='simpleStockReportDialog';dialog.setAttribute('aria-label',TITLE+'圖片預覽');root.document.body.append(dialog);}dialog.replaceChildren();const title=root.document.createElement('h2');title.textContent=TITLE+'｜'+a.name+'（'+a.code+'）｜'+(root.ShitouReleaseV50?.displayCode||'V8.3');const image=root.document.createElement('img');image.src=activeUrl;image.alt=TITLE+'完整圖片';const controls=root.document.createElement('div');controls.className='simple-stock-report-controls';const download=root.document.createElement('a');download.href=activeUrl;download.download=(root.ShitouReleaseV50?.displayCode||'V8.3')+'_個股精簡分析_'+a.name+'_'+a.code+'_'+a.date+'.png';download.textContent='下載 PNG';download.className='mini-btn';activeImageFile=typeof root.File==='function'?new root.File([blob],download.download,{type:'image/png',lastModified:Date.now()}):null;const share=root.document.createElement('button');share.type='button';share.id='simpleStockLineShareButton';share.className='mini-btn';share.textContent='📤 分享圖片到 LINE';share.addEventListener('click',shareCurrentImage);const dismiss=root.document.createElement('button');dismiss.type='button';dismiss.textContent='關閉';dismiss.className='mini-btn';dismiss.onclick=close;controls.append(download,share,dismiss);const shareStatus=root.document.createElement('p');shareStatus.id='simpleStockShareStatus';shareStatus.className='simple-stock-report-share-status';shareStatus.setAttribute('role','status');shareStatus.setAttribute('aria-live','polite');shareStatus.textContent='手機：點分享後選 LINE 聊天室；電腦：不支援直接分享時會複製圖片，貼到 LINE 電腦版即可。';dialog.append(title,controls,shareStatus,image);dialog.dataset.reportAudit=result.dataset.researchAudit;if(!dialog.open)dialog.showModal();status('已產生 '+a.name+'（'+a.code+'）個股精簡分析圖片。');return result;
  }catch(e){status(e.message);return null;}}
 function init(){const button=root.document?.getElementById('stockSimpleAnalysisButton');if(button&&!button.dataset.simpleBound){button.dataset.simpleBound='true';button.setAttribute('aria-haspopup','dialog');button.addEventListener('click',open);}}
 if(root.document){if(root.document.readyState==='loading')root.document.addEventListener('DOMContentLoaded',init,{once:true});else init();}
-return {TITLE,TOPIC,model,page,open,close,init,matchesCurrentStockInput};
+return {TITLE,TOPIC,model,page,open,close,init,matchesCurrentStockInput,shareCurrentImage};
 });
