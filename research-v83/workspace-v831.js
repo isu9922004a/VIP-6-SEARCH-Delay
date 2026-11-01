@@ -111,6 +111,10 @@ function build(){
  const source=doc.querySelector('.header .version-pill');if(source)details.append(el('div',null,source.textContent||''));
  const tower=el('a',null,'前往寶塔線點金術');tower.href='#towerGoldPanel';tower.addEventListener('click',event=>{event.preventDefault();select('filters','tower');$('towerGoldPanel')?.scrollIntoView({block:'start'});});
  details.append(tower);
+ const extra=el('button',null,'顯示策略研究附層與量價研究工具');extra.type='button';extra.id='workspaceAdvancedResearchToggle';
+ extra.setAttribute('aria-pressed','false');
+ extra.addEventListener('click',()=>{const on=doc.body.dataset.workspaceAdvancedV831!=='true';doc.body.dataset.workspaceAdvancedV831=String(on);extra.setAttribute('aria-pressed',String(on));extra.textContent=on?'隱藏策略研究附層與量價研究工具':'顯示策略研究附層與量價研究工具';if(on)select('filters');});
+ details.append(extra);
  const theme=el('button',null,'切換日間／夜間模式');theme.type='button';theme.addEventListener('click',()=>$('themeToggleButton')?.click());details.append(theme);
  advanced.append(summary,details);nav.append(advanced);
  main.insertBefore(nav,first);
