@@ -7,3 +7,10 @@
 #simpleStockReportDialog #simpleStockLineShareButton:disabled{opacity:.65;cursor:wait}
 #simpleStockReportDialog .simple-stock-report-share-status{margin:10px 0 4px;color:#c7e6f5;font-size:13px;line-height:1.6;overflow-wrap:anywhere}
 @media(max-width:600px){#simpleStockReportDialog{width:96vw;padding:14px}#simpleStockReportDialog .mini-btn{min-height:44px;padding:10px 12px}#simpleStockReportDialog #simpleStockLineShareButton{flex:1 1 155px}}
+
+/* V8.3.1 | clean and watermarked stock exports */
+#stockSimpleAnalysisWatermarkButton{white-space:normal}
+#stockSimpleAnalysisButton,#stockSimpleAnalysisWatermarkButton{min-height:44px;line-height:1.35}
+#stockSimpleAnalysisWatermarkButton{border-color:#73b3c9;background:#e9f5f8;color:#20586c}
+body.dark-mode #stockSimpleAnalysisWatermarkButton{background:#17394a;border-color:#52859e;color:#e7f5ff}
+@media(max-width:600px){#stockSimpleAnalysisButton,#stockSimpleAnalysisWatermarkButton{font-size:13px;padding:9px 11px;white-space:normal}}
