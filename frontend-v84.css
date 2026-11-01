@@ -44,3 +44,35 @@ body.dark-mode .watermark-image-btn{background:#173f54!important;color:#d0edf7!i
 @media(min-width:800px){#stockReportActionsPanel .copy-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){main.container{padding-top:12px}#workspaceV831{padding:16px;margin-bottom:12px}#workspaceV831 .workspace-v831-title{font-size:19px}#workspaceV831 .workspace-v831-version{font-size:11px;padding:5px 8px}#workspaceV831 .workspace-v831-tabs{gap:6px;margin-top:13px}#workspaceV831 .workspace-v831-tab{font-size:13px;min-height:50px}#workspaceSearchPanel,#workspaceStockSummary{padding:16px}.copy-actions>*{width:100%;box-sizing:border-box}#simpleStockReportDialog,#simpleMarketReportDialog{padding:12px;width:calc(100vw - 16px);max-width:720px}.simple-stock-report-controls,.simple-market-report-controls{top:-12px}.controls button{width:100%}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+
+/* V8.4.1: keep beginner/professional stock image cards inside their own grid cell. */
+/* The V8.4 desktop two-column copy-actions grid has a nested two-card grid:
+   without spanning both columns, the cards are squeezed into half the available space. */
+@media (min-width:800px){
+  #stockReportActionsPanel .copy-actions > .stock-image-generator-grid{grid-column:1 / -1}
+}
+#stockReportActionsPanel .stock-image-generator-grid{
+  display:grid;
+  flex:1 1 100%;
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));
+  gap:14px;
+}
+#stockReportActionsPanel .stock-image-generator-card,
+#stockReportActionsPanel .stock-image-generator-actions{
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  box-sizing:border-box;
+}
+#stockReportActionsPanel .stock-image-generator-actions > button.copy-btn{
+  display:block;
+  box-sizing:border-box;
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
