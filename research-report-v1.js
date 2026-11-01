@@ -351,12 +351,12 @@ function wrap(ctx,s,width){const out=[];for(const p of String(s).split('\n')){le
  if(row&&ctx.measureText(row+token).width>width){out.push(row);row=token;}else row+=token;
  }out.push(row);}return out;}
 function roundRectPath(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
-function pages(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouReleaseV50?.displayCode||'V8.2.10',watermark=false,stockMetrics=null,stockMode=!!stockMetrics,detail=false}={}){
+function pages(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouReleaseV50?.displayCode||'V8.2.10',watermark=false,stockMetrics=null,stockMode=!!stockMetrics,detail=false,iphoneFullScreen=false}={}){
  const W=1284,H=2778,M=54,FIELD_FONT=56,FIELD_LINE=77,LABEL_FONT=40,MAX_BOTTOM=2430;
  const ctx=doc.createElement('canvas').getContext('2d');
  if(!ctx)throw Error('Canvas 2D unavailable');
  // Summary first, followed by complete research; no field is silently filtered out.
- const report=view(a);if(!detail)return Action.pages(a,report,{doc,displayCode,watermark,stockMode,wrap,roundRectPath});
+ const report=view(a);if(!detail&&(iphoneFullScreen||globalThis.ShitouReleaseV50?.displayCode==='V8.3'&&globalThis.ShitouIPhoneSummary)){if(!globalThis.ShitouIPhoneSummary)throw Error('iPhone滿版輸出模組尚未載入');return globalThis.ShitouIPhoneSummary.pages(a,report,{doc,displayCode,wrap});}if(!detail)return Action.pages(a,report,{doc,displayCode,watermark,stockMode,wrap,roundRectPath});
  const strings=lines(a),fields=[...report.summary.map(f=>({...f,group:'SUMMARY'})),...(detail?report.details.map(f=>({...f,group:'DETAIL'})):[])];
  function measuredWrap(value,font,width){
   if(String(value)==='')return [''];

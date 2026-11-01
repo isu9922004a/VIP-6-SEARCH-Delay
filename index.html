@@ -9,10 +9,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <link rel="stylesheet" href="./tower-design.css?v=V8.2.2-R13-UNIFIED1">
 
-<title>石頭少爺 V8.2.10｜四策略研究</title>
+<title>石頭少爺 V8.3｜四策略研究</title>
 <script src="./scan-exclusions-rsi-v5328.js?v=V8.2.2-R13-UNIFIED1"></script>
 <script src="./stock-query-runtime-v826.js?v=V8.2.10-QUERY1"></script>
-<script src="./version-v50.js?v=V8.2.10-ACTION1"></script>
+<script src="./version-v50.js?v=V8.3"></script>
 
 <style>
 
@@ -1136,6 +1136,7 @@ body.dark .v46-reason,body.dark .v46-note,body.dark .v46-family{color:#d2dae7}bo
       <button id="clearInputButton" class="mini-btn" type="button" onclick="clearStockInput()" title="清除股票輸入欄位">✕ 清除輸入</button>
       <button id="themeToggleButton" class="mini-btn" type="button" onclick="toggleDarkMode()" aria-pressed="false" title="切換日間／夜間介面">🌙 夜間模式</button>
       <button id="reloadPageButton" class="mini-btn" type="button" onclick="reloadPage()" title="重新整理目前頁面（類似 F5）">🔄 重新整理</button>
+      <button id="stockSimpleAnalysisButton" class="mini-btn" type="button" title="產生目前查詢個股的精簡分析圖片">個股精簡分析</button>
     </div>
 
     <div class="hint">可輸入股票代號或繁體中文股票名稱，例如「8039」「台虹」「4939」「亞電」。已內建 1,963 檔上市／上櫃股票代碼與名稱索引，中文名稱可直接快速解析；TWSE／TPEx 官方名稱清單仍會在背景載入校正。</div>
@@ -1143,6 +1144,7 @@ body.dark .v46-reason,body.dark .v46-note,body.dark .v46-family{color:#d2dae7}bo
     <div class="market-shortcut">
       <div class="section-title" style="font-size:16px;margin-bottom:10px">📈 台股大盤加權指數</div>
       <div class="market-action-row">
+        <a class="btn market-btn" href="./market-outlook.html">獨立大盤趨勢推演</a>
         <button id="marketAnalyzeButton" class="btn market-btn" type="button" onclick="analyzeMarketIndex()">📈 一鍵分析台股大盤加權指數</button>
       </div>
       <div class="hint">按一次取得臺灣加權股價指數正式盤後資料；先看市場是順風、震盪還是偏弱，再看價格三線、量能三線與波段回撤位置。ABC／N字保留作輔助，不把單一比例當成反轉答案。</div>
@@ -35099,10 +35101,18 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 <script src="./research-opening-plan-v1.js?v=V8.2.10-PROFIT2"></script>
 <script src="./four-models-research-v1.js?v=V8.2.10-ENTRY1"></script>
 <script src="./research-zh-tw-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
-<script src="./research-action-guide-v1.js?v=V8.2.10-ACTION1"></script>
-<script src="./research-report-v1.js?v=V8.2.10-ACTION1"></script>
+<!-- V8.3: real, identity-checked Kronos results; missing results remain unavailable. -->
+<link rel="stylesheet" href="./research-v83/stock-fifth-module.css?v=V8.3">
+<link rel="stylesheet" href="./research-v83/stock-simple-report.css?v=V8.3">
+<script src="./research-v83/iphone-summary-renderer.js?v=V8.3"></script>
+<script src="./research-v83/stock-fifth-module.js?v=V8.3"></script>
+<script src="./research-v83/forecast-engine.js?v=V8.3"></script>
+<script src="./research-v83/kronos-data.js?v=V8.3"></script>
+<script src="./research-action-guide-v1.js?v=V8.3"></script>
+<script src="./research-report-v1.js?v=V8.3"></script>
 <script src="./drax-price-reminder-v1.js?v=V8.2.2-R13-UNIFIED1-DRAX1"></script>
-<script src="./research-integration-v1.js?v=V8.2.10-ACTION1"></script>
+<script src="./research-integration-v1.js?v=V8.3"></script>
+<script src="./research-v83/stock-simple-report.js?v=V8.3"></script>
 <script src="./stock-audit-alert-v82.js?v=V8.2.10-QUERY1"></script>
 <script src="./release-compact-v1.js?v=V8.2.2-R16-CONTEXT1"></script>
 </body>

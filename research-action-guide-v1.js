@@ -66,9 +66,12 @@ function build(a,plan,context){
  else pending.push(context?.volumeShort||'成交量來源尚未核對，暫不解讀量增減。','目前不能據此判定放量反攻、洗盤或主力進場。');
  for(const issue of issues)if(!pending.some(x=>x.includes(issue.reason)))pending.push(issue.reason+'。');
  pending.push('日線站回須看收盤；盤中仍需另行確認，本頁沒有即時分K。');
+ // V8.3 reads per-stock real model results; other strategy sections remain unchanged.
+ const forecastSection=globalThis.ShitouForecastPreview?.fifth(a,plan,pending,context);
+ if(forecastSection){sections[4]=forecastSection;if(globalThis.ShitouReleaseV50?.displayCode==='V8.3'&&globalThis.ShitouIPhoneSummary){const compact=globalThis.ShitouIPhoneSummary.compactFifth(a,{sections});sections[4]={...forecastSection,narrative:null,fullNarrative:forecastSection.narrative,rows:[{icon:'search',price:'',label:'',bullets:compact.lines.map(x=>x.text)}]};}}
  const status={title:TITLES[0],headline,lines:statusLines,tone:failed?'red':good?'aqua':'yellow'};
  const summary=[{title:status.title,value:[headline,...status.lines].join('\n')},...sections.map(s=>({title:s.title,value:sectionText(s)}))];
- return {version:VERSION,title:TITLE,badge:'白話版研究',code:a.code,name:a.name,date:a.date,close:plan.close,status,sections,summary,comparison,guideNote:'盤後研究｜未提供即時盤中確認｜非個人持倉計畫\n試算未驗證績效；價位不是已確認支撐；跳空可能以更差價格成交。'};
+ return {version:VERSION,title:TITLE,badge:forecastSection?(globalThis.ShitouKronosData?'盤後研究':'本機模擬'):'白話版研究',code:a.code,name:a.name,date:a.date,close:plan.close,status,sections,summary,comparison,guideNote:'盤後研究｜未提供即時盤中確認｜非個人持倉計畫\n試算未驗證績效；價位不是已確認支撐；跳空可能以更差價格成交。'};
 }
 function svg(doc,kind){
  const ns='http://www.w3.org/2000/svg',s=doc.createElementNS(ns,'svg');s.setAttribute('viewBox','0 0 64 64');s.setAttribute('aria-hidden','true');
@@ -84,7 +87,8 @@ function mount(doc,guide){
  const icon=el('span','action-status-icon');icon.append(svg(doc,'alert'));status.box.prepend(icon);status.body.append(el('strong','action-headline',guide.status.headline));
  guide.status.lines.forEach(line=>status.body.append(doc.createTextNode('\n'),el('div','action-status-line',line)));root.append(status.box);
  for(const section of guide.sections){const f=field(section.title),heading=el('div','action-section-heading'),number=el('span','action-number',section.number);number.setAttribute('aria-hidden','true');heading.append(number,f.key);f.box.prepend(heading);f.box.classList.toggle('action-bands',!!section.bands);f.box.classList.toggle('action-compact',!!section.compact);
-  section.rows.forEach((row,i)=>{if(i)f.body.append(doc.createTextNode('\n'));const r=el('div','action-row'+(row.tone?' action-tone-'+row.tone:'')),metric=el('div','action-metric'),ic=el('span','action-row-icon');ic.append(svg(doc,row.icon));metric.append(ic);const words=el('div','action-metric-words');let has=false;
+  if(section.narrative){const narrative=el('div','action-narrative');for(const block of section.narrative){const node=el(['headline','heading','subheading'].includes(block.kind)?'strong':'p','narrative-block narrative-'+block.kind+(block.tone?' narrative-'+block.tone:''),block.text);narrative.append(node);}f.body.append(narrative);}
+  else section.rows.forEach((row,i)=>{if(i)f.body.append(doc.createTextNode('\n'));const r=el('div','action-row'+(row.tone?' action-tone-'+row.tone:'')),metric=el('div','action-metric'),ic=el('span','action-row-icon');ic.append(svg(doc,row.icon));metric.append(ic);const words=el('div','action-metric-words');let has=false;
    if(row.price){words.append(el('strong','action-price',row.price));has=true;}if(row.label){if(has)words.append(doc.createTextNode('\n'));words.append(el('span','action-price-label',row.label));has=true;}metric.append(words);r.append(metric);
    const ul=el('div','action-bullets');row.bullets.forEach((line,j)=>{if(j)ul.append(doc.createTextNode('\n'));ul.append(el('div','action-bullet',line));});if(has&&row.bullets.length)r.append(doc.createTextNode('\n'));r.append(ul);f.body.append(r);
   });
@@ -101,6 +105,7 @@ function pages(a,report,{doc,displayCode,watermark,stockMode,wrap,roundRectPath}
  const statusLines=guide.status.lines.flatMap(s=>measure(s,CW-220,36)),headLines=measure(guide.status.headline,CW-220,60),statusH=44+headLines.length*76+statusLines.length*49+20;
  const layouts=guide.sections.map(section=>{
   const title=measure(section.title,CW-140,50),titleH=32+title.length*64;
+  if(section.narrative){const narrative=section.narrative.map(block=>{const size=block.kind==='headline'?42:block.kind==='heading'?40:block.kind==='subheading'?36:block.kind==='footnote'||block.kind==='notice'?30:34,line=size+13,gap=block.kind==='heading'?20:block.kind==='subheading'?12:8,text=measure(block.text,CW-90,size);return {...block,size,line,gap,text,height:text.length*line+gap};});return {section,title,titleH,narrative,rows:[],height:titleH+narrative.reduce((sum,b)=>sum+b.height,0)+24};}
   const rows=section.rows.map(row=>{
    const left=section.compact?150:section.bands?460:430,right=CW-left-76;
    const p=measure(row.price||'',left-116,section.bands?44:50),label=row.label?measure(row.label,left-116,32):[];
@@ -138,6 +143,7 @@ function pages(a,report,{doc,displayCode,watermark,stockMode,wrap,roundRectPath}
   lines(x,headLines,M+180,statusY+86,60,tone,76,850);lines(x,statusLines,M+180,statusY+86+headLines.length*76,36,'#fff',49);
   for(const l of layouts){const s=l.section;panel(x,M,l.top,CW,l.height);x.fillStyle='#25a5eb';x.beginPath();x.arc(M+64,l.top+52,43,0,Math.PI*2);x.fill();lines(x,[s.number],M+34,l.top+70,44,'#fff');lines(x,l.title,M+140,l.top+65,50,'#fff',64,850);
    let ry=l.top+l.titleH;
+   if(l.narrative){for(const block of l.narrative){const color=block.tone==='red'?'#ff9a91':block.tone==='aqua'?'#79e4d1':block.tone==='yellow'||block.kind==='warning'?'#f7cf70':block.kind==='heading'?'#b8e2f5':'#f3f7fb';lines(x,block.text,M+45,ry+block.size,block.size,color,block.line,['headline','heading','subheading','summary'].includes(block.kind)?850:600);ry+=block.height;}continue;}
    for(const r of l.rows){const row=r.row,color=row.tone==='red'||row.icon==='fall'?'#ff8576':row.tone==='aqua'?'#69e6d1':'#a6e5fc';
     if(s.bands)panel(x,M+22,ry,CW-44,r.height,'#2d6680','#103950');else if(!s.compact)panel(x,M+42,ry,r.left-34,r.height,'#53a8c9','#12425e');
     const divider=M+r.left+8;x.strokeStyle='#467d98';x.lineWidth=2;x.beginPath();x.moveTo(divider,ry+10);x.lineTo(divider,ry+r.height-10);x.stroke();

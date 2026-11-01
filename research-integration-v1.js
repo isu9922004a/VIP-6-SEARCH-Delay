@@ -82,7 +82,7 @@ function researchCard(a,number,prefix='研究',expanded=false){
  const fullButton=el('button','查看完整研究圖片');fullButton.type='button';fullButton.onclick=()=>preview([a],{stockMode:prefix==='個股',detail:true});actions.append(fullButton);
  if(a.unifiedResearch?.chart||a.nContinuation?.chart){const chartButton=el('button','查看結構證據圖');chartButton.type='button';chartButton.onclick=()=>preview([a],{stockMode:prefix==='個股',chartOnly:true});actions.append(chartButton);}
  if(a.foundation?.alertPlan)actions.append(alertControls(a));
- body.append(actions);details.append(body);return details;
+ body.append(actions);details.append(body);root.ShitouKronosData?.ensure(a).then(changed=>{if(changed&&details.isConnected){const fresh=researchCard(a,number,prefix,details.open);details.replaceWith(fresh);}}).catch(()=>{});return details;
 }
 
 function bind(snapshot){if(snapshot?.identity!==identity){identity=snapshot?.identity||null;date=snapshot?.date||null;records.clear();sourceRecords.clear();baselines.clear();seen.clear();cache.clear();revision++;schedule();}}
@@ -205,7 +205,7 @@ function exportData(type='json'){
 }
 async function copy(value,button){try{await navigator.clipboard.writeText(String(value));button.textContent='已複製';}catch(_){const box=el('textarea',String(value));box.readOnly=true;button.after(box);box.select();button.textContent='請長按選取複製';}}
 function alertControls(a){const plan=a.foundation.alertPlan,box=el('div');box.className='research-alerts';for(const [label,value] of [['價格高於',plan.priceAbove.input],['價格低於',plan.priceBelow.input],['單日漲幅超過',plan.dayGainPercentInput],['單日跌幅超過',plan.dayLossPercentInput]]){const button=el('button',label+'：'+(value===null?'尚無有效價位':label.startsWith('價格')?R.fmt(value):String(value)));button.type='button';button.disabled=value===null;button.onclick=()=>copy(label.startsWith("價格")?R.fmt(value):value,button);box.appendChild(button);}const all=el('button','複製四欄'),link=el('a','開啟 DRAX');all.type='button';all.onclick=()=>copy([`股票 ${a.code}｜${a.date}`,`價格高於 ${R.fmt(plan.priceAbove.input)}`,`價格低於 ${R.fmt(plan.priceBelow.input)}`,`單日漲幅超過 ${plan.dayGainPercentInput??'未知'}`,`單日跌幅超過 ${plan.dayLossPercentInput??'未知'}`,'平台語意待確認；待手動設定'].join('\n'),all);link.href='https://drax.tw/';link.target='_blank';link.rel='noopener noreferrer';box.append(all,link);return box;}
-async function preview(analyses,{stockMode=false,detail=false,chartOnly=false}={}){if(!analyses.length)return;const token=++previewSerial,query=stockQuerySerial;root.ShitouImageShareV1?.clear();if(document.fonts?.ready)await document.fonts.ready;if(token!==previewSerial||query!==stockQuerySerial)return null;
+async function preview(analyses,{stockMode=false,detail=false,chartOnly=false}={}){if(!analyses.length)return;const token=++previewSerial,query=stockQuerySerial;root.ShitouImageShareV1?.clear();await Promise.all(analyses.map(a=>root.ShitouKronosData?.ensure(a)));if(document.fonts?.ready)await document.fonts.ready;if(token!==previewSerial||query!==stockQuerySerial)return null;
  const pages=analyses.flatMap(a=>{const metrics=stockMode&&latestStockQuery?.analysis===a?latestStockQuery.metrics:null;
  if(chartOnly){const c=R.candlePage(a,{displayCode:root.ShitouReleaseV50.displayCode});return c?[c]:[];}
  return R.pages(a,{displayCode:root.ShitouReleaseV50.displayCode,stockMetrics:metrics,stockMode,detail});});

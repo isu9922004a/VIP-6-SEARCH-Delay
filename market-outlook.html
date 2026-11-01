@@ -1,0 +1,11 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>石頭少爺｜獨立大盤走勢推斷</title><link rel="stylesheet" href="research-v83/market-base.css"><link rel="stylesheet" href="research-v83/market.css"></head><body>
+<header class="top"><span class="brand">石頭少爺 <small>獨立大盤分析</small></span><a href="index.html">個股研究入口 →</a><span class="tag">V8.3 · 獨立指數研究</span></header>
+<main><div class="intro"><p class="eyebrow">MARKET OUTLOOK</p><h1>大盤明天，<br>偏多、偏空，還是盤整？</h1><p>單獨分析指數本身的走勢、技術線與重要點位。</p></div>
+<section class="controls"><label>大盤指數<select id="market-type"><option value="TAIEX">台灣加權指數</option></select></label><button id="market-refresh">重新載入大盤</button></section>
+<p id="market-error" role="alert"></p><p id="market-source" class="notice">尚未載入指數行情。此頁不讀取個股資料，也不使用個股選股結果。</p>
+<div class="layout"><section class="panel"><h2>大盤一句話判讀</h2><div id="market-verdict" class="verdict">等待指數資料</div><p id="market-plain">載入大盤本身的完成日K後，判讀目前趨勢與轉強／轉弱關卡。</p><p id="market-next" class="divider">下一交易日模型推斷：尚無結果。</p></section><section class="panel"><h2>大盤技術走勢｜指數點數</h2><div id="market-chart"><p class="muted">預留指數日K、均線與推演範圍。</p></div><p class="legend"><i class="actual"></i>指數收盤 <i class="ma5"></i>MA5 <i class="ma20"></i>MA20 <i class="prediction"></i>模型收盤中位數</p><p class="mini">未來陰影為模型收盤取樣的10%～90%分位範圍，並非已校準機率。</p></section></div>
+<section class="panel"><h2>大盤重要關卡</h2><div id="market-levels" class="price-grid"></div></section>
+<section class="panel"><h2>下一交易日三種劇本</h2><div id="market-scenarios">等待指數資料後建立續強、整理與轉弱條件。</div></section>
+<section class="panel"><h2>判斷依據</h2><div id="market-evidence">以指數OHLC、均線方向與歷史高低關卡判讀；模型另外使用同一指數的歷史資料推論。</div></section>
+<footer>本頁有獨立資料、研究日期與模型結果。採用指數本身的完成日K與Kronos實跑結果；若模型過期或缺漏，明確顯示尚無結果。台股績效尚未驗證，取樣占比不是實際勝率。</footer></main>
+<script src="research-v83/forecast-engine.js"></script><script src="research-v83/market-engine.js"></script><script src="research-v83/market.js"></script></body></html>

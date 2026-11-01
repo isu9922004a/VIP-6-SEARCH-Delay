@@ -1,0 +1,102 @@
+name: Kronos independent stock and index inference
+on:
+  workflow_dispatch:
+  push:
+    paths: ['.github/workflows/kronos-forecast.yml', 'kronos/**']
+  schedule:
+    - cron: '35 9 * * 1-5'
+permissions:
+  contents: read
+concurrency:
+  group: kronos-daily
+  cancel-in-progress: false
+jobs:
+  sources:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node scripts/update-kronos-sources.cjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kronos-inputs
+          path: |
+            data/index/TAIEX.json
+            data/kronos/calendar.json
+  infer:
+    needs: sources
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: kronos/requirements.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: kronos-inputs
+          path: data
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: kronos-weights-${{ hashFiles('kronos/model-lock.json') }}
+      - run: |
+          python -m pip install torch==2.7.1 --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install -r kronos/requirements.txt
+      - name: Clear previous outputs from this isolated shard checkout
+        run: rm -rf data/kronos/stocks data/kronos/TAIEX.json data/kronos/status*.json
+      - run: python kronos/run.py --all --index --samples 32 --threads 2 --shards 16 --shard ${{ matrix.shard }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kronos-results-${{ matrix.shard }}
+          path: data/kronos
+  publish:
+    needs: [sources, infer]
+    if: always() && needs.sources.result == 'success' && needs.infer.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/download-artifact@v4
+        with:
+          name: kronos-inputs
+          path: /tmp/kronos-inputs
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: kronos-results-*
+          path: /tmp/kronos-results
+          merge-multiple: true
+      - name: Publish matching current snapshot only
+        run: |
+          node - <<'NODE'
+          const fs=require('fs'),calendar=require('/tmp/kronos-inputs/kronos/calendar.json'),manifest=require('./data/research/manifest.json');
+          const index=require('/tmp/kronos-inputs/index/TAIEX.json');
+          if(index.closeDate!==manifest.date)throw Error('Snapshot advanced during inference; refuse mixed-date publish');
+          fs.cpSync('/tmp/kronos-inputs/index','data/index',{recursive:true});
+          fs.cpSync('/tmp/kronos-results','data/kronos',{recursive:true});
+          fs.cpSync('/tmp/kronos-inputs/kronos/calendar.json','data/kronos/calendar.json');
+          NODE
+          node scripts/build-kronos-manifest.cjs
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/index data/kronos
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'data: refresh real Kronos stock and independent index samples'
+          git fetch origin main
+          git rebase origin/main
+          node -e "if(require('./data/index/TAIEX.json').closeDate!==require('./data/research/manifest.json').date)throw Error('Snapshot advanced before publish')"
+          git push origin HEAD:main

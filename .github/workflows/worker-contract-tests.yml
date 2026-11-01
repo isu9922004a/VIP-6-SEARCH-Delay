@@ -71,6 +71,12 @@ jobs:
           PLAYWRIGHT_MODULE: /tmp/research-browser/node_modules/playwright-core
           CHROME_BIN: /usr/bin/google-chrome
         run: node scripts/tests/stock-query-v826-browser.cjs /tmp/research-evidence/query
+      - name: Verify V8.3 real Kronos report and independent index
+        if: matrix.fallback == '0'
+        env:
+          PLAYWRIGHT_MODULE: /tmp/research-browser/node_modules/playwright-core
+          CHROME_BIN: /usr/bin/google-chrome
+        run: node scripts/tests/kronos-v83-browser.cjs /tmp/research-evidence/kronos
       - name: Capture generated chart for review
         if: matrix.fallback == '0'
         run: node -e 'console.log("CHART_REVIEW_PNG="+require("node:fs").readFileSync("/tmp/research-evidence/8039-chart.png").toString("base64"))'

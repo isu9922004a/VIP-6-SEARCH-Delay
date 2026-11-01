@@ -13,7 +13,11 @@ FILES = ["research-action-guide-v1.js", "research-mobile-v1.css", "research-offi
          "four-models-research-v1.js", "research-common-v1.js", "research-integration-v1.js",
          "stock-query-runtime-v826.js", "tower-integration.js", "shito-assistant-v47.js",
          "industry-context-v47.js", "stock-audit-alert-v82.js",
-         "scan-report-rsi-v5328.js", "research-query-fallback-v1.js", "research-opening-plan-v1.js", "research-source-evidence-v1.js", "selection-data-v2.js"]
+         "scan-report-rsi-v5328.js", "research-query-fallback-v1.js", "research-opening-plan-v1.js", "research-source-evidence-v1.js", "selection-data-v2.js", "market-outlook.html",
+         "research-v83/forecast-engine.js", "research-v83/kronos-data.js", "research-v83/stock-fifth-module.js",
+         "research-v83/iphone-summary-renderer.js", "research-v83/stock-simple-report.js", "research-v83/stock-simple-report.css",
+         "research-v83/stock-fifth-module.css", "research-v83/market.js", "research-v83/market-engine.js",
+         "research-v83/market-base.css", "research-v83/market.css"]
 
 
 def deployment_base(environ=None):
