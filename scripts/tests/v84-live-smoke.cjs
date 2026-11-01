@@ -39,6 +39,22 @@ try{const page=await browser.newPage({viewport:{width:428,height:926},isMobile:t
   await page.locator('#'+id).click();await page.waitForFunction(()=>document.querySelector('#imagePreviewModal')?.classList.contains('show')&&document.querySelector('#imageDownloadLink')?.href.startsWith('blob:'),{},{timeout:45000});
   const [download]=await Promise.all([page.waitForEvent('download'),page.locator('#imageDownloadLink').click()]);const file=path.join(out,id+'.png');await download.saveAs(file);const bytes=fs.readFileSync(file);assert.equal(bytes.readUInt32BE(16),1284);assert.equal(bytes.readUInt32BE(20),2778);checks.push({button:id,bytes:bytes.length});await page.evaluate(()=>closeInfographicPreviewV3328());console.log('PASS live report',id);
  }
+ // Independent live follow-up: a second actual stock must use the same professional template.
+ await page.evaluate(()=>ShitouWorkspaceV831.closeReport());
+ await page.locator('#stockInput').fill('2603');await page.locator('#searchButton').click();
+ await page.waitForFunction(()=>shitouGetLastReportV82()?.code==='2603'||document.querySelector('#error')?.textContent.trim(),{},{timeout:120000});
+ const evergreen=await page.evaluate(async()=>{
+   await document.fonts.ready;
+   const report=shitouGetLastReportV82(),state=report&&renderStockProfessionalInfographicV51(report),audit=state&&JSON.parse(decodeURIComponent(state.dataset.layoutAudit));
+   return {code:report?.code,date:report?.closeDate,trend:audit?.trend,audit:{width:audit?.width,height:audit?.height,noOverlap:audit?.noOverlap},png:state?.toDataURL('image/png')};
+ });
+ assert.equal(evergreen.code,'2603',JSON.stringify({code:evergreen.code,date:evergreen.date,trend:evergreen.trend}));
+ assert.equal(evergreen.trend?.verified,true,'Evergreen completed-day moving average must be verified');
+ assert.ok(!/階段待確認/.test(evergreen.trend?.label||''),'Evergreen trend must not hide behind an ABC stage placeholder');
+ assert.deepEqual(evergreen.audit,{width:1284,height:2778,noOverlap:true});
+ const png=Buffer.from(evergreen.png.split(',')[1],'base64');assert.equal(png.subarray(1,4).toString(),'PNG');
+ fs.writeFileSync(path.join(out,'2603-professional.png'),png);
+ checks.push({code:evergreen.code,date:evergreen.date,trend:evergreen.trend.label,pngBytes:png.length});console.log('PASS live stock 2603 trend and PNG',evergreen.trend.label);
  await page.goto('https://isu9922004a.github.io/VIP-6-SEARCH-Delay/market-outlook.html?audit=V8.4',{waitUntil:'networkidle'});await page.waitForFunction(()=>independentMarketState()?.state==='AVAILABLE',{},{timeout:45000});
  for(const id of ['marketSimpleAnalysisButton','marketSimpleAnalysisWatermarkButton']){
   await page.locator('#'+id).click();await page.waitForFunction(()=>document.querySelector('#simpleMarketReportDialog')?.open);
