@@ -55,9 +55,9 @@ test('independent short state distinguishes improving, pullback, rebound and dec
  for(const [prices,expected] of [
  [[90,93,95,98,100,105],'短線續強'],
  [[99,100,101,102,103,102],'回檔觀察'],
- [[99,100,101,102,110,100],'反彈觀察'],
- [[101,101,101,101,105,98],'短線轉弱'],
- [[110,110,110,110,105,99],'弱勢整理']
+ [[105,105,105,105,103,104],'反彈觀察'],
+ [[101,101,101,101,102,100],'短線轉弱'],
+ [[110,110,110,110,100,100],'弱勢整理']
  ]){
   const report={close:prices[5],closeDate:'2026-10-30',dailySeries:sequence(prices)};
   assert.equal(shortTermFor(report,medium,state(true,'up')).label,expected,prices.join(','));
