@@ -1218,7 +1218,8 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
       <button id="clearInputButton" class="mini-btn" type="button" onclick="clearStockInput()" title="清除股票輸入欄位">✕ 清除輸入</button>
       <button id="themeToggleButton" class="mini-btn" type="button" onclick="toggleDarkMode()" aria-pressed="false" title="切換日間／夜間介面">🌙 夜間模式</button>
       <button id="reloadPageButton" class="mini-btn" type="button" onclick="reloadPage()" title="重新整理目前頁面（類似 F5）">🔄 重新整理</button>
-      <button id="stockSimpleAnalysisButton" class="mini-btn" type="button" title="產生目前查詢個股的精簡分析圖片">個股精簡分析</button>
+      <button id="stockSimpleAnalysisButton" class="mini-btn" type="button" title="產生無浮水印個股精簡分析圖片">無浮水印版圖片報告</button>
+      <button id="stockSimpleAnalysisWatermarkButton" class="mini-btn" type="button" title="產生含石頭少爺台股分析標題的浮水印版個股報告">浮水印版圖片報告</button>
     </div>
 
     <div class="hint">可輸入股票代號或繁體中文股票名稱，例如「8039」「台虹」「4939」「亞電」。已內建 1,963 檔上市／上櫃股票代碼與名稱索引，中文名稱可直接快速解析；TWSE／TPEx 官方名稱清單仍會在背景載入校正。</div>
@@ -35192,7 +35193,7 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 <script src="./research-zh-tw-v1.js?v=V8.2.2-R13-UNIFIED1"></script>
 <!-- V8.3: real, identity-checked Kronos results; missing results remain unavailable. -->
 <link rel="stylesheet" href="./research-v83/stock-fifth-module.css?v=V8.3">
-<link rel="stylesheet" href="./research-v83/stock-simple-report.css?v=V8.3-LINE-SHARE1">
+<link rel="stylesheet" href="./research-v83/stock-simple-report.css?v=V8.3.1-WATERMARK1">
 <script src="./research-v83/iphone-summary-renderer.js?v=V8.3"></script>
 <script src="./research-v83/stock-fifth-module.js?v=V8.3"></script>
 <script src="./research-v83/forecast-engine.js?v=V8.3"></script>
@@ -35201,7 +35202,7 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 <script src="./research-report-v1.js?v=V8.3"></script>
 <script src="./drax-price-reminder-v1.js?v=V8.2.2-R13-UNIFIED1-DRAX1"></script>
 <script src="./research-integration-v1.js?v=V8.3"></script>
-<script src="./research-v83/stock-simple-report.js?v=V8.3-LINE-SHARE1"></script>
+<script src="./research-v83/stock-simple-report.js?v=V8.3.1-WATERMARK1"></script>
 <script src="./stock-audit-alert-v82.js?v=V8.2.10-QUERY1"></script>
 <script src="./release-compact-v1.js?v=V8.2.2-R16-CONTEXT1"></script>
 </body>
