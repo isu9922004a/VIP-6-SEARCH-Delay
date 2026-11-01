@@ -78,3 +78,45 @@ test('short-term ABC failure appears in short-term status without modifying medi
  const short=shortTermFor(report,mid,state(true,'up','failed'));
  assert.equal(mid.label,'偏多');assert.equal(short.label,'結構受損');
 });
+
+test('display-only volume strengthens label while preserving 5MA and ABC inputs',()=>{
+ const original={close:271.5,closeDate:'2026-10-30',dailySeries:sequence([261,262,264,263,261,271.5],[600,600,600,600,1000,4380])};
+ const before=JSON.stringify(original),ma20=trendFor({...original,close:271.5},adapter('MAIN_ADVANCE'),state(true,'up'));
+ const st=state(true,'up','confirmed'),result=shortTermFor(original,ma20,st);
+ assert.equal(result.label,'放量續強');
+ assert.ok(result.volumeChangePct>300);
+ assert.equal(JSON.stringify(original),before,'presentation does not alter OHLCV');
+});
+test('hot RSI and pending B confirmation generate explicit but conservative chase warning',()=>{
+ const {professionalMomentumCaution}=sandbox.ShitouProfessionalV84;
+ const report={close:271.5,dailyRsi5:77.46,dailyRsi10:70.56};
+ const st={B:270.5,nStatus:'confirmed'};
+ const short={verified:true,label:'放量續強'};
+ const a=professionalMomentumCaution(report,st,short,{applicable:true,threeStatus:'pending'});
+ assert.equal(a.active,true);assert.equal(a.heat,true);assert.equal(a.pending,true);
+ assert.equal(a.RSI5,77.46);assert.equal(a.RSI10,70.56);
+ assert.ok(a.detail.includes('RSI5 77.46'));
+ assert.ok(a.detail.includes('RSI10 70.56'));
+ assert.ok(a.detail.includes('B 270.50 三日站穩待確認'));
+ assert.ok(a.detail.includes('空手先等'));
+ assert.equal(st.nStatus,'confirmed');
+});
+test('completed three-day confirmation is not falsely described as pending',()=>{
+ const {professionalMomentumCaution}=sandbox.ShitouProfessionalV84;
+ const result=professionalMomentumCaution({close:271.5,dailyRsi5:78},{B:270.5,nStatus:'confirmed'},{verified:true,label:'放量續強'},{applicable:true,threeStatus:'passed'});
+ assert.equal(result.active,true);assert.equal(result.pending,false);
+ assert.ok(result.detail.includes('三日站穩已驗證'));
+ assert.ok(!result.detail.includes('三日站穩待確認'));
+});
+test('missing B, RSI or volume does not invent breakthrough, overheat or turnover',()=>{
+ const {professionalMomentumCaution}=sandbox.ShitouProfessionalV84;
+ const short={verified:true,label:'短線續強'},gate={applicable:false,threeStatus:'pending'};
+ const none=professionalMomentumCaution({close:100},{B:null,nStatus:'forming'},short,gate);
+ assert.equal(none.active,false);
+ const valid=professionalMomentumCaution({close:100,dailyRsi5:76},{B:null,nStatus:'forming'},short,gate);
+ assert.equal(valid.active,true);assert.equal(valid.pending,false);
+ assert.ok(valid.detail.includes('B點尚未核實'));
+ assert.ok(!valid.detail.includes('RSI10'));
+ const weak=professionalMomentumCaution({close:100,dailyRsi5:90},{B:99,nStatus:'confirmed'},{verified:true,label:'短線轉弱'},gate);
+ assert.equal(weak.active,false);
+});
