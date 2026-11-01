@@ -17,7 +17,7 @@ const lineAudit=await p.evaluate(()=>window.__compactLineShare);
 assert.equal(lineAudit.fileCount,1,'must share exactly one report PNG');
 assert.equal(lineAudit.type,'image/png','must share real image file instead of URL');
 assert.equal(lineAudit.url,null,'web page link is not the report');
-assert.match(lineAudit.name,/個股精簡分析_8039_.*\.png$/,'filename should identify stock');
+assert.match(lineAudit.name,/個股精簡分析_.*_8039_.*\.png$/,'filename should identify stock');
 await p.waitForFunction(()=>!document.querySelector('#simpleStockLineShareButton')?.disabled);
 await p.evaluate(()=>{
  Object.defineProperty(navigator,'userAgent',{configurable:true,value:'Mozilla/5.0 (X11; Linux x86_64) Chrome/135.0.0.0 Safari/537.36'});
