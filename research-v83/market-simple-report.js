@@ -61,7 +61,7 @@ function model(snapshot){
   {kind:'summary',tone:'aqua',text:'大盤目前'+a.trend+'，先看 '+num(recoverLevel)+' 點附近的改善條件，以及 '+num(a.support)+' 點的風險；未收盤確認前不追價。'},
   {kind:'footnote',text:'資料：'+src.source+'｜行情 '+a.date+'。盤後研究，非即時訊號；隔日跳空須重算風險，不保證走勢，不構成投資建議。'}
  ];
- return {title:TITLE,name:'臺灣加權股價指數（TAIEX）',date:a.date,close:a.close,modelRun:!!fresh,source:src.source,forecastState:f?.state||'UNAVAILABLE',blocks,levels:{ma20:a.ma20,resistance:a.resistance,support:a.support},nextTradeDate:fresh.dates[0]||null};
+ return {title:TITLE,name:'臺灣加權股價指數（TAIEX）',date:a.date,close:a.close,modelRun:!!fresh,source:src.source,forecastState:f?.state||'UNAVAILABLE',blocks,levels:{ma20:a.ma20,resistance:a.resistance,support:a.support},nextTradeDate:fresh?.dates?.[0]||null};
 }
 function wrap(ctx,text,maxWidth){
  const lines=[];for(const para of String(text).split('\n')){
