@@ -46,16 +46,24 @@ try{const page=await browser.newPage({viewport:{width:428,height:926},isMobile:t
  const evergreen=await page.evaluate(async()=>{
    await document.fonts.ready;
    const report=shitouGetLastReportV82(),state=report&&renderStockProfessionalInfographicV51(report),audit=state&&JSON.parse(decodeURIComponent(state.dataset.layoutAudit));
-   return {code:report?.code,date:report?.closeDate,trend:audit?.trend,audit:{width:audit?.width,height:audit?.height,noOverlap:audit?.noOverlap},png:state?.toDataURL('image/png')};
+   return {code:report?.code,date:report?.closeDate,close:report?.close,trend:audit?.trend,shortTrend:audit?.shortTrend,caution:audit?.momentumCaution,audit:{width:audit?.width,height:audit?.height,noOverlap:audit?.noOverlap},png:state?.toDataURL('image/png')};
  });
  assert.equal(evergreen.code,'2603',JSON.stringify({code:evergreen.code,date:evergreen.date,trend:evergreen.trend}));
  assert.equal(evergreen.trend?.verified,true,'Evergreen completed-day moving average must be verified');
  assert.ok(!/階段待確認/.test(evergreen.trend?.label||''),'Evergreen trend must not hide behind an ABC stage placeholder');
  assert.deepEqual(evergreen.audit,{width:1284,height:2778,noOverlap:true});
+ if(evergreen.date==='2026-10-30'&&Math.abs(evergreen.close-271.5)<.01){
+  assert.equal(evergreen.shortTrend?.label,'放量續強','2603 strong volume and 5MA trend must both be recognized');
+  assert.equal(evergreen.caution?.active,true,'2603 hot RSI must retain a chase-risk warning');
+  assert.ok(evergreen.caution.RSI5>=75,'2603 verified RSI5 should support the warning');
+  assert.ok(Math.abs(evergreen.caution.B-270.5)<.01,'2603 B must be sourced from its real ABC');
+  assert.ok(/空手先等/.test(evergreen.caution.detail),'caution should discourage chasing without a verified entry');
+ }
+
  const png=Buffer.from(evergreen.png.split(',')[1],'base64');assert.equal(png.subarray(1,4).toString(),'PNG');
  fs.writeFileSync(path.join(out,'2603-professional.png'),png);
  assert.equal(evergreen.audit.noOverlap,true);
- checks.push({code:evergreen.code,date:evergreen.date,trend:evergreen.trend.label,pngBytes:png.length});console.log('PASS live stock 2603 trend and PNG',evergreen.trend.label);
+ checks.push({code:evergreen.code,date:evergreen.date,trend:evergreen.trend.label,short:evergreen.shortTrend?.label,caution:evergreen.caution,pngBytes:png.length});console.log('PASS live stock 2603 trend and PNG',evergreen.trend.label,evergreen.shortTrend?.label);
  // Compare actual 6756 OHLCV from the exchange-backed worker to the dual timeframe report.
  await page.locator('#stockInput').fill('6756');await page.locator('#searchButton').click();
  await page.waitForFunction(()=>shitouGetLastReportV82()?.code==='6756'||document.querySelector('#error')?.textContent.trim(),{},{timeout:120000});
