@@ -62,13 +62,13 @@ body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="s
 body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="strong"] #workspaceSearchPanel>.daytrade-shortcut,
 body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="tower"] #workspaceSearchPanel>.momentum-shortcut,
 body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="tower"] #workspaceSearchPanel>.daytrade-shortcut,
-body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="tower"] #workspaceSearchPanel>.strong-stock-shortcut,
+body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="tower"] #workspaceSearchPanel>#strongStockShortcut,
 body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="restaurant"] #workspaceSearchPanel>.momentum-shortcut,
 body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="restaurant"] #workspaceSearchPanel>.daytrade-shortcut,
-body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="restaurant"] #workspaceSearchPanel>.strong-stock-shortcut,
+body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="restaurant"] #workspaceSearchPanel>#strongStockShortcut,
 body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="structure"] #workspaceSearchPanel>.momentum-shortcut,
 body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="structure"] #workspaceSearchPanel>.daytrade-shortcut,
-body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="structure"] #workspaceSearchPanel>.strong-stock-shortcut{display:none!important}
+body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="structure"] #workspaceSearchPanel>#strongStockShortcut{display:none!important}
 body.workspace-v831[data-workspace-v831="filters"]:not([data-workspace-filter-v831="momentum"]) #momentumResult,
 body.workspace-v831[data-workspace-v831="filters"]:not([data-workspace-filter-v831="daytrade"]) #dayTradeResult,
 body.workspace-v831[data-workspace-v831="filters"]:not([data-workspace-filter-v831="strong"]) #strongStockResult,
@@ -119,3 +119,15 @@ body.dark-mode #workspaceStockSummary .workspace-stock-actions button.workspace-
  #workspaceReportToolbar{top:4px;min-height:50px;width:calc(100vw - 8px)}
 }
 @media(prefers-reduced-motion:reduce){#workspaceV831 *{scroll-behavior:auto}}
+
+/* Dynamic fourth/fifth/sixth filter panels live under the old first panel. */
+body.workspace-v831[data-workspace-v831="stock"] #restaurantPanel,
+body.workspace-v831[data-workspace-v831="stock"] #structurePanel,
+body.workspace-v831[data-workspace-v831="market"] #restaurantPanel,
+body.workspace-v831[data-workspace-v831="market"] #structurePanel,
+body.workspace-v831[data-workspace-v831="filters"]:not([data-workspace-filter-v831="restaurant"]) #restaurantPanel,
+body.workspace-v831[data-workspace-v831="filters"]:not([data-workspace-filter-v831="structure"]) #structurePanel{display:none!important}
+body.workspace-v831:not([data-workspace-v831="filters"]) #priceActionPanel,
+body.workspace-v831:not([data-workspace-v831="filters"]) #researchPanel,
+body.workspace-v831[data-workspace-v831="filters"]:not([data-workspace-advanced-v831="true"]) #priceActionPanel,
+body.workspace-v831[data-workspace-v831="filters"]:not([data-workspace-advanced-v831="true"]) #researchPanel{display:none!important}
