@@ -39,6 +39,12 @@ fs.mkdirSync(out,{recursive:true});
    return {code:raw.code,name:raw.name,date:raw.closeDate,close:raw.close,width:current.width,height:current.height,audit:current.dataset.layoutAudit,base:base.toDataURL('image/png'),clean,marked,unchanged:before===JSON.stringify(raw)};
   });
   assert.ok(result.unchanged);assert.notEqual(result.clean,result.marked,'watermark must change real pixels');
+  const audit=JSON.parse(decodeURIComponent(result.audit));
+  assert.equal(audit.trend?.verified,true,'verified worker MA should produce an actual trend for '+record.code+': '+JSON.stringify(audit.trend));
+  assert.ok(!/階段待確認/.test(audit.trend.label),'stage placeholder must not obscure the trend');
+  assert.ok(['偏多','偏空','拉回整理','弱勢整理','盤整','反彈觀察','強勢上行','結構受損'].includes(audit.trend.label),JSON.stringify(audit.trend));
+  assert.equal(audit.noOverlap,true,'professional report section geometry must remain intact');
+  result.trend=audit.trend;
   for(const key of ['base','clean','marked']){const bytes=Buffer.from(result[key].split(',')[1],'base64');fs.writeFileSync(path.join(out,record.code+'-'+key+'.png'),bytes);delete result[key];}
   checks.push(result);console.log('PASS professional PNG',record.code,result.width,result.height);
   if(record.code==='9933'&&!process.env.V84_RENDER_ONLY){
