@@ -3,18 +3,10 @@
   "symbol": "TAIEX",
   "market": "TWSE_INDEX",
   "name": "臺灣加權股價指數",
-  "closeDate": "2026-10-30",
-  "close": 45211.83,
+  "closeDate": "2026-11-02",
+  "close": 44920.14,
   "completed": true,
   "dailySeries": [
-    {
-      "date": "2026-05-07",
-      "open": 41259.96,
-      "high": 42156.06,
-      "low": 41259.96,
-      "close": 41933.78,
-      "volume": 15231110299
-    },
     {
       "date": "2026-05-08",
       "open": 41886.03,
@@ -966,6 +958,14 @@
       "low": 44726.26,
       "close": 45211.83,
       "volume": 13112939113
+    },
+    {
+      "date": "2026-11-02",
+      "open": 45034.53,
+      "high": 45156.17,
+      "low": 44399.1,
+      "close": 44920.14,
+      "volume": 10422514115
     }
   ],
   "dailySeriesMeta": {
@@ -973,10 +973,10 @@
     "requestedBars": 120,
     "minRecommendedBars": 60,
     "returnedBars": 120,
-    "taiexOhlcRowsAvailable": 463,
-    "fmtqikVolumeRowsAvailable": 143,
-    "firstDate": "2026-05-07",
-    "lastDate": "2026-10-30",
+    "taiexOhlcRowsAvailable": 464,
+    "fmtqikVolumeRowsAvailable": 144,
+    "firstDate": "2026-05-08",
+    "lastDate": "2026-11-02",
     "ascending": true,
     "onlyCompletedBars": true,
     "readyForTrident": true,
@@ -1241,15 +1241,15 @@
       "2026-12-30",
       "2026-12-31"
     ],
-    "generatedAt": "2026-11-01T05:01:49.025Z",
+    "generatedAt": "2026-11-02T13:34:29.674Z",
     "futureSessionPolicy": "依目前公告交易日；臨時休市可能變更",
     "sourceSha256": "fb3c71ce62aa4819e58d422fa08be383161a830230f84e9a50560e019eee577c",
     "historicalSource": "https://www.twse.com.tw/exchangeReport/FMTQIK",
-    "historicalSnapshotHash": "b88dc5ce2974e4546b9458977dbfcaa6ee5b44b6b2dc7b176f3808fdbf18352c"
+    "historicalSnapshotHash": "0c2b8202257ac79413cf682dd8b19c0e64678c7d9a4704d909be9d9bc3ed8e7d"
   },
   "sourceReceipt": {
     "url": "https://shitou-taiwanmarket-api.d318426.workers.dev/?market=TAIEX",
-    "retrievedAt": "2026-11-01T05:01:49.026Z",
-    "sha256": "b7d3e582ce1ef0bdd261838ca656fbdbc20503435f56ac3f8c00ac48f0a82ad2"
+    "retrievedAt": "2026-11-02T13:34:29.675Z",
+    "sha256": "712d622b9747b0bfdc017fa58c0c3f9e8f0760fa6297a49156b1acd736ad3075"
   }
 }
