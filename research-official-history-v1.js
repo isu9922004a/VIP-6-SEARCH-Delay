@@ -1,7 +1,7 @@
 /* Trusted published exchange history, checked before it can supply research bars. */
 (function(root,factory){const node=typeof module==='object'&&module.exports,api=factory(node?require('./worker-data-contract-v1.js'):root.ShitouWorkerDataContractV1);if(node)module.exports=api;else root.ShitouOfficialResearchHistory=api;})(globalThis,function(C){
 'use strict';
-const BASE='https://raw.githubusercontent.com/isu9922004a/VIP-BOWTOWER-4-SEARCH/main/data/research/',loaded=new Map(),pending=new Map();let manifestJob=null,manifestAt=0;
+const BASE=globalThis.document?.currentScript?.src?new URL('./data/research/',globalThis.document.currentScript.src).href:'https://raw.githubusercontent.com/isu9922004a/VIP-6-SEARCH-Delay/main/data/research/',loaded=new Map(),pending=new Map();let manifestJob=null,manifestAt=0;
 const freeze=x=>{if(x&&typeof x==='object'&&!Object.isFrozen(x)){Object.values(x).forEach(freeze);Object.freeze(x);}return x;};
 async function digest(text){const raw=await globalThis.crypto.subtle.digest('SHA-256',new TextEncoder().encode(text));return [...new Uint8Array(raw)].map(x=>x.toString(16).padStart(2,'0')).join('');}
 function inspectManifest(m,date){
