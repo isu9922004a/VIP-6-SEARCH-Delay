@@ -1,0 +1,154 @@
+/* Presentation-only override. Remove the two V8.5 includes to restore the original UI. */
+body{font-family:"Noto Sans TC","PingFang TC",system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif;font-variant-numeric:tabular-nums;--up-surface:#fff;--up-soft:#f5f8fb;--up-border:#dce5ed;--up-ink:#20364a;--up-muted:#627487;--up-accent:#0b706f;background:#f2f5f8;color:var(--text,var(--up-ink))}
+body.dark-mode{--up-surface:#142536;--up-soft:#192f43;--up-border:#344c62;--up-ink:#e5edf5;--up-muted:#acbdcd;--up-accent:#7edbd1;background:#0c1927}
+body .header{background:linear-gradient(110deg,#142d44,#24495b);border-bottom:1px solid #ffffff24;padding:0}
+body .header::before,body .header::after{display:none}
+body .header .container{padding-top:18px;padding-bottom:18px}
+body .header h1{font-size:26px;line-height:1.35;letter-spacing:.02em}
+body .header p{font-size:14px;line-height:1.6;color:#c6d6df;margin:6px 0}
+body.workspace-v831 .header .container{padding:18px 16px}
+body.workspace-v831 .header h1{font-size:26px}
+body.workspace-v831 .header p{font-size:14px;line-height:1.6}
+/* These four overrides are necessary because the old shortcut has inline styles. */
+body #towerGoldShortcut{background:#ffffff14!important;color:#e2f3fa!important;border-radius:999px!important;padding:8px 14px!important;border:1px solid #ffffff35;max-width:100%;box-sizing:border-box;white-space:normal}
+body .version-pill,body .momentum-hero .meta,body .daytrade-hero .meta,body .market-hero .meta{min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body .up-nav{position:sticky;top:0;z-index:200;padding:env(safe-area-inset-top,0px) max(16px,calc((100vw - 1180px)/2)) 0;background:#fffffff0;border-bottom:1px solid var(--up-border);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 3px 12px #20364a06}
+body.dark-mode .up-nav{background:#102234f2}
+body .up-nav-links{display:flex;align-items:center;gap:6px;overflow-x:auto;scrollbar-width:none;padding:9px 0;overscroll-behavior-x:contain}
+body .up-nav-links::-webkit-scrollbar{display:none}
+body .up-nav a{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;min-height:42px;padding:0 16px;border:1px solid transparent;border-radius:9px;text-decoration:none;color:var(--up-muted);font-size:14px;font-weight:700;white-space:nowrap}
+body .up-nav a:hover{background:var(--up-soft);color:var(--up-ink)}
+body .up-nav a.is-active{background:#e5f3f2;color:#095d5c;border-color:#badfdb}
+body.dark-mode .up-nav a.is-active{background:#244a50;color:#c4f5ed;border-color:#437579}
+body .up-anchor{scroll-margin-top:calc(88px + env(safe-area-inset-top,0px))}
+body #workspaceV831{padding:20px 22px;border:1px solid var(--up-border);border-radius:14px;background:var(--up-surface);box-shadow:0 4px 18px #18304707}
+body #workspaceV831 .workspace-v831-header{margin-bottom:14px}
+body #workspaceV831 .workspace-v831-title{color:var(--up-ink);font-size:20px}
+body #workspaceV831 .workspace-v831-version{font-size:11px;color:var(--up-muted);background:var(--up-soft);border:1px solid var(--up-border);max-width:48%;overflow:hidden;text-overflow:ellipsis}
+body #workspaceV831 .workspace-v831-tabs{gap:8px;margin-top:0}
+body #workspaceV831 .workspace-v831-tab{min-height:48px;border-radius:9px;background:var(--up-soft);border-color:var(--up-border);color:var(--up-muted);box-shadow:none}
+body #workspaceV831 .workspace-v831-tab[aria-selected="true"]{background:#173f56;color:#fff;border-color:#173f56;box-shadow:none}
+body.dark-mode #workspaceV831 .workspace-v831-tab[aria-selected="true"]{background:#245466;border-color:#48859a;color:#fff}
+body #workspaceV831 .workspace-v831-filter{background:var(--up-surface);color:var(--up-ink);border-color:var(--up-border);border-radius:8px;min-height:44px}
+body #workspaceV831 .workspace-v831-filter[aria-pressed="true"]{background:#e9f4f2;color:#135e5d;border-color:#5eaaa1}
+/* Honor the workspace's existing hidden attribute; a previous grid rule overrode it. */
+body #workspaceV831 #workspaceFilterPicker[hidden]{display:none}
+body.workspace-v831:not([data-workspace-v831="filters"]) .filter-navigation{display:none}
+body.dark-mode #workspaceV831 .workspace-v831-filter[aria-pressed="true"]{background:#224748;color:#c7f2e9;border-color:#5eaaa1}
+body #workspaceV831 .workspace-v831-intro{color:var(--up-muted);line-height:1.75;font-size:13px;margin:14px 0 0}
+body #workspaceV831 .workspace-v831-advanced{border-top:1px solid var(--up-border);margin-top:14px;padding-top:8px}
+body #workspaceV831 .workspace-v831-advanced>summary{color:var(--up-muted);min-height:32px}
+body #workspaceV831 .workspace-v831-advanced-content{color:var(--up-muted)}
+body #workspaceV831 .workspace-v831-advanced-content button{background:var(--up-soft);color:var(--up-ink);border:1px solid var(--up-border);border-radius:8px;padding:10px;text-align:left;min-height:44px}
+body main.container{padding-top:20px}
+body .panel,body #workspaceSearchPanel{border-radius:14px;border-color:var(--up-border);box-shadow:0 4px 18px #18304706}
+body #workspaceSearchPanel{padding:24px}
+body #workspaceSearchPanel>.section-title{font-size:18px;margin-bottom:16px}
+body .search-row{gap:10px}
+body #stockInput{background:var(--up-surface);color:var(--up-ink);border-color:#b9cbd9;box-shadow:inset 0 1px 3px #18304705;border-radius:10px;min-width:0}
+body #searchButton{border-radius:10px;background:#0b7775;color:#fff}
+body .btn,body .mini-btn{border-radius:9px;min-height:44px;line-height:1.5}
+body .quick-actions{gap:8px;margin-top:12px}
+body .quick-actions .mini-btn{font-size:13px;line-height:1.5;background:var(--up-soft);color:var(--up-ink);border:1px solid var(--up-border);white-space:normal}
+body #stockSimpleAnalysisWatermarkButton{background:#eaf6f4;color:#165f5a;border-color:#b6dcd5}
+body.dark-mode #stockSimpleAnalysisWatermarkButton{background:#224348;color:#c6f1e7;border-color:#527a7e}
+body .stock-input:focus-visible,body .btn:focus-visible,body .mini-btn:focus-visible,body button:focus-visible,body a:focus-visible,body select:focus-visible{outline:2px solid #257d97;outline-offset:2px;box-shadow:0 0 0 3px rgba(11,94,215,.24)}
+body .market-shortcut{--up-title:#5b6b82;--up-stripe:#5b6b82}
+body .momentum-shortcut{--up-title:#6d4cc2;--up-stripe:#6d4cc2}
+body .daytrade-shortcut{--up-title:#0f766e;--up-stripe:#0f766e}
+body .strong-stock-shortcut{--up-title:#0b5ed7;--up-stripe:#0b5ed7}
+body.dark-mode .market-shortcut{--up-title:#bacce4}
+body.dark-mode .momentum-shortcut{--up-title:#c3aeff}
+body.dark-mode .daytrade-shortcut{--up-title:#8de5d8}
+body.dark-mode .strong-stock-shortcut{--up-title:#9fc8ff}
+body .market-shortcut,body .momentum-shortcut,body .daytrade-shortcut,body .strong-stock-shortcut{background:var(--up-surface);border:1px solid var(--up-border);border-left:4px solid var(--up-stripe);border-radius:14px;padding:20px;margin-top:18px;box-shadow:0 4px 16px #18304705;min-width:0}
+body .market-shortcut::after,body .momentum-shortcut::after,body .daytrade-shortcut::after,body .strong-stock-shortcut::after{display:none}
+body .market-shortcut>.section-title,body .momentum-shortcut>.section-title,body .daytrade-shortcut>.section-title,body .strong-stock-shortcut>.section-title{color:var(--up-title);line-height:1.6}
+body .section-subtitle,body .hint{line-height:1.8}
+body #workspaceSearchPanel>.hint{color:var(--up-muted)}
+body .up-note{cursor:pointer}
+body .up-note:not(.is-open){display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+body .up-note-toggle,body .up-more-btn{font:inherit;min-height:40px;border:1px solid var(--up-border);background:var(--up-soft);color:var(--up-accent);border-radius:8px;padding:7px 12px;cursor:pointer;line-height:1.5}
+body .up-note-toggle{font-size:12px;margin:6px 0 10px}
+body .up-note-toggle:hover,body .up-more-btn:hover{border-color:#6daca9}
+body .up-export{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,200px),1fr));gap:10px;align-items:stretch;margin-top:20px}
+body .momentum-image-actions.up-export>.copy-btn,body .daytrade-image-actions.up-export>.copy-btn,body .strong-stock-image-actions.up-export>.copy-btn{background:var(--up-surface);color:var(--up-ink);border:1px solid var(--up-border);border-radius:9px;min-height:48px;min-width:0;width:100%;padding:12px 14px;font-size:14px;text-align:left;line-height:1.6;white-space:normal;overflow-wrap:anywhere;box-shadow:none}
+body .momentum-image-actions.up-export>.newbie-copy-btn,body .daytrade-image-actions.up-export>.newbie-copy-btn,body .strong-stock-image-actions.up-export>.newbie-copy-btn{background:#126e6b;color:#fff;border-color:#126e6b}
+/* Existing V8.4 watermark styles already use !important. Scope this override to scanner exports. */
+body .momentum-image-actions.up-export>.watermark-image-btn,body .daytrade-image-actions.up-export>.watermark-image-btn,body .strong-stock-image-actions.up-export>.watermark-image-btn{background:#fff5de!important;color:#805a15!important;border-color:#e9cf92!important}
+body.dark-mode .momentum-image-actions.up-export>.watermark-image-btn,body.dark-mode .daytrade-image-actions.up-export>.watermark-image-btn,body.dark-mode .strong-stock-image-actions.up-export>.watermark-image-btn{background:#3c3320!important;color:#f3d591!important;border-color:#75603b!important}
+body .up-export:not(.is-open)>.up-secondary{display:none}
+body .up-export>.up-more-btn{grid-column:1/-1;text-align:center;font-size:13px;color:var(--up-muted);background:transparent;border-style:dashed}
+body .momentum-summary-grid,body .daytrade-summary-grid{grid-template-columns:repeat(auto-fill,minmax(116px,1fr));gap:10px}
+body .momentum-summary-card,body .daytrade-summary-card{background:var(--up-surface);border:1px solid var(--up-border);border-radius:11px;padding:14px;box-shadow:none;min-width:0}
+body .momentum-summary-card .v,body .daytrade-summary-card .v{font-size:26px;font-weight:800;color:var(--up-ink);line-height:1.3}
+body .momentum-summary-card .k,body .daytrade-summary-card .k{font-size:12px;color:var(--up-muted);line-height:1.6}
+body .momentum-summary-card:has(#momentumSCount){border-top:3px solid #329477}
+body .momentum-summary-card:has(#momentumACount){border-top:3px solid #4384d0}
+body .momentum-summary-card:has(#momentumBCount){border-top:3px solid #c39234}
+body .is-empty{color:var(--up-muted);opacity:.65}
+body .momentum-progress-track,body .strong-stock-progress{height:10px;border-radius:999px;overflow:hidden}
+body .momentum-card{border-radius:12px;border-left:4px solid var(--up-border);min-width:0}
+body .momentum-card:has(.momentum-badge.s){border-left-color:#329477}
+body .momentum-card:has(.momentum-badge.a){border-left-color:#4384d0}
+body .momentum-card:has(.momentum-badge.b){border-left-color:#c39234}
+body #workspaceStockSummary{border-radius:14px;border:1px solid var(--up-border);border-left:4px solid #438f8c;background:var(--up-surface);padding:24px;box-shadow:0 4px 18px #18304706}
+body #workspaceStockSummary .workspace-stock-name{font-size:26px;color:var(--up-ink)}
+body #workspaceStockSummary .workspace-stock-date,body #workspaceStockSummary .workspace-stock-help{color:var(--up-muted);line-height:1.8}
+body #workspaceStockSummary .workspace-stock-risk{border:1px solid #ebd8a5;background:#fff9e9;color:#725317;line-height:1.8;padding:14px 16px}
+body.dark-mode #workspaceStockSummary .workspace-stock-risk{background:#373221;border-color:#776338;color:#f2dcaa}
+body #workspaceStockSummary .workspace-stock-actions button{border-radius:9px;background:#173f56;border-color:#173f56}
+body #workspaceStockSummary .workspace-stock-actions .workspace-secondary{background:var(--up-surface);color:var(--up-ink);border-color:var(--up-border)}
+/* Restyle existing on-screen conclusions and level cards; do not derive or reorder prices. */
+body .v50-panel{border-radius:14px;box-shadow:none}
+body .v50-buy-call{border-radius:12px;padding:18px;line-height:1.85}
+body .v50-buy-call>strong{font-size:20px;line-height:1.6}
+body .v50-score-row{padding:14px;border-radius:10px}
+body .v46-level-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;counter-reset:up-level}
+body .v46-level-card{position:relative;counter-increment:up-level;border-radius:12px;padding:18px 18px 18px 52px;min-width:0;box-shadow:none;overflow-wrap:anywhere}
+body .v46-level-card::before{content:counter(up-level,decimal-leading-zero);position:absolute;left:14px;top:19px;font-size:12px;font-weight:800;color:var(--up-muted);border-bottom:2px solid var(--up-border);padding-bottom:6px}
+body .v46-level-card .v46-price{font-size:26px;line-height:1.45}
+body .v46-level-card .v46-note{line-height:1.8}
+body.dark-mode .v50-panel,body.dark-mode .v50-box{background:var(--up-surface);color:var(--up-ink);border-color:var(--up-border)}
+body.dark-mode .v50-title,body.dark-mode .v50-box strong,body.dark-mode .v50-buy-call strong,body.dark-mode .v50-score-copy{color:var(--up-ink)}
+body.dark-mode .v50-meta,body.dark-mode .v50-shadow-note,body.dark-mode .v50-score-copy small{color:var(--up-muted)}
+body.dark-mode .v50-buy-call{background:#332f23;color:#f2e5c3;border-color:#9c8450}
+body.dark-mode .v50-buy-call[data-tone="red"]{background:#3b242e;border-color:#b9707b}
+body.dark-mode .v50-buy-call[data-tone="green"]{background:#173b32;border-color:#4caa86}
+body.dark-mode .v50-buy-call[data-tone="gray"]{background:var(--up-soft);border-color:#688095}
+body.dark-mode .v50-score-row{background:#ffffff08;border-color:var(--up-border)}
+body.dark-mode .v50-score-number{color:#f0c571}
+body.dark-mode .v50-buy-call[data-tone="red"] .v50-score-number{color:#ffabb3}
+body.dark-mode .v50-buy-call[data-tone="green"] .v50-score-number{color:#97e4bd}
+body.dark-mode .v50-alert{background:#332f23;color:#f2e5c3;border-color:#9c8450}
+body.dark-mode .v50-alert strong{color:#f5dfa6}
+@media(hover:hover){body .momentum-card:hover{box-shadow:0 8px 24px #173b5014}}
+@media(prefers-reduced-motion:no-preference){body{scroll-behavior:smooth}body .momentum-card,body .up-nav a{transition:background .15s,box-shadow .15s}body .up-nav-links{scroll-behavior:smooth}}
+@media(max-width:640px){
+ body .container{padding-left:12px;padding-right:12px}
+ body .header .container{padding:16px}
+ body .header h1{font-size:26px}
+ body .up-nav{padding-left:12px;padding-right:12px}
+ body .up-nav a{padding:0 13px;font-size:13px}
+ body main.container{padding-top:12px}
+ body .panel,body #workspaceSearchPanel,body #workspaceV831,body #workspaceStockSummary{padding:16px}
+ body #workspaceV831 .workspace-v831-header{align-items:flex-start}
+ body #workspaceV831 .workspace-v831-title{font-size:18px}
+ body #workspaceV831 .workspace-v831-version{font-size:10px;padding:5px 7px}
+ body #workspaceV831 .workspace-v831-tab{font-size:13px}
+ body .market-shortcut,body .momentum-shortcut,body .daytrade-shortcut,body .strong-stock-shortcut{padding:16px}
+ body .up-export{grid-template-columns:minmax(0,1fr)}
+ /* Old narrow-screen rules use !important on the grid; retain two usable columns. */
+ body .momentum-summary-grid,body .daytrade-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ body .v46-level-grid{grid-template-columns:minmax(0,1fr)}
+ body .search-row{flex-wrap:wrap}
+ body #stockInput{flex:1 1 210px;width:100%;box-sizing:border-box}
+ body #searchButton{flex:1 1 100%;width:100%}
+ body .quick-actions .mini-btn{flex:1 1 auto;font-size:12px;padding:9px 11px}
+ body .v50-buy-call>strong{font-size:18px}
+}
+@media print{
+ body .up-nav,body .up-more-btn,body .up-note-toggle{display:none}
+ body .up-note:not(.is-open){display:block;overflow:visible;-webkit-line-clamp:unset}
+ body .up-export:not(.is-open)>.up-secondary{display:block}
+}
