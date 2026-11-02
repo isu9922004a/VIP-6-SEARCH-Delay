@@ -10,6 +10,7 @@ on:
       - 'config/verified-market-closures.json'
       - 'scripts/verify-market-snapshot.mjs'
       - 'scripts/tests/update-market-snapshot.test.mjs'
+      - '.github/workflows/deploy-data-pages.yml'
   schedule:
     # UTC. Retry through Taipei next morning if the post-close scheduler is delayed.
     # Scheduled Actions are best-effort; workflow_dispatch and push also recover a missed run.
@@ -53,13 +54,16 @@ jobs:
         run: |
           node scripts/verify-market-snapshot.mjs >> "$GITHUB_STEP_SUMMARY" 2>&1 || true
       - name: Publish official completed-session calendar for research
-        continue-on-error: true
         run: node scripts/update-research-calendar.mjs
       - name: Update official research history for all stocks
-        continue-on-error: true
         run: node scripts/build-official-research-history.mjs
+      - name: Require history and quotes from the same completed session
+        run: |
+          node - <<'NODE'
+          const market=require('./data/market/latest.json'),history=require('./data/research/manifest.json');
+          if(history.verified!==true||history.date!==market.tradeDateIso||history.snapshotContentSha256!==market.contentSha256)throw Error('Research archive has not caught up; keep the run failed and retry on the next schedule');
+          NODE
       - name: Audit all updated research results
-        continue-on-error: true
         run: |
           if ! git diff --quiet -- data/research/manifest.json; then
             node scripts/audit-official-research-v829.cjs
@@ -84,3 +88,20 @@ jobs:
           done
           echo '::error::Verified data could not be published; do not report success.'
           exit 1
+  forecast:
+    needs: update-market-snapshot
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/kronos-forecast.yml
+  deploy:
+    needs: update-market-snapshot
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy-data-pages.yml
+    with:
+      artifact-name: market-pages
+
