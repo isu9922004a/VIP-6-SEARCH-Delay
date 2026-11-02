@@ -1,10 +1,13 @@
 name: Kronos independent stock and index inference
 on:
+  workflow_call:
   workflow_dispatch:
   push:
-    paths: ['.github/workflows/kronos-forecast.yml', 'kronos/**']
+    branches: ['main']
+    paths: ['.github/workflows/kronos-forecast.yml', 'kronos/**', 'scripts/kronos-automation.cjs']
   schedule:
-    - cron: '35 9 * * 1-5'
+    # Independent recovery attempts if a chained run is interrupted (UTC).
+    - cron: '19 10-23 * * 1-5'
 permissions:
   contents: read
 concurrency:
@@ -12,15 +15,36 @@ concurrency:
   cancel-in-progress: false
 jobs:
   sources:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
+    outputs:
+      needed: ${{ steps.plan.outputs.needed }}
+      revision: ${{ steps.revision.outputs.sha }}
+      identity: ${{ steps.plan.outputs.identity }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: node scripts/update-kronos-sources.cjs
+      - name: Require a fresh complete market snapshot
+        run: node scripts/verify-market-snapshot.mjs
+      - name: Refresh independent index and trading calendar with retries
+        run: |
+          for attempt in 1 2 3; do
+            if node scripts/update-kronos-sources.cjs; then exit 0; fi
+            if [ "$attempt" -lt 3 ]; then sleep $((attempt * 30)); fi
+          done
+          exit 1
+      - id: revision
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Check source alignment and skip already completed inputs
+        id: plan
+        run: node scripts/kronos-automation.cjs plan
       - uses: actions/upload-artifact@v4
+        if: steps.plan.outputs.needed == 'true'
         with:
           name: kronos-inputs
           path: |
@@ -28,6 +52,7 @@ jobs:
             data/kronos/calendar.json
   infer:
     needs: sources
+    if: needs.sources.outputs.needed == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 120
     strategy:
@@ -37,6 +62,8 @@ jobs:
         shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.sources.outputs.revision }}
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -71,6 +98,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
       - uses: actions/download-artifact@v4
         with:
           name: kronos-inputs
@@ -80,23 +111,34 @@ jobs:
           pattern: kronos-results-*
           path: /tmp/kronos-results
           merge-multiple: true
-      - name: Publish matching current snapshot only
+      - name: Verify every shard and publish matching current history only
+        env:
+          EXPECTED_IDENTITY: ${{ needs.sources.outputs.identity }}
         run: |
-          node - <<'NODE'
-          const fs=require('fs'),calendar=require('/tmp/kronos-inputs/kronos/calendar.json'),manifest=require('./data/research/manifest.json');
-          const index=require('/tmp/kronos-inputs/index/TAIEX.json');
-          if(index.closeDate!==manifest.date)throw Error('Snapshot advanced during inference; refuse mixed-date publish');
-          fs.cpSync('/tmp/kronos-inputs/index','data/index',{recursive:true});
-          fs.cpSync('/tmp/kronos-results','data/kronos',{recursive:true});
-          fs.cpSync('/tmp/kronos-inputs/kronos/calendar.json','data/kronos/calendar.json');
-          NODE
+          cp /tmp/kronos-inputs/index/TAIEX.json data/index/TAIEX.json
+          cp /tmp/kronos-inputs/kronos/calendar.json data/kronos/calendar.json
+          node scripts/verify-market-snapshot.mjs
+          node scripts/kronos-automation.cjs publish /tmp/kronos-results "$EXPECTED_IDENTITY"
           node scripts/build-kronos-manifest.cjs
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add data/index data/kronos
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m 'data: refresh real Kronos stock and independent index samples'
-          git fetch origin main
-          git rebase origin/main
-          node -e "if(require('./data/index/TAIEX.json').closeDate!==require('./data/research/manifest.json').date)throw Error('Snapshot advanced before publish')"
-          git push origin HEAD:main
+          git commit -m 'data: refresh verified Kronos stock and index samples'
+          for attempt in 1 2 3; do
+            git pull --rebase origin main
+            node scripts/verify-market-snapshot.mjs
+            node -e "if(require('./scripts/kronos-automation.cjs').inputs(process.cwd()).identity!==process.env.EXPECTED_IDENTITY)throw Error('Source changed before publish; next scheduled run will recompute')"
+            if git push origin HEAD:main; then exit 0; fi
+          done
+          exit 1
+  deploy:
+    needs: publish
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy-data-pages.yml
+    with:
+      artifact-name: kronos-pages
+
