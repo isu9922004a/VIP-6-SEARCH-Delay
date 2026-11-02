@@ -1,0 +1,38 @@
+name: Deploy current verified data to Pages
+on:
+  workflow_call:
+    inputs:
+      artifact-name:
+        type: string
+        default: verified-pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: verified-data-pages
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/configure-pages@v5
+      - name: Package the current site and data without development files
+        run: |
+          mkdir -p /tmp/verified-site
+          tar --exclude=.git --exclude=.github --exclude=evidence --exclude=scripts --exclude=third_party --exclude=kronos --exclude=node_modules -cf - . | tar -xf - -C /tmp/verified-site
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: /tmp/verified-site
+      - uses: actions/deploy-pages@v4
+        id: deployment
+        with:
+          artifact_name: ${{ inputs.artifact-name }}
