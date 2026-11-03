@@ -10,8 +10,8 @@ const LABELS=Object.freeze({DATA:'資料不足',CAUTION:'新買風險提醒',WAT
 const n=v=>v===null||v===undefined||String(v).trim()===''?null:Number.isFinite(Number(v))?Number(v):null;
 const avg=a=>a.length?a.reduce((s,v)=>s+v,0)/a.length:null;
 function date(v){const m=String(v??'').match(/^(\d{4})[-/]?(\d{2})[-/]?(\d{2})$/);if(!m)return null;const d=m[1]+'-'+m[2]+'-'+m[3],t=new Date(d+'T00:00:00Z');return Number.isFinite(t.getTime())&&t.toISOString().slice(0,10)===d?d:null;}
-function normalize(source,asOf){
- if(!Array.isArray(source)||source.length<26)return {ok:false,reason:'需至少26根完成日K；不補齊缺漏'};
+function normalize(source,asOf,{minBars=26}={}){
+ if(!Array.isArray(source)||source.length<minBars)return {ok:false,reason:`需至少${minBars}根完成日K；不補齊缺漏`};
  const bars=[];let last='';
  for(const row of source){const d=date(row.date),b={date:d};for(const k of ['open','high','low','close','volume'])b[k]=n(row[k]);
   if(row.suspended===true||!d||d<=last||d>asOf||row.completed===false||row.isComplete===false||['open','high','low','close'].some(k=>!(b[k]>0))||b.volume===null||b.volume<0||b.high<Math.max(b.open,b.close,b.low)||b.low>Math.min(b.open,b.close,b.high))return {ok:false,reason:'日K日期、順序、完成狀態或OHLCV無效；不排序、不刪錯誤列'};

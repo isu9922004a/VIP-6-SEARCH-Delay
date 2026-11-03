@@ -27,6 +27,7 @@ function researchStock(){
  return latest.analysis;
 }
 function riskDescription(a,report){
+ if(a?.limitedHistory?.verified)return '官方行情已核驗｜短期觀察：'+a.limitedHistory.explanation;
  if(!a)return '報告已完成，但四策略研究尚未備妥；請查看原始技術明細，風險條件仍須核對。';
  const terms=[];
  const stage=root.ShitouResearchReport?.stageLabel?.(a);
@@ -51,8 +52,9 @@ function renderSummary(){
  $('workspaceStockRisk').textContent=riskDescription(a,report);
  const hasResearch=!!(a&&$('researchStock')?.querySelector('.research-stock-card'));
  $('workspaceFourReportButton').disabled=!hasResearch;
+ $('workspaceFourReportButton').textContent=a?.limitedHistory?'查看已核驗行情觀察':'查看四策略研究報告';
  $('workspaceFourReportButton').title=hasResearch?'直接查看已產生的四策略研究，不重新計算':'研究報告尚未就緒，先查看原始技術報告';
- $('workspaceStockHelp').textContent=hasResearch?'研究報告已備妥。按鈕只開啟既有內容，不會重新查詢或計算。':'已保留原始個股技術報告；四策略研究尚未完成載入。';
+ $('workspaceStockHelp').textContent=a?.limitedHistory?'已備妥核驗行情與可計算的短期數據；完整策略與交易價位仍有資料限制。':hasResearch?'研究報告已備妥。按鈕只開啟既有內容，不會重新查詢或計算。':'已保留原始個股技術報告；四策略研究尚未完成載入。';
  observedCode=code+'|'+report.closeDate;
 }
 function closeReport(){

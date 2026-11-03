@@ -15,7 +15,7 @@ const stockNum=value=>{if(typeof value==='number')return Number.isFinite(value)?
 const stockFmt=value=>{const n=stockNum(value);return n===null?'—':n.toFixed(2);};
 function stockMetrics(report,analysis){
  const raw=report||{},rawRsi=stockNum(raw.rsiSourceAudit?.value??raw.dailyRsi??raw.dailyRsi5),rsi=stockNum(analysis?.features?.rsi5)??rawRsi,close=stockNum(raw.close);
- const v=analysis?.features||{},ma20=stockNum(v.ma?.[20]?.value);
+ const v=analysis?.features||{},ma20=stockNum(v.ma?.[20]?.value??analysis?.limitedHistory?.ma20);
  return Object.freeze({close,ma20,rsi5:rsi!==null&&rsi>=0&&rsi<=100?rsi:null,rawRsi5:rawRsi,rsiSource:analysis?.features?.rsi5!=null?'VALIDATED_CANONICAL_DAILY':'UPSTREAM_UNVERIFIED',
   marketDate:String(raw.closeDate||raw.marketDate||raw.dataDate||analysis?.date||'日期待核對'),
   source:String(raw.source||analysis?.dataSource||'資料來源未標示'),
@@ -30,7 +30,7 @@ function stockQueryIntro(stock){
  for(const [name,value] of [['收盤價',stockFmt(stock.metrics.close)],['日RSI5',stockFmt(stock.metrics.rsi5)],['日MA20',stockFmt(stock.metrics.ma20)]]){
   const cell=el('div');cell.className='research-stock-metric';cell.append(el('span',name),el('strong',value));row.append(cell);
  }
- const meta=el('p',`行情 ${stock.metrics.marketDate}｜${stock.metrics.verifiedDailyResearch?'完成日K研究':'研究資料尚未完整'}｜非原濾網排名`);
+ const meta=el('p',`行情 ${stock.metrics.marketDate}｜${stock.analysis?.limitedHistory?'官方行情已核驗，僅供觀察':stock.metrics.verifiedDailyResearch?'完成日K研究':'研究資料尚未完整'}｜非原濾網排名`);
  meta.className='research-stock-meta';
  box.append(heading,row,meta);return box;
 }
@@ -90,7 +90,8 @@ function source(input){const raw=U.normalizeInput(input),r={...raw};
  const D=root.ShitouSelectionDataV2,code=String(r.stock||r.code||''),sourceDate=r.marketDate||r.closeDate||r.dataDate;
  // Only the verified canonical cache may supply history. A same ticker in an old
  // scan is insufficient evidence: apply also checks date, market, close and completion.
- if(D?.get(code)&&D.getSnapshot()?.date===sourceDate){
+ const trustedObservation=r.officialObservationOnly===true&&safely(()=>root.ShitouOfficialResearchHistory?.availability(r,{quote:D.context(code).q}));
+ if(!trustedObservation&&D?.get(code)&&D.getSnapshot()?.date===sourceDate){
   const canonical=D.get(code);
   // A failed canonical acquisition belongs to the shared snapshot, regardless
   // of whether the caller came through the async stock lookup or a scan adapter.
@@ -137,6 +138,10 @@ async function prepareStockQuery(input){
   // ensure() adds an aggregate error prefix. Prefer the same bound per-stock
   // failure used by every scan adapter, preserving independent input errors.
   const reason=D.getSnapshot()?.date===date&&D.get(code)?.error||String(e.message||e);
+  // Retain strictly verified official facts when the trading pipeline rejects
+  // a short history or a volume-scope conflict. No scanner cache is upgraded.
+  const official=root.ShitouOfficialResearchHistory?.get(code,date);let q=null;try{q=D.context(code).q;}catch(_){}
+  if(official&&q&&root.ShitouOfficialResearchHistory.availability(official,{quote:q}))return {...official,code,officialObservationOnly:true,quoteEvidence:D.quoteEvidence?.(code,date),officialObservationReason:reason};
   return {...raw,quoteEvidence:D.quoteEvidence?.(code,date)||raw.quoteEvidence,researchAcquisitionError:reason,researchInputErrors:[...new Set([...(raw.researchInputErrors||[]),reason])]};
  }
 }
@@ -219,7 +224,7 @@ function render(){const panel=by('researchPanel');if(!panel)return;
   host.classList.add('research-card-grid');host.replaceChildren();
   by('researchScope').textContent=stock?`個股查詢：${stock.analysis.name}（${stock.analysis.code}）｜行情 ${stock.metrics.marketDate}`:'請先在「個股查詢」輸入股票代號並完成分析。';
   by('researchBaseline').textContent='此模式只顯示最新一次成功查詢的股票，不參與六套原濾網的排名。';
-  by('researchFunnel').textContent=stock?(stock.metrics.verifiedDailyResearch?'已顯示該股四模型研究與關鍵價位；資料認證另查。':'個股行情可供觀察；四模型所需完整日K資料不足，不補猜訊號。'):'查詢成功後可展開手機卡片、查看圖片及匯出文字摘要。';
+  by('researchFunnel').textContent=stock?(stock.analysis.limitedHistory?'已顯示官方核驗行情與可計算的短期均價；完整策略仍受歷史或交易規則限制。':stock.metrics.verifiedDailyResearch?'已顯示該股四模型研究與關鍵價位；資料認證另查。':'個股行情可供觀察；四模型所需完整日K資料不足，不補猜訊號。'):'查詢成功後可展開手機卡片、查看圖片及匯出文字摘要。';
   if(stock){host.append(stockQueryIntro(stock));const card=researchCard(stock.analysis,1,'個股',true);host.append(card);
    const button=card.querySelector('.research-card-actions>button');if(button)button.onclick=()=>preview([stock.analysis],{stockMode:true});}
   by('researchPreview').disabled=!stock;

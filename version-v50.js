@@ -3,3 +3,5 @@
 
 
 /* V8.6.1-OFFICIALVOL1: verified official history survives FULL/MIS reference volume mismatch. */
+
+/* V8.6.1-HISTORY1: verified limited-history observation and per-stock official source diagnostics. */
