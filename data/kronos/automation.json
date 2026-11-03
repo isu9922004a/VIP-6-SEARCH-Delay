@@ -1,9 +1,9 @@
 {
   "schema": "KRONOS_AUTOMATION_V1",
-  "identity": "c1075d2e51c9ac210b83ad37a31f91eb762e6518a0dd6793d544176960353afe",
+  "identity": "32ca1b815b1734df7e12cdeec787902cb892ee411efd313aa40d7c7b5cbd23b6",
   "asOf": "2026-11-03",
   "targetDate": "2026-11-04",
-  "generatedAt": "2026-11-03T11:54:25.101Z",
+  "generatedAt": "2026-11-03T12:20:24.911Z",
   "successCount": 1706,
   "unavailable": {
     "5314": "超過30%的價格斷點，需先處理公司行動或錯誤資料",
