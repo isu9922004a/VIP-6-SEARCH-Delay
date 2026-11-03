@@ -1,9 +1,9 @@
 {
   "schema": "KRONOS_AUTOMATION_V1",
-  "identity": "e537eaef0fa7e129c0fde7126a4d70b20152a860a9c8f24bb810f3a2822ec860",
+  "identity": "d16c459f00f63333dc9a482f8f1a39803802b06b18f915722d377c02269fdb5d",
   "asOf": "2026-11-03",
   "targetDate": "2026-11-04",
-  "generatedAt": "2026-11-03T20:23:12.903Z",
+  "generatedAt": "2026-11-03T20:58:53.977Z",
   "successCount": 1707,
   "unavailable": {
     "5314": "2026-08-14 價格基準斷點後只有53根日線，尚需10根；不混用斷點前價格",
