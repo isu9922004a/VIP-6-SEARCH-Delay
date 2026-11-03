@@ -9,6 +9,7 @@ const TITLE='大盤精簡分析',VERSION='V8.6',WATERMARK='石頭少爺台股分
 const titleFor=()=>TITLE;
 const colors={background:'#071f32',card:'#10344f',border:'#28627d',text:'#f0f6fb',muted:'#b8d9e9',yellow:'#f7cf70',aqua:'#79e4d1',red:'#ff9a91'};
 const num=v=>Number.isFinite(v)?Number(v).toFixed(2):'待核對';
+function validationText(b){const v=b?.schema==='v86-comparison-v1'&&b.partitions?.test?.variants;if(!v||!['A','C'].every(k=>Number.isFinite(v[k]?.accuracy)&&v[k].n>0))return '歷史驗證：尚無足夠證據證明V8.6較V8.5準確；未取得核驗回測表。';const a=v.A,c=v.C,e=c.crashSensitivity?.[-.02];return '歷史驗證：'+c.n+'日測試，V8.5方向命中 '+(a.accuracy*100).toFixed(1)+'%、V8.6 '+(c.accuracy*100).toFixed(1)+'%（保留方向亦列未命中）'+(e?.events?'；急跌辨識 '+e.truePositive+'/'+e.events:'')+'。'+(c.accuracy>a.accuracy?'小樣本尚不能證明提升。':'本次未改善方向準確率。')+'事後回測，未經前瞻驗證。';}
 function model(snapshot,{watermarked=false}={}){
  const a=snapshot&&snapshot.analysis,src=snapshot&&snapshot.source,f=snapshot&&snapshot.forecast;
  if(!a||a.state!=='AVAILABLE'||!a.input?.bars?.length||!src?.name||!src?.source||a.illustration){
@@ -166,5 +167,5 @@ function init(){
  }
 }
 if(root.document){if(root.document.readyState==='loading')root.document.addEventListener('DOMContentLoaded',init,{once:true});else init();}
-return {TITLE,VERSION,WATERMARK,titleFor,model,page,open,close,init,shareCurrentImage};
+return {TITLE,VERSION,WATERMARK,validationText,titleFor,model,page,open,close,init,shareCurrentImage};
 });
