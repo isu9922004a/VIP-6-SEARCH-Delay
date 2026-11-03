@@ -10,7 +10,7 @@ function build(a,p,f,pending=[],input=null,context={}){
  const direction=available?(bull?'🟢偏多向上漲':bear?'🔴偏空可能下跌':'🟡多空分歧、方向不明'):'⚪尚無可用的模型結果';
  const advice=!available?'先依已核對的行情觀察。':bear?'先別急著搶反彈，也不要直接追空！':good&&bull?'仍要等盤中條件確認！':'但還不能急著買！';
  add('headline',`📊 電腦模擬：【${name}】${direction}，${advice}`,bear?'red':bull?'aqua':'yellow');
- if(f.modelRun){add('notice',(f.executionVerified?'Kronos實跑收據已核對；':'Kronos歷史輸出，執行收據未核驗；')+'台股績效尚未驗證，取樣比例不是勝率。'+(f.provenance?.inputQuality?.warning||'')+(f.provenance?.outputQuality?.warning||''),'yellow');add('body','推演交易日：'+f.dates[0]+'；基準為 '+a.date+' 收盤。');}
+ if(f.modelRun){add('notice',(f.executionVerified?'已核對模型執行紀錄；':'模型執行紀錄尚未核對；')+'台股績效尚未驗證，取樣比例不是勝率。'+(f.provenance?.inputQuality?.warning?'成交金額是估算值，與實際成交金額可能有差異。':'')+(f.provenance?.outputQuality?.warning?'部分模擬的最高、最低價不合理，因此只參考開盤與收盤結果。':''),'yellow');add('body','推演交易日：'+f.dates[0]+'；基準為 '+a.date+' 收盤。');}
  if(demo)add('notice','本機人工示意｜尚未執行 Kronos；以下比例與明日方向只供檢視模組。','yellow');
  add('heading','① 明天可能怎麼走？');
  if(available){
@@ -19,7 +19,7 @@ function build(a,p,f,pending=[],input=null,context={}){
   add('body',`模擬結果：偏多 ${+(f.bullish*100).toFixed(1)}%、偏空 ${+(f.bearish*100).toFixed(1)}%、持平 ${+(f.flat*100).toFixed(1)}%。`);
   const ratio=Math.round((bear?f.bearish:f.bullish)*100);
   add('warning',`⚠️ 這只是電腦模擬的取樣比例，${f.direction==='MIXED'?'不能直接當成明天實際漲跌的機率，也不保證股價方向':`不代表明天有 ${ratio}% 的機率${bear?'下跌':'上漲'}，也不保證股價會${bear?'跌':'漲'}`}。`);
- }else add('body','此個股尚未取得可用的模型推論；不填入多空比例，也不猜明日方向。'+(f.reason||''));
+ }else add('body','此個股尚未取得可用的模型結果；不填入多空比例，也不猜明日方向。'+(f.reason||''));
  add('heading','② 明天可以買進嗎？');
  add('subheading',good&&!bear&&available?'🟡 盤後條件已通過，仍要等盤中確認！':'🟡 建議先觀望，不要急著買！','yellow');
  if(close&&watch){
@@ -55,9 +55,10 @@ function build(a,p,f,pending=[],input=null,context={}){
  add('body',`❌ 如果價格繼續下跌：注意風險，${bear?'不要因為股價跌了就急著搶反彈，也不要只因模型偏空就追空':bull?'不要因為電腦預測偏多就貿然進場':'不要把方向不明的推演當成買進訊號'}。`);
  if(bear&&valid&&p.bear?.watch>0)add('body',`另看 ${money(p.bear.watch)} 的轉弱觀察線；跌破也不代表放空資格與風險條件已通過。`);
  add('heading','📌 一句話總結：');
- add('summary',`「${available?`電腦模擬明天${bull?'有偏多跡象':bear?'有偏空跡象':'多空方向仍不明'}`:'明天尚無可用的模型結果'}，但今天是${volumeSummary}，${close&&watch&&close<watch?'短線還沒有確認轉強':'後續仍要看價格是否守穩'}。${watch?`新買先等股價${close<watch?'站回':'守穩'} ${money(watch)}，並確認其他風險條件通過後，再考慮進場。`:'新買先等可靠資料與完整風險條件。'}」`);
+ add('summary',`「${available?`電腦模擬明天${bull?'有偏多跡象':bear?'有偏空跡象':'多空方向仍不明'}`:'明天尚無可用的模型結果'}，今天的量價狀況：${volumeSummary}，${close&&watch&&close<watch?'短線還沒有確認轉強':'後續仍要看價格是否守穩'}。${watch?`新買先等股價${close<watch?'站回':'守穩'} ${money(watch)}，並確認其他風險條件通過後，再考慮進場。`:'新買先等可靠資料與完整風險條件。'}」`);
  add('footnote','＊以上為盤後模擬，無法預知明天盤中走勢；若明天大幅跳空，價位與風險都要重新計算。已持有股票者，應依原本持股計畫判斷。');
  return {number:'05',title:'明天可能怎麼走？該怎麼做？',compact:true,narrative:blocks,rows:[{icon:'search',price:'',label:'',bullets:blocks.map(b=>b.text)}],originalPending:[...pending],forecast:f};
 }
 return {build};
 });
+
