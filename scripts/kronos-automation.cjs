@@ -58,7 +58,7 @@ function main(root=path.resolve(__dirname,'..'),argv=process.argv.slice(2)){
  }else if(argv[0]==='publish'){
   if(argv[2]!==input.identity)throw Error('推論期間行情／歷史／模型版本已變更；下輪重算，不發布舊結果');
   const source=argv[1],receipt=validateBatch(input,source);
-  function archive(f){if(f?.kind!=='KRONOS_INFERENCE'||f.symbol!=='TAIEX'||!/^\d{4}-\d{2}-\d{2}$/.test(f.asOf))return;const folder=path.join(dir,'archive',f.asOf);fs.mkdirSync(folder,{recursive:true});const content=JSON.stringify(f),file=path.join(folder,'TAIEX-'+hash(f)+'.json');if(!fs.existsSync(file))fs.writeFileSync(file,content+'\n');const first=path.join(folder,'TAIEX.json');if(!fs.existsSync(first))fs.writeFileSync(first,content+'\n');}
+  function archive(f){if(f?.kind!=='KRONOS_INFERENCE'||f.symbol!=='TAIEX'||!/^\d{4}-\d{2}-\d{2}$/.test(f.asOf))return;const folder=path.join(dir,'archive',f.asOf);fs.mkdirSync(folder,{recursive:true});const content=JSON.stringify(f),file=path.join(folder,'TAIEX-'+hash(f)+'.json');if(!fs.existsSync(file))fs.writeFileSync(file,content+'\n');const input=read(path.join(root,'data/index/TAIEX.json'));if(input.closeDate===f.asOf&&signature(input.dailySeries.slice(-160))===f.historySignature){const file=path.join(folder,'input-'+f.historySignature+'-'+hash(input)+'.json');if(!fs.existsSync(file))fs.writeFileSync(file,JSON.stringify(input)+'\n');}const first=path.join(folder,'TAIEX.json');if(!fs.existsSync(first))fs.writeFileSync(first,content+'\n');}
   if(fs.existsSync(path.join(dir,'TAIEX.json')))archive(read(path.join(dir,'TAIEX.json')));
   if(fs.existsSync(path.join(source,'TAIEX.json')))archive(read(path.join(source,'TAIEX.json')));
   fs.rmSync(path.join(dir,'stocks'),{recursive:true,force:true});fs.rmSync(path.join(dir,'TAIEX.json'),{force:true});
