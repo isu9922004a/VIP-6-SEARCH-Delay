@@ -5,6 +5,8 @@ on:
     paths:
       - '.github/workflows/update-market-snapshot.yml'
       - 'scripts/update-market-snapshot.mjs'
+      - 'kronos/run.py'
+      - 'scripts/kronos-automation.cjs'
       - 'scripts/update-research-calendar.mjs'
       - 'scripts/update-scan-exclusions.mjs'
       - 'config/verified-market-closures.json'
@@ -104,4 +106,5 @@ jobs:
     uses: ./.github/workflows/deploy-data-pages.yml
     with:
       artifact-name: market-pages
+
 

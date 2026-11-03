@@ -53,3 +53,4 @@
 - `version-v50.js`
 - `.github/workflows/update-market-snapshot.yml`
 - `scripts/verify-deployed-frontend.py`
+- `update-market-snapshot.yml`（與啟用中的工作流程保持一致）
