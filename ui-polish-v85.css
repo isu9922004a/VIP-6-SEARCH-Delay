@@ -1,4 +1,4 @@
-/* Presentation-only override. Remove the two V8.5 includes to restore the original UI. */
+/* Presentation-only override. Remove the two V8.6 includes to restore the original UI. */
 body{font-family:"Noto Sans TC","PingFang TC",system-ui,-apple-system,"Segoe UI","Microsoft JhengHei",sans-serif;font-variant-numeric:tabular-nums;--up-surface:#fff;--up-soft:#f5f8fb;--up-border:#dce5ed;--up-ink:#20364a;--up-muted:#627487;--up-accent:#0b706f;background:#f2f5f8;color:var(--text,var(--up-ink))}
 body.dark-mode{--up-surface:#142536;--up-soft:#192f43;--up-border:#344c62;--up-ink:#e5edf5;--up-muted:#acbdcd;--up-accent:#7edbd1;background:#0c1927}
 body .header{background:linear-gradient(110deg,#142d44,#24495b);border-bottom:1px solid #ffffff24;padding:0}

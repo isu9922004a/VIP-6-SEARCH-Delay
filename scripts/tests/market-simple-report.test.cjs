@@ -6,6 +6,7 @@ const forecasts=require(path.join(root,'research-v83/forecast-engine.js'));
 const report=require(path.join(root,'research-v83/market-simple-report.js'));
 const history=require(path.join(root,'data/index/TAIEX.json'));
 const inference=require(path.join(root,'data/kronos/TAIEX.json'));
+const R=require('../../research-v86/market-regime.js');
 const analysis=engine.analyze(history),forecast=forecasts.evaluate(analysis.input,inference);
 const snapshot={analysis,forecast,source:{name:history.name,source:history.dailySeriesMeta.source}};
 function fakeDocument(){
@@ -20,25 +21,26 @@ test('official TAIEX history produces complete 1284x2778 independent PNG',()=>{
  assert.equal(analysis.state,'AVAILABLE');
  const output=report.model(snapshot),p=report.page(snapshot,{document:fakeDocument()}),audit=JSON.parse(p.dataset.researchAudit);
  assert.equal(output.date,history.closeDate);assert.equal(output.close,history.dailySeries.at(-1).close);
- assert.equal(p.width,1284);assert.equal(p.height,2778);assert.equal(audit.noClipping,true);
+ assert.equal(p.width,1284);assert.ok(p.height>=2778&&p.height<=8192);assert.equal(audit.noClipping,true);
  assert.ok(audit.bodyBottom<=audit.safeBottom);assert.equal(audit.completeNarrative,true);
- assert.deepEqual(Object.values(audit.levels),[analysis.ma20,analysis.resistance,analysis.support]);
+ assert.deepEqual(audit.levels,R.analyze(analysis.input,forecast).levels);assert.equal(audit.sections,7);
  assert.ok(output.blocks.some(b=>b.text.includes('① 下一交易日')));
- assert.ok(output.blocks.some(b=>b.text.includes('⑤ 明天實際怎麼做')));
+ assert.ok(output.blocks.some(b=>b.text.includes('⑤ 明日三種可能走法')));
 });
-test('V8.5 market clean and watermark variants keep exactly the same analysis',()=>{
+test('V8.6 market clean and watermark variants keep exactly the same analysis',()=>{
  const clean=report.model(snapshot,{watermarked:false});
  const watermarked=report.model(snapshot,{watermarked:true});
  assert.equal(clean.title,'大盤精簡分析');
  assert.equal(watermarked.title,'大盤精簡分析');
  assert.deepEqual(watermarked.blocks,clean.blocks);
  assert.deepEqual(watermarked.levels,clean.levels);
+ assert.ok(clean.blocks.some(b=>b.text.includes('⑦ 一句話總結')));
  for(const mode of [false,true]){
   const canvas=report.page(snapshot,{document:fakeDocument(),watermarked:mode}),audit=JSON.parse(canvas.dataset.researchAudit);
   assert.equal(audit.watermarked,mode);
   assert.equal(audit.title,mode?watermarked.title:clean.title);
-  assert.equal(audit.version,'V8.5');
-  assert.equal(canvas.width,1284);assert.equal(canvas.height,2778);
+  assert.equal(audit.version,'V8.6');
+  assert.equal(canvas.width,1284);assert.ok(canvas.height>=2778&&canvas.height<=8192);
   assert.equal(audit.noClipping,true);
  }
 });

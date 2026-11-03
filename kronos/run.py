@@ -3,6 +3,7 @@ import argparse
 import json
 import hashlib
 import platform
+import struct
 import math
 import os
 import random
@@ -23,6 +24,16 @@ def signature(bars):
     return f'{h:08x}'
 
 
+def raw_signature(paths):
+    h = 2166136261
+    for path in paths:
+        for bar in path:
+            for key in ('open', 'high', 'low', 'close'):
+                for byte in struct.pack('>d', float(bar[key])):
+                    h = ((h ^ byte) * 16777619) & 0xffffffff
+    return f'{h:08x}'
+
+
 def prepare(source, calendar):
     bars = source.get('dailySeries', [])[-160:]
     as_of = source['closeDate']
@@ -30,7 +41,13 @@ def prepare(source, calendar):
         raise ValueError('完成日K、價格基準或63根歷史未核驗')
     if source.get('volumeUnit') != 'shares':
         raise ValueError('量能單位未核對')
+    if source.get('close') != bars[-1]['close']:
+        raise ValueError('Source close mismatch')
     for i, b in enumerate(bars):
+        if b.get('completed') is False or not isinstance(b.get('volume'), (int, float)) or not math.isfinite(b['volume']) or b['volume'] < 0:
+            raise ValueError('Incomplete bar or invalid volume')
+        if any('amount' in z for z in bars) and (not isinstance(b.get('amount'), (int, float)) or not math.isfinite(b['amount']) or b['amount'] < 0):
+            raise ValueError('Partial or invalid amount channel')
         if not all(isinstance(b.get(k), (int, float)) and math.isfinite(b[k]) and b[k] > 0 for k in ('open', 'high', 'low', 'close')):
             raise ValueError('OHLC缺值或非正值')
         if b['low'] > min(b['open'], b['close']) or b['high'] < max(b['open'], b['close']) or (i and b['date'] <= bars[i - 1]['date']):
@@ -137,7 +154,7 @@ def infer(predictor, lock, receipt, source, calendar, code, sample_count=32, see
         'inputCutoff': source['closeDate'] + 'T13:30:00+08:00', 'historySignature': result['historySignature'],
         'inputTensorSHA256': hashlib.sha256(input_tensor.tobytes()).hexdigest(),
         'sampleCount': sample_count, 'seed': seed,
-        'rawSamplesSignature': signature([{'date': str(i) + ':' + str(j), **b} for i, path in enumerate(samples) for j, b in enumerate(path)]),
+        'rawSamplesSignature': raw_signature(samples),
         'rawSamplesSHA256': hashlib.sha256(json.dumps(samples, separators=(',', ':'), allow_nan=False).encode()).hexdigest(),
         'runtimeSeconds': result['runtimeSeconds'], 'mode': mode}
     result['execution'] = execution

@@ -1,0 +1,4 @@
+'use strict';
+const F=require('../../research-v83/forecast-engine');
+// Explicitly synthetic receipt for integrity tests only; never used in production.
+module.exports=function(f){const hash='a'.repeat(64);return {...f,generatedAt:'2026-11-01T00:00:01+00:00',execution:{schema:'kronos-execution-v86',backend:'PYTORCH_KRONOS',simulation:false,completed:true,symbol:f.symbol,asOf:f.asOf,inputLastDate:f.asOf,targetDate:f.targetDates[0],historySignature:f.historySignature,sampleCount:f.sampleCount,sampleCountPerRow:1,horizonTradingDays:1,runtimeSeconds:1,startedAt:'2026-11-01T00:00:00+00:00',completedAt:'2026-11-01T00:00:01+00:00',inputCutoff:f.asOf+'T13:30:00+08:00',modelWeightsSHA256:hash,tokenizerWeightsSHA256:hash,runtimeSHA256:hash,upstreamCodeSHA256:hash,inputTensorSHA256:hash,rawSamplesSHA256:hash,rawSamplesSignature:F.rawSignature(f.samples)}};};

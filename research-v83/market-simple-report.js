@@ -5,7 +5,7 @@
  else root.ShitouMarketSimpleReport=api;
 })(globalThis,function(root){
 'use strict';
-const TITLE='大盤精簡分析',VERSION='V8.5',WATERMARK='石頭少爺台股分析'+VERSION+'版',W=1284,H=2778;
+const TITLE='大盤精簡分析',VERSION='V8.6',WATERMARK='石頭少爺台股分析'+VERSION+'版',W=1284,MIN_H=2778,MAX_H=8192;
 const titleFor=()=>TITLE;
 const colors={background:'#071f32',card:'#10344f',border:'#28627d',text:'#f0f6fb',muted:'#b8d9e9',yellow:'#f7cf70',aqua:'#79e4d1',red:'#ff9a91'};
 const num=v=>Number.isFinite(v)?Number(v).toFixed(2):'待核對';
@@ -17,52 +17,32 @@ function model(snapshot,{watermarked=false}={}){
  if(a.instrumentType!=='TAIEX'||a.date!==a.input.asOf||a.input.bars.at(-1)?.date!==a.date||!Number.isFinite(a.close)){
   throw Error('大盤資料代號、日期或收盤點位不一致，請重新載入。');
  }
- const forecastValid=f?.state==='MODEL_SAMPLE'&&f?.modelRun===true&&Array.isArray(f.dates)&&f.dates[0]>a.date&&Number.isFinite(f.bullish)&&Number.isFinite(f.bearish)&&Number.isFinite(f.flat)&&f.provenance?.kind==='KRONOS_INFERENCE';
- const fresh=forecastValid?f:null;
- const slope=a.slope20>0?'上揚':a.slope20<0?'下彎':'走平';
- const above=a.close>=a.ma20;
- const recovered=a.close>=a.support;
- const cleared=a.close>a.resistance;
- const positions='MA5 '+num(a.ma5)+'、MA20 '+num(a.ma20)+'、MA60 '+num(a.ma60)+' 點；20日均線'+slope+'。';
- const trendLine='目前大盤'+a.trend+'；收盤 '+num(a.close)+' 點，'+(above?'在20日均線上方。':'仍在20日均線下方。')+(recovered?'':'前20日低點已跌破，先看能否收回。');
- const sampled=fresh?'Kronos已實跑：'+fresh.label+'；偏多 '+(fresh.bullish*100).toFixed(1)+'%、偏空 '+(fresh.bearish*100).toFixed(1)+'%、持平 '+(fresh.flat*100).toFixed(1)+'%（'+fresh.sampleCount+'條模型取樣）。':'模型結果未通過當期核驗：僅呈現歷史技術劇本，沒有可用的多空取樣比例。';
- const modelCaveat=fresh?'模型取樣比例不是隔日漲跌的實際機率或勝率；推演交易日 '+fresh.dates[0]+'。':'模型缺漏或逾期時不補造預測結果，也不把技術趨勢當成已確定的明日方向。';
- const recoverLevel=a.close<a.ma20?a.ma20:a.resistance;
- const buyLine=!recovered?'目前已跌破前20日低點，先等收回關卡，不宜急著進場。':!above?'目前仍在20日均線下方，先觀察是否站回並守穩，不追價。':cleared?'即使已越過前20日高點，仍須確認收盤站穩與風險條件，不因碰到價位就追價。':'目前尚未突破前20日高點，先等帶量突破並收盤確認。';
- const resistanceLabel=cleared?'已越過的前20日高點（觀察能否續守）':'前20日高點（上方候選壓力）';
- const supportLabel=recovered?'前20日低點（下方候選支撐）':'前20日低點（已跌破，觀察能否收回）';
- const bars=a.input.bars,last=bars.at(-1),prev=bars.at(-2);
- let volumeText='量能比較：資料不足，不以成交量作為買進依據。';
- if(Number.isFinite(last?.volume)&&last.volume>0&&Number.isFinite(prev?.volume)&&prev.volume>0){
-  const diff=(last.volume/prev.volume-1)*100;
-  volumeText='最近一個交易日市場成交量較前日'+(diff>=0?'增加 ':'減少 ')+Math.abs(diff).toFixed(1)+'%；量能變化必須搭配價格及收盤確認。';
- }
- const blocks=[
-  {kind:'heading',text:'① 下一交易日可能怎麼走？'},
-  {kind:'body',text:trendLine},
-  {kind:'highlight',tone:fresh?(fresh.direction==='BEAR'?'red':fresh.direction==='BULL'?'aqua':'yellow'):'yellow',text:sampled},
-  {kind:'notice',tone:'yellow',text:modelCaveat},
-  {kind:'heading',text:'② 明天可以直接進場嗎？'},
-  {kind:'highlight',tone:above&&recovered?'aqua':'yellow',text:buyLine},
-  {kind:'body',text:'關鍵位只是觀察條件，不能把「碰到點位」直接當成買進訊號；收盤確認與量價風險仍須檢查。'},
-  {kind:'heading',text:'③ 明天要注意哪三個點位？'},
-  {kind:'highlight',tone:'aqua',text:'● '+num(a.ma20)+' 點｜20日均線：觀察趨勢是否站回或守穩（不是保證買點）。'},
-  {kind:'highlight',tone:'yellow',text:'● '+num(a.resistance)+' 點｜'+resistanceLabel+'。'},
-  {kind:'highlight',tone:'red',text:'● '+num(a.support)+' 點｜'+supportLabel+'。'},
-  {kind:'heading',text:'④ 為什麼目前不能太樂觀或悲觀？'},
-  {kind:'body',text:positions},
-  {kind:'body',text:volumeText},
-  {kind:'notice',text:'支撐壓力取自最新日K以前的20根日K，不含當日；歷史價位不是保證能守住的價格。'},
-  {kind:'heading',text:'⑤ 明天實際怎麼做？'},
-  {kind:'body',text:'續強劇本：若越過 '+num(a.resistance)+' 點，且收盤守穩上方，再觀察是否延續；未確認前不視為突破成立。'},
-  {kind:'body',text:'整理劇本：若大盤主要在 '+num(a.support)+'～'+num(a.resistance)+' 點間波動，按區間觀察，不預設方向。'},
-  {kind:'body',text:'轉弱劇本：'+(recovered?'若跌破 ':'若仍無法收回 ')+num(a.support)+' 點，重新檢查下方結構與部位風險。'},
-  {kind:'notice',text:'空手者：等條件成立再評估；已有持股者：依原持股風險與停損計畫，不用大盤點位直接替代個股停損。'},
-  {kind:'heading',text:'📌 一句話總結'},
-  {kind:'summary',tone:'aqua',text:'大盤目前'+a.trend+'，先看 '+num(recoverLevel)+' 點附近的改善條件，以及 '+num(a.support)+' 點的風險；未收盤確認前不追價。'},
-  {kind:'footnote',text:'資料：'+src.source+'｜行情 '+a.date+'。盤後研究，非即時訊號；隔日跳空須重算風險，不保證走勢，不構成投資建議。'}
- ];
- return {title:titleFor(watermarked),watermarked:!!watermarked,name:'臺灣加權股價指數（TAIEX）',date:a.date,close:a.close,modelRun:!!fresh,source:src.source,forecastState:f?.state||'UNAVAILABLE',blocks,levels:{ma20:a.ma20,resistance:a.resistance,support:a.support},nextTradeDate:fresh?.dates?.[0]||null};
+ const R=typeof module==='object'&&module.exports?require('../research-v86/market-regime.js'):root.ShitouMarketRegimeV86;
+ const r=R.analyze(a.input,f);
+ if(r.state!=='AVAILABLE')throw Error('行情風險判讀資料未核驗：'+r.reasons.join('；'));
+ const fresh=r.model.available?f:null,m=r.model;
+ const pct=x=>(x*100).toFixed(1)+'%',direction={BULL:'偏多',BEAR:'偏空',FLAT:'持平',MIXED:'方向分歧',ABSTAIN:'保留方向判斷'};
+ const blocks=[],add=(kind,text,tone)=>blocks.push({kind,text,...(tone?{tone}:{})});
+ add('heading','① 下一交易日可能方向');
+ add('highlight',fresh?(fresh.executionVerified?'Kronos實跑收據已核對：':'Kronos歷史輸出／執行收據未核驗：')+direction[m.direction]+'；推演 '+m.targetDate+'，收盤中位數 '+num(m.medianClose)+' 點（'+pct(m.medianReturn)+'）。':'Kronos模型不可用；僅呈現歷史技術劇本，沒有模型方向或取樣比例。','yellow');
+ add('body','技術結構：'+r.regime.label+'；綜合：'+r.combinedState+'，'+direction[r.combinedDirection]+'。急跌風險：'+r.crashRisk.label+'。');
+ add('heading','② 現在適合進場嗎');add('highlight',r.entryAssessment,'yellow');
+ add('heading','③ 三個重要價位');
+ r.levels.forEach((l,i)=>add('highlight',num(l.price)+' 點｜'+l.role+'。'+l.note,['aqua','yellow','red'][i]));
+ add('heading','④ 為什麼這樣判斷');
+ for(const reason of r.reasons)add('body',reason);
+ add('body','MA5／20／60：'+[5,20,60].map(k=>num(r.features.ma[k].value)).join('／')+' 點；ATR14 '+num(r.features.atr)+' 點。'+(r.structure.reversalConfirmed?'突破延續與均價、動能改善條件通過；仍需管理失效風險。':'尚未同時確認突破延續與趨勢反轉。'));
+ add('heading','⑤ 明日三種可能走法');for(const s of r.scenarios)add('body',s.title+'：'+s.trigger+' 失效：'+s.invalid);
+ add('heading','⑥ AI預測可信度');
+ add('notice',fresh?'取樣分歧：多 '+pct(f.bullish)+'／空 '+pct(f.bearish)+'／平 '+pct(f.flat)+'（'+f.sampleCount+'條）。不確定性 '+r.uncertainty.level+'；取樣占比不是實際漲跌機率或勝率。':'模型不可用：只保留技術與風險分析，不補造AI數據。','yellow');
+ add('body','歷史驗證：尚無足夠證據證明V8.6較V8.6準確。資料完整度：'+(r.dataQuality.complete?'完成日K與交易日曆核對通過。':'日曆核驗仍有限制。')+'模型與ATR參考區間皆未校準，不保證涵蓋隔日走勢。');
+ if(fresh)add('notice','原始收盤取樣10–90%：'+num(m.interval.low)+'～'+num(m.interval.high)+'；綜合ATR風險參考 '+num(r.riskEnvelope.low)+'～'+num(r.riskEnvelope.high)+' 點。不是保證高低點。');
+ if(fresh?.provenance?.inputQuality?.warning)add('footnote',fresh.provenance.inputQuality.warning);
+ if(fresh?.provenance?.outputQuality?.warning)add('footnote',fresh.provenance.outputQuality.warning);
+ add('heading','⑦ 一句話總結');add('summary',r.summary,'aqua');
+ add('footnote','資料：'+src.source+'｜行情 '+a.date+'。盤後研究；跳空須重算風險，個股停損依原持股計畫，不保證走勢。');
+ return {title:titleFor(watermarked),watermarked:!!watermarked,name:'臺灣加權股價指數（TAIEX）',date:a.date,close:a.close,modelRun:fresh?.executionVerified===true,source:src.source,forecastState:f?.state||'UNAVAILABLE',blocks,levels:r.levels,nextTradeDate:m.targetDate||null,risk:r};
+
 }
 function wrap(ctx,text,maxWidth){
  const lines=[];for(const para of String(text).split('\n')){
@@ -74,9 +54,9 @@ function wrap(ctx,text,maxWidth){
 }
 function page(snapshot,{document:doc=root.document,watermarked=false}={}){
  const data=model(snapshot,{watermarked}),canvas=doc.createElement('canvas');
- canvas.width=W;canvas.height=H;const ctx=canvas.getContext('2d');
+ let H=MIN_H;canvas.width=W;canvas.height=H;const ctx=canvas.getContext('2d');
  if(!ctx)throw Error('此瀏覽器無法建立PNG畫布。');
- const M=28,IN=34,maxWidth=W-2*M-2*IN,top=132,header=220,gap=14,bodyTop=top+header+gap,panelBottom=H-122;
+ const M=28,IN=34,maxWidth=W-2*M-2*IN,top=132,header=220,gap=14,bodyTop=top+header+gap;let panelBottom=H-122;
  const font=(size,bold)=>{ctx.font=(bold?'750 ':'600 ')+size+'px "Microsoft JhengHei","Noto Sans TC",sans-serif';};
  const makeLayout=size=>{
   let total=76;
@@ -94,7 +74,7 @@ function page(snapshot,{document:doc=root.document,watermarked=false}={}){
   const candidate=makeLayout(s);
   if(candidate.total<=panelBottom-bodyTop-36){layout=candidate;break;}
  }
- if(!layout)throw Error('大盤精簡分析內容超過1284×2778單張圖片安全範圍，未刪除或截斷資料。');
+ if(!layout){layout=makeLayout(33);H=Math.max(MIN_H,Math.ceil(bodyTop+layout.total+180));if(H>MAX_H)throw Error('大盤精簡分析內容超過圖片安全範圍，未刪除或截斷資料。');canvas.height=H;panelBottom=H-122;}
  const panel=(y,h)=>{ctx.fillStyle=colors.card;ctx.strokeStyle=colors.border;ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(M,y,W-2*M,h,23);ctx.fill();ctx.stroke();};
  const draw=(lines,x,y,size,color,bold,lineH=size+12)=>{
   font(size,bold);ctx.fillStyle=color;for(let i=0;i<lines.length;i++)ctx.fillText(lines[i],x,y+i*lineH);
@@ -114,7 +94,7 @@ function page(snapshot,{document:doc=root.document,watermarked=false}={}){
  if(y>panelBottom-22)throw Error('大盤報告內容超過畫布安全區，已停止輸出避免裁切。');
  draw([VERSION+'｜1/1'],W-M-205,H-77,29,colors.muted,true);
  if(watermarked)(root.ShitouReportWatermark||(typeof require==='function'?require('../report-watermark-v84.js'):null)).apply(canvas,'market');
- const audit={watermarkStyle:watermarked?'REFERENCE_DIAGONAL_V84':null,title:data.title,watermarked:data.watermarked,version:VERSION,width:W,height:H,date:data.date,close:data.close,bodyFont:layout.size,bodyBottom:y,safeBottom:panelBottom-22,noClipping:true,modelRun:data.modelRun,forecastState:data.forecastState,source:data.source,levels:data.levels,completeNarrative:true,blockCount:data.blocks.length};
+ const audit={watermarkStyle:watermarked?'REFERENCE_DIAGONAL_V84':null,title:data.title,watermarked:data.watermarked,version:VERSION,width:W,height:H,date:data.date,close:data.close,bodyFont:layout.size,bodyBottom:y,safeBottom:panelBottom-22,noClipping:true,modelRun:data.modelRun,forecastState:data.forecastState,source:data.source,levels:data.levels,completeNarrative:true,blockCount:data.blocks.length,sections:7,regime:data.risk.regime.key,technicalDirection:data.risk.technicalDirection,combinedDirection:data.risk.combinedDirection,crashRisk:data.risk.crashRisk.level,executionVerified:data.modelRun};
  canvas.dataset.researchAudit=JSON.stringify(audit);
  return {width:W,height:H,dataset:{researchAudit:JSON.stringify(audit)},renderExportRegion:()=>canvas,toBlob:(cb,type='image/png')=>canvas.toBlob(cb,type)};
 }
@@ -171,7 +151,7 @@ async function open(watermarked=false){if(opening)return null;opening=true;const
   const dismiss=root.document.createElement('button');dismiss.type='button';dismiss.className='market-report-btn';dismiss.textContent='關閉';dismiss.addEventListener('click',close);
   controls.append(download,share,dismiss);
   const note=root.document.createElement('p');note.id='simpleMarketShareStatus';note.setAttribute('role','status');note.setAttribute('aria-live','polite');note.textContent='手機可從分享面板選LINE，電腦可複製圖片貼到LINE聊天室。';
-  const img=root.document.createElement('img');img.src=activeUrl;img.alt='1284×2778大盤精簡分析完整圖片';img.width=W;img.height=H;
+  const img=root.document.createElement('img');img.src=activeUrl;img.alt='大盤精簡分析完整圖片';img.width=result.width;img.height=result.height;
   dialog.append(title,controls,note,img);dialog.dataset.reportAudit=result.dataset.researchAudit;
   if(!dialog.open)dialog.showModal();
   status('已產生大盤'+(watermarked?'浮水印版':'無浮水印版')+'精簡分析圖片，請預覽、下載或分享。');

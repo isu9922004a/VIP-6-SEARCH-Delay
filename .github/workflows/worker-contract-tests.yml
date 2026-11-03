@@ -22,6 +22,8 @@ jobs:
         run: |
           node scripts/build-worker-contract.cjs
           git diff --exit-code -- stock-worker.mjs market-worker.mjs
+      - name: Verify inference input isolation and actual-calendar prefixes
+        run: python3 scripts/tests/kronos-v86-runtime.py
       - name: Run all offline regression tests
         run: node scripts/run-all-tests.cjs
   universe:

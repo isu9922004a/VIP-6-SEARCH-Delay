@@ -10,7 +10,7 @@ sys.path.insert(0, str(ROOT / 'kronos'))
 from run import load_runtime, infer, prepare, save
 
 def policy_hash():
-    paths = ['research-v86/market-config.js', 'research-v86/market-regime.js', 'scripts/backtest/v85-forecast.cjs', 'kronos/run.py', 'scripts/backtest/run-v86.py', 'scripts/backtest/score-v86.cjs']
+    paths = ['research-v86/market-config.js', 'research-v86/market-regime.js', 'research-v83/forecast-engine.js', 'scripts/backtest/v85-forecast.cjs', 'kronos/run.py', 'scripts/backtest/run-v86.py', 'scripts/backtest/score-v86.cjs']
     return hashlib.sha256('\n'.join(p + ':' + hashlib.sha256((ROOT / p).read_bytes()).hexdigest() for p in paths).encode()).hexdigest()
 
 def prefixes(source, calendar):
