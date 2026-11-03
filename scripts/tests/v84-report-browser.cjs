@@ -94,14 +94,14 @@ fs.mkdirSync(out,{recursive:true});
   await page.evaluate(filter=>ShitouWorkspaceV831.select('filters',filter),filter);
   for(const id of filter==='restaurant'?['restaurantImage','restaurantAllImages']:['structureImage','structurePrewatchImage']){assert.equal(await page.locator('#'+id).isEnabled(),false);checks.push({button:id,status:'PASS_EMPTY_GUARD'});}
  }
- // Positive fixtures explicitly use synthetic names and unverified-source labels.
- await page.evaluate(s=>{
-  const restaurant={...s.restaurant,date:s.restaurantPositive.date,dataDate:s.restaurantPositive.date,results:[s.restaurantPositive],candidates:[s.restaurantPositive],planned:1,attempted:1};
+ // Positive fixtures use source-backed synthetic receipts for all six restaurant gates.
+ await page.evaluate(({s,f})=>{
+  const c=ShitouRestaurantCore.evaluate(f.report,f.options),restaurant={...s.restaurant,date:f.date,dataDate:f.date,results:[c],candidates:[c],planned:1,attempted:1};
   ShitouRestaurantUI.render(ShitouRestaurantScanner.snapshot(ShitouRestaurantScanner.finish(restaurant)));
   const structure={...s.structure,results:{A:[s.structurePositive],B:[s.structurePrewatch]},planned:1,attempted:1};
   ShitouStructureUI.render(ShitouStructureScanner.snapshot(structure));
   lastMarketReportData=s.market;
- },scans);
+ },{s:scans,f:require('../restaurant-strict-fixture.cjs').fixture({code:'9999'})});
  for(const [filter,id] of [['restaurant','restaurantImage'],['restaurant','restaurantAllImages'],['structure','structureImage'],['structure','structureAllImages'],['structureB','structurePrewatchImage'],['market','generateMarketImageButton'],['market','generateMarketWatermarkImageButton']]){
   await page.evaluate(filter=>{ShitouWorkspaceV831.select(filter==='market'?'market':'filters',filter==='structureB'?'structure':filter);if(filter==='structureB'){document.querySelector('#structureMode').value='B';document.querySelector('#structureMode').dispatchEvent(new Event('change'));}if(filter==='market')document.getElementById('marketResult').style.display='block';},filter);
   await page.locator('#'+id).click();await page.waitForFunction(()=>document.querySelector('#imagePreviewModal')?.classList.contains('show')&&document.querySelector('#imageDownloadLink')?.href.startsWith('blob:'),{},{timeout:30000});
