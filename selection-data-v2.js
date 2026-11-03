@@ -194,11 +194,13 @@ function apply(report,code){
  if(String(report.stock||report.code||'')!==String(code)||report.market&&market(report.market)!==p.q.market)fail('原報告代號／市場別不同 '+code);
  if(report.completed===false||report.isComplete===false||E.date(report.closeDate||report.dataDate)!==p.date)fail('原報告完成狀態／日期不符 '+code);
  if(!(num(report.close)>0)||Math.abs(Number(report.close)-p.q.close)>Math.max(.02,p.q.close*.0001))fail('原報告收盤價不同 '+code);
- if(report.dailySeries?.length||report.canonicalBars?.length)report=normalizeWorkerReport(report,code);
  const officialReference=globalThis.ShitouOfficialResearchHistory?.get(code,p.date),officialProof=officialReference&&globalThis.ShitouOfficialResearchHistory.proof(officialReference);
  let referenceHistoryAudit=null,referenceWarning=null;
  if(report.dailySeries?.length||report.canonicalBars?.length){
-  try{validate(report,code,{referenceOnly:true,positiveVolumeSince:p.bars[0].date});}catch(e){if(!officialProof)throw e;referenceWarning=String(e.message||e);}
+  // A FULL response is only a reference when independently verified official
+  // history is already bound to this stock and snapshot. Its MIS tail can have
+  // a different volume scope; retain that failure without blocking the archive.
+  try{report=normalizeWorkerReport(report,code);validate(report,code,{referenceOnly:true,positiveVolumeSince:p.bars[0].date});}catch(e){if(!officialProof)throw e;referenceWarning=String(e.message||e);}
   const referenceRows=report.dailySeries||report.canonicalBars;
   referenceHistoryAudit=receiptAudit||{researchStart:p.bars[0].date,researchEnd:p.date,researchBars:p.bars.length,referenceBars:referenceRows.length,zeroVolumeOutsideResearch:referenceRows.filter(x=>Number(x.volume)===0&&x.date<p.bars[0].date).map(x=>x.date),policy:'完整歷史只作參考；研究區間每根仍要求正成交量，原始資料未刪改'};
  }
