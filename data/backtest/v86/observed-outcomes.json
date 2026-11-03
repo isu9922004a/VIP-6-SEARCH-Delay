@@ -1,0 +1,17 @@
+{
+  "source": "https://shitou-taiwanmarket-api.d318426.workers.dev/?market=TAIEX",
+  "retrievedAt": "2026-11-03T10:42:34.484Z",
+  "responseSHA256": "48b79a8fa8a8cb31191cddc3df626d1e6fc6e5caf93074286d5df66986a4a233",
+  "outcomes": [
+    {
+      "date": "2026-11-03",
+      "open": 44481.59,
+      "high": 44614.64,
+      "low": 43191.58,
+      "close": 43307.54,
+      "volume": 15218510001
+    }
+  ],
+  "available": true,
+  "usage": "OUTCOMES_ONLY_NEVER_FEATURES"
+}
