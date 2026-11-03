@@ -34,6 +34,20 @@ def raw_signature(paths):
     return f'{h:08x}'
 
 
+
+def input_window(rows):
+    original = rows[-160:]
+    breaks = []
+    for i in range(1, len(original)):
+        change = original[i]['open'] / original[i - 1]['close'] - 1
+        if abs(change) > .30:
+            breaks.append({'index': i, 'date': original[i]['date'], 'previousDate': original[i - 1]['date'],
+                'previousClose': original[i - 1]['close'], 'open': original[i]['open'], 'changePct': change * 100})
+    last = breaks[-1] if breaks else None
+    return {'bars': original[last['index'] if last else 0:], 'cutoff': last['date'] if last else None,
+        'breaks': breaks, 'originalBars': len(original), 'policy': 'POST_PRICE_BASIS_RESET_V1'}
+
+
 def prepare(source, calendar):
     bars = source.get('dailySeries', [])[-160:]
     as_of = source['closeDate']
@@ -52,13 +66,15 @@ def prepare(source, calendar):
             raise ValueError('OHLC缺值或非正值')
         if b['low'] > min(b['open'], b['close']) or b['high'] < max(b['open'], b['close']) or (i and b['date'] <= bars[i - 1]['date']):
             raise ValueError('OHLC或日期順序錯誤')
-        if i and abs(b['open'] / bars[i - 1]['close'] - 1) > .30:
-            raise ValueError('超過30%的價格斷點，需先處理公司行動或錯誤資料')
     if not calendar.get('verified') or not calendar.get('source') or bars[-1]['date'] != as_of:
         raise ValueError('交易日曆或截止日未對齊')
     expected = [d for d in calendar['dates'] if bars[0]['date'] <= d <= as_of]
     if expected != [b['date'] for b in bars]:
         raise ValueError('歷史交易日缺漏或日曆不符，不補造價格')
+    window = input_window(bars)
+    bars = window['bars']
+    if len(bars) < 63:
+        raise ValueError(f"{window['cutoff']} 價格基準斷點後只有{len(bars)}根日線，尚需{63-len(bars)}根；不混用斷點前價格")
     future = [d for d in calendar['dates'] if d > as_of][:1]
     if len(future) != 1:
         raise ValueError('下一交易日未確認')
@@ -144,7 +160,7 @@ def infer(predictor, lock, receipt, source, calendar, code, sample_count=32, see
         'sampleCount': sample_count, **lock, 'calendar': calendar, 'generatedAt': datetime.now(timezone.utc).isoformat(),
         'parameters': {'temperature': 1.0, 'top_p': .9, 'seed': seed, 'lookback': len(bars), 'sample_count_per_row': 1},
         'outputQuality': {'invalidOhlcCount': invalid, 'rawSamplesPreserved': True, 'use': 'OPEN_CLOSE_DISTRIBUTION_ONLY', 'warning': f'{invalid}/{sample_count}筆高低價順序不合理；保留全部收盤取樣，不顯示預測K棒。' if invalid else ''},
-        'inputQuality': {'priceBasis': source['priceAdjustment'].get('basis'), 'corporateActionsVerified': source['priceAdjustment'].get('corporateActionsVerified'),
+        'inputQuality': {'window': {k: v for k, v in input_window(source['dailySeries']).items() if k != 'bars'}, 'priceBasis': source['priceAdjustment'].get('basis'), 'corporateActionsVerified': source['priceAdjustment'].get('corporateActionsVerified'),
             'amountMode': 'OFFICIAL' if 'amount' in df else 'UPSTREAM_VOLUME_OHLC_PROXY', 'warning': '' if is_index else '歷史採未還原成交價，公司行動尚未核驗，僅供研究。'},
         'performanceValidated': False, 'calibratedWinProbability': None, 'useForAutomaticOrders': False,
         'runtimeSeconds': round(time.monotonic() - before, 3), 'note': '真實Kronos取樣；尚未驗證台股績效，取樣占比不是實際勝率。'}

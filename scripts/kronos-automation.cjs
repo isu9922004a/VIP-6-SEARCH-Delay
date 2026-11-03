@@ -19,7 +19,7 @@ function inputs(root){
   if(crypto.createHash('sha256').update(text).digest('hex')!==e.sha256||source.stock!==code||source.market!==e.market||source.closeDate!==asOf||source.completed!==true)throw Error('研究日K指紋或股票日期不符 '+code);
   jobs.set(code,{market:e.market,bars:source.dailySeries});
  }
- for(const [code,j] of jobs){j.signature=signature(j.bars.slice(-160));if(j.bars.at(-1)?.date!==asOf)throw Error('歷史截止日不符 '+code);}
+ for(const [code,j] of jobs){j.signature=signature(F.inputWindow(j.bars).bars);if(j.bars.at(-1)?.date!==asOf)throw Error('歷史截止日不符 '+code);}
  const identity=hash({asOf,targetDate,manifest:{date:research.date,snapshot:research.snapshotContentSha256,stocks:research.stocks,sessions:research.researchSessions},lock,index:jobs.get('TAIEX').signature,calendar:calendar.dates,runtime:fs.readFileSync(path.join(root,'kronos/run.py'),'utf8')});
  return {asOf,targetDate,identity,jobs,lock};
 }

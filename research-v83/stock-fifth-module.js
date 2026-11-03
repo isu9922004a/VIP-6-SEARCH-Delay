@@ -12,6 +12,7 @@ function build(a,p,f,pending=[],input=null,context={}){
  add('headline',`📊 電腦模擬：【${name}】${direction}，${advice}`,bear?'red':bull?'aqua':'yellow');
  if(f.modelRun){add('notice',(f.executionVerified?'已核對模型執行紀錄；':'模型執行紀錄尚未核對；')+'台股績效尚未驗證，取樣比例不是勝率。'+(f.provenance?.inputQuality?.warning?'成交金額是估算值，與實際成交金額可能有差異。':'')+(f.provenance?.outputQuality?.warning?'部分模擬的最高、最低價不合理，因此只參考開盤與收盤結果。':''),'yellow');add('body','推演交易日：'+f.dates[0]+'；基準為 '+a.date+' 收盤。');}
  if(demo)add('notice','本機人工示意｜尚未執行 Kronos；以下比例與明日方向只供檢視模組。','yellow');
+ if(f.modelRun&&f.provenance?.inputQuality?.window?.cutoff)add('notice',`模型只使用 ${f.provenance.inputQuality.window.cutoff} 價格斷點後的 ${f.provenance.parameters.lookback} 根日線，不跨越前後價格基準，也沒有補造或按猜測比例還原價格。`,'yellow');
  add('heading','① 明天可能怎麼走？');
  if(available){
   const opening={'接近平開':'可能接近今天收盤價開盤','傾向開高':'可能高於今天收盤價開盤','傾向開低':'可能低於今天收盤價開盤'}[f.openingLabel];

@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT / 'kronos'), str(ROOT / 'scripts/backtest')]
-from run import prepare, signature, raw_signature
+from run import prepare, signature, raw_signature, input_window
 import importlib.util
 spec = importlib.util.spec_from_file_location('walkforward', ROOT / 'scripts/backtest/run-v86.py')
 wf = importlib.util.module_from_spec(spec)
@@ -44,5 +44,18 @@ class InputTests(unittest.TestCase):
         self.assertIn('sample_count=1', text)
         self.assertIn('model.eval()', text)
         self.assertNotIn('random.uniform', text)
+    def test_post_price_reset_windows_preserve_raw_prices(self):
+        for code, count in [('5314', 53), ('5386', 72), ('6669', 40)]:
+            source=json.loads((ROOT/f'data/research/2026-11-03/{code}.json').read_text())
+            before=copy.deepcopy(source)
+            window=input_window(source['dailySeries'])
+            self.assertEqual(len(window['bars']), count)
+            if count >= 63:
+                bars,_=prepare(source,json.loads((ROOT/'data/kronos/calendar.json').read_text()))
+                self.assertEqual(bars, window['bars'])
+            else:
+                with self.assertRaisesRegex(ValueError, f'只有{count}根'):
+                    prepare(source,json.loads((ROOT/'data/kronos/calendar.json').read_text()))
+            self.assertEqual(source, before)
 
 if __name__ == '__main__': unittest.main()

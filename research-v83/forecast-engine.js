@@ -4,6 +4,11 @@ const entries=new Map();
 const finite=Number.isFinite, mean=a=>a.reduce((s,x)=>s+x,0)/a.length;
 const quantile=(a,p)=>{const s=[...a].sort((x,y)=>x-y),i=(s.length-1)*p;return s[Math.floor(i)]+(s[Math.ceil(i)]-s[Math.floor(i)])*(i%1);};
 function signature(bars){const s=bars.map(b=>[b.date,...['open','high','low','close','volume','amount'].map(k=>Number(b[k]||0).toFixed(6))].join(',')).join('\n');let h=2166136261;for(let i=0;i<s.length;i++)h=Math.imul(h^s.charCodeAt(i),16777619);return (h>>>0).toString(16).padStart(8,'0');}
+function inputWindow(rows){
+ const original=Array.isArray(rows)?rows.slice(-160):[],breaks=[];
+ for(let i=1;i<original.length;i++)if(original[i-1].close>0&&Number.isFinite(original[i].open)&&Math.abs(original[i].open/original[i-1].close-1)>.30)breaks.push({index:i,date:original[i].date,previousDate:original[i-1].date,previousClose:original[i-1].close,open:original[i].open,changePct:(original[i].open/original[i-1].close-1)*100});
+ const last=breaks.at(-1);return {bars:original.slice(last?.index||0),cutoff:last?.date||null,breaks,originalBars:original.length,policy:'POST_PRICE_BASIS_RESET_V1'};
+}
 function validBar(b){return b&&['open','high','low','close'].every(k=>finite(b[k])&&b[k]>0)&&b.high>=Math.max(b.open,b.close)&&b.low<=Math.min(b.open,b.close)&&b.low<=b.high;}
 function rawSignature(paths){let h=2166136261;const buffer=new ArrayBuffer(8),view=new DataView(buffer),bytes=new Uint8Array(buffer);for(const path of paths)for(const b of path)for(const k of ['open','high','low','close']){view.setFloat64(0,b[k],false);for(const byte of bytes)h=Math.imul(h^byte,16777619);}return(h>>>0).toString(16).padStart(8,'0');}
 function executionVerified(f){
@@ -39,6 +44,6 @@ function evaluate(input,forecast=null){
 }
 function key(input){return [input.symbol,input.market,input.asOf].join('|');}
 function fifth(a,plan,pending,context){const item=entries.get([String(a.code),a.validation?.market,a.date].join('|')),usable=item&&a.kronosInput&&signature(a.kronosInput.bars)===signature(item.input.bars)&&globalThis.ShitouKronosData?.isFresh(item.forecast)!==false;const f=usable?evaluate(item.input,item.forecast):{state:'UNAVAILABLE',modelRun:false,reason:globalThis.ShitouKronosData?.reasonFor(a)||'尚未取得此個股自己的Kronos結果。'};const api=typeof module==='object'&&module.exports?require('./stock-fifth-module.js'):globalThis.ShitouStockFifthModule;return api?.build(a,plan,f,pending,usable?item.input:null,context)||null;}
-return {evaluate,executionVerified,rawSignature,signature,quantile,validBar,fifth,configure(){},enabled(){return true;},register(input,forecast){const result=evaluate(input,forecast);if(result.state!=='MODEL_SAMPLE')return {ok:false,reason:result.reason};entries.set(key(input),{input,forecast});return {ok:true};},clear(){entries.clear();}};
+return {evaluate,executionVerified,rawSignature,signature,inputWindow,quantile,validBar,fifth,configure(){},enabled(){return true;},register(input,forecast){const result=evaluate(input,forecast);if(result.state!=='MODEL_SAMPLE')return {ok:false,reason:result.reason};entries.set(key(input),{input,forecast});return {ok:true};},clear(){entries.clear();}};
 });
 

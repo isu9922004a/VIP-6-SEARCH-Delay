@@ -14,7 +14,7 @@ const stockNum=value=>{if(typeof value==='number')return Number.isFinite(value)?
  if(typeof value==='string'&&value.trim()!==''&&Number.isFinite(Number(value)))return Number(value);return null;};
 const stockFmt=value=>{const n=stockNum(value);return n===null?'—':n.toFixed(2);};
 function stockMetrics(report,analysis){
- const raw=report||{},rawRsi=stockNum(raw.rsiSourceAudit?.value??raw.dailyRsi??raw.dailyRsi5),rsi=stockNum(analysis?.features?.rsi5)??rawRsi,close=stockNum(raw.close);
+ const raw=report||{},rawRsi=analysis?.limitedHistory?.priceBreak?null:stockNum(raw.rsiSourceAudit?.value??raw.dailyRsi??raw.dailyRsi5),rsi=stockNum(analysis?.features?.rsi5)??rawRsi,close=stockNum(raw.close);
  const v=analysis?.features||{},ma20=stockNum(v.ma?.[20]?.value??analysis?.limitedHistory?.ma20);
  return Object.freeze({close,ma20,rsi5:rsi!==null&&rsi>=0&&rsi<=100?rsi:null,rawRsi5:rawRsi,rsiSource:analysis?.features?.rsi5!=null?'VALIDATED_CANONICAL_DAILY':'UPSTREAM_UNVERIFIED',
   marketDate:String(raw.closeDate||raw.marketDate||raw.dataDate||analysis?.date||'日期待核對'),

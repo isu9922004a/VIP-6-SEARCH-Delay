@@ -11,11 +11,16 @@ function limitedGuide(a){
  const h=a.limitedHistory,headline='官方行情已核驗，提供短期觀察',mean=(n,v)=>v==null?`連續日線不足 ${n} 根，暫不計算`:`最近 ${n} 根連續日線平均收盤 ${price(v)}`;
  const lines=[h.explanation,`已保留 ${h.originalBars} 根原始有效日線；短期計算只使用最近 ${h.consecutiveBars} 根連續日線。`];
  const observation=[`收盤 ${price(h.close)}；開盤 ${price(h.open)}，最高 ${price(h.high)}，最低 ${price(h.low)}。`,`當日官方成交量 ${h.volume.toLocaleString('zh-TW')} 股。`,...(h.previousDate?[`與 ${h.previousDate} 的收盤相比 ${h.changePct>=0?'+':''}${h.changePct.toFixed(2)}%。`]:['尚無前一根連續日線，不計算漲跌幅。']),mean(5,h.ma5),mean(20,h.ma20)];
- const limits=[h.additionalConsecutiveBars>0?`完整趨勢需要至少 ${h.requiredBars} 根連續有效日線；目前 ${h.consecutiveBars} 根，若後續不中斷仍需 ${h.additionalConsecutiveBars} 根。`:h.explanation,'不補造零成交或缺少報價日的價格，也不跨越中斷計算短期均價。','尚未啟用四策略訊號、明日模型比例、買價、停損與目標價。'];
+ const modelEligible=a.validation?.modelInputAvailable===true;
+ const limits=[h.additionalConsecutiveBars>0?`完整趨勢需要至少 ${h.requiredBars} 根連續有效日線；目前 ${h.consecutiveBars} 根，若後續不中斷仍需 ${h.additionalConsecutiveBars} 根。`:h.explanation,'不補造零成交或缺少報價日的價格，也不跨越中斷計算短期均價。',modelEligible?'可另行核對真實模型結果；四策略買價、停損與目標價仍未啟用。':'尚未啟用四策略訊號、明日模型比例、買價、停損與目標價。'];
  if(h.scopeConflict)limits.push('成交量保留官方原值，統計範圍尚未對齊，暫不判斷放量或縮量。');
  const narrative=[{kind:'headline',text:'已核驗行情｜短期觀察',tone:'yellow'},{kind:'notice',text:h.explanation,tone:'yellow'},{kind:'heading',text:'① 已確認的行情'},...observation.slice(0,3).map(text=>({kind:'body',text})),{kind:'heading',text:'② 可計算的短期均價'},...observation.slice(3).map(text=>({kind:'body',text})),{kind:'heading',text:'③ 為什麼還沒有完整策略？'},...lines.slice(1).concat(limits).map(text=>({kind:'body',text})),{kind:'heading',text:'④ 接下來怎麼看？'},{kind:'body',text:'可觀察後續實際價格與成交量；短期均價只是歷史統計，不能單獨當成買進或賣出訊號。'},{kind:'footnote',text:'來源：'+h.source+'；行情基準 '+h.date+'。僅盤後觀察，非可執行交易計畫。'}];
  const row=bullets=>[{icon:'search',price:'',label:'',bullets}];
  const sections=[{number:'01',title:'已確認的行情',rows:row(observation.slice(0,3))},{number:'02',title:'短期均價',rows:row(observation.slice(3))},{number:'03',title:'歷史與中斷說明',rows:row(lines)},{number:'04',title:'完整策略啟用條件',rows:row(limits)},{number:'05',title:'目前如何觀察？',rows:row(['先觀察實際價格與成交量，不把歷史不足解讀成買進或放空訊號。']),fullNarrative:narrative,forecast:{state:'LIMITED_HISTORY',executionVerified:false}}];
+ if(modelEligible){
+  const forecast=globalThis.ShitouForecastPreview?.fifth(a,{state:'DATA',close:h.close,dataIssues:[{reason:h.explanation}]},limits,{volumeVerified:false,volumeShort:h.explanation});
+  if(forecast?.forecast?.state==='MODEL_SAMPLE')sections[4]={...forecast,fullNarrative:[{kind:'notice',text:h.explanation+' 真實模型結果與交易策略資格分別核對；以下不是買賣許可。',tone:'yellow'},...(forecast.narrative||[]),{kind:'heading',text:'已核驗的近期行情'},...observation.map(text=>({kind:'body',text}))]};
+ }
  const status={title:'目前可用的資料',headline,lines:[h.explanation],tone:'yellow'};
  return {version:VERSION,title:TITLE,badge:'短期行情觀察',code:a.code,name:a.name,date:a.date,close:h.close,status,sections,summary:[{title:status.title,value:headline+'\n'+h.explanation},...sections.map(s=>({title:s.title,value:sectionText(s)}))],comparison:null,guideNote:'已核驗行情可觀察；完整策略未啟用。'};
 }
