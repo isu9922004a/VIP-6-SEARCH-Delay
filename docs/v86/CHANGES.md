@@ -51,3 +51,5 @@
 - `teacher-three-pan-ui.js`
 - `ui-polish-v85.css`
 - `version-v50.js`
+- `.github/workflows/update-market-snapshot.yml`
+- `scripts/verify-deployed-frontend.py`
