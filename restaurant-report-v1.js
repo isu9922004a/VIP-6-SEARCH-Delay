@@ -7,7 +7,7 @@ function fullPages(scan,{limit='all',watermark=false}={}){
  const rows=scan.candidates.slice(0,limit==='all'?scan.candidates.length:limit),probe=document.createElement('canvas').getContext('2d'),plans=[];
  probe.font='700 42px "Microsoft JhengHei","Noto Sans TC",sans-serif';
  const wrap=s=>observer.wrapImageText(probe,s);
- rows.forEach((row,index)=>{const observation=observationRun?.rows.find(r=>r.code===row.code),extra=observation?[...root.ShitouIndicatorShadow.core.lines(observation.evidence),...root.ShitouIndicatorShadow.rowContext(observation)]:['多週期情境尚未建立；請重新掃描，不補猜'];const text=[`觀察序 #${index+1}`,...C.lines(row),...extra,`掃描 ${scan.attempted}/${scan.planned}｜${scan.fullMarketCertified?'完整市場資料認證':'非全市場完整排名'}｜原圖完整符合 ${scan.sourceVerifiedMatches} 檔`],lines=text.flatMap(wrap);for(let at=0;at<lines.length;at+=32)plans.push({row,index,lines:lines.slice(at,at+32)});});
+ rows.forEach((row,index)=>{const observation=observationRun?.rows.find(r=>r.code===row.code),extra=observation?[...root.ShitouIndicatorShadow.core.lines(observation.evidence),...root.ShitouIndicatorShadow.rowContext(observation)]:['多週期情境尚未建立；請重新掃描，不補猜'];const text=[`入選 #${index+1}`,...C.lines(row),...extra,`掃描 ${scan.attempted}/${scan.planned}｜${scan.fullMarketCertified?'完整市場資料認證':'非全市場完整排名'}｜六項全數符合 ${scan.sourceVerifiedMatches} 檔`],lines=text.flatMap(wrap);for(let at=0;at<lines.length;at+=32)plans.push({row,index,lines:lines.slice(at,at+32)});});
  return plans.map((p,i)=>({width:1284,height:2778,dataset:{restaurantAudit:JSON.stringify({model:C.MODEL,snapshotId:scan.snapshotId,validationId:p.row.validation.id,release:scan.release,code:p.row.code,page:i+1,total:plans.length,lines:p.lines.length,rank:p.index+1,sourceMatch:p.row.sourceMatch,lazy:true}),reportText:encodeURIComponent(JSON.stringify(p.lines))},toBlob(callback,type='image/png'){
   const canvas=observer.imagePage({strategy:'RESTAURANT',date:scan.date},[{code:p.row.code}],p.index,i+1,plans.length,p.lines);if(watermark&&root.applyAntiTheftWatermarkV3761)root.applyAntiTheftWatermarkV3761(canvas,'all');canvas.toBlob(blob=>{canvas.width=canvas.height=0;callback(blob);},type);
  }}));
@@ -44,9 +44,9 @@ function overview(scan,{watermark=false}={}){
   const boundary=v.invalidation,relation=boundary.status==='OK'?`${C.price(boundary.close)} ${boundary.relation} ${C.price(boundary.threshold)}`:'資料不足';
   const defense=boundary.status!=='OK'?'防守未驗證':boundary.breached?'已跌破防守':boundary.relation==='='?'接觸，未嚴格跌破':'未跌破防守';
   const cells=[
-   ['量／前5日均量',`${fmt(f.volumeRatio5)} 倍`],
-   ['量／前20日均量',`${fmt(f.volumeRatio20)} 倍`],
-   ['距SMA20',`${fmt(f.gap20Pct)}%`],
+   ['量／5日均量',`${fmt(f.volumeRatio5)} 倍`],
+   ['主力買超占量',`${fmt(c.report?.restaurantEvidence?.mainNetBuyShare?.valuePct)}%`],
+   ['JMA20',fmt(c.report?.restaurantEvidence?.jma20?.value)],
    ['CMF20',fmt(f.cmf20)],
    ['日內收盤位置',loc.status==='OK'?loc.flat?'無日內區間':`${fmt(loc.position*100)}%`:'資料不足']
   ].map(([label,value])=>({label:fit(label,200,17,15),value:fit(value,200,25,18)}));
@@ -64,18 +64,18 @@ function overview(scan,{watermark=false}={}){
  const headings=[
   {text:'⑤ 餐廳擠不進去濾網｜前8強滿版總覽',x:30,y:58,width:1224,max:38,min:30,color:'#fff'},
   {text:`已處理 ${scan.attempted}/${scan.planned}｜本次候選 ${scan.candidates.length}｜本頁 ${rows.length}｜資料不足 ${scan.dataUnavailable??'待確認'}｜${scope}`,x:30,y:143,width:1224,max:20,min:17,color:'#fff4bb'},
-  {text:'提醒：先看量價防守與警訊，再看量縮／CMF；原圖核對未驗證不算通過，排序非漲停機率。',x:30,y:183,width:1224,max:19,min:17,color:'#fff'}
+  {text:'提醒：本頁股票六項全數通過；額外風險另列提醒，入選不等於買進許可。',x:30,y:183,width:1224,max:19,min:17,color:'#fff'}
  ].map(l=>({...l,...fit(l.text,l.width,l.max,l.min)}));
  const version=observer.wrapImageText(probe,`${scan.date}｜${root.ShitouReleaseV50?.displayCode||"V8.2.1"}`,1224,26);
  if(version.length>2)throw Error('版本資訊超出圖片安全區');
  const footers=[
-  ['訊號日低點是量價防守線，嚴格跌破才失效；日SMA20不替代月20MA資格。',2622,21,'#fff'],
+  ['六項通過才入選；SMA20僅為風險參考，不替代JMA20。',2622,21,'#fff'],
   [`全數核對：本頁 ${rows.length} 檔｜本次候選 ${scan.candidates.length} 檔｜${scope}`,2660,21,'#e9f5ff'],
   ['全部警訊、原圖六項核對與逐檔來源：另開「全部候選完整圖片報告」。',2700,19,'#fff3c2'],
   [`快照 ${scan.snapshotId}｜IPHONECARD.1｜條件與風險不是勝率，盤後名單不等於買點。`,2740,17,'#d4e5f5']
  ].map(([text,y,size,color])=>({...fit(text,1228,size,size-2),y,color}));
  const audit={model:'RESTAURANT_TOP8_OVERVIEW_1',layout:'IPHONE_CARD_1284X2778_1',reference:'STRONG_STOCK_CARD_GEOMETRY',strategyModel:C.MODEL,width:WIDTH,height:HEIGHT,fullBleed:true,count:rows.length,codes:rows.map(c=>c.code),date:scan.date,fullDetails:false,snapshotId:scan.snapshotId,release:scan.release,validations:rows.map(c=>c.validation),blocks:plans.map(p=>({code:p.code,rank:p.rank,top:p.top,bottom:p.bottom,cells:p.cells.map(c=>[c.label.text,c.value.text]),lines:p.lines})),headerBottom:210,footerTop:FOOTER,summaryAbbreviated:plans.filter(p=>p.lines.some(l=>l.abbreviated)).map(p=>p.code)};
- const text=['⑤ 餐廳擠不進去｜前8強滿版總覽',`行情 ${scan.date}｜版本 ${scan.release}｜快照 ${scan.snapshotId}`,...rows.flatMap((c,i)=>[`觀察序 #${i+1}`,...C.lines(c)]),'五格指標只呈現原策略數據，不另計條件分或改排序。'];
+ const text=['⑤ 餐廳擠不進去｜前8強滿版總覽',`行情 ${scan.date}｜版本 ${scan.release}｜快照 ${scan.snapshotId}`,...rows.flatMap((c,i)=>[`入選 #${i+1}`,...C.lines(c)]),'五格指標只呈現原策略數據，不另計條件分或改排序。'];
  function paintOverview(ctx){
   if(!ctx)throw Error('無法建立第五濾網圖片繪圖工具');
   ctx.textBaseline='alphabetic';ctx.fillStyle='#eef3f8';ctx.fillRect(0,0,WIDTH,HEIGHT);

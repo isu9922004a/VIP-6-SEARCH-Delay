@@ -38,14 +38,14 @@ function loadNames(){
  C.setNameDirectory(directory);
 }
 function render(scan){S.assertSnapshot(scan);last=scan;const host=by('Result');if(!host)return;host.replaceChildren();by('ReportPanel').hidden=false;
- const title=el('div','⑤ 餐廳擠不進去｜候選觀察排行');title.className='section-title';host.appendChild(title);
+ const title=el('div','⑤ 餐廳擠不進去｜六項條件入選名單');title.className='section-title';host.appendChild(title);
  const meta=el('div',`${scan.date}｜處理 ${scan.attempted}/${scan.planned}｜待處理 ${scan.pending}｜未深掃 ${scan.deferred}｜${scan.complete?'本輪處理完成':'未完整完成'}｜${scan.fullMarketCertified?'完整市場資料認證':'非全市場完整排名'}`);meta.className='meta';host.appendChild(meta);
  const grid=el('div');grid.className='momentum-summary-grid';
- for(const [label,value] of [['均衡候選',scan.counts.CANDIDATE||0],['附警訊觀察',scan.counts.WATCH||0],['高風險旁列',scan.riskCandidates.length],['資料不足',scan.dataUnavailable],['服務失敗',scan.failed]]){const card=el('div'),k=el('div',label),v=el('div',String(value));card.className='momentum-summary-card';k.className='k';v.className='v';card.append(k,v);grid.appendChild(card);}host.appendChild(grid);
- const reminder=el('div',`原圖全部條件已核對符合 ${scan.sourceVerifiedMatches} 檔。缺主力或JMA資料不算原圖策略通過。候選先看風險與符合度；排序不是上漲機率。`);reminder.className='strong-stock-reminder';host.appendChild(reminder);
- const append=(rows,title)=>{host.appendChild(el('h3',title));if(!rows.length){host.appendChild(el('p','本輪沒有此類股票；不補出名單。'));return;}rows.forEach((c,i)=>{const detail=el('details'),summary=el('summary',`${c.eligible?'觀察序 #'+(i+1):'風險旁列'} 🏆${C.displayName(c.code,c)}（${c.code}）｜${c.label}｜${c.event?.kind==='OFFICIAL'?'官方漲停':'推估漲停'}`),p=el('p',C.lines(c).join('\n'));detail.className='strong-stock-row';p.style.whiteSpace='pre-wrap';detail.append(summary,p);const b=el('button','查詢此股');b.className='copy-btn newbie-copy-btn';b.type='button';b.onclick=()=>{const input=document.getElementById('stockInput');if(input){input.value=c.code;input.dispatchEvent(new Event('input',{bubbles:true}));if(typeof root.analyzeStock==='function')root.analyzeStock();}};detail.appendChild(b);host.appendChild(detail);});};
- append(scan.candidates,'候選與附警訊觀察｜依風險與符合度排序');append(scan.riskCandidates,'高風險旁列｜不列入候選');
- if(!scan.candidates.length)host.appendChild(el('p','可選全部有效股票或近5根窗口重新查詢；不會自動放寬，也不保證一定有候選。請先看資料不足與未處理筆數。'));
+ for(const [label,value] of [['六項通過',scan.candidates.length],['其中附風險提醒',scan.riskWarnings?.length||0],['條件未符合',scan.notMatched||0],['條件待驗證',scan.unverified||0],['行情不足',scan.dataUnavailable],['服務失敗',scan.failed]]){const card=el('div'),k=el('div',label),v=el('div',String(value));card.className='momentum-summary-card';k.className='k';v.className='v';card.append(k,v);grid.appendChild(card);}host.appendChild(grid);
+ const reminder=el('div',`六項全部通過 ${scan.sourceVerifiedMatches} 檔；條件待驗證 ${scan.unverified||0} 檔。資料未齊時，無入選不代表全市場0檔符合。額外風險提醒不更改入選名單。`);reminder.className='strong-stock-reminder';host.appendChild(reminder);
+ const append=(rows,title)=>{host.appendChild(el('h3',title));if(!rows.length){host.appendChild(el('p','本輪沒有此類股票；不補出名單。'));return;}rows.forEach((c,i)=>{const detail=el('details'),summary=el('summary',`${c.eligible?'入選 #'+(i+1):'待驗證'} 🏆${C.displayName(c.code,c)}（${c.code}）｜${c.label}｜${c.event?.kind==='OFFICIAL'?'官方漲停':'推估漲停'}`),p=el('p',C.lines(c).join('\n'));detail.className='strong-stock-row';p.style.whiteSpace='pre-wrap';detail.append(summary,p);const b=el('button','查詢此股');b.className='copy-btn newbie-copy-btn';b.type='button';b.onclick=()=>{const input=document.getElementById('stockInput');if(input){input.value=c.code;input.dispatchEvent(new Event('input',{bubbles:true}));if(typeof root.analyzeStock==='function')root.analyzeStock();}};detail.appendChild(b);host.appendChild(detail);});};
+ append(scan.candidates,'六項全數通過｜額外風險另行提醒');append(scan.results.filter(c=>c.status==='UNVERIFIED'),'條件資料待驗證｜不列入選名單');
+ if(!scan.candidates.length)host.appendChild(el('p','請查看條件待驗證、行情不足與未處理筆數；缺少主力、JMA或官方漲停價時，不能宣稱沒有符合股票。'));
  const detail=el('details'),summary=el('summary','完整逐檔紀錄、未入選與失敗原因'),pre=el('pre',scan.text);detail.append(summary,pre);host.appendChild(detail);
  const run=root.ShitouIndicatorShadow?.capture('RESTAURANT',scan);if(run)root.ShitouIndicatorShadow.mount(run,'restaurantResult');progress(scan.attempted,scan.planned);finishUI();
 }
@@ -71,12 +71,13 @@ async function run(){
  if(running)return;const originalButtons=['momentumScanButton','dayTradeScanButton','strongStockScanButton','towerRun'].map(id=>document.getElementById(id)).filter(Boolean);
  if(originalButtons.some(b=>b.disabled)){note('其他選股工作正在執行或尚未就緒，請完成後再啟動第五濾網。');return;}
  running=true;stopped=false;last=null;requests=0;loadNames();finishUI();progress(0,1);by('Error').textContent='';by('ReportPanel').hidden=true;const prior=originalButtons.map(b=>b.disabled);originalButtons.forEach(b=>b.disabled=true);by('Run').disabled=true;by('Stop').disabled=false;by('Window').disabled=true;by('Limit').disabled=true;by('Result').replaceChildren();
- try{note('核對最近完成交易日、產業與官方排除名單…');const bundle=await root.loadDayTradeMarketBundleV377736();if(stopped)return;
+ try{note('核對最近完成交易日與上市櫃普通股完整成交值排名…');let bundle=await root.loadDayTradeMarketBundleV377736();if(stopped)return;
+  if(bundle.meta?.commonStockUniverseVerified!==true)try{const res=await fetch('./data/market/latest.json?_restaurant_rank='+Date.now(),{cache:'no-store',headers:{Accept:'application/json'},signal:AbortSignal.timeout(15000)});if(!res.ok)throw Error('官方排名資料 HTTP '+res.status);bundle=S.certifyRanking(bundle,await res.json());}catch(error){bundle={...bundle,meta:{...bundle.meta,restaurantRankError:String(error.message||error)}};}
   const market=F.validateMarket(bundle.meta,bundle.snapshotRows,new Date());if(!market.ok)throw Error(market.reason);D.bind(bundle);
-  const plan=S.pool(bundle,by('Limit').value),eventWindow=Number(by('Window').value);if(!plan.items.length)throw Error('共用排除與快照檢查後沒有可分析股票；請檢查排除名單及量價資料');
-  note(`第五策略輕量日K掃描 0/${plan.items.length}｜近${eventWindow}根訊號｜不符合原圖不等於資料失敗`);
+  const plan=S.pool(bundle,by('Limit').value),eventWindow=Number(by('Window').value);if(!plan.items.length)throw Error('普通股與快照檢查後沒有可分析股票；請檢查同日量價資料');
+  note(`六項條件核對 0/${plan.items.length}｜固定當日｜完整排名已排除者不重複深掃`);
   const result=await S.scan({pool:plan,meta:bundle.meta,eventWindow,requestedMode:by('Limit').value,fetchBatch:items=>fetchBatch(items,market.date),shouldStop:()=>stopped,batchSize:4,onProgress:s=>{progress(s.attempted,s.planned);note(`處理 ${s.attempted}/${s.planned}｜候選 ${s.candidates.length}｜高風險 ${s.riskCandidates.length}｜服務請求 ${requests}`);}});
-  render(result);note(result.breaker||`${result.stopped?'已停止':'本輪完成'}｜候選 ${result.candidates.length}｜原圖完整核對符合 ${result.sourceVerifiedMatches}｜資料缺口明示；未驗證績效。`);
+  render(result);note(result.breaker||`${result.stopped?'已停止':'本輪完成'}｜候選 ${result.candidates.length}｜六項通過 ${result.sourceVerifiedMatches}｜條件待驗證 ${result.unverified||0}｜缺資料不宣稱0檔符合。`);
  }catch(e){const message='第五濾網未完成：'+String(e.message||e);by('Error').textContent=message;note(message);}finally{running=false;controllers.forEach(c=>c.abort());controllers.clear();originalButtons.forEach((b,i)=>b.disabled=prior[i]);by('Run').disabled=false;by('Stop').disabled=true;by('Window').disabled=false;by('Limit').disabled=false;finishUI();}
 }
 function content(){if(!last)throw Error('請先完成第五濾網查詢');return S.assertSnapshot(last);}
@@ -89,11 +90,11 @@ function install(){
  const panel=el('section');panel.id='restaurantPanel';panel.className='panel restaurant-panel';panel.innerHTML=`
  <div class="strong-stock-shortcut restaurant-controls">
   <div class="section-title">🍽️ 第五套｜餐廳擠不進去濾網（獨立策略）</div>
-  <div class="section-subtitle">近期漲停後續強／量縮整理｜均衡量價觀察版</div>
-  <div class="strong-stock-reminder">📌 明顯量價失效與複合過熱列高風險；單一乖離、量增、CMF偏弱列附警訊。成交值前100作排序參考，不硬性排除。</div>
-  <div class="meta">資料採完成日K。原圖主力與JMA未提供時明示未驗證；本版趨勢採SMA20，推估漲停不等於官方確認。</div>
-  <div class="rule restaurant-settings"><label for="restaurantWindow">訊號觀察窗口：</label><select id="restaurantWindow"><option value="3">近3根（預設均衡）</option><option value="1">近1根（較接近圖片）</option><option value="5">近5根（延長觀察）</option></select><div class="meta">只觀察完成日K；不會為了湊名單自動放寬窗口。</div></div>
-  <div class="rule restaurant-settings"><label for="restaurantLimit">完整日K深入分析範圍：</label><select id="restaurantLimit"><option value="300">優先300檔</option><option value="100">優先100檔</option><option value="all">全部有效股票</option></select><div class="meta">優先依當日動能與成交值安排掃描；未掃描股票不視為淘汰。</div></div>
+  <div class="section-subtitle">當日漲停・主力・量縮・JMA・成交值・CMF｜六項全部通過</div>
+  <div class="strong-stock-reminder">📌 六項為必要條件，任一未符合即不入選；任一資料缺少則列待驗證。乖離、急漲、OBV等只提醒，不額外刪除入選股票。</div>
+  <div class="meta">主力須占成交量 >5%；收盤須 >JMA20；成交值排名須 ≤100；當日量須 <5日均量；CMF須 >0；當日須收盤漲停。SMA／OBV／推估漲停不替代來源資料。</div>
+  <div class="rule restaurant-settings"><label for="restaurantWindow">訊號觀察窗口：</label><select id="restaurantWindow"><option value="1">當日完成日K（固定近1日）</option></select><div class="meta">固定 #904 近1日收盤漲停；不額外加入突破JMA或連續3日等其他規則。</div></div>
+  <div class="rule restaurant-settings"><label for="restaurantLimit">完整日K深入分析範圍：</label><select id="restaurantLimit"><option value="all">全部有效普通股（預設）</option><option value="300">成交值優先300檔（部分範圍）</option><option value="100">成交值優先100檔（部分範圍）</option></select><div class="meta">目前排名母體：上市櫃普通股合併，按官方成交值排序。5日均量含當日，CMF採20日；這些口徑仍須與原App核對。未掃描者不視為淘汰。</div></div>
   <div class="strong-stock-actions"><button class="btn" type="button" id="restaurantRun">🍽️ 查詢餐廳擠不進去濾網</button><button class="momentum-stop-btn show" type="button" id="restaurantStop" disabled>■ 停止</button></div>
   <div class="strong-stock-progress" role="progressbar" aria-label="第五濾網掃描進度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="restaurantProgressBar"></div></div>
   <div id="restaurantMessage" class="meta" role="status" aria-live="polite">等待盤後查詢…可用資料不足時不補猜，也不保證每天有候選。</div>
