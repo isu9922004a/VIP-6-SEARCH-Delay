@@ -54,3 +54,5 @@
 - `.github/workflows/update-market-snapshot.yml`
 - `scripts/verify-deployed-frontend.py`
 - `update-market-snapshot.yml`（與啟用中的工作流程保持一致）
+- `.github/workflows/deploy-data-pages.yml`（只排除根目錄後端程式，保留data/kronos）
+- `scripts/tests/pages-runtime-data.test.cjs`

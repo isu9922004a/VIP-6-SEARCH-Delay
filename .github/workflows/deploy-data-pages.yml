@@ -27,7 +27,10 @@ jobs:
       - name: Package the current site and data without development files
         run: |
           mkdir -p /tmp/verified-site
-          tar --exclude=.git --exclude=.github --exclude=evidence --exclude=scripts --exclude=third_party --exclude=kronos --exclude=node_modules -cf - . | tar -xf - -C /tmp/verified-site
+          tar --exclude=./.git --exclude=./.github --exclude=./evidence --exclude=./scripts --exclude=./third_party --exclude=./kronos --exclude=./node_modules -cf - . | tar -xf - -C /tmp/verified-site
+          test -s /tmp/verified-site/data/kronos/manifest.json
+          test -s /tmp/verified-site/data/index/TAIEX.json
+          test ! -d /tmp/verified-site/kronos
       - uses: actions/upload-pages-artifact@v3
         with:
           name: ${{ inputs.artifact-name }}
@@ -36,3 +39,4 @@ jobs:
         id: deployment
         with:
           artifact_name: ${{ inputs.artifact-name }}
+
