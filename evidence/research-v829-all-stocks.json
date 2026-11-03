@@ -4,8 +4,8 @@
     "checked": 1959,
     "expected": 1959,
     "counts": {
-      "RESEARCH_READY": 1704,
-      "PENDING": 255
+      "RESEARCH_READY": 1702,
+      "PENDING": 257
     },
     "priceCalendarErrors": 0,
     "selected": [
@@ -48244,47 +48244,9 @@
       "code": "5314",
       "name": "世紀*",
       "market": "TPEX",
-      "status": "RESEARCH_READY",
-      "reason": null,
-      "bars": 117,
-      "priceVerified": true,
-      "calendarVerified": true,
-      "plan": "NO_TRADE",
-      "direction": "偏空，價格在下彎均價下方",
-      "longWatch": 22.85,
-      "longEntry": null,
-      "longStop": 21.35,
-      "longTarget": 23.1,
-      "shortWatch": 21.4,
-      "shortEntry": null,
-      "shortStop": 28.6,
-      "shortTarget": 16.2,
-      "summary": [
-        {
-          "title": "現在方向與資料狀態",
-          "value": "短線偏弱，先觀察\n尚未持股：暫不建立新部位。\n收盤21.5 元，低於最近20天平均26.01 元。\n平均價仍往下走，先等價格回穩。\n先看 22.85 元能否站回；漲過不等於可以買。"
-        },
-        {
-          "title": "還沒買，先等什麼？",
-          "value": "22.85 元\n轉強觀察線\n未站回：繼續等。\n收回後：重新檢查趨勢、確認條件與買價空間。\n目前沒有通過檢查的買價區間，先不追。\n為什麼站回還不能直接買？\n假設買在 22.85 元：\n到 23.1 元只有 0.25 元；到 21.35 元相差 1.5 元。\n未扣成本，上方價差小於向下風險。\n這是比較試算，22.85 元並非已核准買價。"
-        },
-        {
-          "title": "已有持股，看懂價位用途",
-          "value": "21.35 元\n新買防守試算\n不是每位持股者通用的停損價。\n請核對自己的成本、進場理由與原定停損。\n23.1 元附近\n持股檢視關卡\n已經獲利者，可評估是否先賣出一部分。\n尚未獲利者，不能把這裡一律當成停利點。\n不要因期待反彈，就把原停損往下移。"
-        },
-        {
-          "title": "下一交易日，開盤怎麼看？",
-          "value": "高於 22.85 元\n觀察價格修復，仍不直接追買。\n21.4～22.85 元\n繼續等，目前沒有合適的新買計畫。\n低於 21.4 元\n留意進一步轉弱，不因跌深就買。"
-        },
-        {
-          "title": "想放空？目前也先等",
-          "value": "21.4 元\n轉弱觀察線\n跌破不代表放空條件已全部通過。\n28.6 元\n空單停損試算\n用於有效空單計畫的風險評估，並非買進訊號。\n目前沒有可直接執行的放空計畫，不追空。"
-        },
-        {
-          "title": "還缺什麼確認？",
-          "value": "成交量來源已完成本次核對。\n量比昨天多約44%，收盤仍近低點。\n量增減本身不能證明洗盤或主力進場。\n日線站回須看收盤；盤中仍需另行確認，本頁沒有即時分K。"
-        }
-      ]
+      "status": "PENDING",
+      "reason": "Cannot read properties of undefined (reading 'dataIssues')",
+      "officialReason": null
     },
     {
       "code": "5315",
@@ -48855,7 +48817,7 @@
       "market": "TPEX",
       "status": "RESEARCH_READY",
       "reason": null,
-      "bars": 160,
+      "bars": 72,
       "priceVerified": true,
       "calendarVerified": true,
       "plan": "NO_TRADE",
@@ -63829,47 +63791,9 @@
       "code": "6669",
       "name": "緯穎",
       "market": "TWSE",
-      "status": "RESEARCH_READY",
-      "reason": null,
-      "bars": 160,
-      "priceVerified": true,
-      "calendarVerified": true,
-      "plan": "NO_TRADE",
-      "direction": "偏空，價格在下彎均價下方",
-      "longWatch": 1795,
-      "longEntry": null,
-      "longStop": 1760,
-      "longTarget": 1840,
-      "shortWatch": 1765,
-      "shortEntry": null,
-      "shortStop": 2025,
-      "shortTarget": null,
-      "summary": [
-        {
-          "title": "現在方向與資料狀態",
-          "value": "短線偏弱，先觀察\n尚未持股：暫不建立新部位。\n收盤1770 元，低於最近20天平均2002.75 元。\n平均價仍往下走，先等價格回穩。\n先看 1795 元能否站回；漲過不等於可以買。"
-        },
-        {
-          "title": "還沒買，先等什麼？",
-          "value": "1795 元\n轉強觀察線\n未站回：繼續等。\n收回後：重新檢查趨勢、確認條件與買價空間。\n目前沒有通過檢查的買價區間，先不追。\n為什麼站回還不能直接買？\n假設買在 1795 元：\n到 1840 元相差 45 元；到 1760 元相差 35 元。\n未扣成本，上方價差大於向下風險；仍須通過其他條件。\n這是比較試算，1795 元並非已核准買價。"
-        },
-        {
-          "title": "已有持股，看懂價位用途",
-          "value": "1760 元\n新買防守試算\n不是每位持股者通用的停損價。\n請核對自己的成本、進場理由與原定停損。\n1840 元附近\n持股檢視關卡\n已經獲利者，可評估是否先賣出一部分。\n尚未獲利者，不能把這裡一律當成停利點。\n不要因期待反彈，就把原停損往下移。"
-        },
-        {
-          "title": "下一交易日，開盤怎麼看？",
-          "value": "高於 1795 元\n觀察價格修復，仍不直接追買。\n1765～1795 元\n繼續等，目前沒有合適的新買計畫。\n低於 1765 元\n留意進一步轉弱，不因跌深就買。"
-        },
-        {
-          "title": "想放空？目前也先等",
-          "value": "1765 元\n轉弱觀察線\n跌破不代表放空條件已全部通過。\n2025 元\n空單停損試算\n用於有效空單計畫的風險評估，並非買進訊號。\n目前沒有可直接執行的放空計畫，不追空。"
-        },
-        {
-          "title": "還缺什麼確認？",
-          "value": "成交量來源已完成本次核對。\n量比昨天少約4%，收盤仍近低點。\n量增減本身不能證明洗盤或主力進場。\n日線站回須看收盤；盤中仍需另行確認，本頁沒有即時分K。"
-        }
-      ]
+      "status": "PENDING",
+      "reason": "Cannot read properties of undefined (reading 'dataIssues')",
+      "officialReason": null
     },
     {
       "code": "6670",
