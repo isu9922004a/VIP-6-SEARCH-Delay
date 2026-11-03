@@ -1,0 +1,35 @@
+name: Deploy verified frontend release
+on:
+  push:
+    branches: ['main']
+    paths:
+      - 'version-v50.js'
+      - '.github/workflows/deploy-frontend.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify model matching, plain reports and market regression
+        run: |
+          node --check four-models-research-v1.js
+          node --check research-v83/kronos-data.js
+          node --check research-v83/market-simple-report.js
+          node --check research-v83/stock-simple-report.js
+          node --test scripts/tests/kronos-report-binding.test.cjs scripts/tests/research-plain-narrative.test.cjs scripts/tests/market-v86.test.cjs
+  deploy:
+    needs: verify
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy-data-pages.yml
+    with:
+      artifact-name: frontend-release-pages

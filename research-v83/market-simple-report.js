@@ -5,11 +5,11 @@
  else root.ShitouMarketSimpleReport=api;
 })(globalThis,function(root){
 'use strict';
-const TITLE='大盤精簡分析',VERSION='V8.6',WATERMARK='石頭少爺台股分析'+VERSION+'版',W=1284,MIN_H=2778,MAX_H=8192;
+const TITLE='大盤精簡分析',VERSION='V8.6.1',WATERMARK='石頭少爺台股分析'+VERSION+'版',W=1284,MIN_H=2778,MAX_H=8192;
 const titleFor=()=>TITLE;
 const colors={background:'#071f32',card:'#10344f',border:'#28627d',text:'#f0f6fb',muted:'#b8d9e9',yellow:'#f7cf70',aqua:'#79e4d1',red:'#ff9a91'};
 const num=v=>Number.isFinite(v)?Number(v).toFixed(2):'待核對';
-function validationText(b){const v=b?.schema==='v86-comparison-v1'&&b.partitions?.test?.variants;if(!v||!['A','C'].every(k=>Number.isFinite(v[k]?.accuracy)&&v[k].n>0))return '歷史驗證：尚無足夠證據證明V8.6較V8.5準確；未取得核驗回測表。';const a=v.A,c=v.C,e=c.crashSensitivity?.[-.02];return '歷史驗證：'+c.n+'日測試，V8.5方向命中 '+(a.accuracy*100).toFixed(1)+'%、V8.6 '+(c.accuracy*100).toFixed(1)+'%（保留方向亦列未命中）'+(e?.events?'；急跌辨識 '+e.truePositive+'/'+e.events:'')+'。'+(c.accuracy>a.accuracy?'小樣本尚不能證明提升。':'本次未改善方向準確率。')+'事後回測，未經前瞻驗證。';}
+function validationText(b){const v=b?.schema==='v86-comparison-v1'&&b.partitions?.test?.variants;if(!v||!['A','C'].every(k=>Number.isFinite(v[k]?.accuracy)&&v[k].n>0))return '歷史驗證：尚無足夠證據證明V8.6.1較V8.5準確；未取得核驗回測表。';const a=v.A,c=v.C,e=c.crashSensitivity?.[-.02];return '歷史驗證：'+c.n+'日測試，V8.5方向命中 '+(a.accuracy*100).toFixed(1)+'%、V8.6.1 '+(c.accuracy*100).toFixed(1)+'%（保留方向亦列未命中）'+(e?.events?'；急跌辨識 '+e.truePositive+'/'+e.events:'')+'。'+(c.accuracy>a.accuracy?'小樣本尚不能證明提升。':'本次未改善方向準確率。')+'事後回測，未經前瞻驗證。';}
 function model(snapshot,{watermarked=false}={}){
  const a=snapshot&&snapshot.analysis,src=snapshot&&snapshot.source,f=snapshot&&snapshot.forecast;
  if(!a||a.state!=='AVAILABLE'||!a.input?.bars?.length||!src?.name||!src?.source||a.illustration){
@@ -25,21 +25,21 @@ function model(snapshot,{watermarked=false}={}){
  const pct=x=>(x*100).toFixed(1)+'%',direction={BULL:'偏多',BEAR:'偏空',FLAT:'持平',MIXED:'方向分歧',ABSTAIN:'保留方向判斷'};
  const blocks=[],add=(kind,text,tone)=>blocks.push({kind,text,...(tone?{tone}:{})});
  add('heading','① 下一交易日可能方向');
- add('highlight',fresh?(fresh.executionVerified?'Kronos實跑收據已核對：':'Kronos歷史輸出／執行收據未核驗：')+direction[m.direction]+'；推演 '+m.targetDate+'，收盤中位數 '+num(m.medianClose)+' 點（'+pct(m.medianReturn)+'）。':'Kronos模型不可用；僅呈現歷史技術劇本，沒有模型方向或取樣比例。','yellow');
+ add('highlight',fresh?(fresh.executionVerified?'已核對模型執行紀錄：':'模型執行紀錄尚未核對：')+direction[m.direction]+'；推演 '+m.targetDate+'，模擬收盤的中間值 '+num(m.medianClose)+' 點（'+pct(m.medianReturn)+'）。':'Kronos模型不可用；僅呈現歷史技術劇本，沒有模型方向或取樣比例。','yellow');
  add('body','技術結構：'+r.regime.label+'；綜合：'+r.combinedState+'，'+direction[r.combinedDirection]+'。急跌風險：'+r.crashRisk.label+'。');
  add('heading','② 現在適合進場嗎');add('highlight',r.entryAssessment,'yellow');
  add('heading','③ 三個重要價位');
  r.levels.forEach((l,i)=>add('highlight',num(l.price)+' 點｜'+l.role+'。'+l.note,['aqua','yellow','red'][i]));
  add('heading','④ 為什麼這樣判斷');
  for(const reason of r.reasons)add('body',reason);
- add('body','MA5／20／60：'+[5,20,60].map(k=>num(r.features.ma[k].value)).join('／')+' 點；ATR14 '+num(r.features.atr)+' 點。'+(r.structure.reversalConfirmed?'突破延續與均價、動能改善條件通過；仍需管理失效風險。':'尚未同時確認突破延續與趨勢反轉。'));
- add('heading','⑤ 明日三種可能走法');for(const s of r.scenarios)add('body',s.title+'：'+s.trigger+' 失效：'+s.invalid);
- add('heading','⑥ AI預測可信度');
- add('notice',fresh?'取樣分歧：多 '+pct(f.bullish)+'／空 '+pct(f.bearish)+'／平 '+pct(f.flat)+'（'+f.sampleCount+'條）。不確定性 '+r.uncertainty.level+'；取樣占比不是實際漲跌機率或勝率。':'模型不可用：只保留技術與風險分析，不補造AI數據。','yellow');
- add('body','歷史驗證：尚無足夠證據證明V8.6較V8.6準確。資料完整度：'+(r.dataQuality.complete?'完成日K與交易日曆核對通過。':'日曆核驗仍有限制。')+'模型與ATR參考區間皆未校準，不保證涵蓋隔日走勢。');
- if(fresh)add('notice','原始收盤取樣10–90%：'+num(m.interval.low)+'～'+num(m.interval.high)+'；綜合ATR風險參考 '+num(r.riskEnvelope.low)+'～'+num(r.riskEnvelope.high)+' 點。不是保證高低點。');
- if(fresh?.provenance?.inputQuality?.warning)add('footnote',fresh.provenance.inputQuality.warning);
- if(fresh?.provenance?.outputQuality?.warning)add('footnote',fresh.provenance.outputQuality.warning);
+ add('body','最近5／20／60天的平均收盤：'+[5,20,60].map(k=>num(r.features.ma[k].value)).join('／')+' 點；近14天平均每日波動 '+num(r.features.atr)+' 點。'+(r.structure.reversalConfirmed?'突破延續與均價、動能改善條件通過；仍需管理失效風險。':'尚未同時確認突破延續與趨勢反轉。'));
+ add('heading','⑤ 明日三種可能走法');for(const s of r.scenarios)add('body',s.title+'：'+s.trigger+' 不再適用的情況：'+s.invalid);
+ add('heading','⑥ 模型結果有多大把握');
+ add('notice',fresh?'模擬結果：上漲 '+pct(f.bullish)+'／下跌 '+pct(f.bearish)+'／持平 '+pct(f.flat)+'（'+f.sampleCount+'條）。'+(r.uncertainty.level==='HIGH'?'結果分散或與行情訊號不一致，暫時無法明確判斷方向。':'結果較集中，仍需等行情確認。')+'這些比例不代表明天實際漲跌的機率。':'模型不可用：只保留技術與風險分析，不補造AI數據。','yellow');
+ add('body','歷史驗證：目前沒有足夠證據證明這一版比前一版更準。資料完整度：'+(r.dataQuality.complete?'完成日K與交易日曆核對通過。':'日曆核驗仍有限制。')+'模型範圍與近期波動估計，都還沒證實能準確涵蓋隔日走勢。');
+ if(fresh)add('notice','模擬收盤結果中間八成的範圍：'+num(m.interval.low)+'～'+num(m.interval.high)+'；合併近期波動後的觀察範圍 '+num(r.riskEnvelope.low)+'～'+num(r.riskEnvelope.high)+' 點。不是保證高低點。');
+ if(fresh?.provenance?.inputQuality?.warning)add('footnote','模型需要成交金額，但資料來源沒有提供；目前以開盤、最高、最低、收盤價的平均乘以成交量估算，與實際成交金額可能有差異。');
+ if(fresh?.provenance?.outputQuality?.warning)add('footnote','部分模擬結果的最高、最低價順序不合理，因此只列開盤與收盤結果，不提供模擬最高、最低價。');
  add('heading','⑦ 一句話總結');add('summary',r.summary,'aqua');
  add('footnote','資料：'+src.source+'｜行情 '+a.date+'。盤後研究；跳空須重算風險，個股停損依原持股計畫，不保證走勢。');
  return {title:titleFor(watermarked),watermarked:!!watermarked,name:'臺灣加權股價指數（TAIEX）',date:a.date,close:a.close,modelRun:fresh?.executionVerified===true,source:src.source,forecastState:f?.state||'UNAVAILABLE',blocks,levels:r.levels,nextTradeDate:m.targetDate||null,risk:r};
@@ -169,3 +169,4 @@ function init(){
 if(root.document){if(root.document.readyState==='loading')root.document.addEventListener('DOMContentLoaded',init,{once:true});else init();}
 return {TITLE,VERSION,WATERMARK,validationText,titleFor,model,page,open,close,init,shareCurrentImage};
 });
+

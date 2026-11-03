@@ -1,4 +1,4 @@
-# 石頭少爺 V8.2.9｜台股選股與研究
+# 石頭少爺 V8.6.1｜台股選股與研究
 
 原生 JavaScript 靜態網站，提供選股掃描、個股研究、寶塔線及文字／圖片報告。版本資訊以 `version-v50.js` 為準，最近一版功能說明見 [RELEASE_V8.2.9.md](docs/RELEASE_V8.2.9.md)。
 
@@ -70,3 +70,4 @@ node scripts/audit-official-research-v829.cjs
 共用資料契約修改後，執行 `npm run build:worker-contract` 同步 Worker 內嵌契約，再跑測試。部署後核對實際網站的 `version-v50.js`、資料日期、個股查詢與報告匯出；Actions 執行成功與前端發布成功需分別確認。
 
 需要回復時，使用 Git 歷史還原對應檔案，或以 `git revert <commit>` 建立回復提交。資料更新與 Worker 部署應分別核對，避免用舊行情覆蓋後續已發布的資料。
+
