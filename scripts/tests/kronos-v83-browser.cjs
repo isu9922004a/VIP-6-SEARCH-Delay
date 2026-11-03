@@ -9,7 +9,7 @@ assert.equal(await p.locator('#stockSimpleAnalysisWatermarkButton').count(),1);
 await p.click('#stockSimpleAnalysisButton');await p.waitForFunction(()=>document.querySelector('#simpleStockReportDialog')?.open);
 const stockClean=await p.evaluate(()=>{const d=document.querySelector('#simpleStockReportDialog'),a=JSON.parse(d.dataset.reportAudit);return {...a,filename:d.querySelector('a[download]')?.download};});
 assert.equal(stockClean.title,'個股精簡分析');assert.equal(stockClean.watermarked,false);assert.equal(stockClean.version,'V8.6.1');
-assert.match(stockClean.filename,/^V8\.6_個股精簡分析_無浮水印_.*_8039_.*\.png$/);
+assert.match(stockClean.filename,/^V8\.6\.1_個股精簡分析_無浮水印_.*_8039_.*\.png$/);
 assert.equal(await p.locator('#simpleStockLineShareButton').count(),1,'share-to-LINE button missing');
 await p.evaluate(()=>{
  Object.defineProperty(navigator,'userAgent',{configurable:true,value:'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1'});
@@ -40,7 +40,7 @@ const stockMarked=await p.evaluate(()=>{const d=document.querySelector('#simpleS
 assert.equal(stockMarked.title,'個股精簡分析');
 assert.equal(stockMarked.watermarked,true);assert.equal(stockMarked.version,'V8.6.1');assert.equal(stockMarked.noClipping,true);
 assert.deepEqual(stockMarked.sourceBlocks,stockClean.sourceBlocks);
-assert.match(stockMarked.filename,/^V8\.6_個股精簡分析_浮水印版_.*_8039_.*\.png$/);
+assert.match(stockMarked.filename,/^V8\.6\.1_個股精簡分析_浮水印版_.*_8039_.*\.png$/);
 await p.evaluate(()=>{Object.defineProperty(navigator,'userAgent',{configurable:true,value:'iPhone'});
  Object.defineProperty(navigator,'share',{configurable:true,value:data=>{window.__stockWaterShare={type:data.files?.[0]?.type,size:data.files?.[0]?.size,name:data.files?.[0]?.name};return Promise.resolve();}});});
 await p.click('#simpleStockLineShareButton');
@@ -62,7 +62,7 @@ assert.equal(marketAudit.width,1284);assert.ok(marketAudit.height>=2778&&marketA
 assert.equal(marketAudit.watermarked,false);assert.equal(marketAudit.version,'V8.6.1');assert.equal(marketAudit.title,'大盤精簡分析');
 assert.equal(marketAudit.noClipping,true);assert.ok(marketAudit.bodyBottom<=marketAudit.safeBottom);
 assert.equal(marketAudit.date,require('../../data/index/TAIEX.json').closeDate);
-assert.ok(marketAudit.imgSrc.startsWith('blob:'));assert.match(marketAudit.download,/^V8\.6_大盤精簡分析_無浮水印_TAIEX_.*\.png$/);
+assert.ok(marketAudit.imgSrc.startsWith('blob:'));assert.match(marketAudit.download,/^V8\.6\.1_大盤精簡分析_無浮水印_TAIEX_.*\.png$/);
 await p.evaluate(()=>{
  Object.defineProperty(navigator,'userAgent',{configurable:true,value:'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1'});
  Object.defineProperty(navigator,'canShare',{configurable:true,value:data=>data.files?.length===1});
@@ -89,7 +89,7 @@ const marketMarked=await p.evaluate(()=>{const d=document.querySelector('#simple
 assert.equal(marketMarked.title,'大盤精簡分析');
 assert.equal(marketMarked.watermarked,true);assert.equal(marketMarked.noClipping,true);
 assert.equal(marketMarked.bodyBottom,marketAudit.bodyBottom);assert.deepEqual(marketMarked.levels,marketAudit.levels);
-assert.match(marketMarked.filename,/^V8\.6_大盤精簡分析_浮水印版_TAIEX_.*\.png$/);
+assert.match(marketMarked.filename,/^V8\.6\.1_大盤精簡分析_浮水印版_TAIEX_.*\.png$/);
 await p.evaluate(()=>{Object.defineProperty(navigator,'userAgent',{configurable:true,value:'iPhone'});
  Object.defineProperty(navigator,'share',{configurable:true,value:data=>{window.__marketWaterShare={type:data.files?.[0]?.type,size:data.files?.[0]?.size,name:data.files?.[0]?.name};return Promise.resolve();}});});
 await p.click('#simpleMarketLineShareButton');
