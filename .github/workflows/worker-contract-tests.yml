@@ -71,6 +71,12 @@ jobs:
           PLAYWRIGHT_MODULE: /tmp/research-browser/node_modules/playwright-core
           CHROME_BIN: /usr/bin/google-chrome
         run: node scripts/tests/stock-query-v826-browser.cjs /tmp/research-evidence/query
+      - name: Verify six-condition restaurant admission and image export
+        if: matrix.fallback == '0'
+        env:
+          PLAYWRIGHT_MODULE: /tmp/research-browser/node_modules/playwright-core
+          CHROME_BIN: /usr/bin/google-chrome
+        run: node scripts/tests/restaurant-strict-browser.cjs /tmp/research-evidence/restaurant-strict
       - name: Verify V8.3 real Kronos report and independent index
         if: matrix.fallback == '0'
         env:
@@ -139,4 +145,3 @@ jobs:
             /tmp/deployed-frontend-verification.json
             /tmp/deployed-research-evidence/official
             evidence/v84-live
-
