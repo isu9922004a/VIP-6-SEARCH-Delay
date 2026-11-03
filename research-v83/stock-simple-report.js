@@ -1,10 +1,10 @@
 /* Independent report: only the complete fifth-section narrative plus stock identity. */
 (function(root,factory){const node=typeof module==='object'&&module.exports,api=factory(root,node?require('../research-report-v1.js'):root.ShitouResearchReport);if(node)module.exports=api;else root.ShitouSimpleStockReport=api;})(globalThis,function(root,R){
 'use strict';
-const TITLE='個股精簡分析',VERSION='V8.5',WATERMARK='石頭少爺台股分析'+VERSION+'版',TOPIC='明天可能怎麼走？該怎麼做？',W=1284,MIN_H=2778,MAX_H=8192;
+const TITLE='個股精簡分析',VERSION='V8.6',WATERMARK='石頭少爺台股分析'+VERSION+'版',TOPIC='明天可能怎麼走？該怎麼做？',W=1284,MIN_H=2778,MAX_H=8192;
 const titleFor=()=>TITLE;
 function model(a,{watermarked=false}={}){if(!a?.code||!a.date)throw Error('請先完成個股查詢，再產生精簡分析。');const section=R.view(a).actionGuide.sections.find(s=>s.number==='05'),narrative=section?.fullNarrative||section?.narrative;if(!narrative?.length)throw Error('完整個股分析模組尚未載入。');
- return {title:titleFor(watermarked),watermarked:!!watermarked,topic:TOPIC,name:a.name||a.code,code:String(a.code),date:a.date,close:a.sourceBars?.at(-1)?.close??a.quote?.close,version:VERSION,blocks:narrative.map(b=>({...b})),modelRun:section.forecast?.modelRun===true,sourceState:section.forecast?.state||'UNAVAILABLE'};
+ return {title:titleFor(watermarked),watermarked:!!watermarked,topic:TOPIC,name:a.name||a.code,code:String(a.code),date:a.date,close:a.sourceBars?.at(-1)?.close??a.quote?.close,version:VERSION,blocks:narrative.map(b=>({...b})),modelRun:section.forecast?.executionVerified===true,sourceState:section.forecast?.state||'UNAVAILABLE'};
 }
 function page(a,{document:doc=root.document,watermarked=false}={}){const data=model(a,{watermarked}),canvas=doc.createElement('canvas');let H=MIN_H;canvas.width=W;canvas.height=H;const ctx=canvas.getContext('2d'),M=28,CW=W-2*M,padding=32,textW=CW-padding*2,colors={text:'#f0f6fb',muted:'#b8d9e9',yellow:'#f7cf70',aqua:'#79e4d1',red:'#ff9a91'};
  const font=(size,bold)=>{ctx.font=`${bold?750:600} ${size}px "Microsoft JhengHei","Segoe UI Emoji",sans-serif`;};

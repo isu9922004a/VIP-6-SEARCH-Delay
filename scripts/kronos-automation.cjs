@@ -1,6 +1,7 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const hash=value=>crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
+const F=require('../research-v83/forecast-engine.js');
 const read=file=>JSON.parse(fs.readFileSync(file,'utf8'));
 function signature(bars){let h=2166136261;const text=bars.map(b=>[b.date,...['open','high','low','close','volume','amount'].map(k=>Number(b[k]??0).toFixed(6))].join(',')).join('\n');for(const c of text)h=Math.imul(h^c.charCodeAt(0),16777619);return (h>>>0).toString(16).padStart(8,'0');}
 function inputs(root){
@@ -23,6 +24,7 @@ function inputs(root){
  return {asOf,targetDate,identity,jobs,lock};
 }
 function verifyForecast(f,code,j,input){
+ if(!F.executionVerified(f))throw Error('缺少有效模型執行收據 '+code);
  if(f.kind!=='KRONOS_INFERENCE'||f.symbol!==code||f.market!==j.market||f.asOf!==input.asOf||f.targetDates?.length!==1||f.targetDates[0]!==input.targetDate||f.historySignature!==j.signature||f.sampleCount!==32||f.samples?.length!==32||f.codeCommit!==input.lock.codeCommit||['model','tokenizer'].some(k=>f[k]?.id!==input.lock[k].id||f[k]?.revision!==input.lock[k].revision)||f.samples.some(p=>p.length!==1||!['open','high','low','close'].every(k=>Number.isFinite(p[0][k])&&p[0][k]>0)))throw Error('模型輸出與本期來源、版本或取樣不符 '+code);
 }
 function validateBatch(input,dir,shards=16){
@@ -56,6 +58,9 @@ function main(root=path.resolve(__dirname,'..'),argv=process.argv.slice(2)){
  }else if(argv[0]==='publish'){
   if(argv[2]!==input.identity)throw Error('推論期間行情／歷史／模型版本已變更；下輪重算，不發布舊結果');
   const source=argv[1],receipt=validateBatch(input,source);
+  function archive(f){if(f?.kind!=='KRONOS_INFERENCE'||f.symbol!=='TAIEX'||!/^\d{4}-\d{2}-\d{2}$/.test(f.asOf))return;const folder=path.join(dir,'archive',f.asOf);fs.mkdirSync(folder,{recursive:true});const content=JSON.stringify(f),file=path.join(folder,'TAIEX-'+hash(f)+'.json');if(!fs.existsSync(file))fs.writeFileSync(file,content+'\n');const input=read(path.join(root,'data/index/TAIEX.json'));if(input.closeDate===f.asOf&&signature(input.dailySeries.slice(-160))===f.historySignature){const file=path.join(folder,'input-'+f.historySignature+'-'+hash(input)+'.json');if(!fs.existsSync(file))fs.writeFileSync(file,JSON.stringify(input)+'\n');}const first=path.join(folder,'TAIEX.json');if(!fs.existsSync(first))fs.writeFileSync(first,content+'\n');}
+  if(fs.existsSync(path.join(dir,'TAIEX.json')))archive(read(path.join(dir,'TAIEX.json')));
+  if(fs.existsSync(path.join(source,'TAIEX.json')))archive(read(path.join(source,'TAIEX.json')));
   fs.rmSync(path.join(dir,'stocks'),{recursive:true,force:true});fs.rmSync(path.join(dir,'TAIEX.json'),{force:true});
   for(const file of fs.readdirSync(dir))if(/^status.*\.json$/.test(file))fs.rmSync(path.join(dir,file));
   fs.cpSync(source,dir,{recursive:true});

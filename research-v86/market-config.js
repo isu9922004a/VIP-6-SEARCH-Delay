@@ -1,0 +1,5 @@
+(function(root,factory){const v=factory();if(typeof module==='object'&&module.exports)module.exports=v;else root.ShitouMarketConfigV86=v;})(globalThis,function(){
+'use strict';
+const freeze=x=>{if(x&&typeof x==='object'){Object.values(x).forEach(freeze);Object.freeze(x);}return x;};
+return freeze({version:'MARKET_REGIME_8_6_1',minBars:63,modelLookback:160,maPeriods:[5,20,60],slopeBars:3,rsiPeriods:[5,10,14],macd:{fast:12,slow:26,signal:9},atrPeriod:14,rangePeriod:20,volumePeriod:20,volumeBreakout:1.2,volumeAnomaly:1.8,oversoldRSI5:20,flatSlopeATR:.2,rangeDistanceATR:1.5,volatilityExpansion:1.3,gapRiskATR:.8,wideRangeATR:1.5,crashCandidateReturn:-.02,crashSensitivity:[-.01,-.02,-.03,-.05],downStreak:3,modelDirectionThreshold:.003,modelVoteThreshold:.65,crashVoteThreshold:.5,disagreementShare:.25,highEntropy:.85,highDispersionATR:3,riskEnvelopeATR:1.5,minEvidenceTestDays:60,walkForward:{trainFraction:.5,validationFraction:.2,minEligibleDates:30,bootstrapDraws:1000,bootstrapSeed:86001},calibrated:false,trained:false,policy:'PREDECLARED_UNWEIGHTED_RULES_NO_PERFORMANCE_CLAIM'});
+});

@@ -2,14 +2,14 @@
 const fs=require('fs'),path=require('path'),http=require('http'),assert=require('node:assert/strict'),{chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright-core');
 const root=path.resolve(__dirname,'../..'),out=process.argv[2]||path.join(root,'evidence/kronos-v83');fs.mkdirSync(out,{recursive:true});
 (async()=>{const server=http.createServer((req,res)=>{const u=decodeURIComponent(new URL(req.url,'http://localhost').pathname),f=path.resolve(root,'.'+(u==='/'?'/index.html':u));if(!f.startsWith(root+path.sep)){res.writeHead(403);return res.end();}fs.readFile(f,(e,b)=>{if(e){res.writeHead(404);return res.end();}res.setHeader('Content-Type',({'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json'})[path.extname(f)]||'application/octet-stream');res.end(b);});});await new Promise(r=>server.listen(0,'127.0.0.1',r));let browser;
-try{browser=await chromium.launch({executablePath:process.env.CHROME_BIN||'/usr/bin/google-chrome',headless:true});const p=await browser.newPage({viewport:{width:428,height:926},deviceScaleFactor:1,isMobile:true}),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.route('**/*',r=>new URL(r.request().url()).hostname==='127.0.0.1'?r.continue():r.abort());const base='http://127.0.0.1:'+server.address().port;await p.clock.setFixedTime(new Date(require('../../data/kronos/TAIEX.json').asOf+'T11:00:00Z'));await p.goto(base+'/',{waitUntil:'networkidle'});assert.equal(await p.evaluate(()=>ShitouReleaseV50.displayCode),'V8.5');await p.waitForFunction(()=>!!globalThis.ShitouResearchIntegration&&!!globalThis.ShitouSimpleStockReport);
+try{browser=await chromium.launch({executablePath:process.env.CHROME_BIN||'/usr/bin/google-chrome',headless:true});const p=await browser.newPage({viewport:{width:428,height:926},deviceScaleFactor:1,isMobile:true}),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.route('**/*',r=>new URL(r.request().url()).hostname==='127.0.0.1'?r.continue():r.abort());const base='http://127.0.0.1:'+server.address().port;await p.clock.setFixedTime(new Date(require('../../data/kronos/TAIEX.json').asOf+'T11:00:00Z'));await p.goto(base+'/',{waitUntil:'networkidle'});assert.equal(await p.evaluate(()=>ShitouReleaseV50.displayCode),'V8.6');await p.waitForFunction(()=>!!globalThis.ShitouResearchIntegration&&!!globalThis.ShitouSimpleStockReport);
 const checks=[];for(const code of ['3466','1569','2330','8039']){const raw=JSON.parse(fs.readFileSync(path.join(root,'data/research',require('../../data/kronos/stocks/'+code+'.json').asOf,code+'.json'),'utf8'));await p.locator('#stockInput').fill(code);const audit=await p.evaluate(async raw=>{ShitouResearchIntegration.captureStockQuery(raw,{activate:true});const a=ShitouResearchIntegration.getCurrentStock().analysis;const card=document.querySelector('.research-stock-card[data-code="'+a.code+'"]'),guide=card?.querySelector('.research-action-guide'),open=card?.querySelector('.research-opening-calculator input');if(open)open.value='123';await ShitouKronosData.ensure(a);if(card&&!card.isConnected||guide&&!guide.isConnected||open&&open.value!=='123')throw Error('Model refresh discarded existing card or opening input');await document.fonts.ready;const simple=ShitouSimpleStockReport.page(a),four=ShitouResearchReport.pages(a)[0];return {simple:JSON.parse(simple.dataset.researchAudit),four:JSON.parse(four.dataset.researchAudit),reason:ShitouKronosData.reasonFor(a),signature:a.sourceSnapshotId};},raw);assert.equal(audit.simple.sourceState,'MODEL_SAMPLE',JSON.stringify(audit));assert.equal(audit.simple.noClipping,true);assert.equal(audit.four.firstFourPreserved,true);assert.equal(audit.four.noClipping,true);checks.push({code,...audit});}
 assert.equal(await p.locator('#stockSimpleAnalysisButton').count(),1);
 assert.equal(await p.locator('#stockSimpleAnalysisWatermarkButton').count(),1);
 await p.click('#stockSimpleAnalysisButton');await p.waitForFunction(()=>document.querySelector('#simpleStockReportDialog')?.open);
 const stockClean=await p.evaluate(()=>{const d=document.querySelector('#simpleStockReportDialog'),a=JSON.parse(d.dataset.reportAudit);return {...a,filename:d.querySelector('a[download]')?.download};});
-assert.equal(stockClean.title,'個股精簡分析');assert.equal(stockClean.watermarked,false);assert.equal(stockClean.version,'V8.5');
-assert.match(stockClean.filename,/^V8\.5_個股精簡分析_無浮水印_.*_8039_.*\.png$/);
+assert.equal(stockClean.title,'個股精簡分析');assert.equal(stockClean.watermarked,false);assert.equal(stockClean.version,'V8.6');
+assert.match(stockClean.filename,/^V8\.6_個股精簡分析_無浮水印_.*_8039_.*\.png$/);
 assert.equal(await p.locator('#simpleStockLineShareButton').count(),1,'share-to-LINE button missing');
 await p.evaluate(()=>{
  Object.defineProperty(navigator,'userAgent',{configurable:true,value:'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1'});
@@ -38,9 +38,9 @@ await p.click('#stockSimpleAnalysisWatermarkButton');
 await p.waitForFunction(()=>document.querySelector('#simpleStockReportDialog')?.open&&JSON.parse(document.querySelector('#simpleStockReportDialog').dataset.reportAudit).watermarked);
 const stockMarked=await p.evaluate(()=>{const d=document.querySelector('#simpleStockReportDialog'),a=JSON.parse(d.dataset.reportAudit);return {...a,filename:d.querySelector('a[download]')?.download};});
 assert.equal(stockMarked.title,'個股精簡分析');
-assert.equal(stockMarked.watermarked,true);assert.equal(stockMarked.version,'V8.5');assert.equal(stockMarked.noClipping,true);
+assert.equal(stockMarked.watermarked,true);assert.equal(stockMarked.version,'V8.6');assert.equal(stockMarked.noClipping,true);
 assert.deepEqual(stockMarked.sourceBlocks,stockClean.sourceBlocks);
-assert.match(stockMarked.filename,/^V8\.5_個股精簡分析_浮水印版_.*_8039_.*\.png$/);
+assert.match(stockMarked.filename,/^V8\.6_個股精簡分析_浮水印版_.*_8039_.*\.png$/);
 await p.evaluate(()=>{Object.defineProperty(navigator,'userAgent',{configurable:true,value:'iPhone'});
  Object.defineProperty(navigator,'share',{configurable:true,value:data=>{window.__stockWaterShare={type:data.files?.[0]?.type,size:data.files?.[0]?.size,name:data.files?.[0]?.name};return Promise.resolve();}});});
 await p.click('#simpleStockLineShareButton');
@@ -49,7 +49,7 @@ const stockWaterShare=await p.evaluate(()=>window.__stockWaterShare);
 assert.equal(stockWaterShare.type,'image/png');assert.match(stockWaterShare.name,/浮水印版/);
 await p.waitForFunction(()=>!document.querySelector('#simpleStockLineShareButton').disabled);
 await p.evaluate(()=>ShitouSimpleStockReport.close());
-await p.goto(base+'/market-outlook.html',{waitUntil:'networkidle'});await p.waitForFunction(()=>independentMarketState()?.state==='AVAILABLE');assert.match(await p.locator('#market-next').textContent(),/Kronos指數實跑/);assert.equal(await p.locator('#market-chart svg').count(),1);assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await p.screenshot({path:path.join(out,'market-mobile.png'),fullPage:true});
+await p.goto(base+'/market-outlook.html',{waitUntil:'networkidle'});await p.waitForFunction(()=>independentMarketState()?.state==='AVAILABLE');assert.match(await p.locator('#market-next').textContent(),/Kronos(?:實跑收據已核對|歷史輸出)/);assert.equal(await p.locator('#market-chart svg').count(),1);assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await p.screenshot({path:path.join(out,'market-mobile.png'),fullPage:true});
 assert.equal(await p.locator('#marketSimpleAnalysisButton').count(),1,'independent market image action missing');
 assert.equal(await p.locator('#marketSimpleAnalysisWatermarkButton').count(),1,'independent market watermark action missing');
 await p.click('#marketSimpleAnalysisButton');
@@ -58,11 +58,11 @@ const marketAudit=await p.evaluate(()=>{
  const d=document.querySelector('#simpleMarketReportDialog'),a=JSON.parse(d.dataset.reportAudit);
  return {...a,imgSrc:d.querySelector('img')?.src,download:d.querySelector('a[download]')?.download};
 });
-assert.equal(marketAudit.width,1284);assert.equal(marketAudit.height,2778);
-assert.equal(marketAudit.watermarked,false);assert.equal(marketAudit.version,'V8.5');assert.equal(marketAudit.title,'大盤精簡分析');
+assert.equal(marketAudit.width,1284);assert.ok(marketAudit.height>=2778&&marketAudit.height<=8192);
+assert.equal(marketAudit.watermarked,false);assert.equal(marketAudit.version,'V8.6');assert.equal(marketAudit.title,'大盤精簡分析');
 assert.equal(marketAudit.noClipping,true);assert.ok(marketAudit.bodyBottom<=marketAudit.safeBottom);
 assert.equal(marketAudit.date,require('../../data/index/TAIEX.json').closeDate);
-assert.ok(marketAudit.imgSrc.startsWith('blob:'));assert.match(marketAudit.download,/^V8\.5_大盤精簡分析_無浮水印_TAIEX_.*\.png$/);
+assert.ok(marketAudit.imgSrc.startsWith('blob:'));assert.match(marketAudit.download,/^V8\.6_大盤精簡分析_無浮水印_TAIEX_.*\.png$/);
 await p.evaluate(()=>{
  Object.defineProperty(navigator,'userAgent',{configurable:true,value:'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1'});
  Object.defineProperty(navigator,'canShare',{configurable:true,value:data=>data.files?.length===1});
@@ -89,7 +89,7 @@ const marketMarked=await p.evaluate(()=>{const d=document.querySelector('#simple
 assert.equal(marketMarked.title,'大盤精簡分析');
 assert.equal(marketMarked.watermarked,true);assert.equal(marketMarked.noClipping,true);
 assert.equal(marketMarked.bodyBottom,marketAudit.bodyBottom);assert.deepEqual(marketMarked.levels,marketAudit.levels);
-assert.match(marketMarked.filename,/^V8\.5_大盤精簡分析_浮水印版_TAIEX_.*\.png$/);
+assert.match(marketMarked.filename,/^V8\.6_大盤精簡分析_浮水印版_TAIEX_.*\.png$/);
 await p.evaluate(()=>{Object.defineProperty(navigator,'userAgent',{configurable:true,value:'iPhone'});
  Object.defineProperty(navigator,'share',{configurable:true,value:data=>{window.__marketWaterShare={type:data.files?.[0]?.type,size:data.files?.[0]?.size,name:data.files?.[0]?.name};return Promise.resolve();}});});
 await p.click('#simpleMarketLineShareButton');

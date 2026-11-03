@@ -1,0 +1,4815 @@
+{
+  "schema": "v86-comparison-v1",
+  "generatedAt": "2026-11-03T10:42:34.630Z",
+  "policySHA256": "afd2a50467a31baff21de9ef72677532efaaa270e0e8fbc8f962ab52049b498c",
+  "sampleUnit": "ONE_TARGET_TRADING_DAY",
+  "protocol": "FIXED_POLICY_CHRONOLOGICAL_50_20_30_NO_OPTIMIZATION",
+  "partitions": {
+    "train": {
+      "from": "2026-08-06",
+      "to": "2026-09-15",
+      "variants": {
+        "A": {
+          "n": 29,
+          "missing": 0,
+          "accuracy": 0.10344827586206896,
+          "accuracyWilson95": [
+            0.035814240381301043,
+            0.26385447247069155
+          ],
+          "balancedAccuracy": 0.07326007326007326,
+          "recall": {
+            "BULL": 0.14285714285714285,
+            "BEAR": 0.07692307692307693,
+            "FLAT": 0
+          },
+          "absentClasses": [],
+          "directionCoverage": 0.27586206896551724,
+          "selectiveAccuracy": 0.375,
+          "bullish": {
+            "n": 7,
+            "hitRate": 0.2857142857142857
+          },
+          "bearish": {
+            "n": 1,
+            "hitRate": 1
+          },
+          "returnMAE": 0.009891507087134278,
+          "intervalCoverage": 0.896551724137931,
+          "meanIntervalWidthReturn": 0.03555509400351241,
+          "calibration": {
+            "status": "UNCALIBRATED_SAMPLE_SHARES_DIAGNOSTIC_ONLY",
+            "multiclassBrier": 0.6550377155172413,
+            "ece": 0.1939655172413793,
+            "bins": [
+              {
+                "range": [
+                  0,
+                  0.2
+                ],
+                "n": 0,
+                "meanSampleShare": null,
+                "observedFrequency": null
+              },
+              {
+                "range": [
+                  0.2,
+                  0.4
+                ],
+                "n": 1,
+                "meanSampleShare": 0.375,
+                "observedFrequency": 1
+              },
+              {
+                "range": [
+                  0.4,
+                  0.6
+                ],
+                "n": 18,
+                "meanSampleShare": 0.4791666666666667,
+                "observedFrequency": 0.3888888888888889
+              },
+              {
+                "range": [
+                  0.6,
+                  0.8
+                ],
+                "n": 9,
+                "meanSampleShare": 0.6875,
+                "observedFrequency": 0.3333333333333333
+              },
+              {
+                "range": [
+                  0.8,
+                  1
+                ],
+                "n": 1,
+                "meanSampleShare": 0.8125,
+                "observedFrequency": 1
+              }
+            ]
+          },
+          "crashSensitivity": {
+            "-0.01": {
+              "events": 5,
+              "predictions": 1,
+              "truePositive": 1,
+              "recall": 0.2,
+              "precision": 1
+            },
+            "-0.02": {
+              "events": 0,
+              "predictions": 0,
+              "truePositive": 0,
+              "recall": null,
+              "precision": null
+            },
+            "-0.03": {
+              "events": 0,
+              "predictions": 0,
+              "truePositive": 0,
+              "recall": null,
+              "precision": null
+            },
+            "-0.05": {
+              "events": 0,
+              "predictions": 0,
+              "truePositive": 0,
+              "recall": null,
+              "precision": null
+            }
+          },
+          "byRegime": {
+            "RANGE": {
+              "n": 12,
+              "accuracy": 0.08333333333333333,
+              "returnMAE": 0.00857612133002337
+            },
+            "WEAK_REBOUND": {
+              "n": 3,
+              "accuracy": 0,
+              "returnMAE": 0.009549427956014989
+            },
+            "BULL_TREND": {
+              "n": 8,
+              "accuracy": 0,
+              "returnMAE": 0.013086783245578798
+            },
+            "BULL_PULLBACK": {
+              "n": 6,
+              "accuracy": 0.3333333333333333,
+              "returnMAE": 0.008432949955656374
+            }
+          }
+        },
+        "B": {
+          "n": 29,
+          "missing": 0,
+          "accuracy": 0.13793103448275862,
+          "accuracyWilson95": [
+            0.05497350852047822,
+            0.30559357712699325
+          ],
+          "balancedAccuracy": 0.2380952380952381,
+          "recall": {
+            "BULL": 0.21428571428571427,
+            "BEAR": 0,
+            "FLAT": 0.5
+          },
+          "absentClasses": [],
+          "directionCoverage": 0.7931034482758621,
+          "selectiveAccuracy": 0.17391304347826086,
+          "bullish": {
+            "n": 8,
+            "hitRate": 0.375
+          },
+          "bearish": {
+            "n": 3,
+            "hitRate": 0
+          },
+          "returnMAE": 0.008876821230924769,
+          "intervalCoverage": 1,
+          "meanIntervalWidthReturn": 0.06637464713773983,
+          "calibration": null,
+          "crashSensitivity": {
+            "-0.01": {
+              "events": 5,
+              "predictions": 0,
+              "truePositive": 0,
+              "recall": 0,
+              "precision": null
+            },
+            "-0.02": {
+              "events": 0,
+              "predictions": 0,
+              "truePositive": 0,
+              "recall": null,
+              "precision": null
+            },
+            "-0.03": {
+              "events": 0,
+              "predictions": 0,
+              "truePositive": 0,
+              "recall": null,
+              "precision": null
+            },
+            "-0.05": {
+              "events": 0,
+              "predictions": 0,
+              "truePositive": 0,
+              "recall": null,
+              "precision": null
+            }
+          },
+          "byRegime": {
+            "RANGE": {
+              "n": 12,
+              "accuracy": 0.08333333333333333,
+              "returnMAE": 0.008221348162337577
+            },
+            "WEAK_REBOUND": {
+              "n": 3,
+              "accuracy": 0,
+              "returnMAE": 0.0080461603111186
+            },
+            "BULL_TREND": {
+              "n": 8,
+              "accuracy": 0.375,
+              "returnMAE": 0.009339359577396553
+            },
+            "BULL_PULLBACK": {
+              "n": 6,
+              "accuracy": 0,
+              "returnMAE": 0.009986380032706521
+            }
+          }
+        },
+        "C": {
+          "n": 29,
+          "missing": 0,
+          "accuracy": 0.10344827586206896,
+          "accuracyWilson95": [
+            0.035814240381301043,
+            0.26385447247069155
+          ],
+          "balancedAccuracy": 0.07326007326007326,
+          "recall": {
+            "BULL": 0.14285714285714285,
+            "BEAR": 0.07692307692307693,
+            "FLAT": 0
+          },
+          "absentClasses": [],
+          "directionCoverage": 0.27586206896551724,
+          "selectiveAccuracy": 0.375,
+          "bullish": {
+            "n": 7,
+            "hitRate": 0.2857142857142857
+          },
+          "bearish": {
+            "n": 1,
+            "hitRate": 1
+          },
+          "returnMAE": 0.009891507087134278,
+          "intervalCoverage": 1,
+          "meanIntervalWidthReturn": 0.0664255579036527,
+          "calibration": {
+            "status": "UNCALIBRATED_SAMPLE_SHARES_DIAGNOSTIC_ONLY",
+            "multiclassBrier": 0.6550377155172413,
+            "ece": 0.1939655172413793,
+            "bins": [
+              {
+                "range": [
+                  0,
+                  0.2
+                ],
+                "n": 0,
+                "meanSampleShare": null,
+                "observedFrequency": null
+              },
+              {
+                "range": [
+                  0.2,
+                  0.4
+                ],
+                "n": 1,
+                "meanSampleShare": 0.375,
+                "observedFrequency": 1
+              },
+              {
+                "range": [
+                  0.4,
+                  0.6
+                ],
+                "n": 18,
+                "meanSampleShare": 0.4791666666666667,
+                "observedFrequency": 0.3888888888888889
+              },
+              {
+                "range": [
+                  0.6,
+                  0.8
+                ],
+                "n": 9,
+                "meanSampleShare": 0.6875,
+                "observedFrequency": 0.3333333333333333
+              },
+              {
+                "range": [
+                  0.8,
+                  1
+                ],
+                "n": 1,
+                "meanSampleShare": 0.8125,
+                "observedFrequency": 1
+              }
+            ]
+          },
+          "crashSensitivity": {
+            "-0.01": {
+              "events": 5,
+              "predictions": 1,
+              "truePositive": 1,
+              "recall": 0.2,
+              "precision": 1
+            },
+            "-0.02": {
+              "events": 0,
+              "predictions": 0,
+              "truePositive": 0,
+              "recall": null,
+              "precision": null
+            },
+            "-0.03": {
+              "events": 0,
+              "predictions": 0,
+              "truePositive": 0,
+              "recall": null,
+              "precision": null
+            },
+            "-0.05": {
+              "events": 0,
+              "predictions": 0,
+              "truePositive": 0,
+              "recall": null,
+              "precision": null
+            }
+          },
+          "byRegime": {
+            "RANGE": {
+              "n": 12,
+              "accuracy": 0.08333333333333333,
+              "returnMAE": 0.00857612133002337
+            },
+            "WEAK_REBOUND": {
+              "n": 3,
+              "accuracy": 0,
+              "returnMAE": 0.009549427956014989
+            },
+            "BULL_TREND": {
+              "n": 8,
+              "accuracy": 0,
+              "returnMAE": 0.013086783245578798
+            },
+            "BULL_PULLBACK": {
+              "n": 6,
+              "accuracy": 0.3333333333333333,
+              "returnMAE": 0.008432949955656374
+            }
+          }
+        }
+      }
+    },
+    "validation": {
+      "from": "2026-09-16",
+      "to": "2026-10-02",
+      "variants": {
+        "A": {
+          "n": 11,
+          "missing": 0,
+          "accuracy": 0,
+          "accuracyWilson95": [
+            2.7755575615628914e-17,
+            0.2588400172488141
+          ],
+          "balancedAccuracy": 0,
+          "recall": {
+            "BULL": 0,
+            "BEAR": 0,
+            "FLAT": 0
+          },
+          "absentClasses": [],
+          "directionCoverage": 0.09090909090909091,
+          "selectiveAccuracy": 0,
+          "bullish": {
+            "n": 0,
+            "hitRate": null
+          },
+          "bearish": {
+            "n": 1,
+            "hitRate": 0
+          },
+          "returnMAE": 0.008717987519603732,
+          "intervalCoverage": 0.9090909090909091,
+          "meanIntervalWidthReturn": 0.03126963586298851,
+          "calibration": {
+            "status": "UNCALIBRATED_SAMPLE_SHARES_DIAGNOSTIC_ONLY",
+            "multiclassBrier": 0.6633522727272727,
+            "ece": 0.0454545454545455,
+            "bins": [
+              {
+                "range": [
+                  0,
+                  0.2
+                ],
+                "n": 0,
+                "meanSampleShare": null,
+                "observedFrequency": null
+              },
+              {
+                "range": [
+                  0.2,
+                  0.4
+                ],
+                "n": 0,
+                "meanSampleShare": null,
+                "observedFrequency": null
+              },
+              {
+                "range": [
+                  0.4,
+                  0.6
+                ],
+                "n": 9,
+                "meanSampleShare": 0.4618055555555556,
+                "observedFrequency": 0.4444444444444444
+              },
+              {
+                "range": [
+                  0.6,
+                  0.8
+                ],
+                "n": 2,
+                "meanSampleShare": 0.671875,
+                "observedFrequency": 0.5
+              },
+              {
+                "range": [
+                  0.8,
+                  1
+                ],
+                "n": 0,
+                "meanSampleShare": null,
+                "observedFrequency": null
+              }
+            ]
+          },
+          "crashSensitivity": {
+            "-0.01": {
+              "events": 0,
+              "predictions": 0,
+              "truePositive": 0,
+              "recall": null,
+              "precision": null
+            },
+            "-0.02": {
+              "events": 0,
+              "predictions": 0,
+              "truePositive": 0,
+              "recall": null,
+              "precision": null
+            },
+            "-0.03": {
+              "events": 0,
+              "predictions": 0,
+              "truePositive": 0,
+              "recall": null,
+              "precision": null
+            },
+            "-0.05": {
+              "events": 0,
+              "predictions": 0,
+              "truePositive": 0,
+              "recall": null,
+              "precision": null
+            }
+          },
+          "byRegime": {
+            "WEAK_REBOUND": {
+              "n": 1,
+              "accuracy": 0,
+              "returnMAE": 0.005588925661248245
+            },
+            "BULL_PULLBACK": {
+              "n": 3,
+              "accuracy": 0,
+              "returnMAE": 0.010966514863940069
+            },
+            "BULL_TREND": {
+              "n": 6,
+              "accuracy": 0,
+              "returnMAE": 0.009509519223668364
+            },
+            "STRONG_BREAKOUT": {
+              "n": 1,
+              "accuracy": 0,
+              "returnMAE": 0.00035227712056240534
+            }
+          }
+        },
+        "B": {
+          "n": 11,
+          "missing": 0,
+          "accuracy": 0.2727272727272727,
+          "accuracyWilson95": [
+            0.09745880573921467,
+            0.5656502930102463
+          ],
+          "balancedAccuracy": 0.14285714285714285,
+          "recall": {
+            "BULL": 0.42857142857142855,
+            "BEAR": 0,
+            "FLAT": 0
+          },
+          "absentClasses": [],
+          "directionCoverage": 0.7272727272727273,
+          "selectiveAccuracy": 0.375,
+          "bullish": {
+            "n": 7,
+            "hitRate": 0.42857142857142855
+          },
+          "bearish": {
+            "n": 1,
+            "hitRate": 0
+          },
+          "returnMAE": 0.009409038119419833,
+          "intervalCoverage": 0.9090909090909091,
+          "meanIntervalWidthReturn": 0.0481731348469595,
+          "calibration": null,
+          "crashSensitivity": {
+            "-0.01": {
+              "events": 0,
+              "predictions": 0,
+              "truePositive": 0,
+              "recall": null,
+              "precision": null
+            },
+            "-0.02": {
+              "events": 0,
+              "predictions": 0,
+              "truePositive": 0,
+              "recall": null,
+              "precision": null
+            },
+            "-0.03": {
+              "events": 0,
+              "predictions": 0,
+              "truePositive": 0,
+              "recall": null,
+              "precision": null
+            },
+            "-0.05": {
+              "events": 0,
+              "predictions": 0,
+              "truePositive": 0,
+              "recall": null,
+              "precision": null
+            }
+          },
+          "byRegime": {
+            "WEAK_REBOUND": {
+              "n": 1,
+              "accuracy": 0,
+              "returnMAE": 0.009577110901243024
+            },
+            "BULL_PULLBACK": {
+              "n": 3,
+              "accuracy": 0,
+              "returnMAE": 0.012387178353880849
+            },
+            "BULL_TREND": {
+              "n": 6,
+              "accuracy": 0.3333333333333333,
+              "returnMAE": 0.008214945035748064
+            },
+            "STRONG_BREAKOUT": {
+              "n": 1,
+              "accuracy": 1,
+              "returnMAE": 0.007471103136244217
+            }
+          }
+        },
+        "C": {
+          "n": 11,
+          "missing": 0,
+          "accuracy": 0,
+          "accuracyWilson95": [
+            2.7755575615628914e-17,
+            0.2588400172488141
+          ],
+          "balancedAccuracy": 0,
+          "recall": {
+            "BULL": 0,
+            "BEAR": 0,
+            "FLAT": 0
+          },
+          "absentClasses": [],
+          "directionCoverage": 0,
+          "selectiveAccuracy": null,
+          "bullish": {
+            "n": 0,
+            "hitRate": null
+          },
+          "bearish": {
+            "n": 0,
+            "hitRate": null
+          },
+          "returnMAE": 0.008717987519603732,
+          "intervalCoverage": 0.9090909090909091,
+          "meanIntervalWidthReturn": 0.048455706198590714,
+          "calibration": {
+            "status": "UNCALIBRATED_SAMPLE_SHARES_DIAGNOSTIC_ONLY",
+            "multiclassBrier": 0.6633522727272727,
+            "ece": 0.0454545454545455,
+            "bins": [
+              {
+                "range": [
+                  0,
+                  0.2
+                ],
+                "n": 0,
+                "meanSampleShare": null,
+                "observedFrequency": null
+              },
+              {
+                "range": [
+                  0.2,
+                  0.4
+                ],
+                "n": 0,
+                "meanSampleShare": null,
+                "observedFrequency": null
+              },
+              {
+                "range": [
+                  0.4,
+                  0.6
+                ],
+                "n": 9,
+                "meanSampleShare": 0.4618055555555556,
+                "observedFrequency": 0.4444444444444444
+              },
+              {
+                "range": [
+                  0.6,
+                  0.8
+                ],
+                "n": 2,
+                "meanSampleShare": 0.671875,
+                "observedFrequency": 0.5
+              },
+              {
+                "range": [
+                  0.8,
+                  1
+                ],
+                "n": 0,
+                "meanSampleShare": null,
+                "observedFrequency": null
+              }
+            ]
+          },
+          "crashSensitivity": {
+            "-0.01": {
+              "events": 0,
+              "predictions": 0,
+              "truePositive": 0,
+              "recall": null,
+              "precision": null
+            },
+            "-0.02": {
+              "events": 0,
+              "predictions": 0,
+              "truePositive": 0,
+              "recall": null,
+              "precision": null
+            },
+            "-0.03": {
+              "events": 0,
+              "predictions": 0,
+              "truePositive": 0,
+              "recall": null,
+              "precision": null
+            },
+            "-0.05": {
+              "events": 0,
+              "predictions": 0,
+              "truePositive": 0,
+              "recall": null,
+              "precision": null
+            }
+          },
+          "byRegime": {
+            "WEAK_REBOUND": {
+              "n": 1,
+              "accuracy": 0,
+              "returnMAE": 0.005588925661248245
+            },
+            "BULL_PULLBACK": {
+              "n": 3,
+              "accuracy": 0,
+              "returnMAE": 0.010966514863940069
+            },
+            "BULL_TREND": {
+              "n": 6,
+              "accuracy": 0,
+              "returnMAE": 0.009509519223668364
+            },
+            "STRONG_BREAKOUT": {
+              "n": 1,
+              "accuracy": 0,
+              "returnMAE": 0.00035227712056240534
+            }
+          }
+        }
+      }
+    },
+    "test": {
+      "from": "2026-10-05",
+      "to": "2026-11-02",
+      "variants": {
+        "A": {
+          "n": 18,
+          "missing": 0,
+          "accuracy": 0.2222222222222222,
+          "accuracyWilson95": [
+            0.09000781913382,
+            0.4521502645230549
+          ],
+          "balancedAccuracy": 0.13333333333333333,
+          "recall": {
+            "BULL": 0,
+            "BEAR": 0.4,
+            "FLAT": 0
+          },
+          "absentClasses": [],
+          "directionCoverage": 0.3888888888888889,
+          "selectiveAccuracy": 0.5714285714285714,
+          "bullish": {
+            "n": 0,
+            "hitRate": null
+          },
+          "bearish": {
+            "n": 7,
+            "hitRate": 0.5714285714285714
+          },
+          "returnMAE": 0.01207050707219601,
+          "intervalCoverage": 0.8333333333333334,
+          "meanIntervalWidthReturn": 0.03745485380758232,
+          "calibration": {
+            "status": "UNCALIBRATED_SAMPLE_SHARES_DIAGNOSTIC_ONLY",
+            "multiclassBrier": 0.5945095486111112,
+            "ece": 0.1857638888888889,
+            "bins": [
+              {
+                "range": [
+                  0,
+                  0.2
+                ],
+                "n": 0,
+                "meanSampleShare": null,
+                "observedFrequency": null
+              },
+              {
+                "range": [
+                  0.2,
+                  0.4
+                ],
+                "n": 1,
+                "meanSampleShare": 0.34375,
+                "observedFrequency": 0
+              },
+              {
+                "range": [
+                  0.4,
+                  0.6
+                ],
+                "n": 9,
+                "meanSampleShare": 0.5069444444444444,
+                "observedFrequency": 0.5555555555555556
+              },
+              {
+                "range": [
+                  0.6,
+                  0.8
+                ],
+                "n": 6,
+                "meanSampleShare": 0.703125,
+                "observedFrequency": 0.3333333333333333
+              },
+              {
+                "range": [
+                  0.8,
+                  1
+                ],
+                "n": 2,
+                "meanSampleShare": 0.828125,
+                "observedFrequency": 1
+              }
+            ]
+          },
+          "crashSensitivity": {
+            "-0.01": {
+              "events": 7,
+              "predictions": 5,
+              "truePositive": 2,
+              "recall": 0.2857142857142857,
+              "precision": 0.4
+            },
+            "-0.02": {
+              "events": 3,
+              "predictions": 0,
+              "truePositive": 0,
+              "recall": 0,
+              "precision": null
+            },
+            "-0.03": {
+              "events": 2,
+              "predictions": 0,
+              "truePositive": 0,
+              "recall": 0,
+              "precision": null
+            },
+            "-0.05": {
+              "events": 0,
+              "predictions": 0,
+              "truePositive": 0,
+              "recall": null,
+              "precision": null
+            }
+          },
+          "byRegime": {
+            "STRONG_BREAKOUT": {
+              "n": 1,
+              "accuracy": 0,
+              "returnMAE": 0.00181524341236039
+            },
+            "BULL_TREND": {
+              "n": 2,
+              "accuracy": 0.5,
+              "returnMAE": 0.008575227918937334
+            },
+            "BULL_PULLBACK": {
+              "n": 5,
+              "accuracy": 0.4,
+              "returnMAE": 0.014217456684903951
+            },
+            "CRASH_RISK": {
+              "n": 2,
+              "accuracy": 0,
+              "returnMAE": 0.006560871094762888
+            },
+            "WEAK_REBOUND": {
+              "n": 4,
+              "accuracy": 0.25,
+              "returnMAE": 0.008776219616123626
+            },
+            "OVERSOLD_UNSTABILIZED": {
+              "n": 1,
+              "accuracy": 0,
+              "returnMAE": 0.01687011959763618
+            },
+            "SUPPORT_LOST": {
+              "n": 1,
+              "accuracy": 0,
+              "returnMAE": 0.00914812790621422
+            },
+            "RANGE": {
+              "n": 2,
+              "accuracy": 0,
+              "returnMAE": 0.026485638233451347
+            }
+          }
+        },
+        "B": {
+          "n": 18,
+          "missing": 0,
+          "accuracy": 0.2222222222222222,
+          "accuracyWilson95": [
+            0.09000781913382,
+            0.4521502645230549
+          ],
+          "balancedAccuracy": 0.13333333333333333,
+          "recall": {
+            "BULL": 0,
+            "BEAR": 0.4,
+            "FLAT": 0
+          },
+          "absentClasses": [],
+          "directionCoverage": 0.7222222222222222,
+          "selectiveAccuracy": 0.3076923076923077,
+          "bullish": {
+            "n": 3,
+            "hitRate": 0
+          },
+          "bearish": {
+            "n": 8,
+            "hitRate": 0.5
+          },
+          "returnMAE": 0.012583315922882539,
+          "intervalCoverage": 0.8888888888888888,
+          "meanIntervalWidthReturn": 0.04983742034037649,
+          "calibration": null,
+          "crashSensitivity": {
+            "-0.01": {
+              "events": 7,
+              "predictions": 2,
+              "truePositive": 0,
+              "recall": 0,
+              "precision": 0
+            },
+            "-0.02": {
+              "events": 3,
+              "predictions": 2,
+              "truePositive": 0,
+              "recall": 0,
+              "precision": 0
+            },
+            "-0.03": {
+              "events": 2,
+              "predictions": 2,
+              "truePositive": 0,
+              "recall": 0,
+              "precision": 0
+            },
+            "-0.05": {
+              "events": 0,
+              "predictions": 2,
+              "truePositive": 0,
+              "recall": null,
+              "precision": 0
+            }
+          },
+          "byRegime": {
+            "STRONG_BREAKOUT": {
+              "n": 1,
+              "accuracy": 0,
+              "returnMAE": 0.0022230027172491784
+            },
+            "BULL_TREND": {
+              "n": 2,
+              "accuracy": 0,
+              "returnMAE": 0.005110839692832381
+            },
+            "BULL_PULLBACK": {
+              "n": 5,
+              "accuracy": 0,
+              "returnMAE": 0.01419198317524022
+            },
+            "CRASH_RISK": {
+              "n": 2,
+              "accuracy": 0.5,
+              "returnMAE": 0.004730928823653557
+            },
+            "WEAK_REBOUND": {
+              "n": 4,
+              "accuracy": 0.75,
+              "returnMAE": 0.014688165712505252
+            },
+            "OVERSOLD_UNSTABILIZED": {
+              "n": 1,
+              "accuracy": 0,
+              "returnMAE": 0.012849478311266926
+            },
+            "SUPPORT_LOST": {
+              "n": 1,
+              "accuracy": 0,
+              "returnMAE": 0.0011902323624615185
+            },
+            "RANGE": {
+              "n": 2,
+              "accuracy": 0,
+              "returnMAE": 0.03042042873085704
+            }
+          }
+        },
+        "C": {
+          "n": 18,
+          "missing": 0,
+          "accuracy": 0.16666666666666666,
+          "accuracyWilson95": [
+            0.05836470400465757,
+            0.39222499638359243
+          ],
+          "balancedAccuracy": 0.09999999999999999,
+          "recall": {
+            "BULL": 0,
+            "BEAR": 0.3,
+            "FLAT": 0
+          },
+          "absentClasses": [],
+          "directionCoverage": 0.2777777777777778,
+          "selectiveAccuracy": 0.6,
+          "bullish": {
+            "n": 0,
+            "hitRate": null
+          },
+          "bearish": {
+            "n": 5,
+            "hitRate": 0.6
+          },
+          "returnMAE": 0.01207050707219601,
+          "intervalCoverage": 0.8888888888888888,
+          "meanIntervalWidthReturn": 0.054087790216823556,
+          "calibration": {
+            "status": "UNCALIBRATED_SAMPLE_SHARES_DIAGNOSTIC_ONLY",
+            "multiclassBrier": 0.5945095486111112,
+            "ece": 0.1857638888888889,
+            "bins": [
+              {
+                "range": [
+                  0,
+                  0.2
+                ],
+                "n": 0,
+                "meanSampleShare": null,
+                "observedFrequency": null
+              },
+              {
+                "range": [
+                  0.2,
+                  0.4
+                ],
+                "n": 1,
+                "meanSampleShare": 0.34375,
+                "observedFrequency": 0
+              },
+              {
+                "range": [
+                  0.4,
+                  0.6
+                ],
+                "n": 9,
+                "meanSampleShare": 0.5069444444444444,
+                "observedFrequency": 0.5555555555555556
+              },
+              {
+                "range": [
+                  0.6,
+                  0.8
+                ],
+                "n": 6,
+                "meanSampleShare": 0.703125,
+                "observedFrequency": 0.3333333333333333
+              },
+              {
+                "range": [
+                  0.8,
+                  1
+                ],
+                "n": 2,
+                "meanSampleShare": 0.828125,
+                "observedFrequency": 1
+              }
+            ]
+          },
+          "crashSensitivity": {
+            "-0.01": {
+              "events": 7,
+              "predictions": 7,
+              "truePositive": 2,
+              "recall": 0.2857142857142857,
+              "precision": 0.2857142857142857
+            },
+            "-0.02": {
+              "events": 3,
+              "predictions": 2,
+              "truePositive": 0,
+              "recall": 0,
+              "precision": 0
+            },
+            "-0.03": {
+              "events": 2,
+              "predictions": 2,
+              "truePositive": 0,
+              "recall": 0,
+              "precision": 0
+            },
+            "-0.05": {
+              "events": 0,
+              "predictions": 2,
+              "truePositive": 0,
+              "recall": null,
+              "precision": 0
+            }
+          },
+          "byRegime": {
+            "STRONG_BREAKOUT": {
+              "n": 1,
+              "accuracy": 0,
+              "returnMAE": 0.00181524341236039
+            },
+            "BULL_TREND": {
+              "n": 2,
+              "accuracy": 0,
+              "returnMAE": 0.008575227918937334
+            },
+            "BULL_PULLBACK": {
+              "n": 5,
+              "accuracy": 0.4,
+              "returnMAE": 0.014217456684903951
+            },
+            "CRASH_RISK": {
+              "n": 2,
+              "accuracy": 0,
+              "returnMAE": 0.006560871094762888
+            },
+            "WEAK_REBOUND": {
+              "n": 4,
+              "accuracy": 0.25,
+              "returnMAE": 0.008776219616123626
+            },
+            "OVERSOLD_UNSTABILIZED": {
+              "n": 1,
+              "accuracy": 0,
+              "returnMAE": 0.01687011959763618
+            },
+            "SUPPORT_LOST": {
+              "n": 1,
+              "accuracy": 0,
+              "returnMAE": 0.00914812790621422
+            },
+            "RANGE": {
+              "n": 2,
+              "accuracy": 0,
+              "returnMAE": 0.026485638233451347
+            }
+          }
+        }
+      }
+    },
+    "all": {
+      "from": "2026-08-06",
+      "to": "2026-11-02",
+      "variants": {
+        "A": {
+          "n": 58,
+          "missing": 0,
+          "accuracy": 0.1206896551724138,
+          "accuracyWilson95": [
+            0.059708902448596696,
+            0.22879592278231584
+          ],
+          "balancedAccuracy": 0.0961111111111111,
+          "recall": {
+            "BULL": 0.08,
+            "BEAR": 0.20833333333333334,
+            "FLAT": 0
+          },
+          "absentClasses": [],
+          "directionCoverage": 0.27586206896551724,
+          "selectiveAccuracy": 0.4375,
+          "bullish": {
+            "n": 7,
+            "hitRate": 0.2857142857142857
+          },
+          "bearish": {
+            "n": 9,
+            "hitRate": 0.5555555555555556
+          },
+          "returnMAE": 0.010345184405897642,
+          "intervalCoverage": 0.8793103448275862,
+          "meanIntervalWidthReturn": 0.03533191532984853,
+          "calibration": {
+            "status": "UNCALIBRATED_SAMPLE_SHARES_DIAGNOSTIC_ONLY",
+            "multiclassBrier": 0.6378300107758621,
+            "ece": 0.13631465517241378,
+            "bins": [
+              {
+                "range": [
+                  0,
+                  0.2
+                ],
+                "n": 0,
+                "meanSampleShare": null,
+                "observedFrequency": null
+              },
+              {
+                "range": [
+                  0.2,
+                  0.4
+                ],
+                "n": 2,
+                "meanSampleShare": 0.359375,
+                "observedFrequency": 0.5
+              },
+              {
+                "range": [
+                  0.4,
+                  0.6
+                ],
+                "n": 36,
+                "meanSampleShare": 0.4817708333333333,
+                "observedFrequency": 0.4444444444444444
+              },
+              {
+                "range": [
+                  0.6,
+                  0.8
+                ],
+                "n": 17,
+                "meanSampleShare": 0.6911764705882353,
+                "observedFrequency": 0.35294117647058826
+              },
+              {
+                "range": [
+                  0.8,
+                  1
+                ],
+                "n": 3,
+                "meanSampleShare": 0.8229166666666666,
+                "observedFrequency": 1
+              }
+            ]
+          },
+          "crashSensitivity": {
+            "-0.01": {
+              "events": 12,
+              "predictions": 6,
+              "truePositive": 3,
+              "recall": 0.25,
+              "precision": 0.5
+            },
+            "-0.02": {
+              "events": 3,
+              "predictions": 0,
+              "truePositive": 0,
+              "recall": 0,
+              "precision": null
+            },
+            "-0.03": {
+              "events": 2,
+              "predictions": 0,
+              "truePositive": 0,
+              "recall": 0,
+              "precision": null
+            },
+            "-0.05": {
+              "events": 0,
+              "predictions": 0,
+              "truePositive": 0,
+              "recall": null,
+              "precision": null
+            }
+          },
+          "byRegime": {
+            "RANGE": {
+              "n": 14,
+              "accuracy": 0.07142857142857142,
+              "returnMAE": 0.011134623744798797
+            },
+            "WEAK_REBOUND": {
+              "n": 8,
+              "accuracy": 0.125,
+              "returnMAE": 0.008667760999223464
+            },
+            "BULL_TREND": {
+              "n": 16,
+              "accuracy": 0.0625,
+              "returnMAE": 0.011181364821532203
+            },
+            "BULL_PULLBACK": {
+              "n": 14,
+              "accuracy": 0.2857142857142857,
+              "returnMAE": 0.011041751982162729
+            },
+            "STRONG_BREAKOUT": {
+              "n": 2,
+              "accuracy": 0,
+              "returnMAE": 0.0010837602664613977
+            },
+            "CRASH_RISK": {
+              "n": 2,
+              "accuracy": 0,
+              "returnMAE": 0.006560871094762888
+            },
+            "OVERSOLD_UNSTABILIZED": {
+              "n": 1,
+              "accuracy": 0,
+              "returnMAE": 0.01687011959763618
+            },
+            "SUPPORT_LOST": {
+              "n": 1,
+              "accuracy": 0,
+              "returnMAE": 0.00914812790621422
+            }
+          }
+        },
+        "B": {
+          "n": 58,
+          "missing": 0,
+          "accuracy": 0.1896551724137931,
+          "accuracyWilson95": [
+            0.10934140042567436,
+            0.3085261838541631
+          ],
+          "balancedAccuracy": 0.17259259259259255,
+          "recall": {
+            "BULL": 0.24,
+            "BEAR": 0.16666666666666666,
+            "FLAT": 0.1111111111111111
+          },
+          "absentClasses": [],
+          "directionCoverage": 0.7586206896551724,
+          "selectiveAccuracy": 0.25,
+          "bullish": {
+            "n": 18,
+            "hitRate": 0.3333333333333333
+          },
+          "bearish": {
+            "n": 12,
+            "hitRate": 0.3333333333333333
+          },
+          "returnMAE": 0.010128050372798658,
+          "intervalCoverage": 0.9482758620689655,
+          "meanIntervalWidthReturn": 0.05779039338685838,
+          "calibration": null,
+          "crashSensitivity": {
+            "-0.01": {
+              "events": 12,
+              "predictions": 2,
+              "truePositive": 0,
+              "recall": 0,
+              "precision": 0
+            },
+            "-0.02": {
+              "events": 3,
+              "predictions": 2,
+              "truePositive": 0,
+              "recall": 0,
+              "precision": 0
+            },
+            "-0.03": {
+              "events": 2,
+              "predictions": 2,
+              "truePositive": 0,
+              "recall": 0,
+              "precision": 0
+            },
+            "-0.05": {
+              "events": 0,
+              "predictions": 2,
+              "truePositive": 0,
+              "recall": null,
+              "precision": 0
+            }
+          },
+          "byRegime": {
+            "RANGE": {
+              "n": 14,
+              "accuracy": 0.07142857142857142,
+              "returnMAE": 0.011392645386411786
+            },
+            "WEAK_REBOUND": {
+              "n": 8,
+              "accuracy": 0.375,
+              "returnMAE": 0.011558531835577479
+            },
+            "BULL_TREND": {
+              "n": 16,
+              "accuracy": 0.3125,
+              "returnMAE": 0.008389139138707848
+            },
+            "BULL_PULLBACK": {
+              "n": 14,
+              "accuracy": 0,
+              "returnMAE": 0.01200283793814877
+            },
+            "STRONG_BREAKOUT": {
+              "n": 2,
+              "accuracy": 0.5,
+              "returnMAE": 0.004847052926746698
+            },
+            "CRASH_RISK": {
+              "n": 2,
+              "accuracy": 0.5,
+              "returnMAE": 0.004730928823653557
+            },
+            "OVERSOLD_UNSTABILIZED": {
+              "n": 1,
+              "accuracy": 0,
+              "returnMAE": 0.012849478311266926
+            },
+            "SUPPORT_LOST": {
+              "n": 1,
+              "accuracy": 0,
+              "returnMAE": 0.0011902323624615185
+            }
+          }
+        },
+        "C": {
+          "n": 58,
+          "missing": 0,
+          "accuracy": 0.10344827586206896,
+          "accuracyWilson95": [
+            0.04828075015859154,
+            0.20788338531008968
+          ],
+          "balancedAccuracy": 0.08222222222222221,
+          "recall": {
+            "BULL": 0.08,
+            "BEAR": 0.16666666666666666,
+            "FLAT": 0
+          },
+          "absentClasses": [],
+          "directionCoverage": 0.22413793103448276,
+          "selectiveAccuracy": 0.46153846153846156,
+          "bullish": {
+            "n": 7,
+            "hitRate": 0.2857142857142857
+          },
+          "bearish": {
+            "n": 6,
+            "hitRate": 0.6666666666666666
+          },
+          "returnMAE": 0.010345184405897642,
+          "intervalCoverage": 0.9482758620689655,
+          "meanIntervalWidthReturn": 0.05918852019471121,
+          "calibration": {
+            "status": "UNCALIBRATED_SAMPLE_SHARES_DIAGNOSTIC_ONLY",
+            "multiclassBrier": 0.6378300107758621,
+            "ece": 0.13631465517241378,
+            "bins": [
+              {
+                "range": [
+                  0,
+                  0.2
+                ],
+                "n": 0,
+                "meanSampleShare": null,
+                "observedFrequency": null
+              },
+              {
+                "range": [
+                  0.2,
+                  0.4
+                ],
+                "n": 2,
+                "meanSampleShare": 0.359375,
+                "observedFrequency": 0.5
+              },
+              {
+                "range": [
+                  0.4,
+                  0.6
+                ],
+                "n": 36,
+                "meanSampleShare": 0.4817708333333333,
+                "observedFrequency": 0.4444444444444444
+              },
+              {
+                "range": [
+                  0.6,
+                  0.8
+                ],
+                "n": 17,
+                "meanSampleShare": 0.6911764705882353,
+                "observedFrequency": 0.35294117647058826
+              },
+              {
+                "range": [
+                  0.8,
+                  1
+                ],
+                "n": 3,
+                "meanSampleShare": 0.8229166666666666,
+                "observedFrequency": 1
+              }
+            ]
+          },
+          "crashSensitivity": {
+            "-0.01": {
+              "events": 12,
+              "predictions": 8,
+              "truePositive": 3,
+              "recall": 0.25,
+              "precision": 0.375
+            },
+            "-0.02": {
+              "events": 3,
+              "predictions": 2,
+              "truePositive": 0,
+              "recall": 0,
+              "precision": 0
+            },
+            "-0.03": {
+              "events": 2,
+              "predictions": 2,
+              "truePositive": 0,
+              "recall": 0,
+              "precision": 0
+            },
+            "-0.05": {
+              "events": 0,
+              "predictions": 2,
+              "truePositive": 0,
+              "recall": null,
+              "precision": 0
+            }
+          },
+          "byRegime": {
+            "RANGE": {
+              "n": 14,
+              "accuracy": 0.07142857142857142,
+              "returnMAE": 0.011134623744798797
+            },
+            "WEAK_REBOUND": {
+              "n": 8,
+              "accuracy": 0.125,
+              "returnMAE": 0.008667760999223464
+            },
+            "BULL_TREND": {
+              "n": 16,
+              "accuracy": 0,
+              "returnMAE": 0.011181364821532203
+            },
+            "BULL_PULLBACK": {
+              "n": 14,
+              "accuracy": 0.2857142857142857,
+              "returnMAE": 0.011041751982162729
+            },
+            "STRONG_BREAKOUT": {
+              "n": 2,
+              "accuracy": 0,
+              "returnMAE": 0.0010837602664613977
+            },
+            "CRASH_RISK": {
+              "n": 2,
+              "accuracy": 0,
+              "returnMAE": 0.006560871094762888
+            },
+            "OVERSOLD_UNSTABILIZED": {
+              "n": 1,
+              "accuracy": 0,
+              "returnMAE": 0.01687011959763618
+            },
+            "SUPPORT_LOST": {
+              "n": 1,
+              "accuracy": 0,
+              "returnMAE": 0.00914812790621422
+            }
+          }
+        }
+      }
+    }
+  },
+  "pending": [],
+  "unavailable": [],
+  "rows": [
+    {
+      "asOf": "2026-08-06",
+      "target": "2026-08-07",
+      "close": 44396.7,
+      "actualClose": 44225.91,
+      "actualReturn": -0.0038469075404251596,
+      "actual": "BEAR",
+      "regime": "RANGE",
+      "historySignature": "afaedca5",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": -0.001385167703905843,
+        "low": 43476.14921875,
+        "high": 44820.93359375,
+        "shares": {
+          "BULL": 0.21875,
+          "BEAR": 0.4375,
+          "FLAT": 0.34375
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "FLAT",
+        "pointReturn": 0,
+        "low": 42308.506636608814,
+        "high": 46484.89336339118,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": -0.001385167703905843,
+        "low": 42308.506636608814,
+        "high": 46484.89336339118,
+        "shares": {
+          "BULL": 0.21875,
+          "BEAR": 0.4375,
+          "FLAT": 0.34375
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-08-07",
+      "target": "2026-08-10",
+      "close": 44225.91,
+      "actualClose": 44928.76,
+      "actualReturn": 0.015892267677476868,
+      "actual": "BULL",
+      "regime": "RANGE",
+      "historySignature": "6bf9665c",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": 0.004743890869062906,
+        "low": 43648.546875,
+        "high": 45129.447265625,
+        "shares": {
+          "BULL": 0.5625,
+          "BEAR": 0.3125,
+          "FLAT": 0.125
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "FLAT",
+        "pointReturn": 0,
+        "low": 42191.99080542247,
+        "high": 46259.829194577535,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": 0.004743890869062906,
+        "low": 42191.99080542247,
+        "high": 46259.829194577535,
+        "shares": {
+          "BULL": 0.5625,
+          "BEAR": 0.3125,
+          "FLAT": 0.125
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-08-10",
+      "target": "2026-08-11",
+      "close": 44928.76,
+      "actualClose": 45120.72,
+      "actualReturn": 0.004272541685993447,
+      "actual": "BULL",
+      "regime": "WEAK_REBOUND",
+      "historySignature": "45327fb1",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": -0.000026001232284245113,
+        "low": 44066.4125,
+        "high": 45831.74296875,
+        "shares": {
+          "BULL": 0.40625,
+          "BEAR": 0.4375,
+          "FLAT": 0.15625
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "BEAR",
+        "pointReturn": 0,
+        "low": 42933.67539074944,
+        "high": 46923.84460925056,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": -0.000026001232284245113,
+        "low": 42933.67539074944,
+        "high": 46923.84460925056,
+        "shares": {
+          "BULL": 0.40625,
+          "BEAR": 0.4375,
+          "FLAT": 0.15625
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-08-11",
+      "target": "2026-08-12",
+      "close": 45120.72,
+      "actualClose": 45518.07,
+      "actualReturn": 0.008806375430179259,
+      "actual": "BULL",
+      "regime": "WEAK_REBOUND",
+      "historySignature": "09a4c596",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": -0.0020086583142955305,
+        "low": 44191.765625,
+        "high": 45916.331640625,
+        "shares": {
+          "BULL": 0.375,
+          "BEAR": 0.4375,
+          "FLAT": 0.1875
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "BEAR",
+        "pointReturn": 0,
+        "low": 43209.92536283876,
+        "high": 47031.51463716124,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": -0.0020086583142955305,
+        "low": 43209.92536283876,
+        "high": 47031.51463716124,
+        "shares": {
+          "BULL": 0.375,
+          "BEAR": 0.4375,
+          "FLAT": 0.1875
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-08-12",
+      "target": "2026-08-13",
+      "close": 45518.07,
+      "actualClose": 46021.48,
+      "actualReturn": 0.011059563817183093,
+      "actual": "BULL",
+      "regime": "WEAK_REBOUND",
+      "historySignature": "86f7c941",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": -0.002475143388109391,
+        "low": 44709.80390625,
+        "high": 46164.83125,
+        "shares": {
+          "BULL": 0.3125,
+          "BEAR": 0.5,
+          "FLAT": 0.1875
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "BEAR",
+        "pointReturn": 0,
+        "low": 43699.96497977885,
+        "high": 47336.17502022115,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": -0.002475143388109391,
+        "low": 43699.96497977885,
+        "high": 47336.17502022115,
+        "shares": {
+          "BULL": 0.3125,
+          "BEAR": 0.5,
+          "FLAT": 0.1875
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-08-13",
+      "target": "2026-08-14",
+      "close": 46021.48,
+      "actualClose": 45811.01,
+      "actualReturn": -0.0045732992506977155,
+      "actual": "BEAR",
+      "regime": "RANGE",
+      "historySignature": "e0e9c475",
+      "A": {
+        "direction": "BULL",
+        "pointReturn": 0.010152326220821184,
+        "low": 45625.99296875,
+        "high": 47335.215625,
+        "shares": {
+          "BULL": 0.78125,
+          "BEAR": 0.1875,
+          "FLAT": 0.03125
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "FLAT",
+        "pointReturn": 0,
+        "low": 44258.41748122322,
+        "high": 47784.54251877678,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "BULL",
+        "pointReturn": 0.010152326220821184,
+        "low": 44258.41748122322,
+        "high": 47784.54251877678,
+        "shares": {
+          "BULL": 0.78125,
+          "BEAR": 0.1875,
+          "FLAT": 0.03125
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-08-14",
+      "target": "2026-08-17",
+      "close": 45811.01,
+      "actualClose": 45857.27,
+      "actualReturn": 0.0010098009190366852,
+      "actual": "FLAT",
+      "regime": "RANGE",
+      "historySignature": "e705de0a",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": 0.003958215366786311,
+        "low": 44971.421875,
+        "high": 46884.56484375,
+        "shares": {
+          "BULL": 0.53125,
+          "BEAR": 0.34375,
+          "FLAT": 0.125
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "FLAT",
+        "pointReturn": 0,
+        "low": 44109.13516113585,
+        "high": 47512.884838864156,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": 0.003958215366786311,
+        "low": 44109.13516113585,
+        "high": 47512.884838864156,
+        "shares": {
+          "BULL": 0.53125,
+          "BEAR": 0.34375,
+          "FLAT": 0.125
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-08-17",
+      "target": "2026-08-18",
+      "close": 45857.27,
+      "actualClose": 45308.68,
+      "actualReturn": -0.011962988638442695,
+      "actual": "BEAR",
+      "regime": "RANGE",
+      "historySignature": "da0c8f72",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": -0.002929190671402737,
+        "low": 44693.4375,
+        "high": 46503.67734375,
+        "shares": {
+          "BULL": 0.34375,
+          "BEAR": 0.5,
+          "FLAT": 0.15625
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "FLAT",
+        "pointReturn": 0,
+        "low": 44231.50443534042,
+        "high": 47483.03556465957,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": -0.002929190671402737,
+        "low": 44231.50443534042,
+        "high": 47483.03556465957,
+        "shares": {
+          "BULL": 0.34375,
+          "BEAR": 0.5,
+          "FLAT": 0.15625
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-08-18",
+      "target": "2026-08-19",
+      "close": 45308.68,
+      "actualClose": 44719.35,
+      "actualReturn": -0.013006999983226186,
+      "actual": "BEAR",
+      "regime": "RANGE",
+      "historySignature": "2f39a325",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": 0.006854407160504339,
+        "low": 44674.1203125,
+        "high": 46461.271875,
+        "shares": {
+          "BULL": 0.625,
+          "BEAR": 0.25,
+          "FLAT": 0.125
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "FLAT",
+        "pointReturn": 0,
+        "low": 43709.183047101826,
+        "high": 46908.176952898175,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": 0.006854407160504339,
+        "low": 43709.183047101826,
+        "high": 46908.176952898175,
+        "shares": {
+          "BULL": 0.625,
+          "BEAR": 0.25,
+          "FLAT": 0.125
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-08-19",
+      "target": "2026-08-20",
+      "close": 44719.35,
+      "actualClose": 44933.74,
+      "actualReturn": 0.004794121560353526,
+      "actual": "BULL",
+      "regime": "RANGE",
+      "historySignature": "9178cf34",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": 0.00048146628640632905,
+        "low": 44244.89296875,
+        "high": 45357.959375,
+        "shares": {
+          "BULL": 0.4375,
+          "BEAR": 0.28125,
+          "FLAT": 0.28125
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "FLAT",
+        "pointReturn": 0,
+        "low": 43126.96318659455,
+        "high": 46311.73681340545,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": 0.00048146628640632905,
+        "low": 43126.96318659455,
+        "high": 46311.73681340545,
+        "shares": {
+          "BULL": 0.4375,
+          "BEAR": 0.28125,
+          "FLAT": 0.28125
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-08-20",
+      "target": "2026-08-21",
+      "close": 44933.74,
+      "actualClose": 45224.29,
+      "actualReturn": 0.006466187768923826,
+      "actual": "BULL",
+      "regime": "RANGE",
+      "historySignature": "6a5eb7e4",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": 0.000011523912765820654,
+        "low": 44114.968359375,
+        "high": 45561.5234375,
+        "shares": {
+          "BULL": 0.375,
+          "BEAR": 0.34375,
+          "FLAT": 0.28125
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "FLAT",
+        "pointReturn": 0,
+        "low": 43378.62831612351,
+        "high": 46488.851683876484,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": 0.000011523912765820654,
+        "low": 43378.62831612351,
+        "high": 46488.851683876484,
+        "shares": {
+          "BULL": 0.375,
+          "BEAR": 0.34375,
+          "FLAT": 0.28125
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-08-21",
+      "target": "2026-08-24",
+      "close": 45224.29,
+      "actualClose": 44762.32,
+      "actualReturn": -0.010215085742639629,
+      "actual": "BEAR",
+      "regime": "RANGE",
+      "historySignature": "cc213e98",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": 0.0008060311726285629,
+        "low": 44284.716796875,
+        "high": 46153.1484375,
+        "shares": {
+          "BULL": 0.40625,
+          "BEAR": 0.40625,
+          "FLAT": 0.1875
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "FLAT",
+        "pointReturn": 0,
+        "low": 43708.36807925755,
+        "high": 46740.211920742455,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": 0.0008060311726285629,
+        "low": 43708.36807925755,
+        "high": 46740.211920742455,
+        "shares": {
+          "BULL": 0.40625,
+          "BEAR": 0.40625,
+          "FLAT": 0.1875
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-08-24",
+      "target": "2026-08-25",
+      "close": 44762.32,
+      "actualClose": 45169.46,
+      "actualReturn": 0.00909559647489222,
+      "actual": "BULL",
+      "regime": "RANGE",
+      "historySignature": "f498298f",
+      "A": {
+        "direction": "BULL",
+        "pointReturn": 0.013453138082990312,
+        "low": 44574.200390625,
+        "high": 46228.128125,
+        "shares": {
+          "BULL": 0.8125,
+          "BEAR": 0.125,
+          "FLAT": 0.0625
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "FLAT",
+        "pointReturn": 0,
+        "low": 43290.34750216772,
+        "high": 46234.29249783228,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "BULL",
+        "pointReturn": 0.013453138082990312,
+        "low": 43290.34750216772,
+        "high": 46234.29249783228,
+        "shares": {
+          "BULL": 0.8125,
+          "BEAR": 0.125,
+          "FLAT": 0.0625
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-08-25",
+      "target": "2026-08-26",
+      "close": 45169.46,
+      "actualClose": 45832.62,
+      "actualReturn": 0.014681601241192777,
+      "actual": "BULL",
+      "regime": "RANGE",
+      "historySignature": "f2742f72",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": -0.0011153536454719948,
+        "low": 44315.663671875,
+        "high": 46178.7125,
+        "shares": {
+          "BULL": 0.40625,
+          "BEAR": 0.34375,
+          "FLAT": 0.25
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "FLAT",
+        "pointReturn": 0,
+        "low": 43699.862323441455,
+        "high": 46639.05767655854,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": -0.0011153536454719948,
+        "low": 43699.862323441455,
+        "high": 46639.05767655854,
+        "shares": {
+          "BULL": 0.40625,
+          "BEAR": 0.34375,
+          "FLAT": 0.25
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-08-26",
+      "target": "2026-08-27",
+      "close": 45832.62,
+      "actualClose": 45975.22,
+      "actualReturn": 0.00311132115074364,
+      "actual": "BULL",
+      "regime": "RANGE",
+      "historySignature": "536d7911",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": 0.002320159405571731,
+        "low": 45286.101953125,
+        "high": 46804.59375,
+        "shares": {
+          "BULL": 0.5,
+          "BEAR": 0.375,
+          "FLAT": 0.125
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "FLAT",
+        "pointReturn": 0,
+        "low": 44365.93465748135,
+        "high": 47299.30534251865,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": 0.002320159405571731,
+        "low": 44365.93465748135,
+        "high": 47299.30534251865,
+        "shares": {
+          "BULL": 0.5,
+          "BEAR": 0.375,
+          "FLAT": 0.125
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-08-27",
+      "target": "2026-08-28",
+      "close": 45975.22,
+      "actualClose": 46331.45,
+      "actualReturn": 0.007748304412681373,
+      "actual": "BULL",
+      "regime": "BULL_TREND",
+      "historySignature": "5c3d2ca7",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": 0.010174696417983409,
+        "low": 45338.252734375,
+        "high": 47317.53828125,
+        "shares": {
+          "BULL": 0.625,
+          "BEAR": 0.28125,
+          "FLAT": 0.09375
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "BULL",
+        "pointReturn": 0,
+        "low": 44552.31646766126,
+        "high": 47398.123532338745,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": 0.010174696417983409,
+        "low": 44552.31646766126,
+        "high": 47398.123532338745,
+        "shares": {
+          "BULL": 0.625,
+          "BEAR": 0.28125,
+          "FLAT": 0.09375
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-08-28",
+      "target": "2026-08-31",
+      "close": 46331.45,
+      "actualClose": 46128.47,
+      "actualReturn": -0.004381041387653384,
+      "actual": "BEAR",
+      "regime": "BULL_TREND",
+      "historySignature": "dfca2a2c",
+      "A": {
+        "direction": "BULL",
+        "pointReturn": 0.00664288748517472,
+        "low": 45646.52734375,
+        "high": 47565.144921875,
+        "shares": {
+          "BULL": 0.6875,
+          "BEAR": 0.25,
+          "FLAT": 0.0625
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "BULL",
+        "pointReturn": 0,
+        "low": 44945.97171997117,
+        "high": 47716.92828002883,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "BULL",
+        "pointReturn": 0.00664288748517472,
+        "low": 44945.97171997117,
+        "high": 47716.92828002883,
+        "shares": {
+          "BULL": 0.6875,
+          "BEAR": 0.25,
+          "FLAT": 0.0625
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-08-31",
+      "target": "2026-09-01",
+      "close": 46128.47,
+      "actualClose": 46948.72,
+      "actualReturn": 0.01778186009637861,
+      "actual": "BULL",
+      "regime": "BULL_TREND",
+      "historySignature": "7dee7ce9",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": -0.008625521491933297,
+        "low": 44837.69765625,
+        "high": 46559.4375,
+        "shares": {
+          "BULL": 0.34375,
+          "BEAR": 0.5625,
+          "FLAT": 0.09375
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "BULL",
+        "pointReturn": 0,
+        "low": 44747.53588283037,
+        "high": 47509.40411716963,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": -0.008625521491933297,
+        "low": 44747.53588283037,
+        "high": 47509.40411716963,
+        "shares": {
+          "BULL": 0.34375,
+          "BEAR": 0.5625,
+          "FLAT": 0.09375
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-09-01",
+      "target": "2026-09-02",
+      "close": 46948.72,
+      "actualClose": 46164.72,
+      "actualReturn": -0.016699070815988204,
+      "actual": "BEAR",
+      "regime": "BULL_TREND",
+      "historySignature": "edf88320",
+      "A": {
+        "direction": "BULL",
+        "pointReturn": 0.00983250981070416,
+        "low": 46780.3046875,
+        "high": 48393.28984375,
+        "shares": {
+          "BULL": 0.6875,
+          "BEAR": 0.15625,
+          "FLAT": 0.15625
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "BULL",
+        "pointReturn": 0,
+        "low": 45573.46581977106,
+        "high": 48323.97418022894,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "BULL",
+        "pointReturn": 0.00983250981070416,
+        "low": 45573.46581977106,
+        "high": 48393.28984375,
+        "shares": {
+          "BULL": 0.6875,
+          "BEAR": 0.15625,
+          "FLAT": 0.15625
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-09-02",
+      "target": "2026-09-03",
+      "close": 46164.72,
+      "actualClose": 45857.66,
+      "actualReturn": -0.0066513995969216255,
+      "actual": "BEAR",
+      "regime": "BULL_PULLBACK",
+      "historySignature": "1010c8d2",
+      "A": {
+        "direction": "BULL",
+        "pointReturn": 0.009604380046602579,
+        "low": 45780.044140625,
+        "high": 47296.591015625,
+        "shares": {
+          "BULL": 0.71875,
+          "BEAR": 0.1875,
+          "FLAT": 0.09375
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "MIXED",
+        "pointReturn": 0,
+        "low": 44803.698261215985,
+        "high": 47525.74173878402,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "BULL",
+        "pointReturn": 0.009604380046602579,
+        "low": 44803.698261215985,
+        "high": 47525.74173878402,
+        "shares": {
+          "BULL": 0.71875,
+          "BEAR": 0.1875,
+          "FLAT": 0.09375
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-09-03",
+      "target": "2026-09-04",
+      "close": 45857.66,
+      "actualClose": 46551.13,
+      "actualReturn": 0.01512222821661613,
+      "actual": "BULL",
+      "regime": "BULL_PULLBACK",
+      "historySignature": "5f009656",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": 0.00454740515270502,
+        "low": 44975.878515625,
+        "high": 46704.76640625,
+        "shares": {
+          "BULL": 0.5,
+          "BEAR": 0.375,
+          "FLAT": 0.125
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "MIXED",
+        "pointReturn": 0,
+        "low": 44521.20159970056,
+        "high": 47194.11840029945,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": 0.00454740515270502,
+        "low": 44521.20159970056,
+        "high": 47194.11840029945,
+        "shares": {
+          "BULL": 0.5,
+          "BEAR": 0.375,
+          "FLAT": 0.125
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-09-04",
+      "target": "2026-09-07",
+      "close": 46551.13,
+      "actualClose": 47326.27,
+      "actualReturn": 0.016651368076349593,
+      "actual": "BULL",
+      "regime": "BULL_TREND",
+      "historySignature": "a1807113",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": -0.0007462208087106736,
+        "low": 45708.4296875,
+        "high": 47216.335546875,
+        "shares": {
+          "BULL": 0.4375,
+          "BEAR": 0.46875,
+          "FLAT": 0.09375
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "BULL",
+        "pointReturn": 0,
+        "low": 45228.350771150515,
+        "high": 47873.90922884948,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": -0.0007462208087106736,
+        "low": 45228.350771150515,
+        "high": 47873.90922884948,
+        "shares": {
+          "BULL": 0.4375,
+          "BEAR": 0.46875,
+          "FLAT": 0.09375
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-09-07",
+      "target": "2026-09-08",
+      "close": 47326.27,
+      "actualClose": 47105.78,
+      "actualReturn": -0.004658934667785997,
+      "actual": "BEAR",
+      "regime": "BULL_TREND",
+      "historySignature": "24eb43bc",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": 0.00095488060859239,
+        "low": 46621.553515625,
+        "high": 48202.346875,
+        "shares": {
+          "BULL": 0.40625,
+          "BEAR": 0.375,
+          "FLAT": 0.21875
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "BULL",
+        "pointReturn": 0,
+        "low": 46003.85535892547,
+        "high": 48648.68464107452,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": 0.00095488060859239,
+        "low": 46003.85535892547,
+        "high": 48648.68464107452,
+        "shares": {
+          "BULL": 0.40625,
+          "BEAR": 0.375,
+          "FLAT": 0.21875
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-09-08",
+      "target": "2026-09-09",
+      "close": 47105.78,
+      "actualClose": 47183.36,
+      "actualReturn": 0.0016469316504259535,
+      "actual": "FLAT",
+      "regime": "BULL_TREND",
+      "historySignature": "146fcf48",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": 0.005187735852160813,
+        "low": 46572.09921875,
+        "high": 48073.82109375,
+        "shares": {
+          "BULL": 0.59375,
+          "BEAR": 0.1875,
+          "FLAT": 0.21875
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "BULL",
+        "pointReturn": 0,
+        "low": 45818.411761859374,
+        "high": 48393.148238140624,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": 0.005187735852160813,
+        "low": 45818.411761859374,
+        "high": 48393.148238140624,
+        "shares": {
+          "BULL": 0.59375,
+          "BEAR": 0.1875,
+          "FLAT": 0.21875
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-09-09",
+      "target": "2026-09-10",
+      "close": 47183.36,
+      "actualClose": 46940.49,
+      "actualReturn": -0.005147365511909308,
+      "actual": "BEAR",
+      "regime": "BULL_TREND",
+      "historySignature": "59d817f9",
+      "A": {
+        "direction": "BULL",
+        "pointReturn": 0.0066054089964131535,
+        "low": 46659.83515625,
+        "high": 48115.67734375,
+        "shares": {
+          "BULL": 0.65625,
+          "BEAR": 0.1875,
+          "FLAT": 0.15625
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "BULL",
+        "pointReturn": 0,
+        "low": 45935.71663601227,
+        "high": 48431.00336398773,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "BULL",
+        "pointReturn": 0.0066054089964131535,
+        "low": 45935.71663601227,
+        "high": 48431.00336398773,
+        "shares": {
+          "BULL": 0.65625,
+          "BEAR": 0.1875,
+          "FLAT": 0.15625
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-09-10",
+      "target": "2026-09-11",
+      "close": 46940.49,
+      "actualClose": 46184.85,
+      "actualReturn": -0.016097829400587793,
+      "actual": "BEAR",
+      "regime": "BULL_PULLBACK",
+      "historySignature": "6efdcd69",
+      "A": {
+        "direction": "BEAR",
+        "pointReturn": -0.012117606915692525,
+        "low": 45845.006640625,
+        "high": 47447.235156250004,
+        "shares": {
+          "BULL": 0.1875,
+          "BEAR": 0.65625,
+          "FLAT": 0.15625
+        },
+        "crash": {
+          "-0.01": true,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "MIXED",
+        "pointReturn": 0,
+        "low": 45716.618662011395,
+        "high": 48164.3613379886,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "BEAR",
+        "pointReturn": -0.012117606915692525,
+        "low": 45716.618662011395,
+        "high": 48164.3613379886,
+        "shares": {
+          "BULL": 0.1875,
+          "BEAR": 0.65625,
+          "FLAT": 0.15625
+        },
+        "crash": {
+          "-0.01": true,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-09-11",
+      "target": "2026-09-14",
+      "close": 46184.85,
+      "actualClose": 45862.52,
+      "actualReturn": -0.006979128437139104,
+      "actual": "BEAR",
+      "regime": "BULL_PULLBACK",
+      "historySignature": "6901bb9f",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": 0.0022387025317827103,
+        "low": 45391.355859375,
+        "high": 47080.84296875,
+        "shares": {
+          "BULL": 0.5,
+          "BEAR": 0.34375,
+          "FLAT": 0.15625
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "MIXED",
+        "pointReturn": 0,
+        "low": 44941.46411472487,
+        "high": 47428.23588527513,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": 0.0022387025317827103,
+        "low": 44941.46411472487,
+        "high": 47428.23588527513,
+        "shares": {
+          "BULL": 0.5,
+          "BEAR": 0.34375,
+          "FLAT": 0.15625
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-09-14",
+      "target": "2026-09-15",
+      "close": 45862.52,
+      "actualClose": 45511.49,
+      "actualReturn": -0.007653962320430696,
+      "actual": "BEAR",
+      "regime": "BULL_PULLBACK",
+      "historySignature": "9ac2e696",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": 0.002209335708657223,
+        "low": 45272.135546875,
+        "high": 46653.88203125,
+        "shares": {
+          "BULL": 0.4375,
+          "BEAR": 0.28125,
+          "FLAT": 0.28125
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "MIXED",
+        "pointReturn": 0,
+        "low": 44623.68810653023,
+        "high": 47101.351893469764,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": 0.002209335708657223,
+        "low": 44623.68810653023,
+        "high": 47101.351893469764,
+        "shares": {
+          "BULL": 0.4375,
+          "BEAR": 0.28125,
+          "FLAT": 0.28125
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-09-15",
+      "target": "2026-09-16",
+      "close": 45511.49,
+      "actualClose": 45848.9,
+      "actualReturn": 0.007413732224543779,
+      "actual": "BULL",
+      "regime": "BULL_PULLBACK",
+      "historySignature": "d1515f1a",
+      "A": {
+        "direction": "BULL",
+        "pointReturn": 0.008119477768141703,
+        "low": 45153.107421875,
+        "high": 46711.08359375,
+        "shares": {
+          "BULL": 0.75,
+          "BEAR": 0.1875,
+          "FLAT": 0.0625
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "MIXED",
+        "pointReturn": 0,
+        "low": 44305.65895606379,
+        "high": 46717.32104393621,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "BULL",
+        "pointReturn": 0.008119477768141703,
+        "low": 44305.65895606379,
+        "high": 46717.32104393621,
+        "shares": {
+          "BULL": 0.75,
+          "BEAR": 0.1875,
+          "FLAT": 0.0625
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-09-16",
+      "target": "2026-09-17",
+      "close": 45848.9,
+      "actualClose": 46288,
+      "actualReturn": 0.009577110901243024,
+      "actual": "BULL",
+      "regime": "WEAK_REBOUND",
+      "historySignature": "0d737c75",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": 0.003988185239994779,
+        "low": 45559.853515625,
+        "high": 46698.1484375,
+        "shares": {
+          "BULL": 0.5,
+          "BEAR": 0.25,
+          "FLAT": 0.25
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "BEAR",
+        "pointReturn": 0,
+        "low": 44668.52153063066,
+        "high": 47029.27846936934,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": 0.003988185239994779,
+        "low": 44668.52153063066,
+        "high": 47029.27846936934,
+        "shares": {
+          "BULL": 0.5,
+          "BEAR": 0.25,
+          "FLAT": 0.25
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-09-17",
+      "target": "2026-09-18",
+      "close": 46288,
+      "actualClose": 47180.75,
+      "actualReturn": 0.019286856204631775,
+      "actual": "BULL",
+      "regime": "BULL_PULLBACK",
+      "historySignature": "eb63242c",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": 0.004831967451067287,
+        "low": 45776.924609375,
+        "high": 47236.342578125,
+        "shares": {
+          "BULL": 0.53125,
+          "BEAR": 0.34375,
+          "FLAT": 0.125
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "MIXED",
+        "pointReturn": 0,
+        "low": 45082.01213558562,
+        "high": 47493.98786441438,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": 0.004831967451067287,
+        "low": 45082.01213558562,
+        "high": 47493.98786441438,
+        "shares": {
+          "BULL": 0.53125,
+          "BEAR": 0.34375,
+          "FLAT": 0.125
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-09-18",
+      "target": "2026-09-21",
+      "close": 47180.75,
+      "actualClose": 47718.84,
+      "actualReturn": 0.011404863212221006,
+      "actual": "BULL",
+      "regime": "BULL_PULLBACK",
+      "historySignature": "d1800592",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": -0.0026180897399893377,
+        "low": 46351.12265625,
+        "high": 47912.8703125,
+        "shares": {
+          "BULL": 0.375,
+          "BEAR": 0.4375,
+          "FLAT": 0.1875
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "MIXED",
+        "pointReturn": 0,
+        "low": 45965.25234018664,
+        "high": 48396.24765981336,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": -0.0026180897399893377,
+        "low": 45965.25234018664,
+        "high": 48396.24765981336,
+        "shares": {
+          "BULL": 0.375,
+          "BEAR": 0.4375,
+          "FLAT": 0.1875
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-09-21",
+      "target": "2026-09-22",
+      "close": 47718.84,
+      "actualClose": 47800.17,
+      "actualReturn": 0.0017043582786171463,
+      "actual": "FLAT",
+      "regime": "BULL_TREND",
+      "historySignature": "f6f7996c",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": 0.002514153738858882,
+        "low": 46813.7109375,
+        "high": 48559.878515625,
+        "shares": {
+          "BULL": 0.5,
+          "BEAR": 0.34375,
+          "FLAT": 0.15625
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "BULL",
+        "pointReturn": 0,
+        "low": 46529.067530173306,
+        "high": 48908.61246982669,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": 0.002514153738858882,
+        "low": 46529.067530173306,
+        "high": 48908.61246982669,
+        "shares": {
+          "BULL": 0.5,
+          "BEAR": 0.34375,
+          "FLAT": 0.15625
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-09-22",
+      "target": "2026-09-23",
+      "close": 47800.17,
+      "actualClose": 48157.29,
+      "actualReturn": 0.007471103136244217,
+      "actual": "BULL",
+      "regime": "STRONG_BREAKOUT",
+      "historySignature": "b1876d9b",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": 0.007823380256806622,
+        "low": 47395.696484375,
+        "high": 48904.7296875,
+        "shares": {
+          "BULL": 0.625,
+          "BEAR": 0.1875,
+          "FLAT": 0.1875
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "BULL",
+        "pointReturn": 0,
+        "low": 46600.807349446644,
+        "high": 48999.53265055335,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": 0.007823380256806622,
+        "low": 46600.807349446644,
+        "high": 48999.53265055335,
+        "shares": {
+          "BULL": 0.625,
+          "BEAR": 0.1875,
+          "FLAT": 0.1875
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-09-23",
+      "target": "2026-09-24",
+      "close": 48157.29,
+      "actualClose": 48024.6,
+      "actualReturn": -0.0027553460753294567,
+      "actual": "FLAT",
+      "regime": "BULL_TREND",
+      "historySignature": "b32cd5b7",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": -0.0018257830875657577,
+        "low": 47448.85859375,
+        "high": 48727.1203125,
+        "shares": {
+          "BULL": 0.34375,
+          "BEAR": 0.4375,
+          "FLAT": 0.21875
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "BULL",
+        "pointReturn": 0,
+        "low": 46985.59003877189,
+        "high": 49328.989961228115,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": -0.0018257830875657577,
+        "low": 46985.59003877189,
+        "high": 49328.989961228115,
+        "shares": {
+          "BULL": 0.34375,
+          "BEAR": 0.4375,
+          "FLAT": 0.21875
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-09-24",
+      "target": "2026-09-29",
+      "close": 48024.6,
+      "actualClose": 47631.96,
+      "actualReturn": -0.00817580989742761,
+      "actual": "BEAR",
+      "regime": "BULL_TREND",
+      "historySignature": "c426f09c",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": -0.0012589251133793278,
+        "low": 46995.230078125,
+        "high": 48293.589453125,
+        "shares": {
+          "BULL": 0.25,
+          "BEAR": 0.4375,
+          "FLAT": 0.3125
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "BULL",
+        "pointReturn": 0,
+        "low": 46893.460393145324,
+        "high": 49155.73960685467,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": -0.0012589251133793278,
+        "low": 46893.460393145324,
+        "high": 49155.73960685467,
+        "shares": {
+          "BULL": 0.25,
+          "BEAR": 0.4375,
+          "FLAT": 0.3125
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-09-29",
+      "target": "2026-09-30",
+      "close": 47631.96,
+      "actualClose": 47940.13,
+      "actualReturn": 0.006469815644789767,
+      "actual": "BULL",
+      "regime": "BULL_PULLBACK",
+      "historySignature": "84dfc9d7",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": 0.0020481127587443915,
+        "low": 46595.191796875,
+        "high": 48529.5953125,
+        "shares": {
+          "BULL": 0.40625,
+          "BEAR": 0.28125,
+          "FLAT": 0.3125
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "MIXED",
+        "pointReturn": 0,
+        "low": 46531.04036506351,
+        "high": 48732.879634936486,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": 0.0020481127587443915,
+        "low": 46531.04036506351,
+        "high": 48732.879634936486,
+        "shares": {
+          "BULL": 0.40625,
+          "BEAR": 0.28125,
+          "FLAT": 0.3125
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-09-30",
+      "target": "2026-10-01",
+      "close": 47940.13,
+      "actualClose": 48353.49,
+      "actualReturn": 0.008622421340951814,
+      "actual": "BULL",
+      "regime": "BULL_TREND",
+      "historySignature": "e19fe3f1",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": -0.00028826482374988416,
+        "low": 47081.1390625,
+        "high": 48666.503125,
+        "shares": {
+          "BULL": 0.375,
+          "BEAR": 0.40625,
+          "FLAT": 0.21875
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "BULL",
+        "pointReturn": 0,
+        "low": 46837.73141041612,
+        "high": 49042.528589583875,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": -0.00028826482374988416,
+        "low": 46837.73141041612,
+        "high": 49042.528589583875,
+        "shares": {
+          "BULL": 0.375,
+          "BEAR": 0.40625,
+          "FLAT": 0.21875
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-10-01",
+      "target": "2026-10-02",
+      "close": 48353.49,
+      "actualClose": 48475.74,
+      "actualReturn": 0.002528255974904914,
+      "actual": "FLAT",
+      "regime": "BULL_TREND",
+      "historySignature": "0ba59356",
+      "A": {
+        "direction": "BEAR",
+        "pointReturn": -0.008694025692354335,
+        "low": 47130.24453125,
+        "high": 48719.81640625,
+        "shares": {
+          "BULL": 0.1875,
+          "BEAR": 0.71875,
+          "FLAT": 0.09375
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "BULL",
+        "pointReturn": 0,
+        "low": 47280.54095252925,
+        "high": 49426.43904747075,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": -0.008694025692354335,
+        "low": 47130.24453125,
+        "high": 49426.43904747075,
+        "shares": {
+          "BULL": 0.1875,
+          "BEAR": 0.71875,
+          "FLAT": 0.09375
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-10-02",
+      "target": "2026-10-05",
+      "close": 48475.74,
+      "actualClose": 49712.04,
+      "actualReturn": 0.025503478647257438,
+      "actual": "BULL",
+      "regime": "BULL_TREND",
+      "historySignature": "12edde97",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": -0.0027644256307380877,
+        "low": 47686.88125,
+        "high": 48957.5328125,
+        "shares": {
+          "BULL": 0.3125,
+          "BEAR": 0.5,
+          "FLAT": 0.1875
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "BULL",
+        "pointReturn": 0,
+        "low": 47448.80767020573,
+        "high": 49502.672329794266,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": -0.0027644256307380877,
+        "low": 47448.80767020573,
+        "high": 49502.672329794266,
+        "shares": {
+          "BULL": 0.3125,
+          "BEAR": 0.5,
+          "FLAT": 0.1875
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-10-05",
+      "target": "2026-10-06",
+      "close": 49712.04,
+      "actualClose": 49822.55,
+      "actualReturn": 0.0022230027172491784,
+      "actual": "FLAT",
+      "regime": "STRONG_BREAKOUT",
+      "historySignature": "d7f4d507",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": 0.0004077593048887884,
+        "low": 49048.15234375,
+        "high": 50207.4453125,
+        "shares": {
+          "BULL": 0.40625,
+          "BEAR": 0.40625,
+          "FLAT": 0.1875
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "BULL",
+        "pointReturn": 0,
+        "low": 48619.71855090532,
+        "high": 50804.36144909468,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": 0.0004077593048887884,
+        "low": 48619.71855090532,
+        "high": 50804.36144909468,
+        "shares": {
+          "BULL": 0.40625,
+          "BEAR": 0.40625,
+          "FLAT": 0.1875
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-10-06",
+      "target": "2026-10-07",
+      "close": 49822.55,
+      "actualClose": 49806.37,
+      "actualReturn": -0.0003247525467885426,
+      "actual": "FLAT",
+      "regime": "BULL_TREND",
+      "historySignature": "bdab8bc5",
+      "A": {
+        "direction": "BEAR",
+        "pointReturn": -0.014245541802858419,
+        "low": 48516.821484375,
+        "high": 49972.3984375,
+        "shares": {
+          "BULL": 0.125,
+          "BEAR": 0.71875,
+          "FLAT": 0.15625
+        },
+        "crash": {
+          "-0.01": true,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "BULL",
+        "pointReturn": 0,
+        "low": 48755.83401155495,
+        "high": 50889.265988445055,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": -0.014245541802858419,
+        "low": 48516.821484375,
+        "high": 50889.265988445055,
+        "shares": {
+          "BULL": 0.125,
+          "BEAR": 0.71875,
+          "FLAT": 0.15625
+        },
+        "crash": {
+          "-0.01": true,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-10-07",
+      "target": "2026-10-08",
+      "close": 49806.37,
+      "actualClose": 49313.44,
+      "actualReturn": -0.009896926838876219,
+      "actual": "BEAR",
+      "regime": "BULL_TREND",
+      "historySignature": "71703ff9",
+      "A": {
+        "direction": "BEAR",
+        "pointReturn": -0.01312659342068101,
+        "low": 48483.07578125,
+        "high": 49861.484375,
+        "shares": {
+          "BULL": 0.03125,
+          "BEAR": 0.8125,
+          "FLAT": 0.15625
+        },
+        "crash": {
+          "-0.01": true,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "BULL",
+        "pointReturn": 0,
+        "low": 48773.05836787245,
+        "high": 50839.681632127555,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": -0.01312659342068101,
+        "low": 48483.07578125,
+        "high": 50839.681632127555,
+        "shares": {
+          "BULL": 0.03125,
+          "BEAR": 0.8125,
+          "FLAT": 0.15625
+        },
+        "crash": {
+          "-0.01": true,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-10-08",
+      "target": "2026-10-12",
+      "close": 49313.44,
+      "actualClose": 49301.96,
+      "actualReturn": -0.00023279657634922568,
+      "actual": "FLAT",
+      "regime": "BULL_PULLBACK",
+      "historySignature": "40710f36",
+      "A": {
+        "direction": "BEAR",
+        "pointReturn": -0.012667149221895713,
+        "low": 47940.5875,
+        "high": 49367.747265625,
+        "shares": {
+          "BULL": 0.0625,
+          "BEAR": 0.78125,
+          "FLAT": 0.15625
+        },
+        "crash": {
+          "-0.01": true,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "MIXED",
+        "pointReturn": 0,
+        "low": 48287.87205588156,
+        "high": 50339.00794411844,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "BEAR",
+        "pointReturn": -0.012667149221895713,
+        "low": 47940.5875,
+        "high": 50339.00794411844,
+        "shares": {
+          "BULL": 0.0625,
+          "BEAR": 0.78125,
+          "FLAT": 0.15625
+        },
+        "crash": {
+          "-0.01": true,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-10-12",
+      "target": "2026-10-13",
+      "close": 49301.96,
+      "actualClose": 48341.31,
+      "actualReturn": -0.019485026558781926,
+      "actual": "BEAR",
+      "regime": "BULL_PULLBACK",
+      "historySignature": "820de5cb",
+      "A": {
+        "direction": "BEAR",
+        "pointReturn": -0.014916865437499816,
+        "low": 47912.12109375,
+        "high": 49286.106640625,
+        "shares": {
+          "BULL": 0.03125,
+          "BEAR": 0.84375,
+          "FLAT": 0.125
+        },
+        "crash": {
+          "-0.01": true,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "MIXED",
+        "pointReturn": 0,
+        "low": 48280.6383376043,
+        "high": 50323.2816623957,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "BEAR",
+        "pointReturn": -0.014916865437499816,
+        "low": 47912.12109375,
+        "high": 50323.2816623957,
+        "shares": {
+          "BULL": 0.03125,
+          "BEAR": 0.84375,
+          "FLAT": 0.125
+        },
+        "crash": {
+          "-0.01": true,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-10-13",
+      "target": "2026-10-14",
+      "close": 48341.31,
+      "actualClose": 48625.83,
+      "actualReturn": 0.0058856493545582644,
+      "actual": "BULL",
+      "regime": "BULL_PULLBACK",
+      "historySignature": "36a9edb8",
+      "A": {
+        "direction": "BEAR",
+        "pointReturn": -0.009187669601320225,
+        "low": 47212.75078125,
+        "high": 48505.7328125,
+        "shares": {
+          "BULL": 0.15625,
+          "BEAR": 0.65625,
+          "FLAT": 0.1875
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "MIXED",
+        "pointReturn": 0,
+        "low": 47260.55417063257,
+        "high": 49422.06582936743,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "BEAR",
+        "pointReturn": -0.009187669601320225,
+        "low": 47212.75078125,
+        "high": 49422.06582936743,
+        "shares": {
+          "BULL": 0.15625,
+          "BEAR": 0.65625,
+          "FLAT": 0.1875
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-10-14",
+      "target": "2026-10-15",
+      "close": 48625.83,
+      "actualClose": 46969.87,
+      "actualReturn": -0.03405515134651682,
+      "actual": "BEAR",
+      "regime": "BULL_PULLBACK",
+      "historySignature": "eb1b95e4",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": -0.0005024400097644044,
+        "low": 47854.484375,
+        "high": 49565.34765625,
+        "shares": {
+          "BULL": 0.34375,
+          "BEAR": 0.34375,
+          "FLAT": 0.3125
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "MIXED",
+        "pointReturn": 0,
+        "low": 47545.36280130167,
+        "high": 49706.29719869833,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": -0.0005024400097644044,
+        "low": 47545.36280130167,
+        "high": 49706.29719869833,
+        "shares": {
+          "BULL": 0.34375,
+          "BEAR": 0.34375,
+          "FLAT": 0.3125
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-10-15",
+      "target": "2026-10-16",
+      "close": 46969.87,
+      "actualClose": 47111.26,
+      "actualReturn": 0.0030102276203871625,
+      "actual": "BULL",
+      "regime": "CRASH_RISK",
+      "historySignature": "f528a936",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": 0.0032036644581940887,
+        "low": 46005.274609375,
+        "high": 47911.321875,
+        "shares": {
+          "BULL": 0.53125,
+          "BEAR": 0.3125,
+          "FLAT": 0.15625
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "BEAR",
+        "pointReturn": 0,
+        "low": 45770.45938692298,
+        "high": 48169.280613077026,
+        "crash": {
+          "-0.01": true,
+          "-0.02": true,
+          "-0.03": true,
+          "-0.05": true
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": 0.0032036644581940887,
+        "low": 45770.45938692298,
+        "high": 48169.280613077026,
+        "shares": {
+          "BULL": 0.53125,
+          "BEAR": 0.3125,
+          "FLAT": 0.15625
+        },
+        "crash": {
+          "-0.01": true,
+          "-0.02": true,
+          "-0.03": true,
+          "-0.05": true
+        }
+      }
+    },
+    {
+      "asOf": "2026-10-16",
+      "target": "2026-10-19",
+      "close": 47111.26,
+      "actualClose": 46822.08,
+      "actualReturn": -0.00613823531784119,
+      "actual": "BEAR",
+      "regime": "WEAK_REBOUND",
+      "historySignature": "93397428",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": -0.003424536273281653,
+        "low": 46296.8203125,
+        "high": 47771.5875,
+        "shares": {
+          "BULL": 0.3125,
+          "BEAR": 0.53125,
+          "FLAT": 0.15625
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "BEAR",
+        "pointReturn": 0,
+        "low": 45938.51478785706,
+        "high": 48284.00521214295,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": -0.003424536273281653,
+        "low": 45938.51478785706,
+        "high": 48284.00521214295,
+        "shares": {
+          "BULL": 0.3125,
+          "BEAR": 0.53125,
+          "FLAT": 0.15625
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-10-19",
+      "target": "2026-10-20",
+      "close": 46822.08,
+      "actualClose": 46292.93,
+      "actualReturn": -0.011301292039994859,
+      "actual": "BEAR",
+      "regime": "BULL_PULLBACK",
+      "historySignature": "af7c58da",
+      "A": {
+        "direction": "BEAR",
+        "pointReturn": -0.005842552674934609,
+        "low": 45401.95625,
+        "high": 47236.828515625,
+        "shares": {
+          "BULL": 0.21875,
+          "BEAR": 0.6875,
+          "FLAT": 0.09375
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "MIXED",
+        "pointReturn": 0,
+        "low": 45632.253017295836,
+        "high": 48011.90698270417,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "BEAR",
+        "pointReturn": -0.005842552674934609,
+        "low": 45401.95625,
+        "high": 48011.90698270417,
+        "shares": {
+          "BULL": 0.21875,
+          "BEAR": 0.6875,
+          "FLAT": 0.09375
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-10-20",
+      "target": "2026-10-21",
+      "close": 46292.93,
+      "actualClose": 46887.77,
+      "actualReturn": 0.012849478311266926,
+      "actual": "BULL",
+      "regime": "OVERSOLD_UNSTABILIZED",
+      "historySignature": "12370938",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": -0.004020641286369253,
+        "low": 45023.43125,
+        "high": 46935.771875,
+        "shares": {
+          "BULL": 0.34375,
+          "BEAR": 0.5,
+          "FLAT": 0.15625
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "BEAR",
+        "pointReturn": 0,
+        "low": 45101.853516060415,
+        "high": 47484.006483939585,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": -0.004020641286369253,
+        "low": 45023.43125,
+        "high": 47484.006483939585,
+        "shares": {
+          "BULL": 0.34375,
+          "BEAR": 0.5,
+          "FLAT": 0.15625
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-10-21",
+      "target": "2026-10-22",
+      "close": 46887.77,
+      "actualClose": 46041.43,
+      "actualReturn": -0.018050335940480777,
+      "actual": "BEAR",
+      "regime": "WEAK_REBOUND",
+      "historySignature": "bb0de774",
+      "A": {
+        "direction": "BEAR",
+        "pointReturn": -0.011419982225642111,
+        "low": 44973.812890625,
+        "high": 47336.473828125,
+        "shares": {
+          "BULL": 0.15625,
+          "BEAR": 0.75,
+          "FLAT": 0.09375
+        },
+        "crash": {
+          "-0.01": true,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "BEAR",
+        "pointReturn": 0,
+        "low": 45678.698979198954,
+        "high": 48096.84102080104,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "BEAR",
+        "pointReturn": -0.011419982225642111,
+        "low": 44973.812890625,
+        "high": 48096.84102080104,
+        "shares": {
+          "BULL": 0.15625,
+          "BEAR": 0.75,
+          "FLAT": 0.09375
+        },
+        "crash": {
+          "-0.01": true,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-10-22",
+      "target": "2026-10-27",
+      "close": 46041.43,
+      "actualClose": 46096.23,
+      "actualReturn": 0.0011902323624615185,
+      "actual": "FLAT",
+      "regime": "SUPPORT_LOST",
+      "historySignature": "cf76f63f",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": -0.007957895543752702,
+        "low": 44654.816015625,
+        "high": 46383.321875,
+        "shares": {
+          "BULL": 0.1875,
+          "BEAR": 0.625,
+          "FLAT": 0.1875
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "BEAR",
+        "pointReturn": 0,
+        "low": 44780.42655211332,
+        "high": 47302.43344788668,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": -0.007957895543752702,
+        "low": 44654.816015625,
+        "high": 47302.43344788668,
+        "shares": {
+          "BULL": 0.1875,
+          "BEAR": 0.625,
+          "FLAT": 0.1875
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-10-27",
+      "target": "2026-10-28",
+      "close": 46096.23,
+      "actualClose": 47035.58,
+      "actualReturn": 0.020378022237393267,
+      "actual": "BULL",
+      "regime": "WEAK_REBOUND",
+      "historySignature": "a0cf8eb0",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": 0.003191533369431676,
+        "low": 44876.498046875,
+        "high": 47109.39375,
+        "shares": {
+          "BULL": 0.5,
+          "BEAR": 0.40625,
+          "FLAT": 0.09375
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "BEAR",
+        "pointReturn": 0,
+        "low": 44827.92894124809,
+        "high": 47364.53105875192,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": 0.003191533369431676,
+        "low": 44827.92894124809,
+        "high": 47364.53105875192,
+        "shares": {
+          "BULL": 0.5,
+          "BEAR": 0.40625,
+          "FLAT": 0.09375
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-10-28",
+      "target": "2026-10-29",
+      "close": 47035.58,
+      "actualClose": 46368.33,
+      "actualReturn": -0.014186069354305775,
+      "actual": "BEAR",
+      "regime": "WEAK_REBOUND",
+      "historySignature": "6cc57a2b",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": -0.005611732517171064,
+        "low": 44868.7078125,
+        "high": 47850.8234375,
+        "shares": {
+          "BULL": 0.375,
+          "BEAR": 0.53125,
+          "FLAT": 0.09375
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "BEAR",
+        "pointReturn": 0,
+        "low": 45754.56151687322,
+        "high": 48316.598483126785,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": -0.005611732517171064,
+        "low": 44868.7078125,
+        "high": 48316.598483126785,
+        "shares": {
+          "BULL": 0.375,
+          "BEAR": 0.53125,
+          "FLAT": 0.09375
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-10-29",
+      "target": "2026-10-30",
+      "close": 46368.33,
+      "actualClose": 45211.83,
+      "actualReturn": -0.02494159267758833,
+      "actual": "BEAR",
+      "regime": "RANGE",
+      "historySignature": "89e32f4e",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": -0.008287915412847568,
+        "low": 44741.146484375,
+        "high": 46943.598046875,
+        "shares": {
+          "BULL": 0.21875,
+          "BEAR": 0.59375,
+          "FLAT": 0.1875
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "FLAT",
+        "pointReturn": 0,
+        "low": 45073.75819423942,
+        "high": 47662.901805760586,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": -0.008287915412847568,
+        "low": 44741.146484375,
+        "high": 47662.901805760586,
+        "shares": {
+          "BULL": 0.21875,
+          "BEAR": 0.59375,
+          "FLAT": 0.1875
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    },
+    {
+      "asOf": "2026-10-30",
+      "target": "2026-11-02",
+      "close": 45211.83,
+      "actualClose": 44920.14,
+      "actualReturn": -0.006451630026919952,
+      "actual": "BEAR",
+      "regime": "CRASH_RISK",
+      "historySignature": "0d309fe7",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": 0.006476675324798897,
+        "low": 44468.09296875,
+        "high": 46271.028515625,
+        "shares": {
+          "BULL": 0.53125,
+          "BEAR": 0.3125,
+          "FLAT": 0.15625
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "BEAR",
+        "pointReturn": 0,
+        "low": 43833.791537508034,
+        "high": 46589.86846249197,
+        "crash": {
+          "-0.01": true,
+          "-0.02": true,
+          "-0.03": true,
+          "-0.05": true
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": 0.006476675324798897,
+        "low": 43833.791537508034,
+        "high": 46589.86846249197,
+        "shares": {
+          "BULL": 0.53125,
+          "BEAR": 0.3125,
+          "FLAT": 0.15625
+        },
+        "crash": {
+          "-0.01": true,
+          "-0.02": true,
+          "-0.03": true,
+          "-0.05": true
+        }
+      }
+    },
+    {
+      "asOf": "2026-11-02",
+      "target": "2026-11-03",
+      "close": 44920.14,
+      "actualClose": 43307.54,
+      "actualReturn": -0.03589926478412575,
+      "actual": "BEAR",
+      "regime": "RANGE",
+      "historySignature": "26f7a084",
+      "A": {
+        "direction": "MIXED",
+        "pointReturn": 0.00041833441803618143,
+        "low": 44026.50625,
+        "high": 45630.351953125,
+        "shares": {
+          "BULL": 0.4375,
+          "BEAR": 0.34375,
+          "FLAT": 0.21875
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "B": {
+        "direction": "FLAT",
+        "pointReturn": 0,
+        "low": 43553.454641971744,
+        "high": 46286.825358028254,
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      },
+      "C": {
+        "direction": "ABSTAIN",
+        "pointReturn": 0.00041833441803618143,
+        "low": 43553.454641971744,
+        "high": 46286.825358028254,
+        "shares": {
+          "BULL": 0.4375,
+          "BEAR": 0.34375,
+          "FLAT": 0.21875
+        },
+        "crash": {
+          "-0.01": false,
+          "-0.02": false,
+          "-0.03": false,
+          "-0.05": false
+        }
+      }
+    }
+  ],
+  "pairedTestAccuracyDelta95": [
+    -0.16666666666666666,
+    0
+  ],
+  "improvementEstablished": false,
+  "evidenceStatus": "INSUFFICIENT_HELD_OUT_DAYS",
+  "limitations": [
+    "Retrospective inference generated now; not historically published forecasts.",
+    "Pretrained model training-data overlap unknown; no model fitting or optimization performed.",
+    "Rules predeclared; test outcomes did not tune thresholds. Frozen 50/20/30 chronological partitions.",
+    "B point return is explicit zero-drift baseline; no learned technical point predictor.",
+    "C preserves raw model median, so A/C MAE is identical by design.",
+    "C interval is uncalibrated union with ATR; assess width with coverage.",
+    "No transaction costs, execution simulation, or profitability claim.",
+    "Sample shares are uncalibrated, calibration diagnostics are not probabilities.",
+    "Few crash events and absent classes limit recall/precision and balanced accuracy.",
+    "Policies must remain frozen for this test; subsequent adjustments require a new untouched test period."
+  ]
+}

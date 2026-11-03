@@ -10,7 +10,7 @@ function build(a,p,f,pending=[],input=null,context={}){
  const direction=available?(bull?'🟢偏多向上漲':bear?'🔴偏空可能下跌':'🟡多空分歧、方向不明'):'⚪尚無可用的模型結果';
  const advice=!available?'先依已核對的行情觀察。':bear?'先別急著搶反彈，也不要直接追空！':good&&bull?'仍要等盤中條件確認！':'但還不能急著買！';
  add('headline',`📊 電腦模擬：【${name}】${direction}，${advice}`,bear?'red':bull?'aqua':'yellow');
- if(f.modelRun){add('notice','Kronos已實跑；台股績效尚未驗證，取樣比例不是勝率。'+(f.provenance?.inputQuality?.warning||'')+(f.provenance?.outputQuality?.warning||''),'yellow');add('body','推演交易日：'+f.dates[0]+'；基準為 '+a.date+' 收盤。');}
+ if(f.modelRun){add('notice',(f.executionVerified?'Kronos實跑收據已核對；':'Kronos歷史輸出，執行收據未核驗；')+'台股績效尚未驗證，取樣比例不是勝率。'+(f.provenance?.inputQuality?.warning||'')+(f.provenance?.outputQuality?.warning||''),'yellow');add('body','推演交易日：'+f.dates[0]+'；基準為 '+a.date+' 收盤。');}
  if(demo)add('notice','本機人工示意｜尚未執行 Kronos；以下比例與明日方向只供檢視模組。','yellow');
  add('heading','① 明天可能怎麼走？');
  if(available){

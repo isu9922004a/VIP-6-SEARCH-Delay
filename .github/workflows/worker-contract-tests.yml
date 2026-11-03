@@ -22,6 +22,8 @@ jobs:
         run: |
           node scripts/build-worker-contract.cjs
           git diff --exit-code -- stock-worker.mjs market-worker.mjs
+      - name: Verify inference input isolation and actual-calendar prefixes
+        run: python3 scripts/tests/kronos-v86-runtime.py
       - name: Run all offline regression tests
         run: node scripts/run-all-tests.cjs
   universe:
@@ -44,6 +46,7 @@ jobs:
     strategy:
       matrix:
         fallback: ['0', '1']
+      fail-fast: false
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -77,6 +80,12 @@ jobs:
           PLAYWRIGHT_MODULE: /tmp/research-browser/node_modules/playwright-core
           CHROME_BIN: /usr/bin/google-chrome
         run: node scripts/tests/restaurant-strict-browser.cjs /tmp/research-evidence/restaurant-strict
+      - name: Verify V8.6 seven-section PNG, model unavailable and opposing signals
+        if: matrix.fallback == '0'
+        env:
+          PLAYWRIGHT_MODULE: /tmp/research-browser/node_modules/playwright-core
+          CHROME_BIN: /usr/bin/google-chrome
+        run: node scripts/tests/market-v86-browser.cjs /tmp/research-evidence/v86
       - name: Verify V8.3 real Kronos report and independent index
         if: matrix.fallback == '0'
         env:
