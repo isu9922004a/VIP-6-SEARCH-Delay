@@ -9,3 +9,5 @@
 /* V8.6.1-MODELWINDOW1: bind exact 63-160 bar model inputs, preserving all identity and signature checks. */
 
 /* V8.6.1-BASISREPAIR1: verified post-reset windows, real 5386 inference and separate model/strategy eligibility. */
+
+/* V8.6.1-NETWORKRECOVERY1: retry aborted model requests; no negative cache; verified history reuse. */

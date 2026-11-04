@@ -4,10 +4,10 @@ const finite=Number.isFinite,num=x=>finite(x)?String(+x.toFixed(2)):'尚未確�
 function build(a,p,f,pending=[],input=null,context={}){
  context=context||{};
  const name=a.name||a.code||'此個股',valid=a.validation?.technicalModelAvailable===true,has=key=>valid&&finite(p[key])&&p[key]>0;
- const available=!!f.daily,bull=f.direction==='BULL',bear=f.direction==='BEAR',demo=f.state==='ILLUSTRATION',good=p.state==='CONDITIONAL'&&!!p.entryRange&&!p.dataIssues?.length;
+ const available=!!f.daily,bull=f.direction==='BULL',bear=f.direction==='BEAR',demo=f.state==='ILLUSTRATION',good=p.state==='CONDITIONAL'&&!!p.entryRange&&!p.dataIssues?.length,temporary=f.loadStatus==='TEMPORARY_ERROR',loading=f.loadStatus==='LOADING';
  const watch=has('watch')?p.watch:null,stop=has('stop')?p.stop:null,target=has('target')?p.target:null,close=has('close')?p.close:null;
  const blocks=[],add=(kind,text,tone)=>blocks.push({kind,text,tone});
- const direction=available?(bull?'🟢偏多向上漲':bear?'🔴偏空可能下跌':'🟡多空分歧、方向不明'):'⚪尚無可用的模型結果';
+ const direction=available?(bull?'🟢偏多向上漲':bear?'🔴偏空可能下跌':'🟡多空分歧、方向不明'):temporary?'⚪模型資料暫未載入':loading?'⚪模型資料載入中':'⚪尚無可用的模型結果';
  const advice=!available?'先依已核對的行情觀察。':bear?'先別急著搶反彈，也不要直接追空！':good&&bull?'仍要等盤中條件確認！':'但還不能急著買！';
  add('headline',`📊 電腦模擬：【${name}】${direction}，${advice}`,bear?'red':bull?'aqua':'yellow');
  if(f.modelRun){add('notice',(f.executionVerified?'已核對模型執行紀錄；':'模型執行紀錄尚未核對；')+'台股績效尚未驗證，取樣比例不是勝率。'+(f.provenance?.inputQuality?.warning?'成交金額是估算值，與實際成交金額可能有差異。':'')+(f.provenance?.outputQuality?.warning?'部分模擬的最高、最低價不合理，因此只參考開盤與收盤結果。':''),'yellow');add('body','推演交易日：'+f.dates[0]+'；基準為 '+a.date+' 收盤。');}
@@ -20,7 +20,7 @@ function build(a,p,f,pending=[],input=null,context={}){
   add('body',`模擬結果：偏多 ${+(f.bullish*100).toFixed(1)}%、偏空 ${+(f.bearish*100).toFixed(1)}%、持平 ${+(f.flat*100).toFixed(1)}%。`);
   const ratio=Math.round((bear?f.bearish:f.bullish)*100);
   add('warning',`⚠️ 這只是電腦模擬的取樣比例，${f.direction==='MIXED'?'不能直接當成明天實際漲跌的機率，也不保證股價方向':`不代表明天有 ${ratio}% 的機率${bear?'下跌':'上漲'}，也不保證股價會${bear?'跌':'漲'}`}。`);
- }else add('body','此個股尚未取得可用的模型結果；不填入多空比例，也不猜明日方向。'+(f.reason||''));
+ }else add('body',(temporary?'模型資料連線暫時中斷，請重新載入；尚未完成核對前，不顯示推演比例。':loading?'正在載入模型資料；完成核對後才顯示推演比例。':'此個股尚未取得可用的模型結果；不填入多空比例，也不猜明日方向。')+(f.reason||''));
  add('heading','② 明天可以買進嗎？');
  add('subheading',good&&!bear&&available?'🟡 盤後條件已通過，仍要等盤中確認！':'🟡 建議先觀望，不要急著買！','yellow');
  if(close&&watch){
