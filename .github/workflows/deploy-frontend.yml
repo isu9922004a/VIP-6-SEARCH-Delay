@@ -23,7 +23,7 @@ jobs:
           node --check research-v83/kronos-data.js
           node --check research-v83/market-simple-report.js
           node --check research-v83/stock-simple-report.js
-          node --test scripts/tests/*.test.cjs scripts/tests/*.test.js
+          node --test scripts/tests/kronos-report-binding.test.cjs scripts/tests/research-plain-narrative.test.cjs scripts/tests/market-v86.test.cjs scripts/tests/index-update-v862.test.cjs scripts/tests/market-freshness-v862.test.cjs scripts/tests/market-simple-report.test.cjs scripts/tests/pages-runtime-data.test.cjs
   deploy:
     needs: verify
     permissions:

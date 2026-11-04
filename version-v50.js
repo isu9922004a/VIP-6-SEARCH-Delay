@@ -12,3 +12,5 @@
 
 /* V8.6.2-NETWORKRECOVERY1: retry aborted model requests; no negative cache; verified history reuse. */
 
+
+/* V8.6.2: retain signed history diagnostics and prevent index rollback across parallel jobs. */
