@@ -1,7 +1,7 @@
 'use strict';
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const C=require('../../four-models-research-v1'),F=require('../../research-v83/forecast-engine');
-const history=require('../../data/research/2026-11-03/6148.json'),forecast=require('../../data/kronos/stocks/6148.json');
+const forecast=require('../../data/kronos/stocks/6148.json'),history=require('../../data/research/'+forecast.asOf+'/6148.json');
 function loader(h=history,f=forecast,code='6148'){
  const requests=[],registered=[];
  class Clock extends Date{constructor(...args){super(...(args.length?args:[h.closeDate+'T11:00:00Z']));}static now(){return new Date(h.closeDate+'T11:00:00Z').getTime();}}
@@ -24,13 +24,13 @@ test('wrong ticker, date, market, model signature, and altered raw samples stay 
  for(const change of [h=>h.stock='2330',h=>h.closeDate='2026-11-02',h=>h.market='TWSE']){const h=structuredClone(history);change(h);const l=loader(h);assert.equal(await l.api.ensure(C.evaluate(history)),false);assert.equal(l.registered.length,0);}
  for(const change of [f=>f.historySignature='bad',f=>f.samples[0][0].close+=1]){const f=structuredClone(forecast);change(f);assert.equal(await loader(history,f).api.ensure(C.evaluate(history)),false);}
 });
-test('real 5013 uses its matching 64-bar model; 160 is a maximum lookback, not a minimum',async()=>{
- const h=require('../../data/research/2026-11-03/5013.json'),f=require('../../data/kronos/stocks/5013.json'),a=C.evaluate(h),l=loader(h,f,'5013');
- assert.equal(a.kronosInput.bars.length,64);assert.equal(F.signature(a.kronosInput.bars),f.historySignature);assert.equal(await l.api.ensure(a),true,l.api.reasonFor(a));assert.equal(l.registered[0].state,'MODEL_SAMPLE');
- const changed=structuredClone(a);changed.kronosInput.bars[0].volume++;assert.equal(await l.api.ensure(changed),false);assert.match(l.api.reasonFor(changed),/近64根日線/);
+test('real 5013 uses its matching shorter model; 160 is a maximum lookback, not a minimum',async()=>{
+ const f=require('../../data/kronos/stocks/5013.json'),h=require('../../data/research/'+f.asOf+'/5013.json'),a=C.evaluate(h),l=loader(h,f,'5013');
+ assert.ok(a.kronosInput.bars.length>=63&&a.kronosInput.bars.length<160);assert.equal(F.signature(a.kronosInput.bars),f.historySignature);assert.equal(await l.api.ensure(a),true,l.api.reasonFor(a));assert.equal(l.registered[0].state,'MODEL_SAMPLE');
+ const changed=structuredClone(a);changed.kronosInput.bars[0].volume++;assert.equal(await l.api.ensure(changed),false);assert.match(l.api.reasonFor(changed),new RegExp('近'+a.kronosInput.bars.length+'根日線'));
 });
 test('shorter histories still reject missing rows, fewer than 63 bars and altered model receipts',async()=>{
- const h=require('../../data/research/2026-11-03/5013.json'),f=require('../../data/kronos/stocks/5013.json'),a=C.evaluate(h),changed=structuredClone(a);changed.kronosInput.bars.shift();const l=loader(h,f,'5013');assert.equal(await l.api.ensure(changed),false);assert.match(l.api.reasonFor(changed),/歷史長度未對齊/);assert.equal(l.registered.length,0);
+ const f=require('../../data/kronos/stocks/5013.json'),h=require('../../data/research/'+f.asOf+'/5013.json'),a=C.evaluate(h),changed=structuredClone(a);changed.kronosInput.bars.shift();const l=loader(h,f,'5013');assert.equal(await l.api.ensure(changed),false);assert.match(l.api.reasonFor(changed),/歷史長度未對齊/);assert.equal(l.registered.length,0);
  const short=structuredClone(h);short.dailySeries=short.dailySeries.slice(-62);const input=structuredClone(a);input.kronosInput.bars=input.kronosInput.bars.slice(-62);const tooShort=loader(short,f,'5013');assert.equal(await tooShort.api.ensure(input),false);assert.equal(tooShort.registered.length,0);
  const bad=structuredClone(f);bad.execution.historySignature='tampered';assert.equal(await loader(h,bad,'5013').api.ensure(a),false);
 });

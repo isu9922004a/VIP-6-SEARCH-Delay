@@ -17,3 +17,5 @@
 
 
 /* V8.6.3: causal three-bars-back structure observations; original model samples and trading gates preserved. */
+
+/* Bind regression inputs to each published model date as daily snapshots advance. */
