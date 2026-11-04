@@ -245,9 +245,9 @@
     "2026-12-30",
     "2026-12-31"
   ],
-  "generatedAt": "2026-11-04T02:29:21.941Z",
+  "generatedAt": "2026-11-04T03:07:22.563Z",
   "futureSessionPolicy": "依目前公告交易日；臨時休市可能變更",
   "sourceSha256": "fb3c71ce62aa4819e58d422fa08be383161a830230f84e9a50560e019eee577c",
   "historicalSource": "https://www.twse.com.tw/exchangeReport/FMTQIK",
-  "historicalSnapshotHash": "c676ae4ce75d2465d06059492310c2ce31a68c0edf5431d6bcc4012aa354ec40"
+  "historicalSnapshotHash": "673fb289b658c22663d0cd3781334021ba0e7d64fbf9cbb182466352a9c55d76"
 }
