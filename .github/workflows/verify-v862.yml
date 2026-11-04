@@ -1,4 +1,4 @@
-name: Verify V8.6.2 mobile recovery and live deployment
+name: Verify current mobile recovery and live deployment
 on:
   workflow_dispatch:
   push:
@@ -25,15 +25,15 @@ jobs:
           node - <<'NODE'
           const assert=require('node:assert/strict'),F=require('./research-v83/forecast-engine.js'),M=require('./research-v83/market-engine.js'),S=require('./research-v83/market-freshness.js');
           (async()=>{
-            const base='https://isu9922004a.github.io/VIP-6-SEARCH-Delay/';
+            const base='https://isu9922004a.github.io/VIP-6-SEARCH-Delay/',expected=require('./version-v50.js').displayCode;
             let error;
             for(let i=0;i<6;i++)try{
               const text=async p=>{const r=await fetch(base+p+'?v862='+Date.now());assert.equal(r.status,200,p);return r.text();};
               const [html,version,index,model]=await Promise.all(['market-outlook.html','version-v50.js','data/index/TAIEX.json','data/kronos/TAIEX.json'].map(text));
-              assert.match(html,/V8\.6\.2/);assert.match(version,/DISPLAY='V8\.6\.2'/);assert.match(html,/market-freshness.js/);assert.doesNotMatch(html,/frontend-v84.css/);
+              assert.ok(html.includes(expected));assert.ok(version.includes("DISPLAY='"+expected+"'"));assert.match(html,/market-freshness.js/);assert.doesNotMatch(html,/frontend-v84.css/);
               const h=JSON.parse(index),f=JSON.parse(model),a=M.analyze(h),r=F.evaluate(a.input,f);
               assert.ok(h.closeDate>='2026-11-04');assert.equal(r.state,'MODEL_SAMPLE');assert.equal(F.executionVerified(f),true);assert.equal(S.check(f,h).ready,true);
-              console.log(JSON.stringify({live:true,version:'V8.6.2',indexDate:h.closeDate,close:h.close,modelAsOf:f.asOf,target:f.targetDates[0],executionVerified:true}));return;
+              console.log(JSON.stringify({live:true,version:expected,indexDate:h.closeDate,close:h.close,modelAsOf:f.asOf,target:f.targetDates[0],executionVerified:true}));return;
             }catch(e){error=e;if(i<5)await new Promise(r=>setTimeout(r,15000));}
             throw error;
           })().catch(e=>{console.error(e);process.exitCode=1;});
