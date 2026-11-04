@@ -12,15 +12,15 @@ function draw(a,forecast){const bars=a.input.bars,visible=bars.slice(-40),future
  svg+=`<text x="${L}" y="15">指數（點）</text><text x="${L}" y="${H-20}">${visible[0].date}</text><text x="${cut}" y="${H-20}" text-anchor="end">${a.date}</text><text x="${W-R}" y="${H-20}" text-anchor="end">未來</text><text x="${W/2}" y="${H-2}">交易日（日K）</text></svg>`;$('market-chart').innerHTML=svg;
 }
 function render(){const type=$('market-type').value,data=records.get(type),a=M.analyze(data);state=a;reportSnapshot=null;
- $('market-levels').replaceChildren();
+ $('market-levels').replaceChildren();$('market-observations').replaceChildren();
  if(a.state!=='AVAILABLE'){$('market-source').textContent='尚未載入'+(type==='TAIEX'?'加權指數':'櫃買指數')+'行情；使用獨立指數資料來源。';$('market-verdict').textContent='等待指數資料';$('market-plain').textContent=a.reason;$('market-next').textContent='下一交易日模型推斷：尚無結果。';$('market-chart').replaceChildren(element('p','尚無指數歷史，暫不畫線。','muted'));$('market-scenarios').textContent='指數資料尚未齊全，暫不填關卡。';$('market-evidence').textContent='等待同一指數的完成日K與來源。';return;}
- const f=F.evaluate(a.input,models.get(type)),r=ShitouMarketRegimeV86.analyze(a.input,f);a.regimeAnalysis=r;reportSnapshot={analysis:a,forecast:f,backtest,source:{name:data.name||type,source:data.dailySeriesMeta.source}};$('market-source').textContent=(a.illustration?'獨立合成指數示意，非真實行情｜':'指數歷史｜')+`${data.name||type}｜截止 ${a.date}｜來源：${data.dailySeriesMeta.source}`;
- $('market-verdict').textContent=r.combinedState+'｜急跌風險：'+r.crashRisk.level;$('market-plain').textContent=r.summary;
+ const f=F.evaluate(a.input,models.get(type)),r=ShitouMarketRegimeV86.analyze(a.input,f);a.regimeAnalysis=r;const observations=ShitouReportObservations.fromMarket(a.input);a.reportObservations=observations;if(observations.state==='AVAILABLE'){for(const text of ['漲跌力道：'+observations.momentum.text,observations.divergence?.text,...observations.levels.map(x=>x.text),observations.action?'明天先看：'+observations.action:null].filter(Boolean))$('market-observations').append(element('p',text));}reportSnapshot={analysis:a,forecast:f,backtest,source:{name:data.name||type,source:data.dailySeriesMeta.source}};$('market-source').textContent=(a.illustration?'獨立合成指數示意，非真實行情｜':'指數歷史｜')+`${data.name||type}｜截止 ${a.date}｜來源：${data.dailySeriesMeta.source}`;
+ $('market-verdict').textContent=r.combinedState+'｜急跌風險：'+r.crashRisk.label;$('market-plain').textContent=r.summary;
  const runLabel=f.executionVerified?'Kronos實跑收據已核對':'Kronos歷史輸出／執行收據未核驗';
  $('market-next').textContent=f.state==='UNAVAILABLE'?'Kronos模型不可用：'+f.reason:`【${runLabel}｜${f.dates[0]}】原始${f.label}，${f.openingLabel}；收盤中位數 ${n(f.closing.median)} 點（${((f.closing.median/a.close-1)*100).toFixed(2)}%）。多 ${+(f.bullish*100).toFixed(1)}%／空 ${+(f.bearish*100).toFixed(1)}%／平 ${+(f.flat*100).toFixed(1)}%；${f.sampleCount}條取樣占比不是實際勝率。`;
  for(const l of r.levels){const c=element('div',undefined,'price-item');c.append(element('span',l.role),element('strong',n(l.price)+' 點'),element('span',l.note));$('market-levels').append(c);}
  $('market-scenarios').replaceChildren();for(const s of r.scenarios)$('market-scenarios').append(element('p',s.title+'：'+s.trigger+' 失效：'+s.invalid));
- $('market-evidence').replaceChildren();for(const line of [...r.reasons,'模型不確定性：'+r.uncertainty.level+'；取樣分歧、資料完整度、歷史驗證須分開。','資料完整度：'+(r.dataQuality.complete?'日K及交易日曆核對通過':'日曆／資料核驗仍有限制'),f.provenance?.inputQuality?.warning||'',f.provenance?.outputQuality?.warning||'',ShitouMarketSimpleReport.validationText(backtest),'10–90%模型收盤取樣帶及ATR風險參考均未校準，不保證涵蓋隔日走勢。'])if(line)$('market-evidence').append(element('p',line));draw(a,f);
+ $('market-evidence').replaceChildren();for(const line of [...r.reasons,'模型方向是否清楚：'+(r.uncertainty.level==='HIGH'?'結果分散，或與目前走勢不一致，先保留判斷。':'結果較集中，仍要等價格確認。'),'資料完整度：'+(r.dataQuality.complete?'日K及交易日曆核對通過':'日曆／資料核驗仍有限制'),f.provenance?.inputQuality?.warning||'',f.provenance?.outputQuality?.warning||'',ShitouMarketSimpleReport.validationText(backtest),'模型範圍與近期波動估計，都還沒證實能準確涵蓋明日走勢。'])if(line)$('market-evidence').append(element('p',line));draw(a,f);
 
 }
 let pending=null,lastAttempt=0;
@@ -48,3 +48,4 @@ function refreshVisible(){if(document.visibilityState!=='hidden'&&Date.now()-las
 $('market-refresh').onclick=load;window.addEventListener('focus',refreshVisible);document.addEventListener('visibilitychange',refreshVisible);
 setInterval(()=>{if(document.visibilityState!=='hidden')load();},300000);
 $('market-type').onchange=render;window.independentMarketState=()=>state;window.independentMarketReportSnapshot=()=>reportSnapshot;load();
+

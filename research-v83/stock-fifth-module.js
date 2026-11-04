@@ -1,4 +1,4 @@
-(function(root,factory){const node=typeof module==='object'&&module.exports,api=factory(node?require('./structure-strength.js'):root.ShitouStructureStrength);if(node)module.exports=api;else root.ShitouStockFifthModule=api;})(globalThis,function(S){
+(function(root,factory){const node=typeof module==='object'&&module.exports,api=factory(node?require('./structure-strength.js'):root.ShitouStructureStrength,node?require('./report-observations.js'):root.ShitouReportObservations);if(node)module.exports=api;else root.ShitouStockFifthModule=api;})(globalThis,function(S,E){
 'use strict';
 const finite=Number.isFinite,num=x=>finite(x)?String(+x.toFixed(2)):'尚未確認',money=x=>finite(x)&&x>0?num(x)+' 元':'價位尚未確認';
 function build(a,p,f,pending=[],input=null,context={}){
@@ -7,6 +7,7 @@ function build(a,p,f,pending=[],input=null,context={}){
  const available=!!f.daily,bull=f.direction==='BULL',bear=f.direction==='BEAR',demo=f.state==='ILLUSTRATION',good=p.state==='CONDITIONAL'&&!!p.entryRange&&!p.dataIssues?.length,temporary=f.loadStatus==='TEMPORARY_ERROR',loading=f.loadStatus==='LOADING';
  const watch=has('watch')?p.watch:null,stop=has('stop')?p.stop:null,target=has('target')?p.target:null,close=has('close')?p.close:null;
  const structure=S.fromAnalysis(a),support=structure.support,resistance=structure.resistance,reference=e=>`${money(e.price)}（參考 ${e.referenceDate} 的當天${e.type==='SUPPORT'?'最低':'最高'}價，於 ${e.signalDate} 記錄）`;
+ const observations=E.fromStock(a);
  const blocks=[],add=(kind,text,tone)=>blocks.push({kind,text,tone});
  const direction=available?(bull?'🟢偏多向上漲':bear?'🔴偏空可能下跌':'🟡多空分歧、方向不明'):temporary?'⚪模型資料暫未載入':loading?'⚪模型資料載入中':'⚪尚無可用的模型結果';
  const advice=!available?'先依已核對的行情觀察。':bear?'先別急著搶反彈，也不要直接追空！':good&&bull?'仍要等盤中條件確認！':'但還不能急著買！';
@@ -24,6 +25,7 @@ function build(a,p,f,pending=[],input=null,context={}){
  }else add('body',(temporary?'模型資料連線暫時中斷，請重新載入；尚未完成核對前，不顯示推演比例。':loading?'正在載入模型資料；完成核對後才顯示推演比例。':'此個股尚未取得可用的模型結果；不填入多空比例，也不猜明日方向。')+(f.reason||''));
  add('subheading','目前走勢：'+structure.label,structure.state==='BULL_HOLDING'||structure.state==='TURNING_UP'?'aqua':'yellow');
  add('body',structure.state==='UNAVAILABLE'||structure.state==='NOT_FORMED'?structure.reason:'這是依照已收盤價格做的觀察，不保證明天漲或跌，目前還沒證明能提高預測準確率。');
+ if(observations.state==='AVAILABLE'){add('subheading','漲跌力道：'+observations.momentum.text,'yellow');if(observations.divergence)add('body',observations.divergence.text);}
  add('heading','② 明天可以買進嗎？');
  add('subheading',good&&!bear&&available?'🟡 盤後條件已通過，仍要等盤中確認！':'🟡 建議先觀望，不要急著買！','yellow');
  if(close&&watch){
@@ -41,6 +43,7 @@ function build(a,p,f,pending=[],input=null,context={}){
  if(support)add('body',`下跌先留意這個價位：${reference(support)}。${support.status==='HOLDING'?'目前收盤還沒跌破，但不代表明天一定上漲':'先前收盤已跌破；即使漲回，也要重新觀察是否轉強'}；${stop?`與原本的防守試算價${support.price===stop?'相同，但用途不同':support.price>stop?'相比較高': '相比較低'}，` :''}這是額外的觀察價位，不會自動替你更改停損價或買進條件。`);
  add('subheading',`🎯 ${money(target)}｜上方壓力參考價`,'yellow');
  add('body',target?'如果股價持續上漲，接近這裡要特別注意是否遇到賣壓，並不是保證會漲到的目標價。':'上方歷史關卡不足，不自行填入目標價。');
+ if(observations.state==='AVAILABLE')for(const line of observations.levels)add('body','關卡有沒有站穩：'+line.text);
  add('heading',good?'④ 為什麼仍要確認，不能直接追買？':'④ 為什麼現在不建議急著買？');
  const bars=input?.bars||[],z=bars.at(-1),prev=bars.at(-2),volumeVerified=context.volumeVerified===true||pending.includes('成交量來源已完成本次核對。');
  let volumeSummary='量價仍待核對';
@@ -56,6 +59,7 @@ function build(a,p,f,pending=[],input=null,context={}){
   add('body',`目前股價${close>=ma20?'還在':'低於'}20日均線（${money(ma20)}）${close>=ma20?'之上':'之下'}，${close>=ma20&&close<ma5?'但':'而'}${short}5日均線（${money(ma5)}）${close>=ma5?'之上':''}，${close<ma5?'短線仍要觀察能不能重新轉強':'後續仍要確認能否守穩'}。`);
  }else add('body','均線與價格資料還不完整，先不硬下多空結論。');
  add('heading','⑤ 明天實際怎麼做？');
+ if(observations.action)add('body','先等價格確認：'+observations.action);
  if(support)add('body',support.status==='HOLDING'?`明天先看：如果守住 ${money(support.price)}，代表重要價位暫時沒被跌破；若收盤跌破，就要留意走勢變弱，重新檢查原本的計畫。`:`明天先看：${money(support.price)} 先前已被收盤跌破；就算漲回這個價位，也不能直接當成買進理由。`);
  if(resistance)add('body',resistance.status==='BROKEN'?`明天先看：收盤已漲過 ${money(resistance.price)}；之後若回落，看能否守住、成交量是否支持上漲。若收盤又跌回下方，就要重新評估是否真的轉強。`:`明天先看：先看收盤能否站上 ${money(resistance.price)}，之後仍守得住，再檢查成交量與原本買進條件；還沒站上前，先別認定股價已轉強。`);
  if(watch){add('body',`✅ 如果站回 ${money(watch)}：繼續觀察是否站穩，以及其他買進條件是否通過。`);add('body',`⚠️ 如果一直站不上 ${money(watch)}：短線尚未確認轉強，先不要追價。`);}
@@ -65,10 +69,11 @@ function build(a,p,f,pending=[],input=null,context={}){
  add('heading','📌 一句話總結：');
  add('summary',`「${available?`電腦模擬明天${bull?'有偏多跡象':bear?'有偏空跡象':'多空方向仍不明'}`:'明天尚無可用的模型結果'}，今天的量價狀況：${volumeSummary}，${close&&watch&&close<watch?'短線還沒有確認轉強':'後續仍要看價格是否守穩'}。${watch?`新買先等股價${close<watch?'站回':'守穩'} ${money(watch)}，並確認其他風險條件通過後，再考慮進場。`:'新買先等可靠資料與完整風險條件。'}」`);
  add('footnote','＊以上為盤後模擬，無法預知明天盤中走勢；若明天大幅跳空，價位與風險都要重新計算。已持有股票者，應依原本持股計畫判斷。');
- return {number:'05',title:'明天可能怎麼走？該怎麼做？',compact:true,narrative:blocks,rows:[{icon:'search',price:'',label:'',bullets:blocks.map(b=>b.text)}],originalPending:[...pending],forecast:f,structureStrength:structure};
+ return {number:'05',title:'明天可能怎麼走？該怎麼做？',compact:true,narrative:blocks,rows:[{icon:'search',price:'',label:'',bullets:blocks.map(b=>b.text)}],originalPending:[...pending],forecast:f,structureStrength:structure,reportObservations:observations};
 }
 return {build};
 });
+
 
 
 

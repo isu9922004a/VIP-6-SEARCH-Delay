@@ -5,7 +5,7 @@
  else root.ShitouMarketSimpleReport=api;
 })(globalThis,function(root){
 'use strict';
-const TITLE='大盤精簡分析',VERSION='V8.6.3',WATERMARK='石頭少爺台股分析'+VERSION+'版',W=1284,MIN_H=2778,MAX_H=8192;
+const TITLE='大盤精簡分析',VERSION='V8.6.4',WATERMARK='石頭少爺台股分析'+VERSION+'版',W=1284,MIN_H=2778,MAX_H=8192;
 const titleFor=()=>TITLE;
 const colors={background:'#071f32',card:'#10344f',border:'#28627d',text:'#f0f6fb',muted:'#b8d9e9',yellow:'#f7cf70',aqua:'#79e4d1',red:'#ff9a91'};
 const num=v=>Number.isFinite(v)?Number(v).toFixed(2):'待核對';
@@ -19,21 +19,24 @@ function model(snapshot,{watermarked=false}={}){
   throw Error('大盤資料代號、日期或收盤點位不一致，請重新載入。');
  }
  const R=typeof module==='object'&&module.exports?require('../research-v86/market-regime.js'):root.ShitouMarketRegimeV86;
- const r=R.analyze(a.input,f);
+ const r=R.analyze(a.input,f),E=typeof module==='object'&&module.exports?require('./report-observations.js'):root.ShitouReportObservations,observations=E.fromMarket(a.input);
  if(r.state!=='AVAILABLE')throw Error('行情風險判讀資料未核驗：'+r.reasons.join('；'));
  const fresh=r.model.available?f:null,m=r.model;
  const pct=x=>(x*100).toFixed(1)+'%',direction={BULL:'偏多',BEAR:'偏空',FLAT:'持平',MIXED:'方向分歧',ABSTAIN:'保留方向判斷'};
  const blocks=[],add=(kind,text,tone)=>blocks.push({kind,text,...(tone?{tone}:{})});
  add('heading','① 下一交易日可能方向');
  add('highlight',fresh?(fresh.executionVerified?'已核對模型執行紀錄：':'模型執行紀錄尚未核對：')+direction[m.direction]+'；推演 '+m.targetDate+'，模擬收盤的中間值 '+num(m.medianClose)+' 點（'+pct(m.medianReturn)+'）。':'Kronos模型不可用；僅呈現歷史技術劇本，沒有模型方向或取樣比例。','yellow');
- add('body','技術結構：'+r.regime.label+'；綜合：'+r.combinedState+'，'+direction[r.combinedDirection]+'。急跌風險：'+r.crashRisk.label+'。');
+ add('body','目前走勢：'+r.regime.label+'；合併觀察：'+r.combinedState+'，'+direction[r.combinedDirection]+'。急跌風險：'+r.crashRisk.label+'。');
  add('heading','② 現在適合進場嗎');add('highlight',r.entryAssessment,'yellow');
  add('heading','③ 三個重要價位');
  r.levels.forEach((l,i)=>add('highlight',num(l.price)+' 點｜'+l.role+'。'+l.note,['aqua','yellow','red'][i]));
+ if(observations.state==='AVAILABLE')for(const line of observations.levels)add('body','關卡有沒有站穩：'+line.text);
  add('heading','④ 為什麼這樣判斷');
+ if(observations.state==='AVAILABLE'){add('highlight','漲跌力道：'+observations.momentum.text,'yellow');if(observations.divergence)add('body',observations.divergence.text);}
  for(const reason of r.reasons)add('body',reason);
  add('body','最近5／20／60天的平均收盤：'+[5,20,60].map(k=>num(r.features.ma[k].value)).join('／')+' 點；近14天平均每日波動 '+num(r.features.atr)+' 點。'+(r.structure.reversalConfirmed?'突破延續與均價、動能改善條件通過；仍需管理失效風險。':'尚未同時確認突破延續與趨勢反轉。'));
- add('heading','⑤ 明日三種可能走法');for(const s of r.scenarios)add('body',s.title+'：'+s.trigger+' 不再適用的情況：'+s.invalid);
+ add('heading','⑤ 明日三種可能走法');if(observations.action)add('body','明天先看：'+observations.action);for(const s of r.scenarios)add('body',s.title+'：'+s.trigger+' 不再適用的情況：'+s.invalid);
+ add('body','新增的力道與關卡觀察還沒證明能提高預測準確率，不能單靠這些提醒決定買賣。');
  add('heading','⑥ 模型結果有多大把握');
  add('notice',fresh?'模擬結果：上漲 '+pct(f.bullish)+'／下跌 '+pct(f.bearish)+'／持平 '+pct(f.flat)+'（'+f.sampleCount+'條）。'+(r.uncertainty.level==='HIGH'?'結果分散或與行情訊號不一致，暫時無法明確判斷方向。':'結果較集中，仍需等行情確認。')+'這些比例不代表明天實際漲跌的機率。':'模型不可用：只保留技術與風險分析，不補造AI數據。','yellow');
  add('body','歷史驗證：目前沒有足夠證據證明這一版比前一版更準。資料完整度：'+(r.dataQuality.complete?'完成日K與交易日曆核對通過。':'日曆核驗仍有限制。')+'模型範圍與近期波動估計，都還沒證實能準確涵蓋隔日走勢。');
@@ -42,7 +45,7 @@ function model(snapshot,{watermarked=false}={}){
  if(fresh?.provenance?.outputQuality?.warning)add('footnote','部分模擬結果的最高、最低價順序不合理，因此只列開盤與收盤結果，不提供模擬最高、最低價。');
  add('heading','⑦ 一句話總結');add('summary',r.summary,'aqua');
  add('footnote','資料：'+src.source+'｜行情 '+a.date+'。盤後研究；跳空須重算風險，個股停損依原持股計畫，不保證走勢。');
- return {title:titleFor(watermarked),watermarked:!!watermarked,name:'臺灣加權股價指數（TAIEX）',date:a.date,close:a.close,modelRun:fresh?.executionVerified===true,source:src.source,forecastState:f?.state||'UNAVAILABLE',blocks,levels:r.levels,nextTradeDate:m.targetDate||null,risk:r};
+ return {title:titleFor(watermarked),watermarked:!!watermarked,name:'臺灣加權股價指數（TAIEX）',date:a.date,close:a.close,modelRun:fresh?.executionVerified===true,source:src.source,forecastState:f?.state||'UNAVAILABLE',reportObservations:observations,blocks,levels:r.levels,nextTradeDate:m.targetDate||null,risk:r};
 
 }
 function wrap(ctx,text,maxWidth){
@@ -169,4 +172,5 @@ function init(){
 if(root.document){if(root.document.readyState==='loading')root.document.addEventListener('DOMContentLoaded',init,{once:true});else init();}
 return {TITLE,VERSION,WATERMARK,validationText,titleFor,model,page,open,close,init,shareCurrentImage};
 });
+
 

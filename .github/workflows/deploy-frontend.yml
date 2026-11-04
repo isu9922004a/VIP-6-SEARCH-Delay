@@ -23,19 +23,21 @@ jobs:
           node --check research-v83/kronos-data.js
           node --check research-v83/market-simple-report.js
           node --check research-v83/stock-simple-report.js
-          node --test scripts/tests/kronos-report-binding.test.cjs scripts/tests/research-plain-narrative.test.cjs scripts/tests/market-v86.test.cjs scripts/tests/index-update-v862.test.cjs scripts/tests/market-freshness-v862.test.cjs scripts/tests/market-simple-report.test.cjs scripts/tests/pages-runtime-data.test.cjs scripts/tests/structure-strength-v863.test.cjs scripts/tests/stock-simple-report.test.cjs
+          node --test scripts/tests/kronos-report-binding.test.cjs scripts/tests/research-plain-narrative.test.cjs scripts/tests/market-v86.test.cjs scripts/tests/index-update-v862.test.cjs scripts/tests/market-freshness-v862.test.cjs scripts/tests/market-simple-report.test.cjs scripts/tests/pages-runtime-data.test.cjs scripts/tests/structure-strength-v863.test.cjs scripts/tests/stock-simple-report.test.cjs scripts/tests/report-observations-v864.test.cjs
       - run: npm install --no-save --ignore-scripts playwright-core
-      - name: Verify V8.6.3 structure, mobile layout and complete PNG variants
+      - name: Verify V8.6.4 structure, mobile layout and complete PNG variants
         env:
           CHROME_BIN: /usr/bin/google-chrome
-        run: node scripts/tests/structure-v863-browser.cjs /tmp/v863-browser
+        run: |
+          node scripts/tests/structure-v863-browser.cjs /tmp/v864-browser
+          node scripts/tests/market-v862-browser.cjs /tmp/v864-browser
       - name: Check structure observations across the published stock universe
         run: node scripts/audit-structure-strength.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: v863-browser-evidence
-          path: /tmp/v863-browser
+          name: v864-browser-evidence
+          path: /tmp/v864-browser
   deploy:
     needs: verify
     permissions:
@@ -54,18 +56,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Verify the published V8.6.3 entry point and new report module
+      - name: Verify the published V8.6.4 entry point and new report module
         run: |
           node - <<'NODE'
           const assert=require('node:assert/strict');
           (async()=>{
             const base='https://isu9922004a.github.io/VIP-6-SEARCH-Delay/';let error;
             for(let i=0;i<8;i++)try{
-              const read=async p=>{const r=await fetch(base+p+'?v863='+Date.now());assert.equal(r.status,200,p);return r.text();};
-              const [html,version,structure,fifth,report]=await Promise.all(['index.html','version-v50.js','research-v83/structure-strength.js','research-v83/stock-fifth-module.js','research-v83/stock-simple-report.js'].map(read));
-              assert.match(version,/DISPLAY='V8\.6\.3'/);assert.match(report,/VERSION='V8\.6\.3'/);assert.match(structure,/STRUCTURE_STRENGTH_8_6_3/);assert.match(structure,/股價有回升，但轉強還沒確認，先別急著追買/);assert.doesNotMatch(structure,/空方反彈尚未突破結構壓力/);assert.match(fifth,/目前走勢：/);assert.match(fifth,/明天先看：/);assert.ok(html.indexOf('structure-strength.js?')<html.indexOf('stock-fifth-module.js?'));assert.match(html,/structure-strength.js\?v=V8\.6\.3/);
-              console.log(JSON.stringify({live:true,wording:'PLAIN1',version:'V8.6.3',structureModule:true,reportSections:[1,3,5],scriptOrderVerified:true}));return;
+              const read=async p=>{const r=await fetch(base+p+'?v864='+Date.now());assert.equal(r.status,200,p);return r.text();};
+              const [html,version,observations,fifth,report,market,marketJS]=await Promise.all(['index.html','version-v50.js','research-v83/report-observations.js','research-v83/stock-fifth-module.js','research-v83/stock-simple-report.js','market-outlook.html','research-v83/market.js'].map(read));
+              assert.match(version,/DISPLAY='V8\.6\.4'/);assert.match(report,/VERSION='V8\.6\.4'/);assert.match(observations,/REPORT_OBSERVATIONS_8_6_4/);assert.match(fifth,/漲跌力道：/);assert.match(fifth,/關卡有沒有站穩：/);assert.match(market,/market-observations/);assert.match(marketJS,/ShitouReportObservations.fromMarket/);assert.ok(html.indexOf('report-observations.js?')<html.indexOf('stock-fifth-module.js?'));assert.match(html,/report-observations.js\?v=V8\.6\.4/);
+              console.log(JSON.stringify({live:true,version:'V8.6.4',stockAndMarket:true,momentumAndPriceConfirmation:true,scriptOrderVerified:true}));return;
             }catch(e){error=e;if(i<7)await new Promise(r=>setTimeout(r,15000));}throw error;
           })().catch(e=>{console.error(e);process.exitCode=1;});
           NODE
+
 

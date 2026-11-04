@@ -1,7 +1,7 @@
 /* Native 1284x2778 export. Sections 01-04 are drawn verbatim; only 05 is condensed. */
 (function(root){
 'use strict';
-const W=1284,H=2778,M=24,CW=W-2*M,num=n=>Number.isFinite(n)?String(+n.toFixed(2)):'尚未確認';
+const W=1284,MIN_H=2778,MAX_H=8192,M=24,CW=W-2*M,num=n=>Number.isFinite(n)?String(+n.toFixed(2)):'尚未確認';
 const PALETTE={bg:'#071f32',card:'#10344f',line:'#28627d',text:'#f0f6fb',muted:'#b8d9e9',blue:'#25a5eb',aqua:'#79e4d1',yellow:'#f7cf70',red:'#ff9a91'};
 function compactFifth(a,g){const s=g.sections[4],f=s.forecast||{},p=root.ShitouOpeningPlan.evaluate(a),name=a.name||a.code;
  const structure=s.structureStrength,structureLines=structure&&structure.state!=='UNAVAILABLE'&&structure.state!=='NOT_FORMED'?[{text:'目前走勢：'+structure.label+'（不保證明天漲跌）',tone:'yellow'},{text:[structure.support?`下跌留意 ${num(structure.support.price)} 元（${structure.support.referenceDate}）`:'',structure.resistance?`上漲看 ${num(structure.resistance.price)} 元（${structure.resistance.referenceDate}）`:''].filter(Boolean).join('／')+'；看收盤，開盤大幅跳動要重算。'}]:[];
@@ -14,13 +14,14 @@ function compactFifth(a,g){const s=g.sections[4],f=s.forecast||{},p=root.ShitouO
   {text:lead,tone:bear?'red':'aqua',bold:true},
   {text:f.state==='ILLUSTRATION'?'＊人工示意、未執行Kronos；取樣比例不是實際漲跌機率。':'＊盤後模型推演，取樣比例不是實際漲跌機率。',tone:'yellow'},
   ...structureLines,
+  ...(s.reportObservations?.state==='AVAILABLE'?[{text:'漲跌力道與關卡：'+s.reportObservations.compact,tone:'yellow'}]:[]),
   {text:`新買先等：${p.watch>0?`站回並守穩 ${num(p.watch)} 元後，仍要確認其他買進與風險條件。`:'缺少可靠觀察價，暫不列買進條件。'}`},
   {text:`價位試算：${num(p.watch)}轉強／${num(p.stop)}新買防守／${num(p.target)}壓力；非保證成交或必達。`},
   {text:'依據：'+proof},
   {text:`站不回觀察價或續跌，${bear?'勿急著搶反彈或只因模型偏空追空':'勿因模型偏多而貿然進場'}；跳空重算價位與風險，已持股者按原計畫。`}
  ]};}
-function pages(a,report,{doc,displayCode='V8.6.3',wrap,watermark=false}){
- const guide=report.actionGuide,canvas=doc.createElement('canvas');canvas.width=W;canvas.height=H;const ctx=canvas.getContext('2d'),compact=compactFifth(a,guide),trace=[];
+function pages(a,report,{doc,displayCode='V8.6.4',wrap,watermark=false}){
+ const guide=report.actionGuide,canvas=doc.createElement('canvas');let H=MIN_H;canvas.width=W;canvas.height=H;const ctx=canvas.getContext('2d'),compact=compactFifth(a,guide),trace=[];
  const font=(size,bold=false)=>{ctx.font=`${bold?750:600} ${size}px "Microsoft JhengHei","Segoe UI Emoji",sans-serif`;};
  const measure=(text,width,size,bold=false)=>{font(size,bold);return wrap(ctx,String(text),width);};
  function layout(size){const line=size+10,inner=CW-44,headSize=40,titleLine=50;
@@ -37,7 +38,7 @@ function pages(a,report,{doc,displayCode='V8.6.3',wrap,watermark=false}){
   const top=140,headerH=176,gap=12,footerH=200,total=top+headerH+gap+statusH+gap+sections.reduce((n,s)=>n+s.height+gap,0)+fifthH+footerH;
   return {size,line,headSize,titleLine,inner,status,statusHead,statusH,sections,fifthTitle,fifthLines,fifthH,top,headerH,gap,footerH,total};
  }
- let l;for(const size of [36,35,34,33,32]){const trial=layout(size);if(trial.total<=H){l=trial;break;}}if(!l)throw Error('目前內容超過單張滿版安全範圍；需再精簡第五項，未裁切其他內容。');
+ let l;for(const size of [36,35,34,33,32]){const trial=layout(size);if(trial.total<=H||size===32){l=trial;H=Math.max(H,Math.ceil(trial.total));if(H>MAX_H)throw Error('完整報告超過長圖容量，請改用完整文字報告。');break;}}canvas.height=H;if(!l)throw Error('目前內容超過單張滿版安全範圍；需再精簡第五項，未裁切其他內容。');
  const extra=(H-l.total)/6;const panel=(y,h,stroke=PALETTE.line,fill=PALETTE.card)=>{ctx.beginPath();ctx.roundRect(M,y,CW,h,22);ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke();};
  function draw(text,x,y,size,color=PALETTE.text,bold=false,line=size+10){font(size,bold);ctx.fillStyle=color;text.forEach((t,i)=>ctx.fillText(t,x,y+i*line));}
  function title(s,titles,y){ctx.fillStyle=PALETTE.blue;ctx.beginPath();ctx.arc(M+39,y+39,27,0,Math.PI*2);ctx.fill();draw([s.number],M+21,y+51,30,PALETTE.text,true);draw(titles,M+84,y+46,l.headSize,PALETTE.text,true,l.titleLine);}
@@ -60,10 +61,11 @@ function pages(a,report,{doc,displayCode='V8.6.3',wrap,watermark=false}){
  const original=guide.sections.slice(0,4).flatMap(s=>[s.title,...s.rows.flatMap(r=>[r.price,r.label,...r.bullets].filter(Boolean)),...(s.callout?[s.callout.title,...s.callout.lines]:[])]);
  if(JSON.stringify(trace)!==JSON.stringify(original))throw Error('第一至第四項文字核對失敗');
  if(watermark)root.ShitouReportWatermark.apply(canvas,'all');
- const audit={watermarked:watermark,watermarkStyle:watermark?'REFERENCE_DIAGONAL_V84':null,fields:guide.summary,width:W,height:H,minBodyFont:l.size,topSafeArea:140,bottomSafeArea:104,footerBottom:footerTop+38+(foot.length-1)*35,firstFourPreserved:true,firstFourText:trace,originalFirstFour:guide.sections.slice(0,4),headerPreserved:{title:guide.title,name:guide.name,code:guide.code,date:guide.date,close:guide.close,badge:guide.badge},statusPreserved:guide.status,fifthCondensed:true,fifthLines:compact.lines.map(t=>t.text),guideNote:guide.guideNote,noClipping:fy<=y&&footerTop+38+(foot.length-1)*35<=H-104,fullBleed:true,modelRun:guide.sections[4].forecast?.modelRun===true};
+ const audit={watermarked:watermark,watermarkStyle:watermark?'REFERENCE_DIAGONAL_V84':null,fields:guide.summary,width:W,height:H,extendedHeight:H>MIN_H,reportObservations:guide.sections[4].reportObservations||null,minBodyFont:l.size,topSafeArea:140,bottomSafeArea:104,footerBottom:footerTop+38+(foot.length-1)*35,firstFourPreserved:true,firstFourText:trace,originalFirstFour:guide.sections.slice(0,4),headerPreserved:{title:guide.title,name:guide.name,code:guide.code,date:guide.date,close:guide.close,badge:guide.badge},statusPreserved:guide.status,fifthCondensed:true,fifthLines:compact.lines.map(t=>t.text),guideNote:guide.guideNote,noClipping:fy<=y&&footerTop+38+(foot.length-1)*35<=H-104,fullBleed:true,modelRun:guide.sections[4].forecast?.modelRun===true};
  canvas.dataset.researchAudit=JSON.stringify(audit);return [{width:W,height:H,dataset:{researchAudit:JSON.stringify(audit)},renderExportRegion(){return canvas;},toBlob(cb,type='image/png'){canvas.toBlob(cb,type);}}];
 }
 root.ShitouIPhoneSummary={pages,compactFifth};
 })(globalThis);
+
 
 
