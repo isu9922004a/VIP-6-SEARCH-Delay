@@ -27,7 +27,7 @@ test('official TAIEX history produces complete 1284x2778 independent PNG',()=>{
  assert.ok(output.blocks.some(b=>b.text.includes('① 下一交易日')));
  assert.ok(output.blocks.some(b=>b.text.includes('⑤ 明日三種可能走法')));
 });
-test('V8.6.2 market clean and watermark variants keep exactly the same analysis',()=>{
+test('V8.6.3 market clean and watermark variants keep exactly the same analysis',()=>{
  const clean=report.model(snapshot,{watermarked:false});
  const watermarked=report.model(snapshot,{watermarked:true});
  assert.equal(clean.title,'大盤精簡分析');
@@ -39,7 +39,7 @@ test('V8.6.2 market clean and watermark variants keep exactly the same analysis'
   const canvas=report.page(snapshot,{document:fakeDocument(),watermarked:mode}),audit=JSON.parse(canvas.dataset.researchAudit);
   assert.equal(audit.watermarked,mode);
   assert.equal(audit.title,mode?watermarked.title:clean.title);
-  assert.equal(audit.version,'V8.6.2');
+  assert.equal(audit.version,'V8.6.3');
   assert.equal(canvas.width,1284);assert.ok(canvas.height>=2778&&canvas.height<=8192);
   assert.equal(audit.noClipping,true);
  }

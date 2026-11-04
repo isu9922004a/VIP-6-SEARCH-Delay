@@ -4,6 +4,7 @@
 const W=1284,H=2778,M=24,CW=W-2*M,num=n=>Number.isFinite(n)?String(+n.toFixed(2)):'尚未確認';
 const PALETTE={bg:'#071f32',card:'#10344f',line:'#28627d',text:'#f0f6fb',muted:'#b8d9e9',blue:'#25a5eb',aqua:'#79e4d1',yellow:'#f7cf70',red:'#ff9a91'};
 function compactFifth(a,g){const s=g.sections[4],f=s.forecast||{},p=root.ShitouOpeningPlan.evaluate(a),name=a.name||a.code;
+ const structure=s.structureStrength,structureLines=structure&&structure.state!=='UNAVAILABLE'&&structure.state!=='NOT_FORMED'?[{text:'價格結構：'+structure.label+'（研究觀察，非明日勝率）',tone:'yellow'},{text:[structure.support?`結構支撐 ${num(structure.support.price)} 元（${structure.support.referenceDate}）`:'',structure.resistance?`結構壓力 ${num(structure.resistance.price)} 元（${structure.resistance.referenceDate}）`:''].filter(Boolean).join('／')+'；收盤確認，跳空重算。'}]:[];
  const source=s.narrative||[],context=root.ShitouOpeningPlan.plainContext(a)||{},bars=a.sourceBars||[],z=bars.at(-1),previous=bars.at(-2),ma5=a.features?.ma?.[5]?.value,ma20=a.features?.ma?.[20]?.value;
  const available=!!f.daily,bear=f.direction==='BEAR',direction=f.direction==='BULL'?'偏多':bear?'偏空':'方向分歧';
  const lead=available?`電腦模擬【${name}】：${direction}，${f.openingLabel}。多${+(f.bullish*100).toFixed(1)}%／空${+(f.bearish*100).toFixed(1)}%／平${+(f.flat*100).toFixed(1)}%。`:`【${name}】尚無可用模型結果，不填明日多空比例。`;
@@ -12,12 +13,13 @@ function compactFifth(a,g){const s=g.sections[4],f=s.forecast||{},p=root.ShitouO
  return {number:'05',title:s.title,lines:[
   {text:lead,tone:bear?'red':'aqua',bold:true},
   {text:f.state==='ILLUSTRATION'?'＊人工示意、未執行Kronos；取樣比例不是實際漲跌機率。':'＊盤後模型推演，取樣比例不是實際漲跌機率。',tone:'yellow'},
+  ...structureLines,
   {text:`新買先等：${p.watch>0?`站回並守穩 ${num(p.watch)} 元後，仍要確認其他買進與風險條件。`:'缺少可靠觀察價，暫不列買進條件。'}`},
   {text:`價位試算：${num(p.watch)}轉強／${num(p.stop)}新買防守／${num(p.target)}壓力；非保證成交或必達。`},
   {text:'依據：'+proof},
   {text:`站不回觀察價或續跌，${bear?'勿急著搶反彈或只因模型偏空追空':'勿因模型偏多而貿然進場'}；跳空重算價位與風險，已持股者按原計畫。`}
  ]};}
-function pages(a,report,{doc,displayCode='V8.6.2',wrap,watermark=false}){
+function pages(a,report,{doc,displayCode='V8.6.3',wrap,watermark=false}){
  const guide=report.actionGuide,canvas=doc.createElement('canvas');canvas.width=W;canvas.height=H;const ctx=canvas.getContext('2d'),compact=compactFifth(a,guide),trace=[];
  const font=(size,bold=false)=>{ctx.font=`${bold?750:600} ${size}px "Microsoft JhengHei","Segoe UI Emoji",sans-serif`;};
  const measure=(text,width,size,bold=false)=>{font(size,bold);return wrap(ctx,String(text),width);};

@@ -5,7 +5,7 @@
  else root.ShitouMarketSimpleReport=api;
 })(globalThis,function(root){
 'use strict';
-const TITLE='大盤精簡分析',VERSION='V8.6.2',WATERMARK='石頭少爺台股分析'+VERSION+'版',W=1284,MIN_H=2778,MAX_H=8192;
+const TITLE='大盤精簡分析',VERSION='V8.6.3',WATERMARK='石頭少爺台股分析'+VERSION+'版',W=1284,MIN_H=2778,MAX_H=8192;
 const titleFor=()=>TITLE;
 const colors={background:'#071f32',card:'#10344f',border:'#28627d',text:'#f0f6fb',muted:'#b8d9e9',yellow:'#f7cf70',aqua:'#79e4d1',red:'#ff9a91'};
 const num=v=>Number.isFinite(v)?Number(v).toFixed(2):'待核對';
