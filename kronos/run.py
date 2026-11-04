@@ -214,7 +214,8 @@ def main():
     for number, (code, file) in enumerate(jobs):
         try:
             source = json.loads(file.read_text(encoding='utf-8'))
-            result = infer(predictor, lock, receipt, source, calendar, code, args.samples, args.seed)
+            job_calendar = source.get('tradingCalendar', calendar) if code == 'TAIEX' else calendar
+            result = infer(predictor, lock, receipt, source, job_calendar, code, args.samples, args.seed)
             is_index = source.get('instrumentType') == 'TAIEX'
             output = ROOT / ('data/kronos/TAIEX.json' if is_index else f'data/kronos/stocks/{code}.json')
             save(output, result)

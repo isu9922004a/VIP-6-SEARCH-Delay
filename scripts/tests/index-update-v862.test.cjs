@@ -1,0 +1,15 @@
+'use strict';
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
+const {build,inspectMonth}=require('../update-index-snapshot.cjs'),history=require('../../data/index/TAIEX.json'),F=require('../../research-v83/forecast-engine.js'),M=require('../../research-v83/market-engine.js');
+function fixture(){
+ const date=history.closeDate,month=date.slice(0,7),bar=history.dailySeries.at(-1),template=structuredClone(history.tradingCalendar);
+ return {date,raw:{index:'TAIEX',type:'MARKET_INDEX',closeDate:date,close:history.close,source:'official test fixture',dailySeries:structuredClone(history.dailySeries),dailySeriesMeta:{onlyCompletedBars:true}},template,realized:{verified:true,end:history.dailySeries.at(-2).date,dates:template.dates.filter(d=>d<date)},monthly:[{month,url:'https://www.twse.com.tw/exchangeReport/FMTQIK',payload:{stat:'OK',date:month.replace('-','')+'01',fields:['日期','成交股數','發行量加權股價指數'],data:[[date,bar.volume,bar.close]]}}]};
+}
+const run=x=>build(x.raw,x.template,x.realized,x.monthly,x.date);
+test('index can advance independently of the stale individual-stock calendar',()=>{const x=fixture(),r=run(x);assert.equal(r.closeDate,x.date);assert.ok(r.closeDate>x.realized.end);assert.equal(r.tradingCalendar.independentIndexCalendar,true);assert.ok(r.tradingCalendar.dates.some(d=>d>x.date));assert.equal(r.sourceReceipt.officialChecks.length,1);});
+test('reject stale source rather than publish a successful old update',()=>{const x=fixture();x.raw.closeDate=x.realized.end;assert.throws(()=>run(x),/最近完成交易日/);});
+test('official close and share-volume must match independently',()=>{for(const column of [1,2]){const x=fixture();x.monthly[0].payload.data[0][column]*=2;assert.throws(()=>run(x),/不一致/);}});
+test('never invent missing OHLCV or trading days',()=>{const x=fixture();x.raw.dailySeries.splice(-8,1);assert.throws(()=>run(x),/不完整/);const y=fixture();y.raw.dailySeries.at(-1).low=1e9;assert.throws(()=>run(y),/OHLCV/);});
+test('reject HTML, wrong month and unordered official response',()=>{assert.throws(()=>inspectMonth('<html>','2026-11'));const x=fixture();x.monthly[0].payload.date='20250101';assert.throws(()=>run(x),/月份/);});
+test('published index model matches the actual window and verified execution receipt',()=>{const f=require('../../data/kronos/TAIEX.json'),a=M.analyze(history);assert.equal(a.state,'AVAILABLE');assert.equal(f.asOf,history.closeDate);assert.equal(F.evaluate(a.input,f).state,'MODEL_SAMPLE');assert.equal(F.executionVerified(f),true);});
+test('scheduled index workflow is independent and publishes the pair atomically',()=>{const y=fs.readFileSync(require.resolve('../../.github/workflows/update-index-snapshot.yml'),'utf8');assert.match(y,/cron:/);assert.match(y,/--codes '' --index/);assert.match(y,/git add data\/index\/TAIEX.json data\/kronos\/TAIEX.json/);assert.doesNotMatch(y,/needs:.*stock/);const py=fs.readFileSync(require.resolve('../../kronos/run.py'),'utf8');assert.match(py,/source.get\('tradingCalendar', calendar\)/);});

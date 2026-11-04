@@ -4,7 +4,8 @@ const C=require('../../four-models-research-v1'),F=require('../../research-v83/f
 const history=require('../../data/research/2026-11-03/6148.json'),forecast=require('../../data/kronos/stocks/6148.json');
 function loader(h=history,f=forecast,code='6148'){
  const requests=[],registered=[];
- const context={URL,Intl,Date,AbortSignal,document:{currentScript:{src:'https://test.local/research-v83/kronos-data.js'}},ShitouForecastPreview:{signature:F.signature,inputWindow:F.inputWindow,register(input,raw){const r=F.evaluate(input,raw);registered.push(r);return {ok:r.state==='MODEL_SAMPLE',reason:r.reason};}},fetch:async url=>{requests.push(String(url));return {ok:true,json:async()=>String(url).includes('manifest')?{stocks:{[code]:{asOf:h.closeDate}}}:String(url).includes('/research/')?h:f};}};
+ class Clock extends Date{constructor(...args){super(...(args.length?args:[h.closeDate+'T11:00:00Z']));}static now(){return new Date(h.closeDate+'T11:00:00Z').getTime();}}
+ const context={URL,Intl,Date:Clock,AbortSignal,document:{currentScript:{src:'https://test.local/research-v83/kronos-data.js'}},ShitouForecastPreview:{signature:F.signature,inputWindow:F.inputWindow,register(input,raw){const r=F.evaluate(input,raw);registered.push(r);return {ok:r.state==='MODEL_SAMPLE',reason:r.reason};}},fetch:async url=>{requests.push(String(url));return {ok:true,json:async()=>String(url).includes('manifest')?{stocks:{[code]:{asOf:h.closeDate}}}:String(url).includes('/research/')?h:f};}};
  vm.runInNewContext(fs.readFileSync(require.resolve('../../research-v83/kronos-data.js'),'utf8'),context);
  return {api:context.ShitouKronosData,requests,registered};
 }

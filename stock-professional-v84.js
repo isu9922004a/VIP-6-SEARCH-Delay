@@ -141,7 +141,7 @@ function render(report){
  text('現價 '+price(st.close),665,32,335,50,{size:38,min:23,color:'#FF879B'});
  panel(1012,15,246,112,'#123b60','#6789a7');text('報告製作 By.石頭少爺',1024,25,222,27,{size:21,min:16,color:'#fff'});
  text(root.reportGeneratedAt().replace('（台灣時間）',''),1024,60,222,28,{size:18,min:14,color:'#e0edf9'});
- text('V8.6.1｜個股專業分析',1024,98,222,20,{size:15,min:13,color:'#b5cce2'});
+ text('V8.6.2｜個股專業分析',1024,98,222,20,{size:15,min:13,color:'#b5cce2'});
  text(`${root.marketNameZh(report.market)}｜最新交易日 ${report.closeDate||'待確認'}｜資料來源：${root.sourceNameZh(report.source)}`,M,105,970,29,{size:21,min:16,color:'#fff'});section('header',0,142);
  panel(M,158,I,149,'#F4F9FD','#CEDDEB');x.fillStyle=trend.color;x.fillRect(M,169,6,125);
  text('📈 行情雙層判讀｜趨勢不等於進場許可',M+23,168,I-46,30,{size:26,min:21,color:NAVY});
@@ -204,9 +204,9 @@ function render(report){
  const assistant=report.shitoAssistantEvidence,poc=assistant?.anchoredVolumeProfileEvidence,third=(I-2*G)/3;
  const status=e=>({pass:'通過',fail:'未通過',unavailable:'資料不足',caution:'待觀察'})[e?.status]||e?.label||'資料待確認';
  [['公司營運',status(assistant?.operatingGateEvidence)],['法人買盤',status(assistant?.capitalGateEvidence)],['主要成交密集區（估算）',poc?.status==='pass'?`${poc.pocLower?.toFixed(2)}～${poc.pocUpper?.toFixed(2)} 元`:'資料待確認']].forEach(([title,value],i)=>{const px=M+i*(third+G);panel(px,footY+38,third,60);text(title,px+12,footY+44,third-24,24,{size:18,min:15});text(value,px+12,footY+70,third-24,22,{size:19,min:15,color:i===2?tone.blue:tone.orange});});
- text('V8.6.1｜盤後完成日K研究；條件分不是勝率，到價仍須確認，交易風險自負。',M,H-20,I,18,{size:14,min:12,color:MUTED,bold:false});section('assistant-footer',footY,H-footY);
+ text('V8.6.2｜盤後完成日K研究；條件分不是勝率，到價仍須確認，交易風險自負。',M,H-20,I,18,{size:14,min:12,color:MUTED,bold:false});section('assistant-footer',footY,H-footY);
  c.dataset.reportMode='professional';c.dataset.unifiedReport='true';c.dataset.iphoneFullScreen='1284x2778';c.dataset.fullBleed='true';c.dataset.reportText=encodeURIComponent(JSON.stringify(texts));
- c.dataset.layoutAudit=encodeURIComponent(JSON.stringify({version:'V8.6.1',template:'USER_REFERENCE_PROFESSIONAL',code:report.code||report.stock,date:report.closeDate,width:W,height:H,noOverlap:sections.every((s,i)=>!i||s.top>=sections[i-1].bottom),sections,metricCount:metrics.length,levelCount:levels.length,abc:{A:st.A,B:st.B,C:st.C},close:L.close,trend,shortTrend,momentumCaution,referenceLayout:true}));
+ c.dataset.layoutAudit=encodeURIComponent(JSON.stringify({version:'V8.6.2',template:'USER_REFERENCE_PROFESSIONAL',code:report.code||report.stock,date:report.closeDate,width:W,height:H,noOverlap:sections.every((s,i)=>!i||s.top>=sections[i-1].bottom),sections,metricCount:metrics.length,levelCount:levels.length,abc:{A:st.A,B:st.B,C:st.C},close:L.close,trend,shortTrend,momentumCaution,referenceLayout:true}));
  return c;
 }
 root.ShitouProfessionalV84=Object.freeze({render,trendFor,shortTermFor,trendSummary,professionalMomentumCaution,professionalRsi10,tone});root.renderStockProfessionalInfographicV51=render;

@@ -1,0 +1,66 @@
+name: Update independent index and its model
+on:
+  workflow_dispatch:
+  push:
+    branches: ['main']
+    paths: ['scripts/update-index-snapshot.cjs', '.github/workflows/update-index-snapshot.yml']
+  schedule:
+    - cron: '11,31,51 9-23 * * 1-5'
+permissions:
+  contents: write
+concurrency:
+  group: independent-index-update
+  cancel-in-progress: false
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test scripts/tests/index-update-v862.test.cjs scripts/tests/market-freshness-v862.test.cjs
+      - name: Refresh independent index with official completed-session validation
+        run: node scripts/update-index-snapshot.cjs
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: kronos/requirements.txt
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: kronos-weights-${{ hashFiles('kronos/model-lock.json') }}
+      - run: |
+          python -m pip install torch==2.7.1 --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install -r kronos/requirements.txt
+      - name: Run only the independent TAIEX model
+        run: python kronos/run.py --codes '' --index --samples 32 --threads 2
+      - name: Require matching current index and execution receipt
+        run: |
+          node - <<'NODE'
+          const F=require('./research-v83/forecast-engine.js'),M=require('./research-v83/market-engine.js'),h=require('./data/index/TAIEX.json'),f=require('./data/kronos/TAIEX.json'),r=F.evaluate(M.analyze(h).input,f);
+          if(r.state!=='MODEL_SAMPLE'||!F.executionVerified(f)||f.asOf!==h.closeDate)throw Error('Index and real model do not match');
+          NODE
+      - name: Publish the verified index and model together
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/index/TAIEX.json data/kronos/TAIEX.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'data: refresh independent verified TAIEX and its real model'
+          git pull --rebase origin main
+          git push origin HEAD:main
+  deploy:
+    needs: update
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy-data-pages.yml
+    with:
+      artifact-name: independent-index-pages

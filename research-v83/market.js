@@ -23,5 +23,28 @@ function render(){const type=$('market-type').value,data=records.get(type),a=M.a
  $('market-evidence').replaceChildren();for(const line of [...r.reasons,'模型不確定性：'+r.uncertainty.level+'；取樣分歧、資料完整度、歷史驗證須分開。','資料完整度：'+(r.dataQuality.complete?'日K及交易日曆核對通過':'日曆／資料核驗仍有限制'),f.provenance?.inputQuality?.warning||'',f.provenance?.outputQuality?.warning||'',ShitouMarketSimpleReport.validationText(backtest),'10–90%模型收盤取樣帶及ATR風險參考均未校準，不保證涵蓋隔日走勢。'])if(line)$('market-evidence').append(element('p',line));draw(a,f);
 
 }
-async function load(){ $('market-refresh').disabled=true;$('market-error').textContent='';try{const base=new URL('../',document.currentScript?.src||new URL('research-v83/market.js',location.href));const get=async path=>{const r=await fetch(new URL(path,base),{cache:'no-store',signal:AbortSignal.timeout(20000)});if(!r.ok)throw Error('資料暫無法取得');return r.json();};const history=await get('data/index/TAIEX.json');records.set('TAIEX',history);models.clear();backtest=null;try{const b=await get('data/backtest/v86/comparison.json');if(b.schema==='v86-comparison-v1'&&b.improvementEstablished===false)backtest=b;}catch(_){}try{const f=await get('data/kronos/TAIEX.json'),today=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Taipei'}),parts=new Intl.DateTimeFormat('en-GB',{hour:'2-digit',hourCycle:'h23',timeZone:'Asia/Taipei'}).format(new Date());if(f.kind!=='KRONOS_INFERENCE'||f.model?.id!=='NeoQuasar/Kronos-small'||f.codeCommit!=='67b630e67f6a18c9e9be918d9b4337c960db1e9a'||!f.targetDates?.[0]||f.targetDates[0]<today||f.targetDates[0]===today&&Number(parts)>=15)throw Error('模型結果過期或未核驗，等待更新。');models.set('TAIEX',f);}catch(e){$('market-error').textContent=e.message;}}catch(e){$('market-error').textContent=e.message;}finally{render();$('market-refresh').disabled=false;}}
-$('market-refresh').onclick=load;window.independentMarketState=()=>state;window.independentMarketReportSnapshot=()=>reportSnapshot;load();
+let pending=null,lastAttempt=0;
+const dataBase=new URL('../',new URL('research-v83/market.js',location.href));
+function load(){
+ if(pending)return pending;
+ lastAttempt=Date.now();$('market-refresh').disabled=true;$('market-error').textContent='正在核對最新大盤資料…';
+ pending=(async()=>{
+  records.clear();models.clear();backtest=null;
+  const get=path=>ShitouMarketFreshness.getJSON(new URL(path,dataBase));
+  try{
+   const [historyResult,modelResult,comparison]=await Promise.allSettled([get('data/index/TAIEX.json'),get('data/kronos/TAIEX.json'),get('data/backtest/v86/comparison.json')]);
+   if(historyResult.status!=='fulfilled')throw Error('大盤行情暫未載入，請重新載入；系統稍後會自動重試。');
+   const history=historyResult.value;records.set('TAIEX',history);
+   if(comparison.status==='fulfilled'&&comparison.value.schema==='v86-comparison-v1'&&comparison.value.improvementEstablished===false)backtest=comparison.value;
+   if(modelResult.status!=='fulfilled')throw Error('模型資料暫未載入，請重新載入；系統稍後會自動重試。');
+   const f=modelResult.value,valid=ShitouMarketFreshness.check(f,history);
+   if(!valid.ready)throw Error(valid.reason);
+   models.set('TAIEX',f);$('market-error').textContent='';
+  }catch(e){$('market-error').textContent=e.message;}
+  finally{render();$('market-refresh').disabled=false;pending=null;}
+ })();return pending;
+}
+function refreshVisible(){if(document.visibilityState!=='hidden'&&Date.now()-lastAttempt>60000)load();}
+$('market-refresh').onclick=load;window.addEventListener('focus',refreshVisible);document.addEventListener('visibilitychange',refreshVisible);
+setInterval(()=>{if(document.visibilityState!=='hidden')load();},300000);
+$('market-type').onchange=render;window.independentMarketState=()=>state;window.independentMarketReportSnapshot=()=>reportSnapshot;load();
