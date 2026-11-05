@@ -1,0 +1,4 @@
+'use strict';
+const {test}=require('node:test'),assert=require('node:assert/strict'),{plan}=require('../index-update-plan.cjs'),h=require('../../data/index/TAIEX.json'),f=require('../../data/kronos/TAIEX.json');
+test('current verified pair skips repeated inference; a new completed session requires recovery',()=>{assert.equal(plan(h,f,h.closeDate).needed,false);const next=h.tradingCalendar.dates.find(d=>d>h.closeDate);assert.ok(next);assert.equal(plan(h,f,next).needed,true);});
+test('current quote alone is not enough: stale, missing or altered model must be repaired',()=>{for(const m of [null,{...f,asOf:'2000-01-01'},{...f,historySignature:'changed'}])assert.equal(plan(h,m,h.closeDate).needed,true);const m=structuredClone(f);m.samples[0][0].close++;assert.equal(plan(h,m,h.closeDate).needed,true);});

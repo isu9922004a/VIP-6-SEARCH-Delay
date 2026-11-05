@@ -3,9 +3,11 @@ on:
   workflow_dispatch:
   push:
     branches: ['main']
-    paths: ['scripts/update-index-snapshot.cjs', '.github/workflows/update-index-snapshot.yml']
+    paths: ['scripts/update-index-snapshot.cjs', 'scripts/index-update-plan.cjs', '.github/workflows/update-index-snapshot.yml']
   schedule:
-    - cron: '11,31,51 9-23 * * 1-5'
+    # UTC, all hours: recover missed post-close runs through the next morning.
+    # The verified exchange calendar decides the completed session; current pairs skip inference.
+    - cron: '13,33,53 * * * *'
 permissions:
   contents: write
 concurrency:
@@ -15,6 +17,8 @@ jobs:
   update:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    outputs:
+      updated: ${{ steps.plan.outputs.needed }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -23,30 +27,40 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: node --test scripts/tests/index-update-v862.test.cjs scripts/tests/market-freshness-v862.test.cjs
+      - run: node --test scripts/tests/index-update-v862.test.cjs scripts/tests/market-freshness-v862.test.cjs scripts/tests/index-recovery.test.cjs
+      - name: Determine whether the latest completed session needs recovery
+        id: plan
+        run: node scripts/index-update-plan.cjs
       - name: Refresh independent index with official completed-session validation
+        if: steps.plan.outputs.needed == 'true'
         run: node scripts/update-index-snapshot.cjs
       - uses: actions/setup-python@v5
+        if: steps.plan.outputs.needed == 'true'
         with:
           python-version: '3.12'
           cache: pip
           cache-dependency-path: kronos/requirements.txt
       - uses: actions/cache@v4
+        if: steps.plan.outputs.needed == 'true'
         with:
           path: ~/.cache/huggingface
           key: kronos-weights-${{ hashFiles('kronos/model-lock.json') }}
-      - run: |
+      - if: steps.plan.outputs.needed == 'true'
+        run: |
           python -m pip install torch==2.7.1 --index-url https://download.pytorch.org/whl/cpu
           python -m pip install -r kronos/requirements.txt
       - name: Run only the independent TAIEX model
+        if: steps.plan.outputs.needed == 'true'
         run: python kronos/run.py --codes '' --index --samples 32 --threads 2
       - name: Require matching current index and execution receipt
+        if: steps.plan.outputs.needed == 'true'
         run: |
           node - <<'NODE'
           const F=require('./research-v83/forecast-engine.js'),M=require('./research-v83/market-engine.js'),h=require('./data/index/TAIEX.json'),f=require('./data/kronos/TAIEX.json'),r=F.evaluate(M.analyze(h).input,f);
           if(r.state!=='MODEL_SAMPLE'||!F.executionVerified(f)||f.asOf!==h.closeDate)throw Error('Index and real model do not match');
           NODE
       - name: Publish the verified index and model together
+        if: steps.plan.outputs.needed == 'true'
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
@@ -57,6 +71,7 @@ jobs:
           git push origin HEAD:main
   deploy:
     needs: update
+    if: needs.update.outputs.updated == 'true'
     permissions:
       contents: read
       pages: write

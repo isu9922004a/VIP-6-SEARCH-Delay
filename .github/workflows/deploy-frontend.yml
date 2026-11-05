@@ -23,7 +23,7 @@ jobs:
           node --check research-v83/kronos-data.js
           node --check research-v83/market-simple-report.js
           node --check research-v83/stock-simple-report.js
-          node --test scripts/tests/kronos-report-binding.test.cjs scripts/tests/research-plain-narrative.test.cjs scripts/tests/market-v86.test.cjs scripts/tests/index-update-v862.test.cjs scripts/tests/market-freshness-v862.test.cjs scripts/tests/market-simple-report.test.cjs scripts/tests/pages-runtime-data.test.cjs scripts/tests/structure-strength-v863.test.cjs scripts/tests/stock-simple-report.test.cjs scripts/tests/report-observations-v864.test.cjs
+          node --test scripts/tests/kronos-report-binding.test.cjs scripts/tests/research-plain-narrative.test.cjs scripts/tests/market-v86.test.cjs scripts/tests/index-update-v862.test.cjs scripts/tests/market-freshness-v862.test.cjs scripts/tests/market-simple-report.test.cjs scripts/tests/pages-runtime-data.test.cjs scripts/tests/structure-strength-v863.test.cjs scripts/tests/stock-simple-report.test.cjs scripts/tests/report-observations-v864.test.cjs scripts/tests/index-recovery.test.cjs
       - run: npm install --no-save --ignore-scripts playwright-core
       - name: Verify V8.6.4 structure, mobile layout and complete PNG variants
         env:
@@ -53,20 +53,24 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
       - name: Verify the published V8.6.4 entry point and new report module
         run: |
           node - <<'NODE'
-          const assert=require('node:assert/strict');
+          const assert=require('node:assert/strict'),F=require('./research-v83/forecast-engine.js'),M=require('./research-v83/market-engine.js'),S=require('./research-v83/market-freshness.js');
           (async()=>{
             const base='https://isu9922004a.github.io/VIP-6-SEARCH-Delay/';let error;
             for(let i=0;i<8;i++)try{
               const read=async p=>{const r=await fetch(base+p+'?v864='+Date.now());assert.equal(r.status,200,p);return r.text();};
-              const [html,version,observations,fifth,report,market,marketJS]=await Promise.all(['index.html','version-v50.js','research-v83/report-observations.js','research-v83/stock-fifth-module.js','research-v83/stock-simple-report.js','market-outlook.html','research-v83/market.js'].map(read));
+              const [html,version,observations,fifth,report,market,marketJS,history,model]=await Promise.all(['index.html','version-v50.js','research-v83/report-observations.js','research-v83/stock-fifth-module.js','research-v83/stock-simple-report.js','market-outlook.html','research-v83/market.js','data/index/TAIEX.json','data/kronos/TAIEX.json'].map(read));
               assert.match(version,/DISPLAY='V8\.6\.4'/);assert.match(report,/VERSION='V8\.6\.4'/);assert.match(observations,/REPORT_OBSERVATIONS_8_6_4/);assert.match(fifth,/漲跌力道：/);assert.match(fifth,/關卡有沒有站穩：/);assert.match(market,/market-observations/);assert.match(marketJS,/ShitouReportObservations.fromMarket/);assert.ok(html.indexOf('report-observations.js?')<html.indexOf('stock-fifth-module.js?'));assert.match(html,/report-observations.js\?v=V8\.6\.4/);
-              console.log(JSON.stringify({live:true,version:'V8.6.4',stockAndMarket:true,momentumAndPriceConfirmation:true,scriptOrderVerified:true}));return;
+              const h=JSON.parse(history),f=JSON.parse(model),a=M.analyze(h);assert.equal(S.historyStatus(h).stale,false);assert.equal(F.evaluate(a.input,f).state,'MODEL_SAMPLE');assert.equal(F.executionVerified(f),true);assert.equal(f.asOf,h.closeDate);assert.ok(h.closeDate>=require('./data/index/TAIEX.json').closeDate);
+              console.log(JSON.stringify({live:true,version:'V8.6.4',indexDate:h.closeDate,close:h.close,modelDate:f.asOf,target:f.targetDates[0],stockAndMarket:true,momentumAndPriceConfirmation:true,scriptOrderVerified:true}));return;
             }catch(e){error=e;if(i<7)await new Promise(r=>setTimeout(r,15000));}throw error;
           })().catch(e=>{console.error(e);process.exitCode=1;});
           NODE

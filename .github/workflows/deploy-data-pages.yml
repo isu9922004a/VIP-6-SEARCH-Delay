@@ -18,7 +18,7 @@ jobs:
     timeout-minutes: 10
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url || steps.deployment_retry.outputs.page_url || steps.deployment_final.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -37,6 +37,24 @@ jobs:
           path: /tmp/verified-site
       - uses: actions/deploy-pages@v4
         id: deployment
+        continue-on-error: true
         with:
           artifact_name: ${{ inputs.artifact-name }}
 
+      - name: Wait for a concurrent Pages deployment before retrying
+        if: steps.deployment.outcome == 'failure'
+        run: sleep 20
+      - uses: actions/deploy-pages@v4
+        id: deployment_retry
+        if: steps.deployment.outcome == 'failure'
+        continue-on-error: true
+        with:
+          artifact_name: ${{ inputs.artifact-name }}
+      - name: Allow a pending Pages deployment to finish
+        if: steps.deployment_retry.outcome == 'failure'
+        run: sleep 40
+      - uses: actions/deploy-pages@v4
+        id: deployment_final
+        if: steps.deployment_retry.outcome == 'failure'
+        with:
+          artifact_name: ${{ inputs.artifact-name }}

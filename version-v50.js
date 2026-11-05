@@ -25,3 +25,5 @@
 
 
 /* V8.6.4: beginner momentum and close-confirmed price observations for stock and independent index reports. */
+
+/* MARKETRECOVERY1: recover missed index updates, skip current inference and label stale quote dates. */

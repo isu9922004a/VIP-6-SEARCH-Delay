@@ -24,6 +24,7 @@ function model(snapshot,{watermarked=false}={}){
  const fresh=r.model.available?f:null,m=r.model;
  const pct=x=>(x*100).toFixed(1)+'%',direction={BULL:'偏多',BEAR:'偏空',FLAT:'持平',MIXED:'方向分歧',ABSTAIN:'保留方向判斷'};
  const blocks=[],add=(kind,text,tone)=>blocks.push({kind,text,...(tone?{tone}:{})});
+ const T=typeof module==='object'&&module.exports?require('./market-freshness.js'):root.ShitouMarketFreshness,timeliness=T.historyStatus(a.input);if(timeliness.stale)add('notice',timeliness.message,'yellow');
  add('heading','① 下一交易日可能方向');
  add('highlight',fresh?(fresh.executionVerified?'已核對模型執行紀錄：':'模型執行紀錄尚未核對：')+direction[m.direction]+'；推演 '+m.targetDate+'，模擬收盤的中間值 '+num(m.medianClose)+' 點（'+pct(m.medianReturn)+'）。':'Kronos模型不可用；僅呈現歷史技術劇本，沒有模型方向或取樣比例。','yellow');
  add('body','目前走勢：'+r.regime.label+'；合併觀察：'+r.combinedState+'，'+direction[r.combinedDirection]+'。急跌風險：'+r.crashRisk.label+'。');

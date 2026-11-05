@@ -35,6 +35,7 @@ function load(){
    const [historyResult,modelResult,comparison]=await Promise.allSettled([get('data/index/TAIEX.json'),get('data/kronos/TAIEX.json'),get('data/backtest/v86/comparison.json')]);
    if(historyResult.status!=='fulfilled')throw Error('大盤行情暫未載入，請重新載入；系統稍後會自動重試。');
    const history=historyResult.value;records.set('TAIEX',history);
+   const timeliness=ShitouMarketFreshness.historyStatus(history);if(timeliness.stale)throw Error(timeliness.message+' 網頁會每5分鐘重新檢查。');
    if(comparison.status==='fulfilled'&&comparison.value.schema==='v86-comparison-v1'&&comparison.value.improvementEstablished===false)backtest=comparison.value;
    if(modelResult.status!=='fulfilled')throw Error('模型資料暫未載入，請重新載入；系統稍後會自動重試。');
    const f=modelResult.value,valid=ShitouMarketFreshness.check(f,history);
