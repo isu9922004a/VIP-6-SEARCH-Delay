@@ -736,12 +736,18 @@ async function generateMarket(withWatermark=false){
   const report=typeof lastMarketReportData!=='undefined'?lastMarketReportData:null;if(!report)throw new Error('請先完成大盤分析');
   if(document.fonts?.ready)await document.fonts.ready;
   const result=buildMarketIphoneReport(report,withWatermark);
-  await showPages(result.pages,{title:'臺灣加權股價指數大盤圖片報告',prefix:`石頭少爺_TAIEX_大盤分析圖${withWatermark?'_防盜浮水印':''}`,date:dateOf(report.closeDate),note:'iPhone 12 Pro Max 1284×2778 原生模板滿版；保留ABC、真實K線、量能、三劇本與三條關鍵線，不另加頁首、頁尾或重複技術附錄',kind:'market'});
+  await showPages(result.pages,{title:'臺灣加權股價指數大盤圖片報告',prefix:`石頭少爺_TAIEX_大盤分析圖${withWatermark?'_防盜浮水印':''}`,date:dateOf(report.closeDate),note:window.ShitouMarketComfortReport?'1284px 原生清晰長圖；字級、行距與留白自然展開，保留ABC、真實K線、量能、三劇本與三條關鍵線':'iPhone 12 Pro Max 1284×2778 原生模板滿版；保留ABC、真實K線、量能、三劇本與三條關鍵線',kind:'market'});
   return result;
 }
 
 function buildMarketIphoneReport(report,withWatermark=false){
   if(typeof original.marketRender!=='function')throw new Error('大盤原始圖片產生器不存在');
+  if(window.ShitouMarketComfortReport){
+    const source=window.ShitouMarketComfortReport.render(report);
+    if(withWatermark&&typeof original.watermark==='function')original.watermark(source,'market');
+    source.dataset.r45IphoneAudit=encodeURIComponent(JSON.stringify({size:`${source.width}x${source.height}`,sourceSize:`${source.width}x${source.height}`,scale:1,scaleX:1,scaleY:1,nativeTypography:true,complete:true,overlap:false}));
+    return {pages:[source],segments:[[0,source.height]],sourceHeight:source.height,size:`${source.width}x${source.height}`,singleLong:true,iphoneFullScreen:false,fullBleed:true,fitScale:1,scaleX:1,scaleY:1};
+  }
   const source=original.marketRender(report);source.dataset.reportMode='market';
   return fitIphoneStockReport(source,{title:'臺灣加權股價指數（TAIEX）大盤分析',date:report?.closeDate,watermark:withWatermark,watermarkKind:'market'});
 }
