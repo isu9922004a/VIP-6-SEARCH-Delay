@@ -3,13 +3,14 @@
 'use strict';
 const VERSION='RESEARCH_CHART_8_2_9',W=1284,H=2778;
 const fmt=x=>Number.isFinite(x)?String(+x.toFixed(2)):'待核';
-function page(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouReleaseV50?.displayCode||'V8.2.9',watermark=false}={}){
+function page(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouReleaseV50?.displayCode||'V8.7',watermark=false}={}){
+ const V=globalThis.ShitouElliottVisual||(typeof module==='object'&&module.exports?require('./elliott-wave-visual-v1.js'):null),wave=V?.enabled()?V.result(a):null;const measure=wave?doc.createElement('canvas').getContext('2d'):null,extra=wave?Math.ceil(V.linesFor(wave).reduce((sum,l)=>sum+V.wrap(measure,l,W-136,34).length*34*1.45+14,38)):0,PAGE_H=H+extra;
  const u=a?.unifiedResearch,n=a?.nContinuation,d=u?.state==='RESEARCH_ONLY'?u.chart:n?.state==='RESEARCH_ONLY'?n.chart:null;if(!d?.bars?.length)return null;
  const bars=d.bars.slice(-80),start=bars[0].index,end=bars.at(-1).index,patterns=d.patterns.filter(x=>x.type==='DOUBLE_BOTTOM'?x.points.some(v=>v.index>=start):x.endIndex>=start).slice(0,2);
  const guide=B.chartContext(a,d);
  const shown=[{title:guide.levels[0].title,price:d.trigger,color:'#f6cf65',solid:false},{title:guide.levels[1].title,price:d.invalidation,color:'#ff858f',solid:true},{title:guide.levels[2].title,price:d.defenseReference,color:'#8dc9c2',solid:false},{title:guide.levels[3].title,price:d.nextResistance?.price,color:'#d6aeff',solid:false}];
  const nq=n?.pattern,nOverlay=nq?{id:nq.id,stage:nq.stage,knownAt:nq.knownAt,points:['A','B','C'].map(key=>({key,...nq[key],visible:nq[key].index>=start})),projection:{...nq.projection}}:null;
- const audit={code:a.code,date:a.date,sourceSnapshotId:a.sourceSnapshotId,schemaVersion:u?.schemaVersion||n?.version||VERSION,chartVersion:VERSION,section:'STRUCTURE_CHART',width:W,height:H,noClipping:true,barCount:bars.length,firstDate:bars[0].date,lastDate:bars.at(-1).date,priceBasis:d.priceBasis,volumeStatus:d.volume.status,entryDirection:a.entryDirection||null,nContinuation:nOverlay,beginnerGuide:guide,
+ const audit={code:a.code,date:a.date,sourceSnapshotId:a.sourceSnapshotId,schemaVersion:u?.schemaVersion||n?.version||VERSION,chartVersion:VERSION,section:'STRUCTURE_CHART',width:W,height:PAGE_H,noClipping:true,barCount:bars.length,firstDate:bars[0].date,lastDate:bars.at(-1).date,priceBasis:d.priceBasis,volumeStatus:d.volume.status,entryDirection:a.entryDirection||null,nContinuation:nOverlay,beginnerGuide:guide,
   levels:shown.map(x=>({title:x.title,price:x.price??null})),patterns:patterns.map(x=>({type:x.type,status:x.status,formedAt:x.formedAt,confirmedAt:x.confirmedAt})),fields:shown.map(x=>({title:x.title,value:fmt(x.price)})),note:'虛線為參考／形成中；無已確認進場情境則不畫失效線；所有型態為未驗證績效的研究'};
  const dataset={researchAudit:JSON.stringify(audit),fullBleed:'true',release:displayCode};
  function paint(ctx){
@@ -42,6 +43,7 @@ function page(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouR
    const target=nq.projection.price;ctx.setLineDash([12,9]);ctx.strokeStyle='#80d8c7';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x0,yp(target));ctx.lineTo(x0+pw,yp(target));ctx.stroke();
   }
   ctx.setLineDash([]);ctx.restore();
+  if(wave)audit.elliottWave=V.overlay(ctx,wave,{bars,x:x0,y:y0,width:pw,height:ph,min,max,upperY:y0-40,lowerY:y0+ph+5});
   text(bars[0].date,x0,1288,32,'#bcd1e2');text(bars.at(-1).date,930,1288,32,'#bcd1e2',280);
   text('交易量：每天成交多少股',68,1327,36,'#bcd1e2');
   for(const b of bars){ctx.fillStyle=b.close>=b.open?'#f26370':'#42ca9b';ctx.fillRect(xp(b.index)-dx*.31,vp(b.volume),Math.max(2,dx*.62),vy+vh-vp(b.volume));}
@@ -57,9 +59,10 @@ function page(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouR
   wrapped(guide.projection,68,2460,W-136,32,43);
   wrapped(`資料確認：${d.basisVerified?'價格使用同一種計算方式':'價格計算方式還沒確認'}；${d.volume.status==='CONFLICT'?'交易量來源數字不一致':d.volume.usable?'可使用這個來源的日K交易量':'交易量來源還沒確認'}。虛線只供觀察；這些走勢沒有保證獲利。`,68,2590,W-136,31,40);
   text(`${displayCode}｜行情 ${a.date}｜紅漲綠跌`,68,2740,32,'#9cb8cc');
+  if(wave)V.block(ctx,wave,40,H,W-80,{dark:true,size:34});
  }
- const render=({top=0,height=H,scale=1}={})=>{const canvas=doc.createElement('canvas');canvas.width=Math.floor(W*scale);canvas.height=Math.floor(height*scale);const ctx=canvas.getContext('2d');if(!ctx)throw Error('Canvas 2D unavailable');ctx.setTransform(scale,0,0,scale,0,-top*scale);paint(ctx);if(watermark)globalThis.ShitouReportWatermark.paint(ctx,{width:W,height:H,type:'all'});Object.assign(canvas.dataset,dataset);return canvas;};
- return {width:W,height:H,dataset,renderExportRegion:render,toBlob(callback,type='image/png'){const canvas=render();canvas.toBlob(blob=>{canvas.width=canvas.height=1;callback(blob);},type);}};
+ const render=({top=0,height=PAGE_H,scale=1}={})=>{const canvas=doc.createElement('canvas');canvas.width=Math.floor(W*scale);canvas.height=Math.floor(height*scale);const ctx=canvas.getContext('2d');if(!ctx)throw Error('Canvas 2D unavailable');ctx.setTransform(scale,0,0,scale,0,-top*scale);paint(ctx);if(watermark)globalThis.ShitouReportWatermark.paint(ctx,{width:W,height:PAGE_H,type:'all'});Object.assign(canvas.dataset,dataset);canvas.dataset.researchAudit=JSON.stringify(audit);return canvas;};
+ return {width:W,height:PAGE_H,dataset,renderExportRegion:render,toBlob(callback,type='image/png'){const canvas=render();canvas.toBlob(blob=>{canvas.width=canvas.height=1;callback(blob);},type);}};
 }
 return Object.freeze({VERSION,page});
 });

@@ -10,7 +10,7 @@ function analyze(data){
  const avg=(n,offset=0)=>bars.slice(-n-offset,offset?-offset:undefined).reduce((s,b)=>s+b.close,0)/n;
  const ma5=avg(5),ma20=avg(20),ma60=avg(60),slope20=ma20-avg(20,3),prior=bars.slice(-21,-1),resistance=Math.max(...prior.map(b=>b.high)),support=Math.min(...prior.map(b=>b.low));
  const trend=last.close>ma20&&ma20>ma60&&slope20>0?'偏多':last.close<ma20&&ma20<ma60&&slope20<0?'偏空':'震盪整理';
- return {engulfRangeResearch:S.confirmationResearch(data),code:data.instrumentType,name:data.name,state:'AVAILABLE',instrumentType:data.instrumentType,date:last.date,close:last.close,ma5,ma20,ma60,slope20,resistance,support,trend,
+ return {elliottWave:(typeof module==='object'&&module.exports?require('../elliott-wave-v1.js'):globalThis.ShitouElliottWave)?.evaluate(data),engulfRangeResearch:S.confirmationResearch(data),code:data.instrumentType,name:data.name,state:'AVAILABLE',instrumentType:data.instrumentType,date:last.date,close:last.close,ma5,ma20,ma60,slope20,resistance,support,trend,
   illustration:data.provenance==='ILLUSTRATION',input:{symbol:data.instrumentType,market:data.instrumentType==='TAIEX'?'TWSE_INDEX':'TPEX_INDEX',asOf:last.date,bars,completed:data.completed,calendar:data.tradingCalendar,source:meta.source,close:last.close},
   conclusion:`目前${trend}；收盤${last.close>=ma20?'高於':'低於'}20日均線，20日均線${slope20>0?'上揚':slope20<0?'下彎':'走平'}。${last.close<support?'已跌破前20日低點，短線偏弱，先看能否收回原關卡。':last.close>resistance?'已越過前20日高點，仍須觀察能否站穩。':''}這是大盤歷史技術判讀；隔日方向須另看指數模型結果。`};
 }

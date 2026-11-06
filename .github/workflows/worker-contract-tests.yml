@@ -99,6 +99,12 @@ jobs:
           CHROME_BIN: /usr/bin/google-chrome
           V84_RENDER_ONLY: '1'
         run: node scripts/tests/v84-report-browser.cjs /tmp/research-evidence/v84-professional
+      - name: Verify opt-in Elliott waves, dated chart anchors and mobile image exports
+        if: matrix.fallback == '0'
+        env:
+          PLAYWRIGHT_MODULE: /tmp/research-browser/node_modules/playwright-core
+          CHROME_BIN: /usr/bin/google-chrome
+        run: node scripts/tests/elliott-browser.cjs /tmp/research-evidence/elliott
       - name: Capture generated chart for review
         if: matrix.fallback == '0'
         run: node -e 'console.log("CHART_REVIEW_PNG="+require("node:fs").readFileSync("/tmp/research-evidence/8039-chart.png").toString("base64"))'

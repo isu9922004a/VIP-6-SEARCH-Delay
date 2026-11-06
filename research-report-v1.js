@@ -280,6 +280,7 @@ function conflictSummary(a){
 // A single read-only presentation schema owns web cards, TXT/CSV and every image.
 // Additional indicator studies do not silently override the four-model situation.
 function view(a){
+ const waveView=globalThis.ShitouElliottVisual,waveFields=waveView?.enabled()?waveView.linesFor(waveView.result(a)).map(value=>({title:'艾略特波浪｜輔助觀察',value})):[];
  const engulfRange=Structure.confirmationView(a.engulfRangeResearch||a.unifiedResearch?.structureContext?.confirmationResearch||a.foundation?.engulfRangeResearch,a);
  const d=a.foundation?.dualScanContext,p=a.foundation?.alertPlan,t=technicalOutlook(a),f=a.features,valid=a.validation?.technicalModelAvailable===true,study=a.indicatorStudy;
  const technicalSummary=[
@@ -296,6 +297,7 @@ function view(a){
  const level=(key,label)=>{const item=a.priceLevels?.[key],formula=key==='researchBreakout'?'前20根完成日K最高價（不含當日）':item?.formula?.startsWith('max(')?'已守住的前日均線支撐最高值':'前20根完成日K最低價（不含當日）';return item?.verified&&Number.isFinite(item.value)?`${label} ${fmt(item.value)}；${formula}；行情 ${item.sourceDate}`:'資料不足，暫無法核驗價位';};
  const favourable=!valid?'基礎日K未通過，無法核驗有利依據':Object.entries(a.families||{}).filter(([k,v])=>v===true&&k!=='DATA_QUALITY').map(([k])=>({PRICE_STRUCTURE:'突破／結構',TREND_MA:'均線趨勢',VOLUME:'量能',MOMENTUM:'動能',FLOW:'資金',FUNDAMENTAL:'基本面'}[k])).filter(Boolean).join('、')||'尚無正向家族共振；仍可依已知價量判讀現況';
  const details=[
+  ...waveFields,
   ...engulfRange.fields.map(f=>({title:'吞沒／箱體｜'+f.title,value:f.value})),
   ...(a.evidenceDiagnostics?.technicalOnlyFallback?[{title:'本次查詢使用的資料',value:'完整分析服務暫不可用，已改讀經來源檢查的完成日線；四策略仍可判讀。月線資格與固定倍數暫不提供，不能當成已通過。原因：'+a.evidenceDiagnostics.technicalOnlyFallback.reason}]:[]),
   ...Opening.details(a.openingPlan),
@@ -346,7 +348,7 @@ function view(a){
 }
 function lines(a){
  const v=view(a);
- return [globalThis.ShitouReleaseV50?.displayRelease||'石頭少爺 V8.2.10｜四策略研究',`${a.name}（${a.code}）｜${a.date||'日期待確認'}`,`【現況】${v.stage}`,...[...v.summary,...v.details].map(f=>`【${f.title}】${f.value}`),'原榜分數、資格與排序保留；本區僅提供研究摘要。'];
+ return [globalThis.ShitouReleaseV50?.displayRelease||'石頭少爺 V8.7｜四策略研究',`${a.name}（${a.code}）｜${a.date||'日期待確認'}`,`【現況】${v.stage}`,...[...v.summary,...v.details].map(f=>`【${f.title}】${f.value}`),'原榜分數、資格與排序保留；本區僅提供研究摘要。'];
 }
 function text(a){return lines(a).join('\n');}
 function wrap(ctx,s,width){const out=[];for(const p of String(s).split('\n')){let row='';for(const token of p.match(/[A-Za-z0-9][A-Za-z0-9._/%+\-]*[，。！？；：、）】」』]*|[\s\S][，。！？；：、）】」』]*/g)||[]){
@@ -354,7 +356,7 @@ function wrap(ctx,s,width){const out=[];for(const p of String(s).split('\n')){le
  if(row&&ctx.measureText(row+token).width>width){out.push(row);row=token;}else row+=token;
  }out.push(row);}return out;}
 function roundRectPath(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
-function pages(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouReleaseV50?.displayCode||'V8.6.4',watermark=false,stockMetrics=null,stockMode=!!stockMetrics,detail=false,iphoneFullScreen=false}={}){
+function pages(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouReleaseV50?.displayCode||'V8.7',watermark=false,stockMetrics=null,stockMode=!!stockMetrics,detail=false,iphoneFullScreen=false}={}){
  const W=1284,H=2778,M=54,FIELD_FONT=56,FIELD_LINE=77,LABEL_FONT=40,MAX_BOTTOM=2430;
  const ctx=doc.createElement('canvas').getContext('2d');
  if(!ctx)throw Error('Canvas 2D unavailable');
