@@ -1,0 +1,233 @@
+{
+  "required": {
+    "npm ci": {
+      "exit": 0,
+      "log": "/workspace/deploy-final-install.log"
+    },
+    "npm test": {
+      "exit": 0,
+      "tests": 658,
+      "pass": 658,
+      "fail": 0,
+      "log": "/workspace/deploy-final-unit-658.log"
+    },
+    "npm run test:contract": {
+      "exit": 0,
+      "fileTests": 2,
+      "log": "/workspace/deploy-final-contract.log"
+    },
+    "npm run research:validate": {
+      "exit": 0,
+      "status": "BLOCKED_MISSING_POINT_IN_TIME_HISTORY",
+      "performanceProven": false,
+      "log": "/workspace/deploy-final-research.log"
+    }
+  },
+  "newBrowser": [
+    {
+      "name": "stock application shared modules and six controls load",
+      "status": "PASS"
+    },
+    {
+      "name": "actual stock panel is closed by default with original research",
+      "status": "PASS"
+    },
+    {
+      "name": "mobile 428px, 390px and desktop single column have no overlap or overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "both 1284x2778 PNG modes share every field with text and do not clip",
+      "status": "PASS",
+      "details": [
+        {
+          "watermarked": false,
+          "minFont": 42,
+          "fieldCount": 13
+        },
+        {
+          "watermarked": true,
+          "minFont": 42,
+          "fieldCount": 13
+        }
+      ]
+    },
+    {
+      "name": "new PNG reuses original modal and native LINE single-file share",
+      "status": "PASS",
+      "details": {
+        "buttons": [
+          "✕ 關閉",
+          "📤 分享完整圖片到 LINE",
+          "← 上一頁",
+          "下一頁 →",
+          "⬇️ 下載完整 ZIP",
+          "上一段",
+          "下一段"
+        ],
+        "shares": [
+          [
+            {
+              "name": "shitou_9001_mw4wrnjy_full.jpg",
+              "type": "image/jpeg",
+              "size": 626832
+            }
+          ]
+        ]
+      }
+    },
+    {
+      "name": "removed stock panel cannot open an obsolete image",
+      "status": "PASS"
+    },
+    {
+      "name": "independent index uses same verified calculation and closed panel",
+      "status": "PASS",
+      "details": {
+        "state": "RESEARCH_ONLY",
+        "open": false,
+        "code": "TAIEX"
+      }
+    },
+    {
+      "name": "index research PNG reuses existing modal, download and LINE; original chart PNG preserved",
+      "status": "PASS"
+    },
+    {
+      "name": "stock and index pages have no uncaught JavaScript errors",
+      "status": "PASS"
+    }
+  ],
+  "legacyRegression": {
+    "marketComfort": {
+      "exit": 0,
+      "log": "/workspace/engulf-final-market-comfort.log"
+    },
+    "marketRecovery": {
+      "exit": 0,
+      "log": "/workspace/engulf-final-market-recovery.log"
+    },
+    "stockContext": {
+      "exit": 0,
+      "alsoFailsUnmodifiedBaseline": true,
+      "reason": "DOM textContent newline serialization mismatch",
+      "changedLog": "/workspace/engulf-final-stock-context.log",
+      "baselineLog": "/workspace/engulf-last-baseline-context.log",
+      "fixed": true,
+      "normalLog": "/workspace/deploy-final-context-browser.log",
+      "fallbackLog": "/workspace/deploy-final-fallback-browser.log"
+    },
+    "npm run test:browser": {
+      "exit": 0,
+      "alsoFailsUnmodifiedBaseline": true,
+      "reason": "stale V8.2.2 / alertPlan / candle-page expectations, hidden element screenshot",
+      "changedLog": "/workspace/engulf-final-legacy-browser.log",
+      "baselineLog": "/workspace/engulf-last-baseline-legacy.log",
+      "fixed": true,
+      "checks": 29,
+      "log": "/workspace/deploy-final-general-browser.log"
+    }
+  },
+  "allTestsGreen": true,
+  "workerDeployed": false,
+  "latestSoftwareValidation": [
+    {
+      "name": "install",
+      "code": 0,
+      "signal": null,
+      "seconds": 0.556,
+      "log": "/workspace/deploy-final-install.log"
+    },
+    {
+      "name": "research",
+      "code": 0,
+      "signal": null,
+      "seconds": 0.893,
+      "log": "/workspace/deploy-final-research.log"
+    },
+    {
+      "name": "contract",
+      "code": 0,
+      "signal": null,
+      "seconds": 11.921,
+      "log": "/workspace/deploy-final-contract.log"
+    },
+    {
+      "name": "unit",
+      "code": 0,
+      "signal": null,
+      "seconds": 36.237,
+      "log": "/workspace/deploy-final-unit.log"
+    },
+    {
+      "name": "new-browser",
+      "code": 0,
+      "signal": null,
+      "seconds": 9.751,
+      "log": "/workspace/deploy-final-new-browser.log"
+    },
+    {
+      "name": "general-browser",
+      "code": 0,
+      "signal": null,
+      "seconds": 14.916,
+      "log": "/workspace/deploy-final-general-browser.log"
+    },
+    {
+      "name": "fallback-browser",
+      "code": 0,
+      "signal": null,
+      "seconds": 23.993,
+      "log": "/workspace/deploy-final-fallback-browser.log"
+    },
+    {
+      "name": "context-browser",
+      "code": 0,
+      "signal": null,
+      "seconds": 25.116,
+      "log": "/workspace/deploy-final-context-browser.log"
+    },
+    {
+      "name": "recovery-browser",
+      "code": 0,
+      "signal": null,
+      "seconds": 9.421,
+      "log": "/workspace/deploy-final-recovery-browser.log"
+    },
+    {
+      "name": "structure-browser",
+      "code": 0,
+      "signal": null,
+      "seconds": 11.847,
+      "log": "/workspace/deploy-final-structure-browser.log"
+    },
+    {
+      "name": "market-browser",
+      "code": 0,
+      "signal": null,
+      "seconds": 34.059,
+      "log": "/workspace/deploy-final-market-browser.log"
+    },
+    {
+      "name": "professional-browser",
+      "code": 0,
+      "signal": null,
+      "seconds": 15.295,
+      "log": "/workspace/deploy-final-professional-browser.log"
+    }
+  ],
+  "allSoftwareChecksPassed": true,
+  "historicalPerformanceProven": false,
+  "deployment": {
+    "authorization": "User explicitly requested direct deployment after fixes",
+    "status": "PRE_DEPLOY_VALIDATION_PASSED",
+    "authoritativeResult": "PR #9 and Deploy verified frontend release GitHub Actions; final response includes verified result"
+  },
+  "postCloudRegression": {
+    "tests": 658,
+    "pass": 658,
+    "fail": 0,
+    "log": "/workspace/deploy-final-unit-658.log",
+    "change": "Unverified coverage must remain unknown; recompute test quote-scope conflict through the original amount/volume audit"
+  }
+}

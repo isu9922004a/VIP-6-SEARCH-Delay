@@ -1,7 +1,7 @@
 'use strict';
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('fs'),vm=require('vm');
 const C=require('../../four-models-research-v1.js'),F=require('../../research-v83/forecast-engine.js'),G=require('../../research-v83/stock-fifth-module.js');
-const history=require('../../data/research/2026-11-03/4743.json'),forecast=require('../../data/kronos/stocks/4743.json');
+const forecast=require('../../data/kronos/stocks/4743.json'),history=require('../../data/research/'+forecast.asOf+'/4743.json');
 function setup({fail=()=>null,cache=false,abortApi=AbortSignal}={}){
  const calls=[],registered=[];let mode='fail';
  class Clock extends Date{constructor(...args){super(...(args.length?args:[history.closeDate+'T11:00:00Z']));}static now(){return new Date(history.closeDate+'T11:00:00Z').getTime();}}

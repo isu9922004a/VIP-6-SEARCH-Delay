@@ -2,7 +2,7 @@
 (function(r,f){const c=typeof module==='object'&&module.exports,a=f(c?require('./research-common-v1.js'):r.ShitouResearchCommon,c?require('./indicator-multi-v1.js'):r.ShitouIndicatorMultiV1,c?require('./structure-context-v1.js'):r.ShitouStructureContext);if(c)module.exports=a;else r.ShitouUnifiedAnalysis=a;})(globalThis,function(U,I,S){
 'use strict';
 const VERSION='UNIFIED_RESEARCH_R17',PARAM=Object.freeze({version:'R16_PARAMS_1',pivotLeft:3,pivotRight:3,volume:1.2,longWick:.5,weakClose:.6,zoneATR:.25,maxStopPct:8,minRR:1.5,minSpacePct:2,maxGapPct:5,maxExtensionATR:2,fee:.001425,feeDiscount:1,tax:.003,slippage:.001,redBodyMin:.25,redBodyMax:.65,redWickMax:.4,redVolumeMin:.7,redVolumeMax:1.5,setupDays:5});
-const FLAGS=Object.freeze({unifiedResearchEnabled:true,oneThirdEnabled:true,postLimitupEnabled:true,waveEnabled:true,marketContextEnabled:true});
+const FLAGS=Object.freeze({unifiedResearchEnabled:true,oneThirdEnabled:true,postLimitupEnabled:true,waveEnabled:true,marketContextEnabled:true,engulfRangeResearchEnabled:true});
 const statusZh={FAILED_BREAKOUT:'盤中一度漲過壓力，但收盤沒有站上',WAIT_TRIGGER:'尚未出現買點',PENDING_CONFIRMATION:'已觸及觀察價格但待確認',CONFIRMED:'技術條件已確認',INVALIDATED:'原本看好的理由已失效',DATA_INSUFFICIENT:'資料不足',ACCEPTABLE_FOR_EVALUATION:'風險可供評估',BLOCKED:'風險過高，阻擋進場',UNKNOWN:'必要風險未知'};
 const fmt=n=>Number.isFinite(n)?n.toFixed(2):'未知';
 function roundTick(p,d=0){if(!(p>0))return null;const t=U.tick(p),v=(d<0?Math.floor((p+1e-8)/t):d>0?Math.ceil((p-1e-8)/t):Math.round(p/t))*t;return +v.toFixed(2);}
@@ -22,7 +22,7 @@ function evaluate(input,options={}){
  const r=U.normalizeInput(input),n=U.validate(r);
  if(!n.ok||n.bars.length<63)return U.freeze({version:VERSION,state:'DATA_INSUFFICIENT',entryDecision:'CANNOT_EVALUATE',reason:n.reason||'至少需要63根已完成且通過健康檢查的日K',summary:[{title:'現在適合進場嗎？',value:'⚪ 資料不足，無法判斷；'+(n.reason||'歷史長度不足')}],details:[]});
  const b=n.bars,z=b.at(-1),prev=b.at(-2),f=U.features(b),pv=pivots(b,p),prior=b.slice(0,-1),priorPv=pivots(prior,p),atr=f.atr14,tol=atr*p.zoneATR;
- const context=S.evaluate(b,r,{pivots:pv,parameters:{...S.PARAM,volume:p.volume,zoneATR:p.zoneATR}}),volume=context.volume,event=context.breakoutEvent;
+ const context=S.evaluate(b,r,{pivots:pv,parameters:{...S.PARAM,volume:p.volume,zoneATR:p.zoneATR},researchEnabled:flags.engulfRangeResearchEnabled!==false,confirmationParameters:options.engulfRangeParameters}),volume=context.volume,event=context.breakoutEvent;
  const resistance=f.prior20High,support=f.prior20Low,br={...breakout(b,resistance,p),quality:context.breakout};
  const up=z.close>f.ma[20].value&&f.ma[20].value>f.ma[60].value&&f.ma[20].slope>0,down=z.close<f.ma[20].value&&f.ma[20].value<f.ma[60].value;
  const stage=event?.status==='INVALIDATED'?'FAILED':context.pullback.status==='CONFIRMED'?'PULLBACK':up&&z.close<f.ma[5].value?'PULLBACK':up&&f.rsi14>70?'HIGH_CONSOLIDATION':up?'BULL_CONTINUE':down&&z.close>prev.close?'REBOUND':down?'BEAR':z.close>f.ma[20].value&&prev.close>U.ma(prior,20)?'BULL_START':'RANGE';
@@ -99,7 +99,7 @@ function evaluate(input,options={}){
   {title:'情境觸發與確認',value:scenarios.map(x=>`${x.label}：${statusZh[x.signalStatus]}／${statusZh[x.riskDecision]}；${x.confirmationRule}`).join('\n')},
   {title:'支撐確認與失效',value:`${context.pullback.note}。${context.pullback.establishedSupport?`先前情境 ${context.pullback.establishedSupport.date}，固定參考 ${fmt(context.pullback.establishedSupport.price)}。`:'目前沒有先前已確認的MA20收復情境。'}\n`+scenarios.map(x=>`${x.label}：${x.invalidationRule}`).join('\n')},
   {title:'底部與三角研究',value:patternNames},
-  {title:'K線位置與後續',value:context.candles.map(x=>`${x.eventDate} ${x.label}；${x.status==='CONFIRMED'?'下一根價格確認':x.status==='INVALIDATED'?'已失效':'待後續確認'}；附近參考 ${x.nearReferences.join('、')||'無'}；${x.note}`).join('\n')||'近期無符合定義的特殊K線；不強迫套用形態。'},
+  {title:'K線位置與後續',value:context.candles.map(x=>`${x.eventDate} ${x.label}；${x.status==='CONFIRMED'?(x.researchEventId?'吞沒三關及後續確認':'下一根價格確認'):x.status==='INVALIDATED'?'已失效':'待後續確認'}；附近參考 ${x.nearReferences.join('、')||'無'}；${x.note}`).join('\n')||'近期無符合定義的特殊K線；不強迫套用形態。'},
   {title:'目標與報酬風險',value:scenarios.map(x=>`${x.label}：${x.riskReward?.status==='KNOWN'?`以收盤假設進場；計畫失效 ${fmt(x.invalidationPrice)}、研究停損 ${fmt(x.riskReward.stop)}、最近關卡 ${fmt(x.riskReward.target1)}、扣成本R/R ${fmt(x.riskReward.rr)}`:'缺乏合理的防守／上方關卡或情境已失效，無法計算'}`).join('\n')+'\n型態量度投射不作為已核實壓力或R/R目標；跳空、漲停與滑價可能無法按計畫成交。'},
   {title:'主力敘事的資料邊界',value:'日K只能描述量價，不能確認吸籌／洗盤／出貨意圖、主力實際成本、封單撤單或對倒；換手15%不是通用出貨分界。沒有外部資金證據就標未知。'},
   {title:'既有輔助研究',value:Object.entries(studies).filter(([,v])=>v).map(([k,v])=>`${({oneThird:'三分之一回撤',postLimitup:'漲停後候選',wave:'波浪候選'})[k]}：${v.note||v.reason||'輔助研究，未驗證績效'}`).join('\n')},

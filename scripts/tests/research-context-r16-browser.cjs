@@ -68,6 +68,8 @@ const normalize=s=>String(s).replace(/[\s｜]/g,'');
    assert.equal(await page.locator('#workspaceStockSummary').isVisible(),true);
    await page.locator('#workspaceFourReportButton').click();
    assert.equal(await page.locator('#researchStock').isVisible(),true,'four-strategy study opens inside overlay');
+   assert.equal(await page.locator('#researchStock .research-stock-card').evaluate(e=>e.open),false,'study starts collapsed');
+   await page.locator('#researchStock .research-stock-card>summary').click();
    assert.equal(await page.locator('#workspaceReportToolbar').isVisible(),true);
    if(result.chart){
     assert.equal(result.chart.date,result.date);assert.equal(result.chart.lastDate,result.date);assert.ok(result.chart.barCount>=60&&result.chart.barCount<=120);

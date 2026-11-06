@@ -69,7 +69,7 @@ function researchCard(a,number,prefix='研究',expanded=false){
   if(guideIndex===0){value.textContent='';const parts=item.value.split('\n');value.append(el('strong',parts.shift()),document.createTextNode('\n'),el('span',parts.join('\n')));}
   row.append(key,value);return row;
  }
- body.append(guide);
+ body.append(guide);if(root.ShitouEngulfRangeReport)body.append(root.ShitouEngulfRangeReport.mount(document,a));
  const evidence=el('details');evidence.className='research-guide-evidence';evidence.append(el('summary','查看完整研究與資料驗證'));
  for(const item of report.details)evidence.append(field(item));body.append(evidence);
  if(a.openingPlan){
@@ -215,7 +215,7 @@ async function preview(analyses,{stockMode=false,detail=false,chartOnly=false,wa
  if(chartOnly){const c=R.candlePage(a,{displayCode:root.ShitouReleaseV50.displayCode,watermark});return c?[c]:[];}
  return R.pages(a,{displayCode:root.ShitouReleaseV50.displayCode,stockMetrics:metrics,stockMode,detail,watermark});});
  return root.strongStockShowPagesV47(pages,{title:chartOnly?'四策略研究｜結構證據圖':'四策略研究｜白話行動指南',prefix:root.ShitouReleaseV50.displayCode+(stockMode?'_個股研究':'_研究')+(chartOnly?'_結構圖':''),date:analyses[0].date,kind:'v8-research',note:stockMode?'個股研究不列入濾網排名｜非買進訊號':'精簡摘要僅供研究觀察；原榜資格與排序保留。'});}
-function mountStock(input){const host=by('result');if(!host)return;by('researchStock')?.remove();const a=forReport(input);if(!Object.values(flags).some((v,i)=>v&&Object.keys(flags)[i].endsWith('Enabled')))return;const box=el('section');box.id='researchStock';box.className='research-inline';const card=researchCard(a,1,'個股',true);card.querySelector('.research-card-actions>button').onclick=()=>preview([a],{stockMode:true});box.append(el('h3','四策略研究摘要'),card);host.append(box);}
+function mountStock(input){const host=by('result');if(!host)return;by('researchStock')?.remove();const a=forReport(input);if(!Object.values(flags).some((v,i)=>v&&Object.keys(flags)[i].endsWith('Enabled')))return;const box=el('section');box.id='researchStock';box.className='research-inline';const card=researchCard(a,1,'個股',false);card.querySelector('.research-card-actions>button').onclick=()=>preview([a],{stockMode:true});box.append(el('h3','四策略研究摘要'),card);host.append(box);}
 function setFlags(next){flags=U.flags({...flags,...next});cache.clear();seen.clear();records.clear();revision++;try{localStorage.setItem('shitou-research-flags-v1',JSON.stringify(flags));}catch(_){}const snapshot=root.ShitouSelectionDataV2?.getSnapshot?.();if(snapshot){const results=[...sourceRecords].map(([code,data])=>({ok:true,code,data}));capture({snapshot,items:results.map(x=>({code:x.code})),results});}if(typeof lastReportData!=='undefined'&&lastReportData){captureStockQuery(lastReportData);mountStock(lastReportData);}schedule();return {...flags};}
 function render(){const panel=by('researchPanel');if(!panel)return;
  if(by('researchCsv')){by('researchCsv').disabled=!latestStockQuery;by('researchCsv').title=latestStockQuery?`製作 ${latestStockQuery.analysis.name}（${latestStockQuery.analysis.code}）提醒圖片`:'請先完成個股查詢';}
@@ -225,7 +225,7 @@ function render(){const panel=by('researchPanel');if(!panel)return;
   by('researchScope').textContent=stock?`個股查詢：${stock.analysis.name}（${stock.analysis.code}）｜行情 ${stock.metrics.marketDate}`:'請先在「個股查詢」輸入股票代號並完成分析。';
   by('researchBaseline').textContent='此模式只顯示最新一次成功查詢的股票，不參與六套原濾網的排名。';
   by('researchFunnel').textContent=stock?(stock.analysis.limitedHistory?'已顯示官方核驗行情與可計算的短期均價；完整策略仍受歷史或交易規則限制。':stock.metrics.verifiedDailyResearch?'已顯示該股四模型研究與關鍵價位；資料認證另查。':'個股行情可供觀察；四模型所需完整日K資料不足，不補猜訊號。'):'查詢成功後可展開手機卡片、查看圖片及匯出文字摘要。';
-  if(stock){host.append(stockQueryIntro(stock));const card=researchCard(stock.analysis,1,'個股',true);host.append(card);
+  if(stock){host.append(stockQueryIntro(stock));const card=researchCard(stock.analysis,1,'個股',false);host.append(card);
    const button=card.querySelector('.research-card-actions>button');if(button)button.onclick=()=>preview([stock.analysis],{stockMode:true});}
   by('researchPreview').disabled=!stock;
   by('researchPreview').textContent='四策略研究｜個股查詢摘要圖';

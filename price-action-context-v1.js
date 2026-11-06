@@ -89,7 +89,8 @@ function evaluate(input,options={}){
   else if(latest.state==='SIGNAL'&&!group.some(e=>e.confirmedNow))waiting.push(latest.label+'尚未確認，不能因單根K棒或比例位置取得正式資格');
  }
  const fibText=s.fib?s.fib.levels.filter(l=>l.touched).map(l=>({ratio:l.ratio,level:l.value,structuralOverlap:l.overlap,meaning:l.overlap.length?'與既有結構候選重合，仍需價格確認':'只有比例接近，無獨立結構佐證'})):[];
- return {...base,state:concerns.length?'CAUTION':waiting.length?'WATCH':'OBSERVE',date:v.asOf,concerns,waiting,events,continuation,reversal,
+ const shared=(typeof module==='object'&&module.exports?require('./structure-context-v1.js'):globalThis.ShitouStructureContext)?.confirmationResearch(report,{enabled:options.engulfRangeResearchEnabled,parameters:options.engulfRangeParameters});
+ return {...base,confirmationResearch:shared||null,state:concerns.length?'CAUTION':waiting.length?'WATCH':'OBSERVE',date:v.asOf,concerns,waiting,events,continuation,reversal,
   candle:c,location:{priorLow:s.low,priorHigh:s.high,midpoint:s.midpoint,priorMA20:s.ma20,position:s.position,gap20Pct:gap,support:s.support,resistance:s.resistance,tolerance:s.tolerance,atr14:s.atr14},fib:{available:!!s.fib,anchor:s.fib?{lowDate:s.fib.lowDate,highDate:s.fib.highDate,confirmedAt:s.fib.confirmedAt}:null,touched: fibText,changesEligibility:false},volumeRatio5:vr,
   warnings:[...(report.priceAdjustment?.verified!==true?['價格還原基準未驗證，僅供研究']:[]),...(!Array.isArray(report.expectedTradingDates)?['未附完整交易日曆']:[]),'日K不能證明盤中路徑、主力意圖或多空力量各半'],
   meaning:'風險與等待條件可降低正式資格；反轉另列觀察，不提高分數、不提升原策略資格'};

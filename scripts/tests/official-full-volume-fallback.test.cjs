@@ -1,10 +1,10 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const H=require('../../research-official-history-v1.js'),D=require('../../selection-data-v2.js'),F=require('../../four-models-research-v1.js');
-const root=path.resolve(__dirname,'../..'),snapshot=require('../../data/market/latest.json'),date=snapshot.tradeDateIso;
+const root=path.resolve(__dirname,'../..'),snapshot=require('../../data/market/archive/2026-11-03.json'),date=snapshot.tradeDateIso;
 const full=require('../fixtures/2330-full-mis-20261103.json');
 function setup(){H.reset();D.reset();global.ShitouOfficialResearchHistory=H;
- global.fetch=async url=>{const s=String(url),file=s.includes('research-calendar.json')?'data/market/research-calendar.json':'data/research/'+new URL(s).pathname.split('/data/research/')[1],text=fs.readFileSync(path.join(root,file),'utf8');return {ok:true,text:async()=>text,json:async()=>JSON.parse(text)};};
+ global.fetch=async url=>{const s=String(url);if(s.includes('/data/research/manifest.json'))return {ok:true,text:async()=>JSON.stringify(require('../fixtures/2330-official-archive-manifest-20261103.json')),json:async()=>require('../fixtures/2330-official-archive-manifest-20261103.json')};const file=s.includes('research-calendar.json')?'data/market/research-calendar.json':'data/research/'+new URL(s).pathname.split('/data/research/')[1],text=fs.readFileSync(path.join(root,file),'utf8');return {ok:true,text:async()=>text,json:async()=>JSON.parse(text)};};
  D.bind({map:new Map(snapshot.rows.map(q=>[q.code,q])),meta:{total:snapshot.rows.length,targetTradeDate:date,completedTradeDate:date,expectedTradeDate:date,twseQuoteDate:date,tpexQuoteDate:date,marketCoverageReady:true,industryCoverageReady:true,snapshotTimelinessReady:true}});
 }
 test('real 2330 FULL MIS volume mismatch cannot block verified official research',async()=>{
