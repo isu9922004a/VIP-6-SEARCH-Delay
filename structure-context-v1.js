@@ -250,22 +250,57 @@ function confirmationResearch(input,options={}){
  if(input.originalInvalidation!=null)contradictions.push('研究失效價與原策略停損分開記錄，研究訊號不覆寫原停損');
  return U.freeze({...base,state:'RESEARCH_ONLY',stockCode:String(context.report.stock||context.report.instrumentType),market:context.report.market,date:context.asOf,close:z.close,historyBarCount:b.length,observationStartDate:b[Math.max(0,b.length-1-p.confirmBars)].date,source:context.source,priceBasis:context.priceBasis,volumeStatus:context.volumeStatus,events,rangeEvents,range,rangeStatus:range?.rangeStatus||(b.length<15?'DATA_INSUFFICIENT':'NOT_FORMED'),contradictions,ma:{ma5:U.ma(b,5),ma10:U.ma(b,10),ma20},rsi5:rsi,location:eventLocation(b.slice(0,-1),z),limitations:['OHLCV聚集區不是委託簿，不能證明買賣掛單、主力成本或交易意圖','固定研究門檻尚未證實有預測改善，訊號不得提高正式排名或資格']});
 }
-const EVENT_ZH={PATTERN_APPEARED:'型態已出現',STRICT_CONDITIONS_PASSED:'嚴格價格量能條件通過，待後續確認',FOLLOW_THROUGH_CONFIRMED:'後續走勢已確認',WAITING_CONFIRMATION:'等待確認',FAILED:'已失效',EXPIRED:'已逾期',DATA_INSUFFICIENT:'資料不足'};
-const RANGE_ZH={RANGE_CANDIDATE:'盤整箱體候選',BREAKOUT_PENDING:'價格向上突破，後續或量能待確認',BREAKOUT_CONFIRMED:'向上突破後續已確認',BREAKDOWN_PENDING:'價格向下跌破，後續或量能待確認',BREAKDOWN_CONFIRMED:'向下跌破後續已確認',RETEST_HELD:'回測守穩',INTRADAY_REJECTION:'盤中刺穿、收盤未突破',FAILED_BREAKOUT:'突破失敗警戒',FAILED_BREAKDOWN:'跌破失敗警戒',DATA_INSUFFICIENT:'資料不足',EXPIRED:'確認期限已過'};
+// Presentation only: keep raw evidence, state identifiers and thresholds unchanged.
+const EVENT_ZH={PATTERN_APPEARED:'型態已出現，還要等後續表現',STRICT_CONDITIONS_PASSED:'訊號當天的價格與成交量已過關，還要等後續收盤確認',FOLLOW_THROUGH_CONFIRMED:'後續收盤已通過確認條件',WAITING_CONFIRMATION:'等待後續收盤確認',FAILED:'已失效：原本的方向沒有守住',EXPIRED:'已逾期：觀察時間內沒有確認',DATA_INSUFFICIENT:'資料不足，暫時不能確認'};
+const RANGE_ZH={RANGE_CANDIDATE:'股價在一段範圍內來回，先觀察',BREAKOUT_PENDING:'收盤已漲出區間，成交量或後續表現還要確認',BREAKOUT_CONFIRMED:'漲出區間後，後續收盤仍守在上方',BREAKDOWN_PENDING:'收盤已跌出區間，成交量或後續表現還要確認',BREAKDOWN_CONFIRMED:'跌出區間後，後續收盤仍在下方',RETEST_HELD:'回到原本邊界附近後，收盤仍守在突破方向',INTRADAY_REJECTION:'盤中曾越過邊界，收盤卻沒站出去',FAILED_BREAKOUT:'突破失敗警戒：漲出去後，收盤又退回邊界或區間內',FAILED_BREAKDOWN:'跌破失敗警戒：跌出去後，收盤又回到邊界或區間內',DATA_INSUFFICIENT:'資料不足，先不要判斷',EXPIRED:'等候時間已過，這次先不算確認'};
+const CONFIRM_PLAIN_TEXT={
+ '等待完成收盤越過箱頂／箱底及量能確認':'等收盤真正漲過區間上緣或跌破下緣，成交量也要通過檢查。',
+ '舊訊號已失效，等待新的箱體與量價證據':'這次訊號已失效，先等新的整理區間與價格、成交量證據。',
+ '追蹤完成收盤是否仍守住原箱體邊界；原策略風控不變':'繼續看收盤能否留在突破的那一側，仍照原本的風險與停損計畫。',
+ '確認期限已過，等待新訊號':'等候時間已過，先等新的訊號。',
+ '先核對成交量來源及統計口徑':'先核對成交量來自哪裡，以及股數、張數和計算範圍是否一致。',
+ '價格已越線，等待可靠量能；不能稱強勢突破':'收盤雖然越過邊界，成交量還沒過關，先不要當成強勢突破。',
+ '收盤位置未達研究門檻，等待更完整證據':'收盤還不夠靠近當天突破方向的高點或低點，先繼續觀察。',
+ '等待後續完成日K仍收在同一關卡之外':'等下一個交易日收盤，看看是否還留在突破的那一側。',
+ '盤中刺穿、收盤未突破；等待完成收盤與量能':'盤中曾越線，但收盤沒站出去；要等收盤與成交量都過關。',
+ '出現多頭吞沒，但收盤仍在20日均線下；不等同中期轉強':'有反彈跡象，但股價仍低於最近20天平均價，還不能說整體已轉強。',
+ '出現空頭吞沒，但仍在20日均線上；短線警訊不等同中期翻空':'短線有轉弱跡象，但股價仍高於最近20天平均價，還不能說整體已轉空。',
+ '新訊號偏多，但RSI偏熱；仍需遵守原追價風險檢查':'雖有上漲跡象，但短時間可能漲得太急（RSI偏高），仍要小心追高。',
+ '近期多頭與空頭吞沒互相衝突；應逐一追蹤失效，不合成更高信心':'最近上漲與下跌訊號都有出現，方向還不一致，不能因此提高把握。',
+ '吞沒後續與箱體證據不一致；仍以失效或原策略風控為優先':'K線訊號和整理區間的走勢不同，先處理失效警訊與原本的風險。',
+ '研究失效價與原策略停損分開記錄，研究訊號不覆寫原停損':'這裡的「觀察失效價」只用來追蹤訊號，原本的停損計畫照舊。'
+};
+function confirmationPlainReason(reason){
+ const s=String(reason||'');
+ if(/股票或日期不一致/.test(s))return '這份報告的股票或日期和研究資料對不上，請重新查詢。';
+ if(/其他股票|其他商品|股票代號|商品類型|指數身分|市場別|其他.*市場/.test(s))return '股票、指數或上市櫃市場資料還沒核對一致。';
+ if(/公司行動|除權息|還原|價格調整|價格基準/.test(s))return '除權息、減資等紀錄還沒核對完整，價格可能不能直接前後比較。';
+ if(/日曆|不連續|缺漏/.test(s))return '交易日或每日資料還沒核對完整，可能有缺日，先不要判斷。';
+ if(/成交量單位衝突/.test(s))return '成交量的股數、張數單位對不上，先不能用來確認。';
+ if(/成交量單位/.test(s))return '成交量是用股數還是張數，還沒核對清楚。';
+ if(/OHLC|跳動|價格.*合法/.test(s))return '開盤、最高、最低或收盤價還沒通過價格規則檢查。';
+ if(/前五根|不足|日K太少|沒有.*日K/.test(s))return '可用的每日資料還不夠，先等歷史資料補齊。';
+ if(/零量|停牌/.test(s))return '有沒有成交或是否停牌還需要核對，先不要用這段資料確認。';
+ if(/完成|日期/.test(s))return '資料日期或是否已收盤還沒核對一致，先不要當成完整盤後結果。';
+ if(/Worker|契約/.test(s))return '行情資料還沒通過系統的一致性檢查，先等待可靠資料。';
+ return '可用的盤後資料還沒核對完整，暫時不能確認。';
+}
 function confirmationView(research,original={}){
  const mismatched=research&&original.code&&(research.stockCode&&String(original.code)!==research.stockCode||original.date&&research.date!==original.date);
  const a=mismatched?{state:'DATA_INSUFFICIENT',reason:'報告與研究的股票或日期不一致',date:original.date}:research,fmt=v=>Number.isFinite(v)?v.toFixed(2):'尚未取得',unavailable=!a||['DISABLED','DATA_INSUFFICIENT'].includes(a.state);
- if(unavailable)return U.freeze({title:'K線吞沒與箱體突破確認',state:a?.state||'DATA_INSUFFICIENT',date:a?.date||null,fields:[{title:'結論',value:a?.state==='DISABLED'?'研究附層已關閉':'資料不足：'+(a?.reason||'尚未取得已核驗日K')},{title:'下一步',value:'先核對股票、市場、完成日K、交易日曆、成交量與除權息基準'}],research:a||null});
+ if(unavailable)return U.freeze({title:'K線吞沒與箱體突破確認',wordingVersion:'ENGULF_RANGE_PLAIN_1',state:a?.state||'DATA_INSUFFICIENT',date:a?.date||null,fields:[{title:'結論',value:a?.state==='DISABLED'?'這項額外觀察目前已關閉。':'資料不足：'+confirmationPlainReason(a?.reason)},{title:'下一步',value:'先把股票、收盤日期、每日價格、成交量與除權息紀錄核對好，再看是否出現訊號。'}],research:a||null});
  const events=a.events.filter(e=>e.signalDate===a.date),recent=a.events.filter(e=>e.signalDate>=a.observationStartDate&&!['EXPIRED','FAILED','DATA_INSUFFICIENT'].includes(e.status)),e=events.findLast(x=>x.patternType==='FULL_RANGE_ENGULFING')||events.at(-1)||recent.at(-1),range=a.range,position={LOW:'低位',HIGH:'高位',WITHIN_RANGE:'區間內',DATA_INSUFFICIENT:'資料不足'}[e?.location?.state||a.location?.state]||'資料不足';
  const failed=e?.status==='FAILED'||['FAILED_BREAKOUT','FAILED_BREAKDOWN'].includes(range?.rangeStatus),originalBlocked=['AVOID','DATA'].includes(original.entryDirection?.entry)||['DO_NOT_ENTER','CANNOT_EVALUATE'].includes(original.unifiedResearch?.entryDecision);
- const fields=[{title:'K線型態',value:e?(e.signalDate===a.date?'當日：':'追蹤較早訊號：')+e.label+'｜'+(e.patternType==='FULL_RANGE_ENGULFING'?'全幅吞沒（含上下影線）':'實體吞沒，影線未必包住')+'｜訊號 '+e.signalDate:'無明確吞沒型態'},{title:'位置',value:position+'；對照訊號日前完成日K，不代表已知底部或頭部'},{title:'收盤',value:e?(e.priceConfirmed?'已突破前一根完整高低價的嚴格關卡':'型態出現，但收盤尚未突破前一根嚴格關卡'):'沒有吞沒訊號，暫不填價格確認'},{title:'成交量',value:e?(e.volumeEvidence.usable?(e.volumeConfirmed?'通過初步門檻':'不足初步門檻')+'；前日量比 '+fmt(e.volumeRatioPrevious)+'、前5日均量比 '+fmt(e.volumeRatio5):'來源待核，不宣稱量能通過'):'量能隨訊號另行核驗'},{title:'吞沒進度',value:e?(EVENT_ZH[e.status]||e.status)+'；確認價 '+fmt(e.confirmTrigger)+'／研究失效 '+fmt(e.invalidationLevel)+(e.confirmationDate?'；確認 '+e.confirmationDate:'')+(e.failureDate?'；失效 '+e.failureDate+' '+e.failureReason:'')+(e.executionStatus==='ORDER_UNKNOWN'?'；同根觸及目標及失效，先後不明':''):'等待新的吞沒候選'},{title:'箱體',value:range?RANGE_ZH[range.rangeStatus]+'；箱頂 '+fmt(range.boxHigh)+'／箱底 '+fmt(range.boxLow)+'；收盤 '+fmt(a.close)+(a.close>range.boxHigh?' 在箱頂上方':a.close<range.boxLow?' 在箱底下方':' 在箱內')+'；區間 '+range.boxStartDate+'～'+range.boxEndDate:'未辨識符合研究門檻的盤整箱體'},{title:'突破／回測／失效',value:range?'突破關卡 '+fmt(range.breakoutLevel)+'；回測觀察 '+fmt(range.retestObservationLevel)+'；研究失效 '+fmt(range.invalidationLevel)+'；箱頂底保留形成時數值':'沒有已核驗箱體，暫不填突破與失效價'},{title:'結論',value:failed?'失效警戒；不要把反吞或跌回箱內當成強勢突破':originalBlocked?'風險過高或資料待核；原策略仍阻擋進場，新訊號不解除阻擋':a.volumeStatus!=='VERIFIED_SOURCE'?'資料不足：成交量來源或口徑待核，尚不能確認':e?.status==='FOLLOW_THROUGH_CONFIRMED'||['BREAKOUT_CONFIRMED','BREAKDOWN_CONFIRMED','RETEST_HELD'].includes(range?.rangeStatus)?'研究後續條件已確認；原策略風險、ABC、均線與Kronos仍各自檢查':'先列觀察，等待確認；不要只因單根紅K追價'},{title:'下一步',value:range?.nextCondition||(e?'等待三根完成日K內收盤'+(e.direction==='BULLISH'?'突破 ':'跌破 ')+fmt(e.confirmTrigger)+'；研究失效 '+fmt(e.invalidationLevel):'等待具備位置、收盤與可靠量能的訊號')}];
- if(originalBlocked)fields.push({title:'原策略仍有阻擋',value:'原進場或資料風險檢查未通過；吞沒與箱體研究不能解除阻擋。'+(original.entryDirection?.reason||'')});
- if(range?.executionEvidence?.length)fields.push({title:'日K先後限制',value:'同根日K碰到研究失效與目標，先後不明；不能認定已成交或已獲利。'});
+ const bull=e?.direction==='BULLISH',closeBoundary=e?(bull?e.previousCandle.high:e.previousCandle.low):null;
+ const step=range?(CONFIRM_PLAIN_TEXT[range.nextCondition]||'等接下來的收盤價與成交量都符合條件。'):e?(['FAILED','EXPIRED'].includes(e.status)?'這次訊號已結束，先等新的訊號。':e.status==='DATA_INSUFFICIENT'?'先核對成交量資料，再看收盤是否通過確認價。':e.status==='FOLLOW_THROUGH_CONFIRMED'?'持續看收盤是否維持原方向，仍照原本停損計畫。':'從訊號隔天起，最多觀察'+e.observationLimit+'個交易日：收盤要'+(bull?'漲過 ':'跌破 ')+fmt(e.confirmTrigger)+'。'+(bull?'收盤跌破 ':'收盤漲過 ')+fmt(e.invalidationLevel)+'，這次觀察就失效。'):'等新的K線訊號，並核對價格位置、收盤與成交量。';
+ const fields=[{title:'K線型態',value:e?(e.signalDate===a.date?'今天出現：':'追蹤先前訊號：')+e.label+'。'+(e.patternType==='FULL_RANGE_ENGULFING'?'整根高低範圍也包住前一天（全幅吞沒）。':'只包住開盤到收盤的實體，影線不一定包住。')+'日期 '+e.signalDate:'無明確吞沒型態'},{title:'位置',value:position+'：與訊號出現前的股價比較，不能當成已找到最低點或最高點。'},{title:'收盤',value:e?'訊號日收盤'+(e.priceConfirmed?'已':'還沒')+(bull?'漲過前一天最高價 ':'跌破前一天最低價 ')+fmt(closeBoundary)+'。':'沒有吞沒訊號，先不判斷這一關。'},{title:'成交量',value:e?(e.volumeEvidence.usable?(e.volumeConfirmed?'通過初步檢查':'還沒通過初步檢查')+'：是前一天的 '+fmt(e.volumeRatioPrevious)+' 倍、前5天平均的 '+fmt(e.volumeRatio5)+' 倍。':'來源待核：成交量資料還沒核對好，不能說這一關已通過。'):'等出現訊號，再比較當天與之前的成交量。'},{title:'吞沒進度',value:e?(EVENT_ZH[e.status]||'資料不足，暫時不能確認')+'。'+(e.confirmationDate?'確認日期 '+e.confirmationDate+'。':'')+(e.failureDate?'失效日期 '+e.failureDate+'：收盤已越過觀察失效價。'+(/反向吞沒/.test(e.failureReason||'')?'也出現了反方向的吞沒K線。':''):'')+'後續確認價 '+fmt(e.confirmTrigger)+'；觀察失效價 '+fmt(e.invalidationLevel)+'。'+(e.executionStatus==='ORDER_UNKNOWN'?'同一天碰到目標與失效價，無法知道先後，不能算已獲利。':''):'先等新的吞沒訊號。'},{title:'箱體',value:range?(RANGE_ZH[range.rangeStatus]||'資料不足')+'。箱頂（上緣）'+fmt(range.boxHigh)+'／箱底（下緣）'+fmt(range.boxLow)+'；收盤 '+fmt(a.close)+(a.close>range.boxHigh?' 在上方':a.close<range.boxLow?' 在下方':' 在區間內')+'。整理期間 '+range.boxStartDate+'～'+range.boxEndDate:'還沒找到符合條件、上下來回的整理區間。'},{title:'突破／回測／失效',value:range?'越過邊界看 '+fmt(range.breakoutLevel)+'；回到邊界附近觀察 '+fmt(range.retestObservationLevel)+'；觀察失效價 '+fmt(range.invalidationLevel)+'。沿用突破前區間，不跟著當天價格移動。':'還沒有可靠的整理區間，先不填這些價格。'},{title:'結論',value:failed?'失效警戒：原本的方向沒守住，先不要當成強勢突破。':originalBlocked?'風險過高或資料待核，原本買進檢查仍有阻擋；不能因新訊號就進場。':a.volumeStatus!=='VERIFIED_SOURCE'?'資料不足：成交量資料還沒核對好，現在不能確認。':e?.status==='FOLLOW_THROUGH_CONFIRMED'||['BREAKOUT_CONFIRMED','BREAKDOWN_CONFIRMED','RETEST_HELD'].includes(range?.rangeStatus)?'後續收盤已符合這項觀察條件，仍要通過原本的趨勢、風險與買進檢查。':'先觀察、等確認，不要只看到一根上漲紅K就追買。'},{title:'下一步',value:step}];
+ if(originalBlocked)fields.push({title:'原策略仍有阻擋',value:'原本的買進或資料檢查還沒通過，原因請看主報告；這項新訊號不會自動放行。'});
+ if(range?.executionEvidence?.length)fields.push({title:'日K先後限制',value:'同一天碰到目標與觀察失效價，單看日K不知道先到哪裡，不能算已成交或已獲利。'});
  const plan=original.unifiedResearch?.scenarios?.find(x=>x.riskReward?.status==='KNOWN')?.riskReward;
- fields.push({title:'均線與風險報酬',value:'5日均線 '+fmt(a.ma.ma5)+'／10日 '+fmt(a.ma.ma10)+'／20日 '+fmt(a.ma.ma20)+'。'+(plan?.rr>0?'原計畫報酬風險比 '+fmt(plan.rr)+'；沿用原停損與成本。':'風險報酬沿用原策略計畫；證據不足不另填目標或放行。')});
- if(a.contradictions.length)fields.push({title:'與原策略的差異',value:a.contradictions.join('；')});
- fields.push({title:'研究限制',value:'不改分數、TOP8、資格、原停損或Kronos；門檻未經績效驗證。買賣盤聚集只指歷史價量區，不是即時掛單。'});
- return U.freeze({title:'K線吞沒與箱體突破確認',state:'RESEARCH_ONLY',date:a.date,fields,research:a});
+ fields.push({title:'均線與風險報酬',value:'最近5／10／20天平均價：'+fmt(a.ma.ma5)+'／'+fmt(a.ma.ma10)+'／'+fmt(a.ma.ma20)+'。'+(plan?.rr>0?'原計畫預期獲利約為預計風險的 '+fmt(plan.rr)+' 倍，仍須計入成本並照原停損。':'可能賺多少、可能賠多少，仍看原本計畫；資料不足就先不估目標。')});
+ if(a.contradictions.length)fields.push({title:'與原策略的差異',value:a.contradictions.map(s=>CONFIRM_PLAIN_TEXT[s]||'新訊號和原本檢查結果不同，仍先遵守原本的風險限制。').join('')});
+ fields.push({title:'研究限制',value:'這是額外觀察，效果還沒證實；不調高分數、不更動前8名、買進條件、原停損或電腦模型預測。整理區間來自過去成交資料，看不到現在掛著的買賣單。'});
+ return U.freeze({title:'K線吞沒與箱體突破確認',wordingVersion:'ENGULF_RANGE_PLAIN_1',state:'RESEARCH_ONLY',date:a.date,fields,research:a});
 }
 
 function evaluate(b,r={},options={}){const p={...PARAM,...options.parameters},pv=options.pivots||pivots(b,p),v=volume(b,r),z=b.at(-1);
