@@ -359,7 +359,7 @@ function pages(a,{document:doc=globalThis.document,displayCode=globalThis.Shitou
  const ctx=doc.createElement('canvas').getContext('2d');
  if(!ctx)throw Error('Canvas 2D unavailable');
  // Summary first, followed by complete research; no field is silently filtered out.
- const report=view(a);if(!detail&&(iphoneFullScreen||globalThis.ShitouIPhoneSummary)){if(!globalThis.ShitouIPhoneSummary)throw Error('iPhone滿版輸出模組尚未載入');return globalThis.ShitouIPhoneSummary.pages(a,report,{doc,displayCode,wrap,watermark});}if(!detail)return Action.pages(a,report,{doc,displayCode,watermark,stockMode,wrap,roundRectPath});
+ const report=view(a);if(!detail&&(iphoneFullScreen||globalThis.ShitouIPhoneSummary)){if(!globalThis.ShitouIPhoneSummary)throw Error('iPhone滿版輸出模組尚未載入');return globalThis.ShitouIPhoneSummary.pages(a,report,{doc,displayCode,wrap,watermark,stockMode});}if(!detail)return Action.pages(a,report,{doc,displayCode,watermark,stockMode,wrap,roundRectPath});
  const strings=lines(a),fields=[...report.summary.map(f=>({...f,group:'SUMMARY'})),...(detail?report.details.map(f=>({...f,group:'DETAIL'})):[])];
  function measuredWrap(value,font,width){
   if(String(value)==='')return [''];

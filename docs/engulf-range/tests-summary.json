@@ -2,25 +2,25 @@
   "required": {
     "npm ci": {
       "exit": 0,
-      "log": "/workspace/engulf-npm-ci.log"
+      "log": "/workspace/deploy-final-install.log"
     },
     "npm test": {
       "exit": 0,
       "tests": 657,
       "pass": 657,
       "fail": 0,
-      "log": "/workspace/engulf-last-full.log"
+      "log": "/workspace/deploy-final-unit.log"
     },
     "npm run test:contract": {
       "exit": 0,
       "fileTests": 2,
-      "log": "/workspace/engulf-final-contract.log"
+      "log": "/workspace/deploy-final-contract.log"
     },
     "npm run research:validate": {
       "exit": 0,
       "status": "BLOCKED_MISSING_POINT_IN_TIME_HISTORY",
       "performanceProven": false,
-      "log": "/workspace/engulf-final-validate.log"
+      "log": "/workspace/deploy-final-research.log"
     }
   },
   "newBrowser": [
@@ -68,7 +68,7 @@
         "shares": [
           [
             {
-              "name": "shitou_9001_mw4t3y8f_full.jpg",
+              "name": "shitou_9001_mw4wrnjy_full.jpg",
               "type": "image/jpeg",
               "size": 626832
             }
@@ -108,21 +108,119 @@
       "log": "/workspace/engulf-final-market-recovery.log"
     },
     "stockContext": {
-      "exit": 1,
+      "exit": 0,
       "alsoFailsUnmodifiedBaseline": true,
       "reason": "DOM textContent newline serialization mismatch",
       "changedLog": "/workspace/engulf-final-stock-context.log",
-      "baselineLog": "/workspace/engulf-last-baseline-context.log"
+      "baselineLog": "/workspace/engulf-last-baseline-context.log",
+      "fixed": true,
+      "normalLog": "/workspace/deploy-final-context-browser.log",
+      "fallbackLog": "/workspace/deploy-final-fallback-browser.log"
     },
     "npm run test:browser": {
-      "exit": 1,
+      "exit": 0,
       "alsoFailsUnmodifiedBaseline": true,
       "reason": "stale V8.2.2 / alertPlan / candle-page expectations, hidden element screenshot",
       "changedLog": "/workspace/engulf-final-legacy-browser.log",
-      "baselineLog": "/workspace/engulf-last-baseline-legacy.log"
+      "baselineLog": "/workspace/engulf-last-baseline-legacy.log",
+      "fixed": true,
+      "checks": 29,
+      "log": "/workspace/deploy-final-general-browser.log"
     }
   },
-  "allTestsGreen": false,
-  "productionDeployed": false,
-  "workerDeployed": false
+  "allTestsGreen": true,
+  "workerDeployed": false,
+  "latestSoftwareValidation": [
+    {
+      "name": "install",
+      "code": 0,
+      "signal": null,
+      "seconds": 0.556,
+      "log": "/workspace/deploy-final-install.log"
+    },
+    {
+      "name": "research",
+      "code": 0,
+      "signal": null,
+      "seconds": 0.893,
+      "log": "/workspace/deploy-final-research.log"
+    },
+    {
+      "name": "contract",
+      "code": 0,
+      "signal": null,
+      "seconds": 11.921,
+      "log": "/workspace/deploy-final-contract.log"
+    },
+    {
+      "name": "unit",
+      "code": 0,
+      "signal": null,
+      "seconds": 36.237,
+      "log": "/workspace/deploy-final-unit.log"
+    },
+    {
+      "name": "new-browser",
+      "code": 0,
+      "signal": null,
+      "seconds": 9.751,
+      "log": "/workspace/deploy-final-new-browser.log"
+    },
+    {
+      "name": "general-browser",
+      "code": 0,
+      "signal": null,
+      "seconds": 14.916,
+      "log": "/workspace/deploy-final-general-browser.log"
+    },
+    {
+      "name": "fallback-browser",
+      "code": 0,
+      "signal": null,
+      "seconds": 23.993,
+      "log": "/workspace/deploy-final-fallback-browser.log"
+    },
+    {
+      "name": "context-browser",
+      "code": 0,
+      "signal": null,
+      "seconds": 25.116,
+      "log": "/workspace/deploy-final-context-browser.log"
+    },
+    {
+      "name": "recovery-browser",
+      "code": 0,
+      "signal": null,
+      "seconds": 9.421,
+      "log": "/workspace/deploy-final-recovery-browser.log"
+    },
+    {
+      "name": "structure-browser",
+      "code": 0,
+      "signal": null,
+      "seconds": 11.847,
+      "log": "/workspace/deploy-final-structure-browser.log"
+    },
+    {
+      "name": "market-browser",
+      "code": 0,
+      "signal": null,
+      "seconds": 34.059,
+      "log": "/workspace/deploy-final-market-browser.log"
+    },
+    {
+      "name": "professional-browser",
+      "code": 0,
+      "signal": null,
+      "seconds": 15.295,
+      "log": "/workspace/deploy-final-professional-browser.log"
+    }
+  ],
+  "allSoftwareChecksPassed": true,
+  "historicalPerformanceProven": false,
+  "deployment": {
+    "authorization": "User explicitly requested direct deployment after fixes",
+    "status": "PRE_DEPLOY_VALIDATION_PASSED",
+    "authoritativeResult": "PR #9 and Deploy verified frontend release GitHub Actions; final response includes verified result"
+  }
 }

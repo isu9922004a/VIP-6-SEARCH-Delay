@@ -28,11 +28,20 @@ jobs:
           node --check research-v83/market-simple-report.js
           node --check research-v83/stock-simple-report.js
           node --test scripts/tests/kronos-report-binding.test.cjs scripts/tests/research-plain-narrative.test.cjs scripts/tests/market-v86.test.cjs scripts/tests/index-update-v862.test.cjs scripts/tests/market-freshness-v862.test.cjs scripts/tests/market-simple-report.test.cjs scripts/tests/pages-runtime-data.test.cjs scripts/tests/structure-strength-v863.test.cjs scripts/tests/stock-simple-report.test.cjs scripts/tests/report-observations-v864.test.cjs scripts/tests/index-recovery.test.cjs scripts/tests/mobile-share-render-region.test.mjs scripts/tests/market-report-refresh.test.cjs
-      - run: npm install --no-save --ignore-scripts playwright-core
+      - run: npm ci
+      - name: Verify all research tests and data contracts
+        run: |
+          npm test
+          npm run test:contract
+          npm run research:validate
       - name: Verify V8.6.4 structure, mobile layout and complete PNG variants
         env:
           CHROME_BIN: /usr/bin/google-chrome
         run: |
+          npm run test:browser -- /tmp/v864-browser/general
+          node scripts/tests/research-context-r16-browser.cjs /tmp/v864-browser/context
+          RESEARCH_FALLBACK=1 node scripts/tests/research-context-r16-browser.cjs /tmp/v864-browser/context-fallback
+          npm run test:engulf-range-browser
           node scripts/tests/structure-v863-browser.cjs /tmp/v864-browser
           node scripts/tests/market-v862-browser.cjs /tmp/v864-browser
           node scripts/tests/market-comfort-browser.cjs /tmp/v864-browser
@@ -64,6 +73,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - run: npm ci
+      - name: Check published bytes and run research UI on the deployed site
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+          RESEARCH_BROWSER_ORIGIN: https://isu9922004a.github.io/VIP-6-SEARCH-Delay/
+        run: |
+          python3 scripts/verify-deployed-frontend.py
+          npm run test:engulf-range-browser
       - name: Verify the published V8.6.4 entry point and new report module
         run: |
           node - <<'NODE'
@@ -73,6 +90,8 @@ jobs:
             for(let i=0;i<8;i++)try{
               const read=async p=>{const r=await fetch(base+p+'?v864='+Date.now());assert.equal(r.status,200,p);return r.text();};
               const [html,version,observations,fifth,report,market,marketJS,history,model,comfort,suite,share,refresh]=await Promise.all(['index.html','version-v50.js','research-v83/report-observations.js','research-v83/stock-fifth-module.js','research-v83/stock-simple-report.js','market-outlook.html','research-v83/market.js','data/index/TAIEX.json','data/kronos/TAIEX.json','market-report-comfort-v864.js','r45-report-suite.js','mobile-image-share-v1.js','market-report-refresh-v864.js'].map(read));
+              assert.match(html,/engulf-range-report-v1.js/);assert.match(version,/ENGULF_RANGE_RESEARCH_1/);
+              const shared=await read('structure-context-v1.js'),panel=await read('engulf-range-report-v1.js');assert.match(shared,/function confirmationResearch/);assert.match(panel,/K線吞沒與箱體突破確認/);
               assert.match(version,/DISPLAY='V8\.6\.4'/);assert.match(report,/VERSION='V8\.6\.4'/);assert.match(observations,/REPORT_OBSERVATIONS_8_6_4/);assert.match(fifth,/漲跌力道：/);assert.match(fifth,/關卡有沒有站穩：/);assert.match(market,/market-observations/);assert.match(marketJS,/ShitouReportObservations.fromMarket/);assert.ok(html.indexOf('report-observations.js?')<html.indexOf('stock-fifth-module.js?'));assert.match(html,/report-observations.js\?v=V8\.6\.4/);
               assert.match(html,/market-report-comfort-v864.js\?v=V8\.6\.4-MARKETPAGE1/);assert.match(comfort,/MARKET_COMFORT_LAYOUT_V864/);assert.match(comfort,/MARKET_ONEPAGE_DYNAMIC_V864/);assert.match(refresh,/INTERVAL=300000/);assert.match(html,/market-report-refresh-v864.js\?v=V8\.6\.4-MARKETPAGE1/);assert.match(comfort,/marketMobileReader/);assert.match(suite,/mountReader/);assert.match(share,/shareAsSingleImage/);assert.match(html,/mobile-image-share-v1.js\?v=V8\.6\.4-MARKETPAGE1/);assert.match(suite,/window.ShitouMarketComfortReport.render\(report,options\)/);
               const h=JSON.parse(history),f=JSON.parse(model),a=M.analyze(h);assert.equal(S.historyStatus(h).stale,false);assert.equal(F.evaluate(a.input,f).state,'MODEL_SAMPLE');assert.equal(F.executionVerified(f),true);assert.equal(f.asOf,h.closeDate);assert.ok(h.closeDate>=require('./data/index/TAIEX.json').closeDate);

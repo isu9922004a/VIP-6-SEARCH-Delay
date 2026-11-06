@@ -6,8 +6,8 @@
 ## 完成範圍與正式啟用判斷
 
 已實際修改計算核心、事件生命週期、共用結構化輸出、中文收合介面、研究圖片及四組比較框架；不是只改報告文字。
-**維持研究模式，不適合提升為正式進場或排名規則。未部署 GitHub Pages，未部署 Cloudflare Worker。**
-主要原因是尚無可核驗的台股 A/B/C/D 績效，且兩支舊瀏覽器測試仍有基準已存在的失敗。必跑單元／契約測試與新增瀏覽器測試通過，不代表所有選用舊測試全綠。
+**維持研究模式，不適合提升為正式進場或排名規則。使用者已授權修復後直接部署研究介面；正式部署結果以 PR #9、GitHub Actions 與交付回覆為準。Worker 服務碼與契約未修改，不需另外部署。**
+兩支舊瀏覽器測試已修復：更新實際版本／圖卡契約，使用正式入口展開收合卡，保留逐欄比對。亦修正網頁段落換行、長名稱超出圖界、手機圖卡漏傳個股模式；未放寬資料安全閘門。台股 A/B/C/D 績效仍缺證據，不能宣稱改善。
 
 原目錄 `/workspace/repo` 的 303 個程式檔 SHA256 均與修改前相同，詳見 [原工作保護檢查](original-preservation.json)。完整隔離修改位於 `/workspace/engulf-range-research`，本地基線提交 `3f2baed`。依賴與修改前能力見 [架構盤點](architecture.md)。
 
@@ -30,7 +30,15 @@
 | research-v83/market.js | 以已載入指數新增收合面板；不增加行情請求 |
 | research-v83/market-simple-report.js | 原 PNG 預覽增加可選研究 canvas，沿用下載／LINE；原圖繪製不變 |
 | market-outlook.html | 補上 version → tower → common → structure → presenter 的正確依賴順序與面板 |
-| index.html | 載入顯示介接，刷新相關模組快取鍵；原個股與大盤圖模板不改 |
+| index.html | 載入顯示介接，刷新研究與換行／手機圖卡快取鍵 |
+| research-action-guide-v1.js | 段落之間加入真實換行節點，使網頁與匯出文字逐字一致 |
+| research-v83/iphone-summary-renderer.js | 長股名依實際寬度換行，必要時壓縮卡片間距保留1284×2778與完整文字，補齊個股／濾網模式稽核 |
+| scripts/tests/research-browser.cjs | 對目前版本、摘要與完整圖片各自契約作驗證；保留原價位、七入口、風控與分享測試 |
+| scripts/tests/research-context-r16-browser.cjs | 明確檢查預設收合，再透過實際卡片摘要打開研究 |
+| scripts/tests/kronos-network-recovery.test.cjs | 歷史資料與每日模型採同一asOf，避免隔天資料更新使測試混日 |
+| scripts/tests/limited-official-history.test.cjs | 按官方交易日計算新增天數；量能口徑衝突使用明確可控測試，不借每日變動股票狀態 |
+| scripts/tests/official-full-volume-fallback.test.cjs、scripts/fixtures/2330-official-archive-manifest-20261103.json | 固定11/03的FULL範例對照同日官方封存行情；單股測試索引保留原SHA與日曆，不當績效母體 |
+| scripts/verify-deployed-frontend.py、.github/workflows/deploy-frontend.yml | 部署前跑完整程式、兩支舊瀏覽器及新增研究測試；發布後核對實際檔案並驗證線上研究入口 |
 | version-v50.js | V8.6.4 保留，新增研究版本及快取鍵，不宣稱新正式模型版本 |
 | research-validation-v1.js | 增加固定原榜次序的 A/B/C/D 配對比較、缺資料阻擋、成本及樣本外介面 |
 | scripts/compare-engulf-range.cjs（新增） | 無網路下載的本機官方歷史稽核；有合規 PIT 輸入時呼叫同一 validation 框架 |
@@ -84,10 +92,10 @@
 | 新增手機／桌面瀏覽器 | 9/9通過；428×926、390px、1280px；兩種1284×2778 PNG欄位等於文字；無裁切；LINE單張；過時面板不得產圖；獨立大盤無未捕捉錯誤 |
 | 舊 market-comfort-browser | 通過；7種圖卡情境、自動更新／同日修正、手機滿版與原圖分享等檢查 |
 | 舊 market-v862-browser | 通過；模型請求失敗重試、缺資料提示與恢復 |
-| npm run test:browser（舊通用腳本） | exit 1；仍斷言V8.2.2-R9、已改版的alertPlan路徑及舊圖頁行為，另有不可見區截圖超時；在未修改原目錄重跑同樣失敗 |
-| research-context-r16-browser（舊腳本） | exit 1；DOM textContent的換行與原view逐字比較失敗；未修改原目錄重跑亦失敗 |
+| npm run test:browser | 最新29項通過；舊斷言改為目前版本及摘要／完整圖各自稽核；完整價格與停損證據仍檢查 |
+| research-context-r16-browser | 正常與備援模式均通過，七檔實際查詢與七入口逐欄比對、線圖及風控保留 |
 
-沒有刪測試、跳過失敗或把未跑項目列成功。基準一開始在未授予瀏覽器／bash環境權限下曾遇 spawnSync bash EPERM，取得環境權限後 npm test 全套通過。兩支舊瀏覽器腳本未被放寬來追求全綠，失敗與基準比較均保留。
+沒有刪測試、跳過失敗或把未跑項目列成功。基準一開始在未授予瀏覽器／bash環境權限下曾遇 spawnSync bash EPERM，取得環境權限後 npm test 全套通過。前輪失敗與基準比較紀錄保留；本輪修正實際排版／模式問題與測試資料混日，沒有刪除測試或解除原安全閘門。
 
 PNG下載維持1284×2778；個股 LINE 沿用原系統單張JPG分享、PNG下載的既有流程；獨立大盤沿用原生PNG分享。新增研究圖不取代原專業個股圖或已核准的大盤含線圖版本。
 
@@ -111,7 +119,7 @@ PNG下載維持1284×2778；個股 LINE 沿用原系統單張JPG分享、PNG下�
 
 新規則沒有台股樣本外績效證據；合法普通股／指數以外商品返回資料不足；官方停牌、公司行動、來源補檔須保持同日可得證明；日K不能知道盤中先後、掛單或成交。長文字若無法在安全字級排入一頁會明確停止產圖，不裁掉資料。
 
-工作提交在獨立研究分支／草稿PR，交付回覆附實際commit／PR，不更新main以免觸發Pages。兩支舊瀏覽器測試的基準失敗尚未另案修復。Worker wire schema、嵌入契約與服務碼未改，**本次不需要也沒有Worker部署**。前端更新絕不代表Worker更新。
+工作先保存在獨立研究分支與PR #9；本輪按使用者指示在驗證成功後合併main，交由有測試閘門的Pages工作流程發布，並核對線上檔案。部署成敗以Actions及交付回覆為準。兩支舊瀏覽器的基準失敗已修復。Worker wire schema、嵌入契約與服務碼未改，**本次不需要也沒有Worker部署**。前端更新絕不代表Worker更新。
 
 快速關閉個股附層：`ShitouResearchIntegration.setFlags({engulfRangeResearchEnabled:false})`；純核心呼叫以`confirmationResearch(report,{enabled:false})`。這是研究開關，不改原策略。
 完整回滾使用本次研究提交的 `git revert <研究提交SHA>`；若未合併，關閉草稿PR即可，正式站沒有任何變更。不使用reset、force push或覆蓋整個main，避免抹去後續行情更新或他人工作。

@@ -20,11 +20,11 @@ function compactFifth(a,g){const s=g.sections[4],f=s.forecast||{},p=root.ShitouO
   {text:'依據：'+proof},
   {text:`站不回觀察價或續跌，${bear?'勿急著搶反彈或只因模型偏空追空':'勿因模型偏多而貿然進場'}；跳空重算價位與風險，已持股者按原計畫。`}
  ]};}
-function pages(a,report,{doc,displayCode='V8.6.4',wrap,watermark=false}){
+function pages(a,report,{doc,displayCode='V8.6.4',wrap,watermark=false,stockMode=false}){
  const guide=report.actionGuide,canvas=doc.createElement('canvas');let H=MIN_H;canvas.width=W;canvas.height=H;const ctx=canvas.getContext('2d'),compact=compactFifth(a,guide),trace=[];
  const font=(size,bold=false)=>{ctx.font=`${bold?750:600} ${size}px "Microsoft JhengHei","Segoe UI Emoji",sans-serif`;};
  const measure=(text,width,size,bold=false)=>{font(size,bold);return wrap(ctx,String(text),width);};
- function layout(size){const line=size+10,inner=CW-44,headSize=40,titleLine=50;
+ function layout(size,gap=12){const line=size+10,inner=CW-44,headSize=40,titleLine=50;
   const status=guide.status.lines.flatMap(t=>measure(t,inner-84,size));const statusHead=measure(guide.status.headline,inner-84,50,true),statusH=26+statusHead.length*60+status.length*line;
   const sections=guide.sections.slice(0,4).map(s=>{const titles=measure(s.title,CW-106,headSize,true),rows=s.rows.map(r=>{const left=246,gap=22,right=inner-left-gap-16;let priceSize=42;
    font(priceSize,true);while(priceSize>30&&ctx.measureText(r.price||'').width>left)font(--priceSize,true);
@@ -35,15 +35,16 @@ function pages(a,report,{doc,displayCode='V8.6.4',wrap,watermark=false}){
    return {s,titles,titleH,rows,callout,height:18+titleH+rows.reduce((n,r)=>n+r.height,0)+callH+12};
   });
   const fifthTitle=measure(compact.title,CW-106,headSize,true),fifthLines=compact.lines.map(t=>({...t,lines:measure(t.text,inner,size,t.bold),height:measure(t.text,inner,size,t.bold).length*line+7})),fifthH=18+fifthTitle.length*titleLine+14+fifthLines.reduce((n,t)=>n+t.height,0)+12;
-  const top=140,headerH=176,gap=12,footerH=200,total=top+headerH+gap+statusH+gap+sections.reduce((n,s)=>n+s.height+gap,0)+fifthH+footerH;
-  return {size,line,headSize,titleLine,inner,status,statusHead,statusH,sections,fifthTitle,fifthLines,fifthH,top,headerH,gap,footerH,total};
+  const names=measure(guide.name+'（'+guide.code+'）',CW-48,64,true);
+  const top=140,headerH=176+Math.max(0,names.length-1)*74,footerH=200,total=top+headerH+gap+statusH+gap+sections.reduce((n,s)=>n+s.height+gap,0)+fifthH+footerH;
+  return {names,size,line,headSize,titleLine,inner,status,statusHead,statusH,sections,fifthTitle,fifthLines,fifthH,top,headerH,gap,footerH,total};
  }
- let l;for(const size of [36,35,34,33,32]){const trial=layout(size);if(trial.total<=H||size===32){l=trial;H=Math.max(H,Math.ceil(trial.total));if(H>MAX_H)throw Error('完整報告超過長圖容量，請改用完整文字報告。');break;}}canvas.height=H;if(!l)throw Error('目前內容超過單張滿版安全範圍；需再精簡第五項，未裁切其他內容。');
+ let l;for(const size of [36,35,34,33,32]){let trial=layout(size);if(size===32&&trial.total>H)trial=layout(size,8);if(trial.total<=H||size===32){l=trial;H=Math.max(H,Math.ceil(trial.total));if(H>MAX_H)throw Error('完整報告超過長圖容量，請改用完整文字報告。');break;}}canvas.height=H;if(!l)throw Error('目前內容超過單張滿版安全範圍；需再精簡第五項，未裁切其他內容。');
  const extra=(H-l.total)/6;const panel=(y,h,stroke=PALETTE.line,fill=PALETTE.card)=>{ctx.beginPath();ctx.roundRect(M,y,CW,h,22);ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke();};
  function draw(text,x,y,size,color=PALETTE.text,bold=false,line=size+10){font(size,bold);ctx.fillStyle=color;text.forEach((t,i)=>ctx.fillText(t,x,y+i*line));}
  function title(s,titles,y){ctx.fillStyle=PALETTE.blue;ctx.beginPath();ctx.arc(M+39,y+39,27,0,Math.PI*2);ctx.fill();draw([s.number],M+21,y+51,30,PALETTE.text,true);draw(titles,M+84,y+46,l.headSize,PALETTE.text,true,l.titleLine);}
  ctx.fillStyle=PALETTE.bg;ctx.fillRect(0,0,W,H);let y=l.top;
- panel(y,l.headerH);draw([guide.title],M+24,y+40,34,PALETTE.muted,true);draw([guide.name+'（'+guide.code+'）'],M+24,y+107,64,PALETTE.text,true);draw(['行情基準 '+guide.date.replaceAll('-','/')+'｜收盤 '+num(guide.close)+' 元'],M+24,y+151,34,PALETTE.muted);draw([guide.badge],W-M-172,y+48,30,PALETTE.yellow,true);y+=l.headerH+l.gap;
+ panel(y,l.headerH);draw([guide.title],M+24,y+40,34,PALETTE.muted,true);draw(l.names,M+24,y+107,64,PALETTE.text,true,74);draw(['行情基準 '+guide.date.replaceAll('-','/')+'｜收盤 '+num(guide.close)+' 元'],M+24,y+151+Math.max(0,l.names.length-1)*74,34,PALETTE.muted);draw([guide.badge],W-M-172,y+48,30,PALETTE.yellow,true);y+=l.headerH+l.gap;
  panel(y,l.statusH,PALETTE.yellow,'#252c28');draw(['!'],M+29,y+63,56,PALETTE.yellow,true);draw(l.statusHead,M+104,y+61,50,PALETTE.yellow,true,60);draw(l.status,M+104,y+61+l.statusHead.length*60,l.size,PALETTE.text,false,l.line);y+=l.statusH+l.gap;
  for(const section of l.sections){const height=section.height+extra;panel(y,height);title(section.s,section.titles,y);let rowY=y+18+section.titleH;
   trace.push(section.s.title);
@@ -61,7 +62,7 @@ function pages(a,report,{doc,displayCode='V8.6.4',wrap,watermark=false}){
  const original=guide.sections.slice(0,4).flatMap(s=>[s.title,...s.rows.flatMap(r=>[r.price,r.label,...r.bullets].filter(Boolean)),...(s.callout?[s.callout.title,...s.callout.lines]:[])]);
  if(JSON.stringify(trace)!==JSON.stringify(original))throw Error('第一至第四項文字核對失敗');
  if(watermark)root.ShitouReportWatermark.apply(canvas,'all');
- const audit={watermarked:watermark,watermarkStyle:watermark?'REFERENCE_DIAGONAL_V84':null,fields:guide.summary,width:W,height:H,extendedHeight:H>MIN_H,reportObservations:guide.sections[4].reportObservations||null,minBodyFont:l.size,topSafeArea:140,bottomSafeArea:104,footerBottom:footerTop+38+(foot.length-1)*35,firstFourPreserved:true,firstFourText:trace,originalFirstFour:guide.sections.slice(0,4),headerPreserved:{title:guide.title,name:guide.name,code:guide.code,date:guide.date,close:guide.close,badge:guide.badge},statusPreserved:guide.status,fifthCondensed:true,fifthLines:compact.lines.map(t=>t.text),guideNote:guide.guideNote,noClipping:fy<=y&&footerTop+38+(foot.length-1)*35<=H-104,fullBleed:true,modelRun:guide.sections[4].forecast?.modelRun===true};
+ const audit={code:a.code,date:a.date,mode:stockMode?'SINGLE_STOCK':'FILTER_RESEARCH',sourceSnapshotId:a.sourceSnapshotId,watermarked:watermark,watermarkStyle:watermark?'REFERENCE_DIAGONAL_V84':null,fields:guide.summary,width:W,height:H,extendedHeight:H>MIN_H,reportObservations:guide.sections[4].reportObservations||null,minBodyFont:l.size,topSafeArea:140,bottomSafeArea:104,footerBottom:footerTop+38+(foot.length-1)*35,firstFourPreserved:true,firstFourText:trace,originalFirstFour:guide.sections.slice(0,4),headerPreserved:{title:guide.title,name:guide.name,code:guide.code,date:guide.date,close:guide.close,badge:guide.badge},statusPreserved:guide.status,fifthCondensed:true,fifthLines:compact.lines.map(t=>t.text),guideNote:guide.guideNote,noClipping:fy<=y&&footerTop+38+(foot.length-1)*35<=H-104,fullBleed:true,modelRun:guide.sections[4].forecast?.modelRun===true};
  canvas.dataset.researchAudit=JSON.stringify(audit);return [{width:W,height:H,dataset:{researchAudit:JSON.stringify(audit)},renderExportRegion(){return canvas;},toBlob(cb,type='image/png'){canvas.toBlob(cb,type);}}];
 }
 root.ShitouIPhoneSummary={pages,compactFifth};
