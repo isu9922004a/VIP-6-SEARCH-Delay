@@ -737,7 +737,7 @@ async function generateMarket(withWatermark=false){
   const report=typeof lastMarketReportData!=='undefined'?lastMarketReportData:null;if(!report)throw new Error('請先完成大盤分析');
   if(document.fonts?.ready)await document.fonts.ready;
   const result=buildMarketIphoneReport(report,withWatermark);
-  await showPages(result.pages,{title:'臺灣加權股價指數大盤圖片報告',prefix:`石頭少爺_TAIEX_大盤分析圖${withWatermark?'_防盜浮水印':''}`,date:dateOf(report.closeDate),note:window.ShitouMarketComfortReport?'手機可直接閱讀，或切換圖片預覽；儲存與分享會使用完整報告圖片':'iPhone 12 Pro Max 1284×2778 原生模板滿版；保留ABC、真實K線、量能、三劇本與三條關鍵線',kind:'market'});
+  await showPages(result.pages,{title:'臺灣加權股價指數大盤圖片報告',prefix:`石頭少爺_TAIEX_大盤分析圖${withWatermark?'_防盜浮水印':''}`,date:dateOf(report.closeDate),note:window.ShitouMarketComfortReport?'單張完整圖片，手機滿寬預覽；儲存與分享到 LINE 都不切頁':'iPhone 12 Pro Max 1284×2778 原生模板滿版；保留ABC、真實K線、量能、三劇本與三條關鍵線',kind:'market'});
   return result;
 }
 

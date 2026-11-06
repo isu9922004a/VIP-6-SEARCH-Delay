@@ -31,3 +31,5 @@
 /* MARKETCOMFORT1: native readable ABC market report; analysis and prices unchanged. */
 
 /* MARKETREADER1: full-width native mobile market reading with unchanged PNG and sharing. */
+
+/* MARKETONEIMAGE1: full-width readable market image; preserve complete PNG/JPG without share slicing. */
