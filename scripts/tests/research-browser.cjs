@@ -69,7 +69,7 @@ await check('9933 SYNTHETIC both image modes encode identical summaries and real
 await check('single-stock inline image button chooses the stock title even without latest-query object identity',async()=>{
  const x=await page.evaluate(async r=>{const I=ShitouResearchIntegration,old=globalThis.strongStockShowPagesV47;let selected;
   globalThis.strongStockShowPagesV47=(pages,opts)=>selected={title:opts.title,mode:JSON.parse(pages[0].dataset.researchAudit).mode};
-  try{I.mountStock({...r});document.querySelector('#researchStock .research-card-actions>button').click();await new Promise(resolve=>setTimeout(resolve,30));return selected;}finally{globalThis.strongStockShowPagesV47=old;}
+  try{I.mountStock({...r});await document.querySelector('#researchStock .research-card-actions>button').onclick();return selected;}finally{globalThis.strongStockShowPagesV47=old;}
  },zfixture);assert.equal(x.mode,'SINGLE_STOCK');assert.equal(x.title,'四策略研究｜白話行動指南');return x;
 });
 await check('sharing prepares image-only files and never reuses previous report bytes',async()=>{
@@ -95,11 +95,13 @@ await check('real canvas text remains within horizontal safety bounds across lon
  },zfixture);assert.deepEqual(x,[]);return {overflows:x.length};
 });
 await check('seven research sections recover when legacy rerenders remove unchanged sidecars',async()=>{
+ await bind(zfixture); // Restore this fixture after the cross-day acquisition checks.
  const results=await page.evaluate(r=>{const I=ShitouResearchIntegration,rows=[{code:r.stock,report:r,score:81,eligible:true}],scan={date:r.closeDate,candidates:rows},before=JSON.stringify(rows),result=[];
   for(const kind of ['MAIN','DAYTRADE','STRONG','TOWER','RESTAURANT','STRUCTURE_A','STRUCTURE_B']){I.baseline(kind,scan,rows);const id='researchInline'+kind,first=document.getElementById(id);if(!first)throw Error('missing initial '+kind);const mode=first.querySelector('select');mode.value='ALL';mode.dispatchEvent(new Event('change'));if(first.querySelectorAll('.research-stock-card').length!==1)throw Error('ALL must show the original candidate '+kind);first.remove();I.baseline(kind,scan,rows);const after=document.getElementById(id);result.push({kind,restored:!!after,cards:after?.querySelectorAll('.research-stock-card').length,sameInput:JSON.stringify(rows)===before});}return result;
  },zfixture);assert.equal(results.length,7);assert.ok(results.every(x=>x.restored&&x.cards===1&&x.sameInput),JSON.stringify(results));return results;
 });
 await check('actual legacy MAIN compact metadata dates and report-owned tickers mount their research baseline',async()=>{
+ await bind(zfixture); // Restore this fixture after the cross-day acquisition checks.
  const result=await page.evaluate(r=>{const I=ShitouResearchIntegration,rows=[{report:r,score:81,eligible:true}],scan={marketBundleMeta:{targetTradeDate:r.closeDate.replaceAll('-','')},candidates:rows},before=JSON.stringify(scan);document.getElementById('researchInlineMAIN')?.remove();I.baseline('MAIN',scan,rows);const state=I.getState().baselines.find(([kind])=>kind==='MAIN')?.[1];return {cards:document.querySelectorAll('#researchInlineMAIN .research-stock-card').length,date:state?.date,code:state?.entries[0]?.code,unchanged:JSON.stringify(scan)===before};},zfixture);
  assert.deepEqual(result,{cards:1,date:zfixture.closeDate,code:zfixture.stock,unchanged:true});return result;
 });
