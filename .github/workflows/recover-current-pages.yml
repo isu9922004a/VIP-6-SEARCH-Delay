@@ -12,9 +12,12 @@ permissions:
 jobs:
   clear-orphaned-publication:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 7
+    outputs:
+      publish_needed: ${{ steps.recover.outputs.publish_needed }}
     steps:
-      - name: Cancel the completed release's orphaned Pages lock
+      - id: recover
+        name: Cancel the completed release's orphaned Pages lock
         uses: actions/github-script@v7
         with:
           script: |
@@ -23,15 +26,7 @@ jobs:
             // Cancel only this diagnosed lock; do not cancel other publications.
             const repo = {owner: context.repo.owner, repo: context.repo.repo};
             const site = await github.request('GET /repos/{owner}/{repo}/pages', repo);
-            if (site.data.build_type !== 'workflow') {
-              try {
-                await github.request('PUT /repos/{owner}/{repo}/pages', {...repo, build_type: 'workflow'});
-                core.info('Use the verified workflow as the sole Pages publisher.');
-              } catch (error) {
-                if (error.status !== 403) throw error;
-                core.notice('The workflow token cannot change site settings; retain the configured publisher and coordinate publication below.');
-              }
-            }
+            core.info('Coordinate with the configured Pages publisher: ' + site.data.build_type);
             const pages_deployment_id = '319bb15cefc8b2f10a3070b35556ef3626da5727';
             const runs = await github.rest.actions.listWorkflowRunsForRepo({
               owner: context.repo.owner, repo: context.repo.repo,
@@ -46,17 +41,17 @@ jobs:
               });
               core.info('Requested cancellation of the diagnosed orphaned Pages lock.');
             } catch (error) {
-              if (![404, 409].includes(error.status)) throw error;
+              if (![404, 409].includes(error.status) && !(error.status === 400 && /as it.s finished/.test(error.message))) throw error;
               core.info('The diagnosed publication is already absent or terminal.');
             }
             // Let any legacy publisher already launched by this commit finish.
             let legacy = [];
-            for (let attempt = 0; attempt < 7; attempt++) {
+            for (let attempt = 0; attempt < 31; attempt++) {
               const current = await github.rest.actions.listWorkflowRunsForRepo({...repo, head_sha: context.sha, per_page: 100});
               legacy = current.data.workflow_runs.filter(run => run.name === 'pages build and deployment');
               if (legacy.every(run => run.status === 'completed')) break;
-              if (attempt === 6) throw new Error('Legacy publisher is still active; retry recovery after it finishes.');
-              await new Promise(resolve => setTimeout(resolve, 8000));
+              if (attempt === 30) throw new Error('Legacy publisher is still active; retry recovery after it finishes.');
+              await new Promise(resolve => setTimeout(resolve, 10000));
             }
             if (legacy.length) {
               try {
@@ -64,10 +59,12 @@ jobs:
                 if (!['succeed', 'succeeded', 'failed', 'cancelled'].includes(current.data.status)) {
                   await github.request('POST /repos/{owner}/{repo}/pages/deployments/{pages_deployment_id}/cancel', {...repo, pages_deployment_id: context.sha});
                 }
-              } catch (error) { if (![404, 409].includes(error.status)) throw error; }
+              } catch (error) { if (![404, 409].includes(error.status) && !(error.status === 400 && /as it.s finished/.test(error.message))) throw error; }
             }
+            core.setOutput('publish_needed', !legacy.some(run => run.conclusion === 'success'));
   publish-current-main:
     needs: clear-orphaned-publication
+    if: needs.clear-orphaned-publication.outputs.publish_needed == 'true'
     uses: ./.github/workflows/deploy-data-pages.yml
     with:
       artifact-name: recovered-current-pages
