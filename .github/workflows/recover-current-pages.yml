@@ -1,0 +1,68 @@
+name: Recover current Pages publication
+on:
+  push:
+    branches: ['main']
+    paths: ['.github/workflows/recover-current-pages.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+jobs:
+  clear-orphaned-publication:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Cancel the completed release's orphaned Pages lock
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Both workflows for this revision are completed. Pages still names
+            // this exact revision as in-progress in its HTTP 400 response.
+            // Cancel only this diagnosed lock; do not cancel other publications.
+            const repo = {owner: context.repo.owner, repo: context.repo.repo};
+            const site = await github.request('GET /repos/{owner}/{repo}/pages', repo);
+            if (site.data.build_type !== 'workflow') {
+              await github.request('PUT /repos/{owner}/{repo}/pages', {...repo, build_type: 'workflow'});
+              core.info('Use the verified workflow as the sole Pages publisher.');
+            }
+            const pages_deployment_id = '319bb15cefc8b2f10a3070b35556ef3626da5727';
+            const runs = await github.rest.actions.listWorkflowRunsForRepo({
+              owner: context.repo.owner, repo: context.repo.repo,
+              head_sha: pages_deployment_id, per_page: 100
+            });
+            if (runs.data.workflow_runs.some(run => run.status !== 'completed')) {
+              throw new Error('The diagnosed revision still has active workflows; keep its publication.');
+            }
+            try {
+              await github.request('POST /repos/{owner}/{repo}/pages/deployments/{pages_deployment_id}/cancel', {
+                owner: context.repo.owner, repo: context.repo.repo, pages_deployment_id
+              });
+              core.info('Requested cancellation of the diagnosed orphaned Pages lock.');
+            } catch (error) {
+              if (![404, 409].includes(error.status)) throw error;
+              core.info('The diagnosed publication is already absent or terminal.');
+            }
+            // Let any legacy publisher already launched by this commit finish.
+            let legacy = [];
+            for (let attempt = 0; attempt < 7; attempt++) {
+              const current = await github.rest.actions.listWorkflowRunsForRepo({...repo, head_sha: context.sha, per_page: 100});
+              legacy = current.data.workflow_runs.filter(run => run.name === 'pages build and deployment');
+              if (legacy.every(run => run.status === 'completed')) break;
+              if (attempt === 6) throw new Error('Legacy publisher is still active; retry recovery after it finishes.');
+              await new Promise(resolve => setTimeout(resolve, 8000));
+            }
+            if (legacy.length) {
+              try {
+                const current = await github.request('GET /repos/{owner}/{repo}/pages/deployments/{pages_deployment_id}', {...repo, pages_deployment_id: context.sha});
+                if (!['succeed', 'succeeded', 'failed', 'cancelled'].includes(current.data.status)) {
+                  await github.request('POST /repos/{owner}/{repo}/pages/deployments/{pages_deployment_id}/cancel', {...repo, pages_deployment_id: context.sha});
+                }
+              } catch (error) { if (![404, 409].includes(error.status)) throw error; }
+            }
+  publish-current-main:
+    needs: clear-orphaned-publication
+    uses: ./.github/workflows/deploy-data-pages.yml
+    with:
+      artifact-name: recovered-current-pages
