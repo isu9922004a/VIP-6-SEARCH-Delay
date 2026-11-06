@@ -24,8 +24,13 @@ jobs:
             const repo = {owner: context.repo.owner, repo: context.repo.repo};
             const site = await github.request('GET /repos/{owner}/{repo}/pages', repo);
             if (site.data.build_type !== 'workflow') {
-              await github.request('PUT /repos/{owner}/{repo}/pages', {...repo, build_type: 'workflow'});
-              core.info('Use the verified workflow as the sole Pages publisher.');
+              try {
+                await github.request('PUT /repos/{owner}/{repo}/pages', {...repo, build_type: 'workflow'});
+                core.info('Use the verified workflow as the sole Pages publisher.');
+              } catch (error) {
+                if (error.status !== 403) throw error;
+                core.notice('The workflow token cannot change site settings; retain the configured publisher and coordinate publication below.');
+              }
             }
             const pages_deployment_id = '319bb15cefc8b2f10a3070b35556ef3626da5727';
             const runs = await github.rest.actions.listWorkflowRunsForRepo({
