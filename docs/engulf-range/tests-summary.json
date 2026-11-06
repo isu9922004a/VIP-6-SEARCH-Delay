@@ -1,0 +1,128 @@
+{
+  "required": {
+    "npm ci": {
+      "exit": 0,
+      "log": "/workspace/engulf-npm-ci.log"
+    },
+    "npm test": {
+      "exit": 0,
+      "tests": 657,
+      "pass": 657,
+      "fail": 0,
+      "log": "/workspace/engulf-last-full.log"
+    },
+    "npm run test:contract": {
+      "exit": 0,
+      "fileTests": 2,
+      "log": "/workspace/engulf-final-contract.log"
+    },
+    "npm run research:validate": {
+      "exit": 0,
+      "status": "BLOCKED_MISSING_POINT_IN_TIME_HISTORY",
+      "performanceProven": false,
+      "log": "/workspace/engulf-final-validate.log"
+    }
+  },
+  "newBrowser": [
+    {
+      "name": "stock application shared modules and six controls load",
+      "status": "PASS"
+    },
+    {
+      "name": "actual stock panel is closed by default with original research",
+      "status": "PASS"
+    },
+    {
+      "name": "mobile 428px, 390px and desktop single column have no overlap or overflow",
+      "status": "PASS"
+    },
+    {
+      "name": "both 1284x2778 PNG modes share every field with text and do not clip",
+      "status": "PASS",
+      "details": [
+        {
+          "watermarked": false,
+          "minFont": 42,
+          "fieldCount": 13
+        },
+        {
+          "watermarked": true,
+          "minFont": 42,
+          "fieldCount": 13
+        }
+      ]
+    },
+    {
+      "name": "new PNG reuses original modal and native LINE single-file share",
+      "status": "PASS",
+      "details": {
+        "buttons": [
+          "✕ 關閉",
+          "📤 分享完整圖片到 LINE",
+          "← 上一頁",
+          "下一頁 →",
+          "⬇️ 下載完整 ZIP",
+          "上一段",
+          "下一段"
+        ],
+        "shares": [
+          [
+            {
+              "name": "shitou_9001_mw4t3y8f_full.jpg",
+              "type": "image/jpeg",
+              "size": 626832
+            }
+          ]
+        ]
+      }
+    },
+    {
+      "name": "removed stock panel cannot open an obsolete image",
+      "status": "PASS"
+    },
+    {
+      "name": "independent index uses same verified calculation and closed panel",
+      "status": "PASS",
+      "details": {
+        "state": "RESEARCH_ONLY",
+        "open": false,
+        "code": "TAIEX"
+      }
+    },
+    {
+      "name": "index research PNG reuses existing modal, download and LINE; original chart PNG preserved",
+      "status": "PASS"
+    },
+    {
+      "name": "stock and index pages have no uncaught JavaScript errors",
+      "status": "PASS"
+    }
+  ],
+  "legacyRegression": {
+    "marketComfort": {
+      "exit": 0,
+      "log": "/workspace/engulf-final-market-comfort.log"
+    },
+    "marketRecovery": {
+      "exit": 0,
+      "log": "/workspace/engulf-final-market-recovery.log"
+    },
+    "stockContext": {
+      "exit": 1,
+      "alsoFailsUnmodifiedBaseline": true,
+      "reason": "DOM textContent newline serialization mismatch",
+      "changedLog": "/workspace/engulf-final-stock-context.log",
+      "baselineLog": "/workspace/engulf-last-baseline-context.log"
+    },
+    "npm run test:browser": {
+      "exit": 1,
+      "alsoFailsUnmodifiedBaseline": true,
+      "reason": "stale V8.2.2 / alertPlan / candle-page expectations, hidden element screenshot",
+      "changedLog": "/workspace/engulf-final-legacy-browser.log",
+      "baselineLog": "/workspace/engulf-last-baseline-legacy.log"
+    }
+  },
+  "allTestsGreen": false,
+  "productionDeployed": false,
+  "workerDeployed": false
+}

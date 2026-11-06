@@ -134,22 +134,22 @@ function shareCurrentImage(){
  shareNotice('此瀏覽器無法直接分享圖片，請按「下載PNG」再從LINE聊天室傳送。');
 }
 let opening=false;
-async function open(watermarked=false){if(opening)return null;opening=true;const triggers=["marketSimpleAnalysisButton","marketSimpleAnalysisWatermarkButton"].map(id=>root.document.getElementById(id)).filter(Boolean);triggers.forEach(b=>{b.disabled=true;b.setAttribute('aria-busy','true');});
+async function open(watermarked=false,researchCanvas=null){if(opening)return null;opening=true;const triggers=["marketSimpleAnalysisButton","marketSimpleAnalysisWatermarkButton"].map(id=>root.document.getElementById(id)).filter(Boolean);triggers.forEach(b=>{b.disabled=true;b.setAttribute('aria-busy','true');});
  try{
   const snapshot=current(),date=snapshot.analysis.date;
   status('正在產生大盤圖片…');
   if(root.document.fonts?.ready)await root.document.fonts.ready;
   if(current().analysis.date!==date)throw Error('大盤資料已更新，請重新產生圖片。');
-  const result=page(snapshot,{watermarked}),blob=await new Promise(resolve=>result.toBlob(resolve,'image/png'));
+  const result=researchCanvas||page(snapshot,{watermarked}),blob=await new Promise(resolve=>result.toBlob(resolve,'image/png'));
   if(!blob?.size)throw Error('PNG產生失敗，請重新產生。');if(current().analysis!==snapshot.analysis)throw Error('大盤資料已更新，請重新產生圖片。');
   cleanup();imageBlob=blob;
-  const filename=VERSION+'_大盤精簡分析_'+(watermarked?'浮水印版':'無浮水印')+'_TAIEX_'+date+'.png';
+  const filename=VERSION+(researchCanvas?'_吞沒箱體研究_':'_大盤精簡分析_')+(watermarked?'浮水印版':'無浮水印')+'_TAIEX_'+date+'.png';
   imageFile=typeof root.File==='function'?new root.File([blob],filename,{type:'image/png',lastModified:Date.now()}):null;
   activeUrl=URL.createObjectURL(blob);
   let dialog=root.document.getElementById('simpleMarketReportDialog');
   if(!dialog){dialog=root.document.createElement('dialog');dialog.id='simpleMarketReportDialog';dialog.setAttribute('aria-label','大盤精簡分析圖片預覽');dialog.addEventListener('close',cleanup);root.document.body.append(dialog);}
   dialog.replaceChildren();
-  const title=root.document.createElement('h2');title.textContent='大盤精簡分析｜TAIEX｜'+VERSION+'｜'+(watermarked?'浮水印版':'無浮水印版');
+  const title=root.document.createElement('h2');title.textContent=(researchCanvas?'吞沒與箱體研究':'大盤精簡分析')+'｜TAIEX｜'+VERSION+'｜'+(watermarked?'浮水印版':'無浮水印版');
   const controls=root.document.createElement('div');controls.className='simple-market-report-controls';
   const download=root.document.createElement('a');download.href=activeUrl;download.download=filename;download.className='market-report-btn';download.textContent='下載 PNG';
   const share=root.document.createElement('button');share.type='button';share.id='simpleMarketLineShareButton';share.className='market-report-btn';share.textContent='📤 分享圖片到 LINE';share.addEventListener('click',shareCurrentImage);
@@ -157,7 +157,7 @@ async function open(watermarked=false){if(opening)return null;opening=true;const
   controls.append(download,share,dismiss);
   const note=root.document.createElement('p');note.id='simpleMarketShareStatus';note.setAttribute('role','status');note.setAttribute('aria-live','polite');note.textContent='手機可從分享面板選LINE，電腦可複製圖片貼到LINE聊天室。';
   const img=root.document.createElement('img');img.src=activeUrl;img.alt='大盤精簡分析完整圖片';img.width=result.width;img.height=result.height;
-  dialog.append(title,controls,note,img);dialog.dataset.reportAudit=result.dataset.researchAudit;
+  dialog.append(title,controls,note,img);dialog.dataset.reportAudit=result.dataset.researchAudit||result.dataset.engulfRangeAudit;
   if(!dialog.open)dialog.showModal();
   status('已產生大盤'+(watermarked?'浮水印版':'無浮水印版')+'精簡分析圖片，請預覽、下載或分享。');
   return result;

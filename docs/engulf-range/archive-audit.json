@@ -1,0 +1,164 @@
+{
+  "schema": "ENGULF_RANGE_ARCHIVE_AUDIT_1",
+  "status": "BLOCKED_MISSING_POINT_IN_TIME_HISTORY",
+  "performanceProven": false,
+  "parameterVersion": "ENGULF_RANGE_PARAMS_1",
+  "source": {
+    "type": "LOCAL_OFFICIAL_RESEARCH_ARCHIVE",
+    "manifest": "data/research/manifest.json",
+    "manifestSha256": "dd47ee64c221a54280a24ea1269bee749736f34e24772463fe7b24ec3ed4aa15",
+    "manifestDate": "2026-11-03",
+    "sourceDays": 320,
+    "referenceUniverseSize": 1959,
+    "archivedStocks": 1959,
+    "markets": {
+      "TWSE": 1086,
+      "TPEX": 873
+    },
+    "observedBarDates": {
+      "start": "2026-03-11",
+      "end": "2026-11-03"
+    },
+    "source": "原系統官方歷史檔及Worker契約；未加發網路API"
+  },
+  "evidence": {
+    "contractPresent": 1959,
+    "corporateActionsVerified": 0,
+    "newResearchStates": {
+      "DATA_INSUFFICIENT": 1959
+    },
+    "blockingReasons": {
+      "歷史公司行動尚未完整核驗，不宣稱吞沒或箱體確認": 1930,
+      "完成日K不足": 25,
+      "普通股商品類型／跳動制度未核驗": 4
+    },
+    "examples": [
+      {
+        "code": "1101",
+        "date": "2026-11-03",
+        "state": "DATA_INSUFFICIENT",
+        "reason": "歷史公司行動尚未完整核驗，不宣稱吞沒或箱體確認",
+        "bars": 160
+      },
+      {
+        "code": "1102",
+        "date": "2026-11-03",
+        "state": "DATA_INSUFFICIENT",
+        "reason": "歷史公司行動尚未完整核驗，不宣稱吞沒或箱體確認",
+        "bars": 160
+      },
+      {
+        "code": "1103",
+        "date": "2026-11-03",
+        "state": "DATA_INSUFFICIENT",
+        "reason": "歷史公司行動尚未完整核驗，不宣稱吞沒或箱體確認",
+        "bars": 160
+      },
+      {
+        "code": "1104",
+        "date": "2026-11-03",
+        "state": "DATA_INSUFFICIENT",
+        "reason": "歷史公司行動尚未完整核驗，不宣稱吞沒或箱體確認",
+        "bars": 160
+      },
+      {
+        "code": "1108",
+        "date": "2026-11-03",
+        "state": "DATA_INSUFFICIENT",
+        "reason": "歷史公司行動尚未完整核驗，不宣稱吞沒或箱體確認",
+        "bars": 160
+      }
+    ]
+  },
+  "groups": {
+    "A_ORIGINAL": {
+      "status": "BLOCKED_MISSING_POINT_IN_TIME_HISTORY",
+      "signalSampleCount": null,
+      "nextDayUpRatio": null,
+      "return1": null,
+      "return3": null,
+      "return5": null,
+      "falseBreakoutRatio": null,
+      "maxAdverseExcursion": null,
+      "riskReward": null,
+      "missedOriginalSuccessRatio": null,
+      "top8Performance": null,
+      "coverage": null,
+      "netAfterCostReturn": null
+    },
+    "B_ENGULF": {
+      "status": "BLOCKED_MISSING_POINT_IN_TIME_HISTORY",
+      "signalSampleCount": null,
+      "nextDayUpRatio": null,
+      "return1": null,
+      "return3": null,
+      "return5": null,
+      "falseBreakoutRatio": null,
+      "maxAdverseExcursion": null,
+      "riskReward": null,
+      "missedOriginalSuccessRatio": null,
+      "top8Performance": null,
+      "coverage": null,
+      "netAfterCostReturn": null
+    },
+    "C_RANGE": {
+      "status": "BLOCKED_MISSING_POINT_IN_TIME_HISTORY",
+      "signalSampleCount": null,
+      "nextDayUpRatio": null,
+      "return1": null,
+      "return3": null,
+      "return5": null,
+      "falseBreakoutRatio": null,
+      "maxAdverseExcursion": null,
+      "riskReward": null,
+      "missedOriginalSuccessRatio": null,
+      "top8Performance": null,
+      "coverage": null,
+      "netAfterCostReturn": null
+    },
+    "D_BOTH": {
+      "status": "BLOCKED_MISSING_POINT_IN_TIME_HISTORY",
+      "signalSampleCount": null,
+      "nextDayUpRatio": null,
+      "return1": null,
+      "return3": null,
+      "return5": null,
+      "falseBreakoutRatio": null,
+      "maxAdverseExcursion": null,
+      "riskReward": null,
+      "missedOriginalSuccessRatio": null,
+      "top8Performance": null,
+      "coverage": null,
+      "netAfterCostReturn": null
+    }
+  },
+  "missing": [
+    {
+      "item": "公司行動與價格調整逐日證明",
+      "period": "整個候選歷史區間",
+      "availableStocks": 0,
+      "requiredStocks": 1959
+    },
+    {
+      "item": "含下市、停止交易與當日分類的歷史全市場母體",
+      "period": "訓練及樣本外期間均未提供",
+      "availableVerifiedDailySnapshots": 0
+    },
+    {
+      "item": "六策略當日可得輸入、原候選分數及正式TOP8原序",
+      "period": "訓練及樣本外期間均未提供",
+      "availableVerifiedDailySnapshots": 0
+    },
+    {
+      "item": "可執行成交、費用、交易稅與滑價證明",
+      "period": "同一比較期間未提供",
+      "availableVerifiedExecutions": 0
+    }
+  ],
+  "notes": [
+    "現存股票快照不是歷史存活者無偏母體",
+    "資料缺口不等於0%勝率；四組比較樣本數為未知，不能虛報成0個有效訊號",
+    "未以日後K棒重建先前榜單；未尋優門檻",
+    "單元測試合成資料僅驗證計算，不能證明台股預測效果"
+  ]
+}
