@@ -6,10 +6,10 @@
     },
     "npm test": {
       "exit": 0,
-      "tests": 657,
-      "pass": 657,
+      "tests": 658,
+      "pass": 658,
       "fail": 0,
-      "log": "/workspace/deploy-final-unit.log"
+      "log": "/workspace/deploy-final-unit-658.log"
     },
     "npm run test:contract": {
       "exit": 0,
@@ -222,5 +222,12 @@
     "authorization": "User explicitly requested direct deployment after fixes",
     "status": "PRE_DEPLOY_VALIDATION_PASSED",
     "authoritativeResult": "PR #9 and Deploy verified frontend release GitHub Actions; final response includes verified result"
+  },
+  "postCloudRegression": {
+    "tests": 658,
+    "pass": 658,
+    "fail": 0,
+    "log": "/workspace/deploy-final-unit-658.log",
+    "change": "Unverified coverage must remain unknown; recompute test quote-scope conflict through the original amount/volume audit"
   }
 }

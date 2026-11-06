@@ -85,7 +85,7 @@
 | 命令／範圍 | 實際結果 |
 |---|---|
 | npm ci --cache /workspace/engulf-npm-cache | exit 0，鎖定依賴安裝成功 |
-| npm test（最終程式） | 657 項通過、0 失敗；包含新增36項單元／比較／腳本載入測試 |
+| npm test（最終程式） | 658 項通過、0 失敗；包含新增36項單元／比較／腳本載入測試 |
 | npm run test:contract | exit 0；Node runner列2個測試檔通過 |
 | npm run research:validate | exit 0；結果為 BLOCKED_MISSING_POINT_IN_TIME_HISTORY，不能當績效通過 |
 | node scripts/compare-engulf-range.cjs | 完成1959檔本機稽核，四組績效保持null |
@@ -95,7 +95,7 @@
 | npm run test:browser | 最新29項通過；舊斷言改為目前版本及摘要／完整圖各自稽核；完整價格與停損證據仍檢查 |
 | research-context-r16-browser | 正常與備援模式均通過，七檔實際查詢與七入口逐欄比對、線圖及風控保留 |
 
-沒有刪測試、跳過失敗或把未跑項目列成功。基準一開始在未授予瀏覽器／bash環境權限下曾遇 spawnSync bash EPERM，取得環境權限後 npm test 全套通過。前輪失敗與基準比較紀錄保留；本輪修正實際排版／模式問題與測試資料混日，沒有刪除測試或解除原安全閘門。
+沒有刪測試、跳過失敗或把未跑項目列成功。另新增一項缺少歷史限制證明的測試：官方日線更新而原因證明未同步時，維持原因待核，不冒稱零成交或掛牌日；交易額口徑衝突以可控的測試報價金額觸發原閘門。基準一開始在未授予瀏覽器／bash環境權限下曾遇 spawnSync bash EPERM，取得環境權限後 npm test 全套通過。前輪失敗與基準比較紀錄保留；本輪修正實際排版／模式問題與測試資料混日，沒有刪除測試或解除原安全閘門。
 
 PNG下載維持1284×2778；個股 LINE 沿用原系統單張JPG分享、PNG下載的既有流程；獨立大盤沿用原生PNG分享。新增研究圖不取代原專業個股圖或已核准的大盤含線圖版本。
 
