@@ -46,7 +46,90 @@ function render(data){
  if(JSON.stringify(data)!==sourceBefore)throw Error('圖片排版不得修改原分析資料。');
  const audit={version:'MARKET_COMFORT_LAYOUT_V864',width:W,height:H,bodyFont:38,bodyLineHeight:57,bodyWeight:500,panelGap:G,minFont:26,noOverlap:sections.every((s,i)=>!i||s.top>=sections[i-1].bottom+G),noClipping:painted.every(t=>t.bottom<=H-M),sections,sourceDate:data.closeDate,sourceClose:data.close,abc:{A:st.A,B:st.B,C:st.C},map,scenarios,bullets,metrics:metrics.map(([title,value,sub])=>({title,value,sub})),trident:tri,stage:stage.shortLabel||stage.label,originalContentPreserved:true,analysisChanged:false,chartUsesOriginalRenderer:true,text:painted.map(x=>x.text)};
  if(!audit.noOverlap||!audit.noClipping)throw Error('大盤報告文字超出安全範圍，已停止匯出。');
+ canvas.marketReaderData={version,metadata,generated,stage:{label:stage.shortLabel||stage.label,headline:stage.headline||stage.plainText},abc:abc.map(({key,label,value,date,color})=>({key,label,value,date,color})),progress:progress.combined,chart:sections.find(s=>s.id==='chart'),metrics,map,scenarios,bullets,trident:tri,tridentNote:triNote.text,mnemonic:`A 起漲 → B 前高 →\n${st.C!==null?'C 回檔':'等有效 C'} → 再突破 B\n＝ 完整 N 字確認`};
  canvas.dataset.reportMode='market';canvas.dataset.marketComfortLayout='true';canvas.dataset.marketComfortAudit=JSON.stringify(audit);return canvas;
 }
-root.ShitouMarketComfortReport={render};
+// The mobile reader and exported PNG share the same prepared report content.
+function mountReader(canvas){
+ const modal=document.getElementById('imagePreviewModal'),image=document.getElementById('imagePreviewImg');if(!modal||!image)return;
+ document.getElementById('marketMobileReader')?.remove();document.getElementById('marketReaderToggle')?.remove();document.getElementById('marketReaderTitle')?.remove();delete modal.dataset.marketReader;delete modal.dataset.marketView;
+ const data=canvas.marketReaderData;if(!data)return;
+ if(!document.getElementById('marketReaderStyle')){const style=document.createElement('style');style.id='marketReaderStyle';style.textContent=READER_CSS;document.head.append(style);}
+ const el=(tag,text,cls)=>{const node=document.createElement(tag);if(text!==undefined&&text!==null)node.textContent=text;if(cls)node.className=cls;return node;},article=el('article',null,'market-reader');article.id='marketMobileReader';article.setAttribute('aria-label','大盤 ABC 手機閱讀報告');
+ const section=(title,cls='')=>{const node=el('section',null,'mr-card '+cls);node.append(el('h2',title));article.append(node);return node;},paragraph=(host,text,cls)=>{host.append(el('p',text,cls));};
+ const intro=el('header',null,'mr-card mr-intro');intro.append(el('p','大盤先懂 ABC','mr-eyebrow'),el('h1','現在市場走到哪一步？'));paragraph(intro,'臺灣加權股價指數','mr-index');paragraph(intro,data.metadata,'mr-meta');paragraph(intro,`報告製作 By.石頭少爺｜${data.version}\n${data.generated}`,'mr-meta');article.append(intro);
+ const stage=section('大盤行情階段','mr-stage');paragraph(stage,data.stage.label,'mr-status');paragraph(stage,data.stage.headline);
+ const abc=section('ABC 是這套分析的核心');paragraph(abc,'A 是起漲低點，B 是前一個高點，C 是回落後確認的低點。');const abcRows=el('dl',null,'mr-abc');data.abc.forEach(a=>{const row=el('div');row.style.setProperty('--mr-accent',a.color);row.append(el('dt',a.key+' '+a.label));const value=el('dd');value.append(el('strong',a.value===null?'尚未形成':root.fmt(a.value)+' 點'));if(a.value!==null&&a.date)value.append(el('span',root.dateCompactV3328(a.date),'mr-meta'));row.append(value);abcRows.append(row);});abc.append(abcRows);paragraph(abc,'目前進度：'+data.progress,'mr-emphasis');paragraph(abc,'口訣：A 起漲 → B 前高 → 等有效 C → 再突破 B＝完整 N 字確認。');
+ const chart=section('真實大盤日 K 與成交量');paragraph(chart,'最近 80 根・20 日均線・三叉戟','mr-meta');const chartArea=el('div',null,'mr-chart-area'),chartImage=el('canvas',null,'mr-chart');chartImage.width=canvas.width;chartImage.height=data.chart.bottom-data.chart.top;chartImage.getContext('2d').drawImage(canvas,0,data.chart.top,canvas.width,chartImage.height,0,0,canvas.width,chartImage.height);chartImage.setAttribute('role','img');chartImage.setAttribute('aria-label','與下載報告相同的大盤日 K、20 日均線、成交量及三條關鍵線');chartArea.append(chartImage);chart.append(chartArea);const zoom=el('button','放大 K 線圖','mr-chart-toggle');zoom.type='button';zoom.setAttribute('aria-expanded','false');zoom.onclick=()=>{const expanded=zoom.getAttribute('aria-expanded')!=='true';zoom.setAttribute('aria-expanded',String(expanded));chartArea.classList.toggle('mr-chart-expanded',expanded);zoom.textContent=expanded?'縮回完整圖':'放大 K 線圖';};chart.append(zoom);
+ const metrics=section('大盤重點');const metricList=el('div',null,'mr-metrics');data.metrics.forEach(([title,value,sub,color])=>{const cell=el('div',null,'mr-metric');cell.style.setProperty('--mr-accent',color);cell.append(el('h3',title),el('p',value,'mr-value'),el('p',sub));metricList.append(cell);});metrics.append(metricList);
+ const map=section('A. 大盤價格作戰地圖');paragraph(map,'關鍵價位由高到低排列。','mr-meta');const prices=el('dl',null,'mr-price-map');data.map.forEach(item=>{const row=el('div');const price=el('dt',root.fmt(item.value)+' 點');price.style.color=item.color;row.append(price,el('dd',item.label));prices.append(row);});map.append(prices);paragraph(map,'大盤關卡用來調整個股操作積極度，不是指數交易指令。','mr-meta');
+ data.scenarios.forEach((text,i)=>paragraph(section(`B. 明天怎麼走？｜劇本 ${i+1}`,'mr-scenario mr-scenario-'+i),text));
+ const decision=section('C. 現在能不能進？持有要不要出？'),list=el('ul');data.bullets.forEach(text=>list.append(el('li',text)));decision.append(list);
+ paragraph(section('記住口訣'),data.mnemonic,'mr-emphasis');
+ const trident=section('大盤三條關鍵線'),triList=el('dl',null,'mr-trident');[['壓力',data.trident.pressure],['支撐',data.trident.support],['備用觀察',data.trident.preparatory]].forEach(([label,item])=>{const row=el('div');row.append(el('dt',label),el('dd',item?root.fmt(item.value)+' 點':'資料不足'));triList.append(row);});trident.append(triList);paragraph(trident,data.tridentNote,'mr-meta');
+ const footer=section('風險提醒');paragraph(footer,'技術分析僅供研究與決策參考，風險自負。');paragraph(footer,`${data.version}｜下載／分享：${canvas.dataset.marketReaderWatermarked==='true'?'浮水印版':'無浮水印版'}`,'mr-meta');
+ image.after(article);modal.dataset.marketReader='true';modal.dataset.marketView='reading';modal.scrollTop=0;
+ const toggle=el('button','圖片預覽','market-reader-toggle');toggle.id='marketReaderToggle';toggle.type='button';toggle.setAttribute('aria-controls','marketMobileReader imagePreviewImg');toggle.setAttribute('aria-pressed','true');toggle.onclick=()=>{const reading=modal.dataset.marketView!=='reading';modal.dataset.marketView=reading?'reading':'image';toggle.textContent=reading?'圖片預覽':'手機閱讀';toggle.setAttribute('aria-pressed',String(reading));modal.scrollTop=0;};const title=el('span','大盤報告','market-reader-title');title.id='marketReaderTitle';title.setAttribute('aria-hidden','true');modal.querySelector('.image-modal-head').prepend(title);modal.querySelector('.image-modal-close').before(toggle);
+}
+const READER_CSS=`
+.market-reader,.market-reader-toggle,.market-reader-title{display:none}
+@media (max-width:600px),(max-width:1000px) and (pointer:coarse){
+ #imagePreviewModal[data-market-reader="true"]{padding:0;background:#eef3f8;backdrop-filter:none;-webkit-backdrop-filter:none;overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;height:100vh;height:100dvh}
+ #imagePreviewModal[data-market-reader="true"].show{display:block}
+ #imagePreviewModal[data-market-reader="true"] .image-modal-card{box-sizing:border-box;width:100%;max-width:none;min-height:100%;margin:0;padding:0 0 calc(112px + env(safe-area-inset-bottom,0px));border:0;border-radius:0;box-shadow:none;background:#eef3f8;color:#24364b}
+ #imagePreviewModal[data-market-reader="true"] .image-modal-head{position:sticky;top:0;z-index:2;gap:8px;margin:0;padding:calc(10px + env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) 10px max(12px,env(safe-area-inset-left,0px));background:#fff;border-bottom:1px solid #d7e1eb}
+ #imagePreviewModal[data-market-reader="true"] .image-modal-title{display:none}
+ #imagePreviewModal[data-market-reader="true"] .market-reader-title{display:block;flex:1;min-width:0;font-size:17px;font-weight:650;line-height:1.5}
+ #imagePreviewModal[data-market-reader="true"] .image-modal-close,#imagePreviewModal[data-market-reader="true"] .market-reader-toggle{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;min-height:44px;padding:8px 10px;border:1px solid #ccd9e5;border-radius:10px;background:#fff;color:#183c56;font-size:14px;font-weight:600;white-space:nowrap;cursor:pointer}
+ #imagePreviewModal[data-market-reader="true"] .image-preview-wrap{box-sizing:border-box;width:100%;margin:0;padding:0;border:0;border-radius:0;max-height:none;overflow:visible;background:#eef3f8;text-align:left}
+ #imagePreviewModal[data-market-reader="true"][data-market-view="reading"] #imagePreviewImg{display:none}
+ #imagePreviewModal[data-market-reader="true"][data-market-view="image"] #imagePreviewImg{display:block;width:100%;height:auto;max-width:none;margin:0;border-radius:0;box-shadow:none}
+ #imagePreviewModal[data-market-reader="true"][data-market-view="reading"] .market-reader{display:block}
+ #imagePreviewModal .market-reader{box-sizing:border-box;max-width:100%;padding:12px max(12px,env(safe-area-inset-right,0px)) 20px max(12px,env(safe-area-inset-left,0px));font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;font-size:17px;font-weight:400;line-height:1.8;color:#24364b;overflow-wrap:anywhere;-webkit-text-size-adjust:100%;text-align:left}
+ #imagePreviewModal .market-reader *{box-sizing:border-box}
+ #imagePreviewModal .market-reader .mr-card{scroll-margin-top:90px;scroll-margin-bottom:90px;min-width:0;margin:0 0 14px;padding:20px 18px;border:1px solid #d7e1eb;border-radius:16px;background:#fff;box-shadow:none}
+ #imagePreviewModal .market-reader h1{margin:4px 0 16px;font-size:25px;font-weight:750;line-height:1.5;color:#183c56}
+ #imagePreviewModal .market-reader h2{margin:0 0 14px;font-size:20px;font-weight:700;line-height:1.6;color:#183c56}
+ #imagePreviewModal .market-reader h3{margin:0 0 6px;font-size:16px;font-weight:600;line-height:1.6}
+ #imagePreviewModal .market-reader p{margin:0 0 14px;font-size:17px;font-weight:400;line-height:1.8;white-space:pre-line}
+ #imagePreviewModal .market-reader p:last-child{margin-bottom:0}
+ #imagePreviewModal .market-reader .mr-meta{font-size:14px;line-height:1.75;color:#536578}
+ #imagePreviewModal .market-reader .mr-eyebrow{margin-bottom:4px;font-size:16px;font-weight:650;color:#176f65}
+ #imagePreviewModal .market-reader .mr-index{font-size:18px;font-weight:600}
+ #imagePreviewModal .market-reader .mr-status{font-size:24px;font-weight:700;line-height:1.6;color:#183c56}
+ #imagePreviewModal .market-reader .mr-emphasis{font-weight:600;color:#176f65}
+ #imagePreviewModal .market-reader .mr-stage{background:#f7f9fc}
+ #imagePreviewModal .market-reader dl{margin:16px 0}
+ #imagePreviewModal .market-reader dl>div{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);align-items:start;gap:10px;padding:13px 0;border-bottom:1px solid #e6edf3}
+ #imagePreviewModal .market-reader dt,#imagePreviewModal .market-reader dd{min-width:0;margin:0;font-size:17px;font-weight:400;line-height:1.8}
+ #imagePreviewModal .market-reader .mr-abc dt{color:var(--mr-accent);font-weight:650}
+ #imagePreviewModal .market-reader .mr-abc dd strong{display:block;font-size:18px;font-weight:650;color:var(--mr-accent)}
+ #imagePreviewModal .market-reader .mr-abc dd span{display:block}
+ #imagePreviewModal .market-reader .mr-chart-area{width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+ #imagePreviewModal .market-reader .mr-chart{display:block;width:100%;max-width:none;height:auto}
+ #imagePreviewModal .market-reader .mr-chart-expanded .mr-chart{width:1000px}
+ #imagePreviewModal .market-reader .mr-chart-toggle{min-height:44px;margin-top:10px;padding:8px 12px;border:1px solid #ccd9e5;border-radius:10px;background:#fff;color:#183c56;font-size:15px;font-weight:500}
+ #imagePreviewModal .market-reader .mr-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+ #imagePreviewModal .market-reader .mr-metric{min-width:0;padding:14px 12px;border-left:3px solid var(--mr-accent);background:#f8fbfd;border-radius:8px}
+ #imagePreviewModal .market-reader .mr-metric:nth-child(3),#imagePreviewModal .market-reader .mr-metric:last-child{grid-column:1/-1}
+ #imagePreviewModal .market-reader .mr-value{font-size:20px;font-weight:650;line-height:1.5}
+ #imagePreviewModal .market-reader .mr-price-map>div{display:block}
+ #imagePreviewModal .market-reader .mr-price-map dt{font-size:21px;font-weight:650;line-height:1.5;font-variant-numeric:tabular-nums}
+ #imagePreviewModal .market-reader .mr-price-map dd{margin-top:6px}
+ #imagePreviewModal .market-reader ul{margin:0;padding-left:1.3em}
+ #imagePreviewModal .market-reader li{margin:0 0 16px;padding-left:4px;font-size:17px;line-height:1.8}
+ #imagePreviewModal .market-reader li:last-child{margin-bottom:0}
+ #imagePreviewModal .market-reader .mr-scenario-0{background:#f5faf7}
+ #imagePreviewModal .market-reader .mr-scenario-1{background:#fffaf3}
+ #imagePreviewModal .market-reader .mr-scenario-2{background:#fff7f7}
+ #imagePreviewModal .market-reader .mr-trident dd{font-size:20px;font-weight:650;color:#176f65;font-variant-numeric:tabular-nums}
+ #imagePreviewModal[data-market-reader="true"] .image-modal-actions{position:fixed;left:0;right:0;bottom:0;z-index:3;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:0;padding:10px max(12px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px));background:#fff;border-top:1px solid #d7e1eb}
+ #imagePreviewModal[data-market-reader="true"] .image-save-link,#imagePreviewModal[data-market-reader="true"] .image-share-btn{min-width:0;min-height:46px;padding:10px 8px;font-size:14px;font-weight:600;line-height:1.5}
+ #imagePreviewModal[data-market-reader="true"] .image-preview-note{margin:0;padding:12px 18px;font-size:14px;line-height:1.8;color:#536578}
+ #imagePreviewModal[data-market-reader="true"] .r45-preview-actions{display:none}
+}
+@media(max-width:374px){#imagePreviewModal .market-reader .mr-metrics{grid-template-columns:minmax(0,1fr)}#imagePreviewModal .market-reader .mr-metric:nth-child(3){grid-column:auto}}
+`;
+
+root.ShitouMarketComfortReport={render,mountReader};
 })(globalThis);

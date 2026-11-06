@@ -29,3 +29,5 @@
 /* MARKETRECOVERY1: recover missed index updates, skip current inference and label stale quote dates. */
 
 /* MARKETCOMFORT1: native readable ABC market report; analysis and prices unchanged. */
+
+/* MARKETREADER1: full-width native mobile market reading with unchanged PNG and sharing. */
