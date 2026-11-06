@@ -33,3 +33,5 @@
 /* MARKETREADER1: full-width native mobile market reading with unchanged PNG and sharing. */
 
 /* MARKETONEIMAGE1: full-width readable market image; preserve complete PNG/JPG without share slicing. */
+
+/* MARKETPAGE1: approved single-page ABC/trident picture, dated live input and automatic refresh. */
