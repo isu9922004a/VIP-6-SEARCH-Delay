@@ -5,7 +5,8 @@
  else root.ShitouMarketSimpleReport=api;
 })(globalThis,function(root){
 'use strict';
-const TITLE='大盤精簡分析',VERSION='V8.6.4',WATERMARK='石頭少爺台股分析'+VERSION+'版',W=1284,MIN_H=2778,MAX_H=8192;
+const TITLE='大盤精簡分析',VERSION='V8.7',WATERMARK='石頭少爺台股分析'+VERSION+'版',W=1284,MIN_H=2778,MAX_H=8192;
+const V=typeof module==='object'&&module.exports?require('../elliott-wave-visual-v1.js'):root.ShitouElliottVisual;
 const titleFor=()=>TITLE;
 const colors={background:'#071f32',card:'#10344f',border:'#28627d',text:'#f0f6fb',muted:'#b8d9e9',yellow:'#f7cf70',aqua:'#79e4d1',red:'#ff9a91'};
 const num=v=>Number.isFinite(v)?Number(v).toFixed(2):'待核對';
@@ -45,6 +46,7 @@ function model(snapshot,{watermarked=false}={}){
  if(fresh?.provenance?.inputQuality?.warning)add('footnote','模型需要成交金額，但資料來源沒有提供；目前以開盤、最高、最低、收盤價的平均乘以成交量估算，與實際成交金額可能有差異。');
  if(fresh?.provenance?.outputQuality?.warning)add('footnote','部分模擬結果的最高、最低價順序不合理，因此只列開盤與收盤結果，不提供模擬最高、最低價。');
  add('heading','⑦ 一句話總結');add('summary',r.summary,'aqua');
+ if(V.enabled()){add('heading','⑧ 波浪位置｜輔助觀察');for(const text of V.linesFor(a.elliottWave||V.result(a)))add('body',text);}
  add('footnote','資料：'+src.source+'｜行情 '+a.date+'。盤後研究；跳空須重算風險，個股停損依原持股計畫，不保證走勢。');
  return {title:titleFor(watermarked),watermarked:!!watermarked,name:'臺灣加權股價指數（TAIEX）',date:a.date,close:a.close,modelRun:fresh?.executionVerified===true,source:src.source,forecastState:f?.state||'UNAVAILABLE',reportObservations:observations,blocks,levels:r.levels,nextTradeDate:m.targetDate||null,risk:r};
 
@@ -61,7 +63,7 @@ function page(snapshot,{document:doc=root.document,watermarked=false}={}){
  const data=model(snapshot,{watermarked}),canvas=doc.createElement('canvas');
  let H=MIN_H;canvas.width=W;canvas.height=H;const ctx=canvas.getContext('2d');
  if(!ctx)throw Error('此瀏覽器無法建立PNG畫布。');
- const M=28,IN=34,maxWidth=W-2*M-2*IN,top=132,header=220,gap=14,bodyTop=top+header+gap;let panelBottom=H-122;
+ const M=28,IN=34,maxWidth=W-2*M-2*IN,top=132,header=220,gap=14,chartHeight=740,chartTop=top+header+gap,bodyTop=chartTop+chartHeight+gap;let panelBottom=H-122;
  const font=(size,bold)=>{ctx.font=(bold?'750 ':'600 ')+size+'px "Microsoft JhengHei","Noto Sans TC",sans-serif';};
  const makeLayout=size=>{
   let total=76;
@@ -75,7 +77,7 @@ function page(snapshot,{document:doc=root.document,watermarked=false}={}){
   return {size,blocks,total};
  };
  let layout=null;
- for(const s of [39,38,37,36,35,34,33,32,31,30,29]){
+ for(const s of [39,38,37,36,35,34,33]){
   const candidate=makeLayout(s);
   if(candidate.total<=panelBottom-bodyTop-36){layout=candidate;break;}
  }
@@ -89,6 +91,7 @@ function page(snapshot,{document:doc=root.document,watermarked=false}={}){
  draw([VERSION+'｜'+(data.modelRun?'Kronos實跑':'盤後研究')],W-M-321,top+46,28,colors.yellow,true);
  draw([data.name],M+IN,top+125,62,colors.text,true);
  draw(['行情基準 '+data.date.replaceAll('-','/')+'｜收盤 '+num(data.close)+' 點'],M+IN,top+182,35,colors.muted);
+ const wave=snapshot.analysis.elliottWave||V.result(snapshot.analysis);const chartAudit=V.chart(ctx,wave,{x:M,y:chartTop,width:W-2*M,height:chartHeight,bars:wave.bars?.length?wave.bars:snapshot.analysis.input.bars,levels:data.levels.map(l=>({label:l.role,price:l.price})),dark:true});
  panel(bodyTop,panelBottom-bodyTop);draw(['明天可能怎麼走？該怎麼做？'],M+IN,bodyTop+52,43,colors.text,true);
  let y=bodyTop+78;
  const usedHeight=layout.blocks.reduce((sum,b)=>sum+b.height,0);const spare=Math.max(0,panelBottom-24-(bodyTop+78+usedHeight));const spread=Math.min(12,spare/Math.max(1,layout.blocks.length+1));
@@ -99,7 +102,7 @@ function page(snapshot,{document:doc=root.document,watermarked=false}={}){
  if(y>panelBottom-22)throw Error('大盤報告內容超過畫布安全區，已停止輸出避免裁切。');
  draw([VERSION+'｜1/1'],W-M-205,H-77,29,colors.muted,true);
  if(watermarked)(root.ShitouReportWatermark||(typeof require==='function'?require('../report-watermark-v84.js'):null)).apply(canvas,'market');
- const audit={watermarkStyle:watermarked?'REFERENCE_DIAGONAL_V84':null,title:data.title,watermarked:data.watermarked,version:VERSION,width:W,height:H,date:data.date,close:data.close,bodyFont:layout.size,bodyBottom:y,safeBottom:panelBottom-22,noClipping:true,modelRun:data.modelRun,forecastState:data.forecastState,source:data.source,levels:data.levels,completeNarrative:true,blockCount:data.blocks.length,sections:7,regime:data.risk.regime.key,technicalDirection:data.risk.technicalDirection,combinedDirection:data.risk.combinedDirection,crashRisk:data.risk.crashRisk.level,executionVerified:data.modelRun};
+ const audit={chart:chartAudit,elliottWave:V.enabled()?{headline:wave.headline,clarity:wave.clarity,rules:wave.primary?.rules||null}:null,extendedHeight:H>MIN_H,watermarkStyle:watermarked?'REFERENCE_DIAGONAL_V84':null,title:data.title,watermarked:data.watermarked,version:VERSION,width:W,height:H,date:data.date,close:data.close,bodyFont:layout.size,bodyBottom:y,safeBottom:panelBottom-22,noClipping:true,modelRun:data.modelRun,forecastState:data.forecastState,source:data.source,levels:data.levels,completeNarrative:true,blockCount:data.blocks.length,sections:7,regime:data.risk.regime.key,technicalDirection:data.risk.technicalDirection,combinedDirection:data.risk.combinedDirection,crashRisk:data.risk.crashRisk.level,executionVerified:data.modelRun};
  canvas.dataset.researchAudit=JSON.stringify(audit);
  return {width:W,height:H,dataset:{researchAudit:JSON.stringify(audit)},renderExportRegion:()=>canvas,toBlob:(cb,type='image/png')=>canvas.toBlob(cb,type)};
 }

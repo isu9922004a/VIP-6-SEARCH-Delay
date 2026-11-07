@@ -1,0 +1,58 @@
+{
+  "version": "V8.7",
+  "unit": {
+    "total": 676,
+    "passed": 676,
+    "failed": 0
+  },
+  "contract": {
+    "total": 50,
+    "passed": 50,
+    "failed": 0
+  },
+  "browser": {
+    "original": 29,
+    "engulfRange": 9,
+    "elliott": 10,
+    "viewports": [
+      390,
+      428,
+      768,
+      1440
+    ]
+  },
+  "researchValidation": {
+    "executed": true,
+    "exitCode": 0,
+    "performanceProven": false,
+    "reason": "缺少完整逐日歷史母體、原始排名、發布時間、成本及可執行成交證據；不宣稱預測改善"
+  },
+  "physicalIphoneSafariTested": false,
+  "actualLineAppDeliveryTested": false,
+  "nativeShareApiFlowTested": true,
+  "waveEnabledByDefault": false,
+  "workerChanged": false,
+  "workerDeployRequired": false,
+  "pngExamples": {
+    "SYNTHETIC-stock-professional.png": {
+      "width": 1284,
+      "height": 3628
+    },
+    "SYNTHETIC-stock-simple.png": {
+      "width": 1284,
+      "height": 4316
+    },
+    "REAL-TAIEX-approved-wave-report.png": {
+      "width": 1284,
+      "height": 3200
+    },
+    "REAL-TAIEX-waves-off.png": {
+      "width": 1284,
+      "height": 3954
+    },
+    "REAL-TAIEX-waves-on.png": {
+      "width": 1284,
+      "height": 4282
+    }
+  }
+}

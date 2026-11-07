@@ -69,7 +69,7 @@ function researchCard(a,number,prefix='研究',expanded=false){
   if(guideIndex===0){value.textContent='';const parts=item.value.split('\n');value.append(el('strong',parts.shift()),document.createTextNode('\n'),el('span',parts.join('\n')));}
   row.append(key,value);return row;
  }
- body.append(guide);if(root.ShitouEngulfRangeReport)body.append(root.ShitouEngulfRangeReport.mount(document,a));
+ body.append(guide);if(root.ShitouEngulfRangeReport)body.append(root.ShitouEngulfRangeReport.mount(document,a));if(root.ShitouElliottVisual)body.append(root.ShitouElliottVisual.mount(document,a));
  const evidence=el('details');evidence.className='research-guide-evidence';evidence.append(el('summary','查看完整研究與資料驗證'));
  for(const item of report.details)evidence.append(field(item));body.append(evidence);
  if(a.openingPlan){

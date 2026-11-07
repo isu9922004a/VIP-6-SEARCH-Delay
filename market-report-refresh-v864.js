@@ -23,6 +23,7 @@ function refresh({fetcher=root.fetch?.bind(root)}={}){
   }else notice='官方日期暫未核對；目前顯示資料的實際日期。';
   const changed=fingerprint(incoming)!==fingerprint(previous);
   if(changed){lastMarketReportData=incoming;if(typeof renderMarketWorkerData==='function')renderMarketWorkerData(incoming);}
+  if(official.status==='fulfilled')root.ShitouElliottVisual?.bindIndex?.(current(),official.value);
   lastResult={changed,ready:!notice,notice,data:current(),checkedAt:Date.now()};return lastResult;
  }catch(e){lastResult={changed:false,ready:false,data:current(),notice:'最新行情暫未核對，暫用畫面所示日期的資料。',error:e.message,checkedAt:Date.now()};return lastResult;}finally{pending=null;}})();return pending;
 }
