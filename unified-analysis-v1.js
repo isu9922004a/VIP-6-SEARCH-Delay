@@ -37,7 +37,7 @@ function evaluate(input,options={}){
  const upper=levels.filter(x=>x.price>z.close+U.tick(z.close)/2).sort((a,b)=>a.price-b.price).filter((x,i,a)=>!i||Math.abs(x.price-a[i-1].price)>1e-8);
  const low=priorPv.filter(x=>x.type==='LOW'&&x.price<z.close).at(-1),defense=low?.price??(support<z.close?support:null),s=defense;
  const elliottWave=flags.waveEnabled?E?.evaluate(r,{pivots:pv})||null:null;
- const studies={oneThird:flags.oneThirdEnabled?oneThird(b,pv,p):null,postLimitup:flags.postLimitupEnabled?postLimitup(b,r,p):null,wave:flags.waveEnabled?wave(b,pv,elliottWave?.bars?.length?elliottWave:null):null};
+ const studies={oneThird:flags.oneThirdEnabled?oneThird(b,pv,p):null,postLimitup:flags.postLimitupEnabled?postLimitup(b,r,p):null,wave:flags.waveEnabled?wave(b,pv,elliottWave):null};
  if(studies.oneThird?.price)studies.oneThird.overlappingSources=levels.filter(x=>Math.abs(x.price-studies.oneThird.price)<=tol).map(x=>x.source);
  const risks=[];
  function warn(code,condition,evidence,explanation,clear,severity='HIGH'){if(condition)risks.push({code,evidence,severity,trigger:code,clearCondition:clear,explanation});}
