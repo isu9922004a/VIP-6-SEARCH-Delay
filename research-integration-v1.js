@@ -109,7 +109,16 @@ function source(input){const raw=U.normalizeInput(input),r={...raw};
  if(['COMMON','COMMON_STOCK','ORDINARY'].includes(String(r.securityType||input?.qualification?.securityType||'').toUpperCase()))r.tickRuleVerified=true;
  return r;
 }
-async function prepareStockQuery(input){
+const stockPreparationJobs=new WeakMap();
+function prepareStockQuery(input){
+ if(!input||typeof input!=='object')return prepareStockQueryUncached(input);
+ const current=root.ShitouSelectionDataV2?.getSnapshot?.()?.identity,old=stockPreparationJobs.get(input);
+ if(old&&(old.pending||old.snapshot===current))return old.promise;
+ const entry={snapshot:current,pending:true,promise:null};
+ entry.promise=prepareStockQueryUncached(input).then(result=>{entry.pending=false;entry.snapshot=root.ShitouSelectionDataV2?.getSnapshot?.()?.identity;if(result.researchAcquisitionError)stockPreparationJobs.delete(input);return result;},error=>{entry.pending=false;stockPreparationJobs.delete(input);throw error;});
+ stockPreparationJobs.set(input,entry);return entry.promise;
+}
+async function prepareStockQueryUncached(input){
  const raw=U.normalizeInput(input),D=root.ShitouSelectionDataV2,code=String(raw.stock||''),date=raw.marketDate||raw.closeDate||raw.dataDate;
  if(!D||!/^\d{4,6}$/.test(code))return raw;
  // Explicitly unfinished or suspended input cannot be upgraded by cached history.

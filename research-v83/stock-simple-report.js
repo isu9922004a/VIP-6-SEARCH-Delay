@@ -32,7 +32,7 @@ let activeUrl=null,activeImageBlob=null,activeImageFile=null,sharePending=false;
 function matchesCurrentStockInput(value,a){
  const entered=String(value??'').normalize('NFKC').trim();
  if(!entered)return true; // Preserve the existing empty-input behavior.
- const code=String(a?.code??'').normalize('NFKC').trim(),name=String(a?.name??'').normalize('NFKC').trim();
+ const code=String(a?.code??a?.stock??'').normalize('NFKC').trim(),name=String(a?.name??'').normalize('NFKC').trim();
  if(entered===code||entered===name)return true;
  const fields=entered.split(/\s*[|｜／/、，,()（）]\s*/).map(s=>s.trim()).filter(Boolean);
  return fields.length===2&&((fields[0]===name&&fields[1]===code)||(fields[0]===code&&fields[1]===name));

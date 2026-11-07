@@ -222,6 +222,21 @@ function apply(report,code){
   tickRuleVerified:officialProof&&/^91/.test(String(code))?false:report.tickRuleVerified===false?false:report.tickRuleVerified===true||Evidence.priceStepBasis?.(p.q,snapshot.meta).verified===true,tickRuleEvidence:Evidence.priceStepBasis?.(p.q,snapshot.meta),
   monthlyReviewV2:months.get(c.key)||{status:'UNAVAILABLE',source:'NO_FULL_MONTHLY',verified:false,date:p.date},priceAdjustment:{...priceAdjustment},researchInputErrors:inputErrors,researchEvidence:{version:Evidence.VERSION,priceBasis:proof,calendar:{status:gaps.status==='UNKNOWN'?'UNKNOWN':researchCalendar.status,reason:gaps.status==='UNKNOWN'?(gaps.reason||researchCalendar.reason):researchCalendar.reason},sessions:gaps},quoteEvidence:{verified:true,date:p.date,close:p.q.close,source:p.q.volumeSource||snapshot.meta.source||'同日官方市場快照'},tradingCalendar:cal&&gaps.status!=='UNKNOWN'?cal:report.tradingCalendar,dailySeriesMeta:{...p.sourceMeta,returnedBars:bars.length,completedDailyRowsAvailable:bars.length,completeOhlcvRowsAvailable:bars.length,dailySeriesCount:bars.length,canonicalBarCount:bars.length,firstDate:bars[0]?.date,lastDate:bars.at(-1)?.date,countScope:'RETURNED_SERIES',volumeUnit:'shares',source:'共用DAILY_ONLY；同日市場OHLC與成交量交叉驗證'},expectedTradingDates:cal&&gaps.status!=='UNKNOWN'?cal.dates:p.expectedTradingDates,corporateActions:p.corporateActions||report.corporateActions};
 }
+// Wave research may consume the bound canonical view, whose wire contract stays
+// on the preserved upstream response. Verify that view against the existing cache.
+function verifyResearchReceipt(report){
+ try{
+  const code=String(report?.stock||report?.code||''),c=context(code),p=cache.get(c.key),b=report?.dailyBasisV2;
+  if(!p||p.error||!p.dataContract||b?.model!==MODEL||b.snapshotVerified!==true||b.historyIdentity!==p.historyIdentity||report.market!==p.q.market||report.closeDate!==p.date||report.close!==p.q.close)return {ok:false,reason:'共用行情收據與目前查詢不一致'};
+  let expected=p.bars;
+  if(report.analysisWindow){const preview=typeof module==='object'&&module.exports?require('./research-v83/forecast-engine.js'):globalThis.ShitouForecastPreview,window=preview?.inputWindow?.(p.bars);if(!window?.cutoff||window.bars.length<63||report.analysisWindow.cutoff!==window.cutoff)return {ok:false,reason:'研究區間與原本價格斷點規則不一致'};expected=window.bars;}
+  const expectedFingerprint=C.fingerprint(expected);
+  if(b.normalizedHistoryFingerprint!==p.normalizedHistoryFingerprint||b.responseHistoryFingerprint!==p.responseHistoryFingerprint||C.fingerprint(report.dailySeries)!==expectedFingerprint||!Array.isArray(report.canonicalBars)||C.fingerprint(report.canonicalBars)!==expectedFingerprint)return {ok:false,reason:'共用行情內容或指紋已改變'};
+  const upstream=normalizeWorkerReport({...report,dailySeries:p.bars,canonicalBars:p.bars},code),checked=C.verify(upstream);
+  return checked.ok?{ok:true,source:'BOUND_CANONICAL_DAILY_ONLY',contract:checked.contract}:checked;
+ }catch(e){return {ok:false,reason:String(e.message||e)};}
+}
+
 async function harmonize(items,payload,profile='FULL'){
  const requestedSnapshot=snapshot;
  await prepareResearchEvidence();
@@ -239,6 +254,6 @@ async function harmonize(items,payload,profile='FULL'){
  return {...payload,results};
 }
 function fromUrl(url){const u=new URL(url,'https://local.invalid'),codes=(u.searchParams.get('codes')||'').split(',').filter(Boolean);return {items:codes.map(code=>({code,q:snapshot?.map.get(code)})),profile:u.searchParams.get('profile')||'FULL'};}
-return Object.freeze({MODEL,prepareResearchEvidence,getResearchEvidence:()=>({calendar:researchCalendar,verifiedPriceProofs:priceProofs.size}),classifyFailure,isDataFailure,failureRecord,inspectSnapshot,bind,context,get,normalizeWorkerReport,validate,remember,ensure,apply,harmonize,fromUrl,fingerprint,setFetcher:f=>{fetcher=f;},quoteEvidence,getSnapshot:()=>snapshot,reset:()=>{snapshot=null;cache.clear();pending.clear();months.clear();priceProofs.clear();researchCalendar={status:'UNKNOWN',reason:'尚未載入'};globalThis.ShitouPriceActionIntegration?.bind(null);try{globalThis.ShitouResearchIntegration?.bind(null);}catch(_){}}});
+return Object.freeze({MODEL,verifyResearchReceipt,prepareResearchEvidence,getResearchEvidence:()=>({calendar:researchCalendar,verifiedPriceProofs:priceProofs.size}),classifyFailure,isDataFailure,failureRecord,inspectSnapshot,bind,context,get,normalizeWorkerReport,validate,remember,ensure,apply,harmonize,fromUrl,fingerprint,setFetcher:f=>{fetcher=f;},quoteEvidence,getSnapshot:()=>snapshot,reset:()=>{snapshot=null;cache.clear();pending.clear();months.clear();priceProofs.clear();researchCalendar={status:'UNKNOWN',reason:'尚未載入'};globalThis.ShitouPriceActionIntegration?.bind(null);try{globalThis.ShitouResearchIntegration?.bind(null);}catch(_){}}});
 });
 
