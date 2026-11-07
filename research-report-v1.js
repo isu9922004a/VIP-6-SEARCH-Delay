@@ -279,8 +279,8 @@ function conflictSummary(a){
 }
 // A single read-only presentation schema owns web cards, TXT/CSV and every image.
 // Additional indicator studies do not silently override the four-model situation.
-function view(a){
- const waveView=globalThis.ShitouElliottVisual,waveFields=waveView?.enabled()?waveView.linesFor(waveView.result(a)).map(value=>({title:'艾略特波浪｜輔助觀察',value})):[];
+function view(a,{includeWave=true}={}){
+ const waveView=globalThis.ShitouElliottVisual,waveFields=includeWave&&waveView?.enabled()?waveView.linesFor(waveView.result(a)).map(value=>({title:'艾略特波浪｜輔助觀察',value})):[];
  const engulfRange=Structure.confirmationView(a.engulfRangeResearch||a.unifiedResearch?.structureContext?.confirmationResearch||a.foundation?.engulfRangeResearch,a);
  const d=a.foundation?.dualScanContext,p=a.foundation?.alertPlan,t=technicalOutlook(a),f=a.features,valid=a.validation?.technicalModelAvailable===true,study=a.indicatorStudy;
  const technicalSummary=[
@@ -361,7 +361,7 @@ function pages(a,{document:doc=globalThis.document,displayCode=globalThis.Shitou
  const ctx=doc.createElement('canvas').getContext('2d');
  if(!ctx)throw Error('Canvas 2D unavailable');
  // Summary first, followed by complete research; no field is silently filtered out.
- const report=view(a);if(!detail&&(iphoneFullScreen||globalThis.ShitouIPhoneSummary)){if(!globalThis.ShitouIPhoneSummary)throw Error('iPhone滿版輸出模組尚未載入');return globalThis.ShitouIPhoneSummary.pages(a,report,{doc,displayCode,wrap,watermark,stockMode});}if(!detail)return Action.pages(a,report,{doc,displayCode,watermark,stockMode,wrap,roundRectPath});
+ const report=view(a,{includeWave:false});if(!detail&&(iphoneFullScreen||globalThis.ShitouIPhoneSummary)){if(!globalThis.ShitouIPhoneSummary)throw Error('iPhone滿版輸出模組尚未載入');return globalThis.ShitouIPhoneSummary.pages(a,report,{doc,displayCode,wrap,watermark,stockMode});}if(!detail)return Action.pages(a,report,{doc,displayCode,watermark,stockMode,wrap,roundRectPath});
  const strings=lines(a),fields=[...report.summary.map(f=>({...f,group:'SUMMARY'})),...(detail?report.details.map(f=>({...f,group:'DETAIL'})):[])];
  function measuredWrap(value,font,width){
   if(String(value)==='')return [''];

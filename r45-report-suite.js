@@ -728,8 +728,8 @@ async function generateStock(mode='beginner',withWatermark=false){
     result={pages:[source],segments:[[0,source.height]],sourceHeight:source.height,size:`${source.width}x${source.height}`,singleLong:true,professionalFull:professional,iphoneFullScreen:source.dataset?.iphoneFullScreen==='1284x2778',fullBleed:source.dataset?.iphoneFullScreen==='1284x2778',fitScale:1};
   }else result=fitIphoneStockReport(source,{title:`${report.name||report.code}（${report.code||report.stock||'-'}）個股新手報告`,date:report.closeDate,watermark:withWatermark});
   const layoutNote=result.iphoneFullScreen?'iPhone 12 Pro Max 1284×2778 單張滿版；A～F 僅重排版、不改分析內容':source.dataset?.unifiedReport==='true'?'統一版面單張長圖；高度隨完整內容調整':professional?'專業完整內容保留為單張長圖，避免縮小文字或裁切證據':'內容無法在可讀比例下單頁容納，已安全分頁';
-  result.pages.push(...(window.ShitouIndicatorShadow?.pagesForStock(report,{watermark:withWatermark})||[]));
-  await showPages(result.pages,{title:`${report.name||report.code} 個股圖片報告`,prefix:`石頭少爺_${report.name||report.code}_${report.code||report.stock}_${professional?'專業完整':'新手'}個股圖片報告${withWatermark?'_防盜浮水印':''}`,date:dateOf(report.closeDate),note:`${layoutNote}；新增動能量價補充分頁，價位不是自動買點`,kind:'stock'});
+  // Supplemental research images have their own buttons; stock reports stay one image.
+  await showPages(result.pages,{title:`${report.name||report.code} 個股圖片報告`,prefix:`石頭少爺_${report.name||report.code}_${report.code||report.stock}_${professional?'專業完整':'新手'}個股圖片報告${withWatermark?'_防盜浮水印':''}`,date:dateOf(report.closeDate),note:`${layoutNote}；波浪與動能量價研究圖請使用各自按鈕，價位不是自動買點`,kind:'stock'});
   return result;
 }
 

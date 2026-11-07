@@ -46,7 +46,7 @@ function model(snapshot,{watermarked=false}={}){
  if(fresh?.provenance?.inputQuality?.warning)add('footnote','模型需要成交金額，但資料來源沒有提供；目前以開盤、最高、最低、收盤價的平均乘以成交量估算，與實際成交金額可能有差異。');
  if(fresh?.provenance?.outputQuality?.warning)add('footnote','部分模擬結果的最高、最低價順序不合理，因此只列開盤與收盤結果，不提供模擬最高、最低價。');
  add('heading','⑦ 一句話總結');add('summary',r.summary,'aqua');
- if(V.enabled()){add('heading','⑧ 波浪位置｜輔助觀察');for(const text of V.linesFor(a.elliottWave||V.result(a)))add('body',text);}
+ // Wave pictures have their own buttons and do not lengthen this report.
  add('footnote','資料：'+src.source+'｜行情 '+a.date+'。盤後研究；跳空須重算風險，個股停損依原持股計畫，不保證走勢。');
  return {title:titleFor(watermarked),watermarked:!!watermarked,name:'臺灣加權股價指數（TAIEX）',date:a.date,close:a.close,modelRun:fresh?.executionVerified===true,source:src.source,forecastState:f?.state||'UNAVAILABLE',reportObservations:observations,blocks,levels:r.levels,nextTradeDate:m.targetDate||null,risk:r};
 
@@ -91,7 +91,7 @@ function page(snapshot,{document:doc=root.document,watermarked=false}={}){
  draw([VERSION+'｜'+(data.modelRun?'Kronos實跑':'盤後研究')],W-M-321,top+46,28,colors.yellow,true);
  draw([data.name],M+IN,top+125,62,colors.text,true);
  draw(['行情基準 '+data.date.replaceAll('-','/')+'｜收盤 '+num(data.close)+' 點'],M+IN,top+182,35,colors.muted);
- const wave=snapshot.analysis.elliottWave||V.result(snapshot.analysis);const chartAudit=V.chart(ctx,wave,{x:M,y:chartTop,width:W-2*M,height:chartHeight,bars:wave.bars?.length?wave.bars:snapshot.analysis.input.bars,levels:data.levels.map(l=>({label:l.role,price:l.price})),dark:true});
+ const wave=snapshot.analysis.elliottWave||V.result(snapshot.analysis);const chartAudit=V.chart(ctx,wave,{x:M,y:chartTop,width:W-2*M,height:chartHeight,bars:wave.bars?.length?wave.bars:snapshot.analysis.input.bars,levels:data.levels.map(l=>({label:l.role,price:l.price})),annotate:false,dark:true});
  panel(bodyTop,panelBottom-bodyTop);draw(['明天可能怎麼走？該怎麼做？'],M+IN,bodyTop+52,43,colors.text,true);
  let y=bodyTop+78;
  const usedHeight=layout.blocks.reduce((sum,b)=>sum+b.height,0);const spare=Math.max(0,panelBottom-24-(bodyTop+78+usedHeight));const spread=Math.min(12,spare/Math.max(1,layout.blocks.length+1));
@@ -102,7 +102,7 @@ function page(snapshot,{document:doc=root.document,watermarked=false}={}){
  if(y>panelBottom-22)throw Error('大盤報告內容超過畫布安全區，已停止輸出避免裁切。');
  draw([VERSION+'｜1/1'],W-M-205,H-77,29,colors.muted,true);
  if(watermarked)(root.ShitouReportWatermark||(typeof require==='function'?require('../report-watermark-v84.js'):null)).apply(canvas,'market');
- const audit={chart:chartAudit,elliottWave:V.enabled()?{headline:wave.headline,clarity:wave.clarity,rules:wave.primary?.rules||null}:null,extendedHeight:H>MIN_H,watermarkStyle:watermarked?'REFERENCE_DIAGONAL_V84':null,title:data.title,watermarked:data.watermarked,version:VERSION,width:W,height:H,date:data.date,close:data.close,bodyFont:layout.size,bodyBottom:y,safeBottom:panelBottom-22,noClipping:true,modelRun:data.modelRun,forecastState:data.forecastState,source:data.source,levels:data.levels,completeNarrative:true,blockCount:data.blocks.length,sections:7,regime:data.risk.regime.key,technicalDirection:data.risk.technicalDirection,combinedDirection:data.risk.combinedDirection,crashRisk:data.risk.crashRisk.level,executionVerified:data.modelRun};
+ const audit={chart:chartAudit,elliottWave:null,extendedHeight:H>MIN_H,watermarkStyle:watermarked?'REFERENCE_DIAGONAL_V84':null,title:data.title,watermarked:data.watermarked,version:VERSION,width:W,height:H,date:data.date,close:data.close,bodyFont:layout.size,bodyBottom:y,safeBottom:panelBottom-22,noClipping:true,modelRun:data.modelRun,forecastState:data.forecastState,source:data.source,levels:data.levels,completeNarrative:true,blockCount:data.blocks.length,sections:7,regime:data.risk.regime.key,technicalDirection:data.risk.technicalDirection,combinedDirection:data.risk.combinedDirection,crashRisk:data.risk.crashRisk.level,executionVerified:data.modelRun};
  canvas.dataset.researchAudit=JSON.stringify(audit);
  return {width:W,height:H,dataset:{researchAudit:JSON.stringify(audit)},renderExportRegion:()=>canvas,toBlob:(cb,type='image/png')=>canvas.toBlob(cb,type)};
 }
@@ -146,13 +146,13 @@ async function open(watermarked=false,researchCanvas=null){if(opening)return nul
   const result=researchCanvas||page(snapshot,{watermarked}),blob=await new Promise(resolve=>result.toBlob(resolve,'image/png'));
   if(!blob?.size)throw Error('PNG產生失敗，請重新產生。');if(current().analysis!==snapshot.analysis)throw Error('大盤資料已更新，請重新產生圖片。');
   cleanup();imageBlob=blob;
-  const filename=VERSION+(researchCanvas?'_吞沒箱體研究_':'_大盤精簡分析_')+(watermarked?'浮水印版':'無浮水印')+'_TAIEX_'+date+'.png';
+  const wavePicture=!!researchCanvas?.dataset?.waveReportAudit;const filename=VERSION+(wavePicture?'_大盤波浪分析_':researchCanvas?'_吞沒箱體研究_':'_大盤精簡分析_')+(watermarked?'浮水印版':'無浮水印')+'_TAIEX_'+date+'.png';
   imageFile=typeof root.File==='function'?new root.File([blob],filename,{type:'image/png',lastModified:Date.now()}):null;
   activeUrl=URL.createObjectURL(blob);
   let dialog=root.document.getElementById('simpleMarketReportDialog');
   if(!dialog){dialog=root.document.createElement('dialog');dialog.id='simpleMarketReportDialog';dialog.setAttribute('aria-label','大盤精簡分析圖片預覽');dialog.addEventListener('close',cleanup);root.document.body.append(dialog);}
   dialog.replaceChildren();
-  const title=root.document.createElement('h2');title.textContent=(researchCanvas?'吞沒與箱體研究':'大盤精簡分析')+'｜TAIEX｜'+VERSION+'｜'+(watermarked?'浮水印版':'無浮水印版');
+  const title=root.document.createElement('h2');title.textContent=(wavePicture?'大盤波浪分析':researchCanvas?'吞沒與箱體研究':'大盤精簡分析')+'｜TAIEX｜'+VERSION+'｜'+(watermarked?'浮水印版':'無浮水印版');
   const controls=root.document.createElement('div');controls.className='simple-market-report-controls';
   const download=root.document.createElement('a');download.href=activeUrl;download.download=filename;download.className='market-report-btn';download.textContent='下載 PNG';
   const share=root.document.createElement('button');share.type='button';share.id='simpleMarketLineShareButton';share.className='market-report-btn';share.textContent='📤 分享圖片到 LINE';share.addEventListener('click',shareCurrentImage);
@@ -160,7 +160,7 @@ async function open(watermarked=false,researchCanvas=null){if(opening)return nul
   controls.append(download,share,dismiss);
   const note=root.document.createElement('p');note.id='simpleMarketShareStatus';note.setAttribute('role','status');note.setAttribute('aria-live','polite');note.textContent='手機可從分享面板選LINE，電腦可複製圖片貼到LINE聊天室。';
   const img=root.document.createElement('img');img.src=activeUrl;img.alt='大盤精簡分析完整圖片';img.width=result.width;img.height=result.height;
-  dialog.append(title,controls,note,img);dialog.dataset.reportAudit=result.dataset.researchAudit||result.dataset.engulfRangeAudit;
+  dialog.append(title,controls,note,img);dialog.dataset.reportAudit=result.dataset.waveReportAudit||result.dataset.researchAudit||result.dataset.engulfRangeAudit;
   if(!dialog.open)dialog.showModal();
   status('已產生大盤'+(watermarked?'浮水印版':'無浮水印版')+'精簡分析圖片，請預覽、下載或分享。');
   return result;
