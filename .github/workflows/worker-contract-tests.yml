@@ -44,6 +44,34 @@ jobs:
           path: |
             evidence/research-v829-all-stocks.*
             evidence/stock-wave-export-all.*
+  stock-images:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ['0', '1', '2', '3']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install Chinese fonts and the locked browser driver
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y fonts-noto-cjk
+          npm ci
+      - name: Render and encode both PNG reports for every published stock
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+          AUDIT_SHARD: ${{ matrix.shard }}
+          AUDIT_SHARDS: '4'
+        run: node scripts/audit-all-stock-images.cjs /tmp/stock-image-evidence
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: all-stock-image-evidence-${{ matrix.shard }}
+          path: /tmp/stock-image-evidence
   browser:
     runs-on: ubuntu-latest
     timeout-minutes: 10

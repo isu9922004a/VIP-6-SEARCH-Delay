@@ -17,7 +17,7 @@ function normalize(source,options={}){
  for(const r of raw){const d=date(r.date),o=number(r.open),h=number(r.high),l=number(r.low),c=number(r.close),v=number(r.volume);
   if(!d||d<=prev||![o,h,l,c].every(x=>x>0)||h<Math.max(o,l,c)||l>Math.min(o,h,c)||(!options.isIndex&&(v===null||v<0))||r.completed===false||r.isComplete===false)return unavailable(['INVALID_OHLCV'],'日期順序、完成狀態或OHLCV缺失／不合理');
   if(d>asOf)return unavailable(['FUTURE_BAR'],'含有基準日以後的行情');
-  if(r.suspended===true||(!options.isIndex&&v===0))return unavailable(['SUSPENSION_OR_ZERO_VOLUME'],'停牌或零成交量，暫停確認訊號');
+  if(r.suspended===true||(!options.isIndex&&v===0))return unavailable(['SUSPENSION_OR_ZERO_VOLUME'],d===asOf?`${d} 當日停牌或零成交量，暫停確認訊號`:`歷史 ${d} 停牌或零成交量；不代表 ${asOf} 當天停牌，需核對研究區間。`);
   rows.push({date:d,open:o,high:h,low:l,close:c,volume:v});prev=d;
  }
  if(prev!==asOf||report.closeDate&&date(report.closeDate)!==asOf)return unavailable(['DATE_MISMATCH'],'個股／基準日／日K不同日');

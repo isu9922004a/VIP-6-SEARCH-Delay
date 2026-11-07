@@ -30,12 +30,13 @@ let activeUrl=null,activeImageBlob=null,activeImageFile=null,sharePending=false;
 // The stock picker displays "名稱 | 代號"; compare its two exact fields,
  // not the entire decorated input, while still rejecting a different stock.
 function matchesCurrentStockInput(value,a){
+ const normalizeName=v=>String(v??'').normalize('NFKC').trim().replace(/[*＊]+$/u,'').trim();
  const entered=String(value??'').normalize('NFKC').trim();
  if(!entered)return true; // Preserve the existing empty-input behavior.
  const code=String(a?.code??a?.stock??'').normalize('NFKC').trim(),name=String(a?.name??'').normalize('NFKC').trim();
- if(entered===code||entered===name)return true;
+ if(entered===code||normalizeName(name)&&normalizeName(entered)===normalizeName(name))return true;
  const fields=entered.split(/\s*[|｜／/、，,()（）]\s*/).map(s=>s.trim()).filter(Boolean);
- return fields.length===2&&((fields[0]===name&&fields[1]===code)||(fields[0]===code&&fields[1]===name));
+ return fields.length===2&&((normalizeName(fields[0])===normalizeName(name)&&fields[1]===code)||(fields[0]===code&&normalizeName(fields[1])===normalizeName(name)));
 }
 function current(){const stock=root.ShitouResearchIntegration?.getCurrentStock?.();if(stock?.analysis){const value=root.document.getElementById('stockInput')?.value;if(!matchesCurrentStockInput(value,stock.analysis))throw Error('輸入已變更，請先完成這檔股票的查詢。');return stock.analysis;}const p=root.previewState?.();if(p?.analysis)return p.analysis;throw Error('請先完成個股查詢，再產生精簡分析圖片。');}
 function status(text){let node=root.document.getElementById('simpleStockReportStatus');if(!node){node=root.document.createElement('p');node.id='simpleStockReportStatus';node.setAttribute('role','status');root.document.getElementById('stockSimpleAnalysisButton')?.parentElement.after(node);}node.textContent=text;}

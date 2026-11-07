@@ -8,7 +8,7 @@
   const BATCH=8,REQUEST_GAP=250,CPU_RETRY_GAP=1800,RETRY_GAP=800;
   const DAILY_BATCH_TIMEOUT_MS=32000;
   const CACHE_KEY='SHITOU_STRONG_STOCK_TEACHER_R5328';
-  const CACHE_REV='TEACHER_CANONICAL_DAILY_DECISION_REVIEW_2_PACTX_2_PINNED';
+  const CACHE_REV='OFFICIAL_DAILY_SCANNER_1';
   const CPU_BREAKER_CONSECUTIVE=4;
   const FAILURE_WINDOW_SIZE=16;
   const MARKET_ENDPOINT_R49=(typeof MARKET_API_BASE_URL!=='undefined'&&MARKET_API_BASE_URL)?MARKET_API_BASE_URL:'https://shitou-taiwanmarket-api.d318426.workers.dev';
@@ -84,6 +84,9 @@
   }
   const marketHintOf=item=>String(item?.q?.market||'').toUpperCase()==='TPEX'?'TPEX':'TWSE';
   async function fetchDailyBatchRawR49(items,options={}){
+    return root.ShitouSelectionDataV2.acquireDailyBatch(items,part=>fetchWorkerDailyBatchR49(part,options));
+  }
+  async function fetchWorkerDailyBatchR49(items,options={}){
     const codes=items.map(x=>x.code).join(','),markets=items.map(marketHintOf).join(',');
     const extra=options.refresh?`&_deep_guard_refresh=${encodeURIComponent(String(Date.now()))}`:'';
     const url=`${MARKET_ENDPOINT_R49}/?market=DEEP_SCAN&profile=DAILY_ONLY&codes=${encodeURIComponent(codes)}&markets=${encodeURIComponent(markets)}${extra}`;
@@ -94,7 +97,7 @@
       if(!res.ok)throw new Error(`DAILY_ONLY Worker HTTP ${res.status}｜${text.slice(0,180)}`);
       let data;try{data=JSON.parse(text);}catch{throw new Error('DAILY_ONLY Worker 回傳非 JSON');}
       if(data?.type!=='MOMENTUM_DEEP_SCAN'||!Array.isArray(data.results))throw new Error(data?.error||'DAILY_ONLY Worker 格式錯誤');
-      return root.ShitouSelectionDataV2.harmonize(items,data,'DAILY_ONLY');
+      return data;
     }finally{clearTimeout(timer);}
   }
   async function fetchDailyBatchWithRetryR49(items,marketDate){
@@ -164,7 +167,7 @@
     const shadowRun=root.ShitouIndicatorShadow?.capture("STRONG",scan);
     if(shadowRun)setTimeout(()=>root.ShitouIndicatorShadow?.mount(shadowRun,"strongStockResult"),0);
     const target=id('Result'),meta=id('Meta'),summary=id('Summary'),list=id('List');if(target)target.style.display='block';
-    if(meta)meta.textContent=`${statusTitle(scan)}｜市場日期 ${scan.dataDate}｜產生 ${scan.createdAt}｜來源：完整市場快照＋DAILY_ONLY 輕量完成日K｜掃描範圍 ${scan.total} 檔`;
+    if(meta)meta.textContent=`${statusTitle(scan)}｜市場日期 ${scan.dataDate}｜產生 ${scan.createdAt}｜來源：完整市場快照＋已核對官方日線｜掃描範圍 ${scan.total} 檔`;
     if(summary){
       const a=scan.audit;
       summary.textContent=`${statusTitle(scan)}｜完整市場 ${scan.universe}｜快篩合格 ${scan.quick}｜深入規劃 ${scan.total}｜請求已處理 ${scan.done}｜有效判讀 ${scan.verified}｜同快照重用 ${scan.cacheHits}｜重試 ${scan.retries}｜範圍外未分析 ${scan.deferred}｜停止或資源限制後未分析 ${scan.pending}｜金融排除 ${a.financial}｜生技排除 ${a.biotech}｜營建排除 ${a.construction||0}｜全額交割 ${a.fullDelivery||0}｜DR ${a.dr||0}｜特殊商品 ${a.special||0}｜全額狀態未核 ${a.statusUnknown||0}｜產業未知 ${a.unknown}｜無法解析行情 ${scan.unparsed}｜無效報價 ${a.invalidQuote}｜成交金額缺失 ${a.missingLiquidity}｜流動性不足 ${a.illiquid}｜資料不足 ${scan.data}｜服務失敗 ${scan.failed}（CPU ${scan.cpuFailed}）｜確定不符 ${scan.rejected}｜已驗證候選 ${scan.candidates.length}（S ${scan.counts.S}／A ${scan.counts.A}／B ${scan.counts.B}）｜${scan.breaker?`資源熔斷：${scan.breaker}；其餘未分析。`:scan.fullMarketCertified?'全部範圍與資料驗證通過。':'不能宣稱全市場完整排名或全市場零候選。'}`;
@@ -375,5 +378,5 @@
   root.downloadStrongStockTextV47=downloadText;
   root.showStrongStockImageV47=(all=false,watermark=false)=>showImage(all,watermark).catch(()=>{});
   root.copyStrongStockImageV47=copyImage;
-  root.STRONG_STOCK_TEST_API_V47=Object.freeze({marketPool,evaluateResponse,buildText,renderPage,images,getLast:()=>last,render,batchSize:BATCH,profile:'DAILY_ONLY',cacheableDataReason});
+  root.STRONG_STOCK_TEST_API_V47=Object.freeze({fetchDailyBatch:fetchDailyBatchRawR49,marketPool,evaluateResponse,buildText,renderPage,images,getLast:()=>last,render,batchSize:BATCH,profile:'DAILY_ONLY',cacheableDataReason});
 })(window);

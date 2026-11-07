@@ -1,0 +1,35 @@
+'use strict';
+// Render and encode BOTH real image reports for every published stock.
+const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),assert=require('node:assert/strict'),{chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright-core');
+const root=path.resolve(__dirname,'..'),out=path.resolve(process.argv[2]||path.join(root,'evidence/stock-images')),snapshot=require('../data/market/latest.json');
+fs.mkdirSync(out,{recursive:true});
+const server=http.createServer((req,res)=>{const p=new URL(req.url,'http://localhost').pathname,file=path.resolve(root,'.'+(p==='/'?'/index.html':p));if(!file.startsWith(root+path.sep)){res.writeHead(403);return res.end();}fs.readFile(file,(e,b)=>{if(e){res.writeHead(404);return res.end();}res.setHeader('Content-Type',p.endsWith('.js')?'text/javascript':p.endsWith('.css')?'text/css':p==='/'||p.endsWith('.html')?'text/html':'application/json');res.end(b);});});
+(async()=>{await new Promise(r=>server.listen(0,'127.0.0.1',r));let browser;const results=[];
+ try{
+  browser=await chromium.launch({executablePath:process.env.CHROME_BIN||'/usr/bin/chromium',headless:true,args:['--no-sandbox']});let page;const base='http://127.0.0.1:'+server.address().port,errors=[];
+  const setup=async()=>{page=await browser.newPage({viewport:{width:428,height:926}});page.on('pageerror',e=>errors.push(e.message));await page.route('**/*',r=>new URL(r.request().url()).origin===base?r.continue():r.abort());await page.goto(base,{waitUntil:'load'});await page.waitForFunction(()=>globalThis.ShitouWaveReport&&globalThis.ShitouSimpleStockReport);await page.evaluate(()=>document.fonts.ready);
+  await page.evaluate(async s=>{const D=ShitouSelectionDataV2,date=s.tradeDateIso;D.reset();ShitouOfficialResearchHistory.reset();D.bind({map:new Map(s.rows.map(q=>[q.code,q])),snapshotRows:s.rows.length,meta:{total:s.rows.length,targetTradeDate:date,completedTradeDate:date,expectedTradeDate:date,twseQuoteDate:date,tpexQuoteDate:date,marketCoverageReady:true,industryCoverageReady:true,snapshotTimelinessReady:true,snapshotContentSha256:s.contentSha256}});await D.prepareResearchEvidence();},snapshot);};await setup();
+  const shard=Number(process.env.AUDIT_SHARD||0),shards=Number(process.env.AUDIT_SHARDS||1);assert.ok(Number.isInteger(shard)&&shard>=0&&shard<shards);
+  const allRows=process.env.AUDIT_CODES?snapshot.rows.filter(q=>process.env.AUDIT_CODES.split(',').includes(q.code)):snapshot.rows;const rows=allRows.filter((_,i)=>i%shards===shard);
+  for(const q of rows){
+   if(results.length&&results.length%200===0){await page.close();await setup();}
+   const result=await page.evaluate(async q=>{
+    const row={code:q.code,name:q.name,date:ShitouSelectionDataV2.getSnapshot().date},canvases=[];try{
+     const D=ShitouSelectionDataV2;let fallbackCalls=0;const batch=await D.acquireDailyBatch([{code:q.code,name:q.name,q}],async()=>{fallbackCalls++;throw Error('Official archive expected for every published stock');}),item=batch.results[0];
+     row.scannerStatus=item.ok?'VERIFIED':'DATA_RESTRICTED';row.scannerReason=item.error||null;row.fallbackCalls=fallbackCalls;
+     const official=await ShitouOfficialResearchHistory.load(q.code,{date:row.date,market:q.market}),prepared=await ShitouResearchIntegration.prepareStockQuery(official),current=ShitouResearchIntegration.captureStockQuery(prepared),analysis=current.analysis;
+     row.identityAccepted=ShitouSimpleStockReport.matchesCurrentStockInput(q.name.replace(/[*＊]+$/u,'')+' | '+q.code,analysis);if(!row.identityAccepted)throw Error('Official picker name rejected for the same stock');
+     const wave=ShitouWaveReport.render(current.source,{kind:'stock'}),simple=ShitouSimpleStockReport.page(analysis,{watermarked:false}).renderExportRegion();canvases.push(wave,simple);
+     const a=JSON.parse(wave.dataset.waveReportAudit),b=JSON.parse(simple.dataset.researchAudit);if(a.code!==q.code||b.code!==q.code||a.date!==row.date||b.date!==row.date||a.close!==q.close)throw Error('Image identity, close or date mismatch');if(a.width!==1284||a.height!==2778||b.width!==1284||b.height<2778||!a.noClipping||!b.noClipping||b.watermarked)throw Error('Image layout or watermark mismatch');
+     if(!analysis.limitedHistory&&a.state==='DATA_INSUFFICIENT')throw Error('Unexpected data block: '+a.waveReason);
+     if(a.chart.chartReady){const real=new Map(official.dailySeries.map(z=>[z.date,z]));for(const z of a.chart.ohlcvFingerprint){const original=real.get(z[0]);if(!original||JSON.stringify(z)!==JSON.stringify([original.date,original.open,original.high,original.low,original.close,original.volume]))throw Error('Chart OHLCV differs from official dates/prices');}}
+     const blobs=await Promise.all(canvases.map(c=>new Promise(resolve=>c.toBlob(resolve,'image/png'))));if(blobs.some(b=>!b?.size||b.type!=='image/png'))throw Error('PNG encoding failed');row.waveState=a.state;row.chartReady=a.chart.chartReady;row.restriction=analysis.limitedHistory?.restriction||null;row.reason=analysis.limitedHistory?.explanation||null;row.waveBytes=blobs[0].size;row.simpleBytes=blobs[1].size;row.width=1284;row.waveHeight=a.height;row.simpleHeight=b.height;row.status='PASS';
+     if(['4741','5904'].includes(q.code))row.previews=canvases.map(c=>c.toDataURL('image/png'));
+    }catch(e){row.status='FAIL';row.error=String(e.message||e);}finally{for(const c of canvases){c.width=1;c.height=1;}}return row;
+   },q);
+   if(result.previews){result.previews.forEach((s,i)=>fs.writeFileSync(path.join(out,q.code+(i?'_simple-clean':'_wave')+'.png'),Buffer.from(s.split(',')[1],'base64')));delete result.previews;}results.push(result);if(results.length%50===0)console.log('STOCK_IMAGES_PROGRESS '+results.length+'/'+rows.length);
+  }
+  const summary={date:snapshot.tradeDateIso,universe:snapshot.rows.length,shard,shards,total:results.length,expected:rows.length,passed:results.filter(r=>r.status==='PASS').length,failed:results.filter(r=>r.status==='FAIL').length,charts:results.filter(r=>r.chartReady).length,restricted:results.filter(r=>r.status==='PASS'&&!r.chartReady).length,pngs:results.filter(r=>r.status==='PASS').length*2,unexpectedWorkerCalls:results.reduce((n,r)=>n+(r.fallbackCalls||0),0),pageErrors:errors};
+  fs.writeFileSync(path.join(out,'all-stock-images.json'),JSON.stringify({summary,results},null,2));const quote=s=>'"'+String(s??'').replaceAll('"','""')+'"';fs.writeFileSync(path.join(out,'all-stock-images.csv'),'\uFEFF'+[['代號','名稱','日期','圖片測試','K線可用','限制','原因','掃描狀態','掃描原因'],...results.map(r=>[r.code,r.name,r.date,r.status,r.chartReady,r.restriction,r.reason||r.error,r.scannerStatus,r.scannerReason])].map(row=>row.map(quote).join(',')).join('\n')+'\n');console.log('ALL_STOCK_IMAGES_AUDIT='+JSON.stringify(summary));assert.equal(summary.failed,0);assert.equal(summary.unexpectedWorkerCalls,0);assert.deepEqual(errors,[]);
+ }finally{await browser?.close();server.close();}
+})().catch(e=>{console.error(e);process.exitCode=1;server.close();});
