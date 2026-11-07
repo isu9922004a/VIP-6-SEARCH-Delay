@@ -236,6 +236,11 @@ async function prepareResearchSource(report,code){
   let result=apply(report,code);if(result.priceAdjustment?.verified===true&&report.researchAcquisitionError){result={...result,researchAcquisitionError:undefined,researchInputErrors:(result.researchInputErrors||[]).filter(reason=>reason!==report.researchAcquisitionError)};}return officialError&&result.priceAdjustment?.verified!==true?{...result,researchPriceEvidenceError:'官方價格證據暫未取得：'+officialError}:result;
  }catch(e){const official=H?.get(code,requested.date);if(official&&H.availability(official,{quote:requested.q}))return {...official,code,officialObservationOnly:true,quoteEvidence:quoteEvidence(code,requested.date),officialObservationReason:String(e.message||e)};throw e;}
 }
+// Release only completed scan sources; a current stock query stays pinned.
+function releaseScanSources(items,{retainCodes=[],snapshotIdentity=snapshot?.identity}={}){
+ if(snapshot?.identity!==snapshotIdentity)return 0;const keep=new Set(retainCodes.map(String)),current=globalThis.ShitouResearchIntegration?.getCurrentStock?.();if(current?.analysis?.code)keep.add(String(current.analysis.code));let released=0;
+ for(const item of items){const code=String(item.code);if(keep.has(code)||globalThis.ShitouResearchIntegration?.isSourceRetained?.(code))continue;let c;try{c=context(code);}catch(_){continue;}if(pending.has(c.key))continue;const p=cache.get(c.key);cache.delete(c.key);months.delete(c.key);if(p?.normalizedHistoryFingerprint)priceProofs.delete(c.key+'|'+p.normalizedHistoryFingerprint);globalThis.ShitouOfficialResearchHistory?.release?.(code,c.date);released++;}return released;
+}
 // Wave research may consume the bound canonical view, whose wire contract stays
 // on the preserved upstream response. Verify that view against the existing cache.
 function verifyResearchReceipt(report){
@@ -253,7 +258,7 @@ function verifyResearchReceipt(report){
 
 // Scanners use the same independently verified archive as stock research.
 // A failed Worker response is never rewritten or treated as healthy evidence.
-async function acquireDailyBatch(items,fetchFallback){
+async function acquireDailyBatch(items,fetchFallback,{captureResearch=true}={}){
  const requestedSnapshot=snapshot,H=globalThis.ShitouOfficialResearchHistory,results=new Map(),missing=[];
  const assertCurrent=()=>{if(!requestedSnapshot||snapshot!==requestedSnapshot)fail('取得掃描日K期間市場快照已改變，請重新掃描');};
  const codes=items.map(i=>String(i.code));if(new Set(codes).size!==codes.length)fail('請求代號重複');
@@ -267,15 +272,15 @@ async function acquireDailyBatch(items,fetchFallback){
   }catch(e){assertCurrent();if(official||H?.get(code,c.date))results.set(code,failureRecord({code,ok:false,dataUnavailable:true,error:String(e.message||e)}));else missing.push(item);}
  }));
  if(missing.length){
-  let fallback;try{fallback=await fetchFallback(missing);assertCurrent();fallback=await harmonize(missing,fallback,'DAILY_ONLY');}
+  let fallback;try{fallback=await fetchFallback(missing);assertCurrent();fallback=await harmonize(missing,fallback,'DAILY_ONLY',{captureResearch});}
   catch(e){assertCurrent();fallback={results:missing.map(i=>({code:String(i.code),ok:false,failureCode:'SOURCE_UNAVAILABLE',retryable:true,error:String(e.message||e)}))};}
   for(const item of missing){const code=String(item.code),hits=(fallback.results||[]).filter(x=>String(x.code||x.data?.stock||'')===code);results.set(code,hits.length===1?hits[0]:failureRecord({code,ok:false,error:'資料不足｜回傳缺失或重複'}));}
  }
  assertCurrent();const ordered=codes.map(code=>results.get(code));
- globalThis.ShitouPriceActionIntegration?.capture({snapshot,items,results:ordered});try{globalThis.ShitouResearchIntegration?.capture({snapshot,items,results:ordered});}catch(e){console.warn('研究附層未完成，原結果保留',e);}
+ if(captureResearch){globalThis.ShitouPriceActionIntegration?.capture({snapshot,items,results:ordered});try{globalThis.ShitouResearchIntegration?.capture({snapshot,items,results:ordered});}catch(e){console.warn('研究附層未完成，原結果保留',e);}}
  return {type:'MOMENTUM_DEEP_SCAN',source:'VERIFIED_OFFICIAL_ARCHIVE_WITH_VALIDATED_WORKER_FALLBACK',results:ordered};
 }
-async function harmonize(items,payload,profile='FULL'){
+async function harmonize(items,payload,profile='FULL',{captureResearch=true}={}){
  const requestedSnapshot=snapshot;
  await prepareResearchEvidence();
  if(payload?.type!=='MOMENTUM_DEEP_SCAN'||!Array.isArray(payload.results))fail('深掃回傳格式錯誤');
@@ -288,10 +293,10 @@ async function harmonize(items,payload,profile='FULL'){
   if(!x?.ok){results.push(failureRecord(x||{code:String(item.code),ok:false,error:'資料不足｜回傳缺失或重複'}));continue;}
   try{if(daily)remember(x.data,item.code);let aligned=apply(x.data,item.code);if(String(profile).toUpperCase()==='FULL'){months.set(context(item.code).key,{status:E.monthly({...x.data,monthlyReviewV2:undefined}),source:'FULL_EXPLICIT_FIELDS',verified:true,date:aligned.marketDate});aligned=apply(x.data,item.code);}results.push({...x,code:String(item.code),data:aligned});}catch(e){results.push(failureRecord({...x,ok:false,error:String(e.message||e),data:undefined,dataUnavailable:true}));}
  }
- if(snapshot===requestedSnapshot){globalThis.ShitouPriceActionIntegration?.capture({snapshot,items,results});try{globalThis.ShitouResearchIntegration?.capture({snapshot,items,results});}catch(e){console.warn("研究附層未完成，原結果保留",e);}}
+ if(captureResearch&&snapshot===requestedSnapshot){globalThis.ShitouPriceActionIntegration?.capture({snapshot,items,results});try{globalThis.ShitouResearchIntegration?.capture({snapshot,items,results});}catch(e){console.warn("研究附層未完成，原結果保留",e);}}
  return {...payload,results};
 }
 function fromUrl(url){const u=new URL(url,'https://local.invalid'),codes=(u.searchParams.get('codes')||'').split(',').filter(Boolean);return {items:codes.map(code=>({code,q:snapshot?.map.get(code)})),profile:u.searchParams.get('profile')||'FULL'};}
-return Object.freeze({MODEL,acquireDailyBatch,prepareResearchSource,verifyResearchReceipt,prepareResearchEvidence,getResearchEvidence:()=>({calendar:researchCalendar,verifiedPriceProofs:priceProofs.size}),classifyFailure,isDataFailure,failureRecord,inspectSnapshot,bind,context,get,normalizeWorkerReport,validate,remember,ensure,apply,harmonize,fromUrl,fingerprint,setFetcher:f=>{fetcher=f;},quoteEvidence,getSnapshot:()=>snapshot,reset:()=>{snapshot=null;cache.clear();pending.clear();months.clear();priceProofs.clear();researchCalendar={status:'UNKNOWN',reason:'尚未載入'};globalThis.ShitouPriceActionIntegration?.bind(null);try{globalThis.ShitouResearchIntegration?.bind(null);}catch(_){}}});
+return Object.freeze({MODEL,releaseScanSources,getCacheStats:()=>({histories:cache.size,pending:pending.size,months:months.size,priceProofs:priceProofs.size}),acquireDailyBatch,prepareResearchSource,verifyResearchReceipt,prepareResearchEvidence,getResearchEvidence:()=>({calendar:researchCalendar,verifiedPriceProofs:priceProofs.size}),classifyFailure,isDataFailure,failureRecord,inspectSnapshot,bind,context,get,normalizeWorkerReport,validate,remember,ensure,apply,harmonize,fromUrl,fingerprint,setFetcher:f=>{fetcher=f;},quoteEvidence,getSnapshot:()=>snapshot,reset:()=>{snapshot=null;cache.clear();pending.clear();months.clear();priceProofs.clear();researchCalendar={status:'UNKNOWN',reason:'尚未載入'};globalThis.ShitouPriceActionIntegration?.bind(null);try{globalThis.ShitouResearchIntegration?.bind(null);}catch(_){}}});
 });
 

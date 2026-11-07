@@ -137,6 +137,12 @@ jobs:
           PLAYWRIGHT_MODULE: /tmp/research-browser/node_modules/playwright-core
           CHROME_BIN: /usr/bin/google-chrome
         run: node scripts/tests/elliott-browser.cjs /tmp/research-evidence/elliott
+      - name: Complete all strong-stock candidates within a mobile memory budget
+        if: matrix.fallback == '0'
+        env:
+          PLAYWRIGHT_MODULE: /tmp/research-browser/node_modules/playwright-core
+          CHROME_BIN: /usr/bin/google-chrome
+        run: node scripts/tests/strong-all-memory-browser.cjs /tmp/research-evidence/strong-memory
       - name: Capture generated chart for review
         if: matrix.fallback == '0'
         run: node -e 'console.log("CHART_REVIEW_PNG="+require("node:fs").readFileSync("/tmp/research-evidence/8039-chart.png").toString("base64"))'
