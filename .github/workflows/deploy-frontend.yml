@@ -43,6 +43,7 @@ jobs:
           RESEARCH_FALLBACK=1 node scripts/tests/research-context-r16-browser.cjs /tmp/v864-browser/context-fallback
           npm run test:engulf-range-browser
           npm run test:elliott-browser -- /tmp/v864-browser/elliott
+          node scripts/tests/strong-all-memory-browser.cjs /tmp/v864-browser/strong-memory
           node scripts/tests/market-date-browser.cjs /tmp/v864-browser/market-date
           node scripts/tests/structure-v863-browser.cjs /tmp/v864-browser
           node scripts/tests/market-v862-browser.cjs /tmp/v864-browser
