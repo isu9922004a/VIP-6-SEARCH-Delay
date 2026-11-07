@@ -94,7 +94,7 @@ body.workspace-v831[data-workspace-v831="stock"] #result.workspace-stock-open{
  z-index:99992;background:var(--bg,#f4f7fb);padding:16px 12px 26px!important;
  border-radius:14px;border:1px solid #b8d8e5;box-shadow:0 20px 65px rgba(0,0,0,.3)
 }
-body.workspace-v831[data-workspace-v831="stock"] #result.workspace-stock-open.workspace-four-only > :not(#researchStock){display:none!important}
+body.workspace-v831[data-workspace-v831="stock"] #result.workspace-stock-open.workspace-four-only > :not(#researchStock):not(#stockReportActionsPanel){display:none!important}
 body.workspace-v831[data-workspace-v831="stock"] #result.workspace-stock-open.workspace-four-only > #researchStock{display:block!important;margin:0!important;max-width:100%}
 #workspaceReportBackdrop{position:fixed;inset:0;z-index:99990;background:rgba(3,22,35,.76)}
 #workspaceReportBackdrop[hidden]{display:none!important}
@@ -131,3 +131,16 @@ body.workspace-v831:not([data-workspace-v831="filters"]) #priceActionPanel,
 body.workspace-v831:not([data-workspace-v831="filters"]) #researchPanel,
 body.workspace-v831[data-workspace-v831="filters"]:not([data-workspace-advanced-v831="true"]) #priceActionPanel,
 body.workspace-v831[data-workspace-v831="filters"]:not([data-workspace-advanced-v831="true"]) #researchPanel{display:none!important}
+
+/* Image actions appear before the stock narrative, on the page and in reports. */
+#stockReportActionsPanel[hidden]{display:none!important}
+#workspaceStockActionsSlot:empty{display:none}
+body.workspace-v831:not([data-workspace-v831="stock"]) #workspaceStockActionsSlot{display:none!important}
+#workspaceStockActionsSlot,#stockReportActionsPanel{min-width:0;max-width:100%;box-sizing:border-box}
+#workspaceStockActionsSlot #stockReportActionsPanel{margin:0 0 20px}
+#result.workspace-stock-open > #stockReportActionsPanel:not([hidden]){display:block;margin:0 0 16px!important}
+#stockReportActionsPanel .workspace-stock-actions-identity{font-size:15px;line-height:1.6;color:var(--muted,#52677a);margin:6px 0 16px;overflow-wrap:anywhere}
+#stockReportActionsPanel .workspace-export-notes{margin-top:14px;font-size:14px;line-height:1.65}
+#stockReportActionsPanel .workspace-export-notes summary{cursor:pointer;min-height:36px;padding:6px 0}
+
+#stockReportActionsPanel{scroll-margin-top:16px}

@@ -13,17 +13,17 @@ const filters=[
 ];
 let currentTab='stock',currentFilter='momentum',lastFocus=null,openMode=null,observedCode='';
 let tabs=[],filterButtons=[];
-function setHidden(elm,flag){if(elm)elm.hidden=!!flag;}
+function setHidden(elm,flag){if(elm&&elm.hidden!==!!flag)elm.hidden=!!flag;}
 function completeStock(){
  const report=root.shitouGetLastReportV82?.();
  const result=$('result');
- if(result?.style.display!=='block'||!report?.code||!report?.closeDate)return null;
+ if(result?.style.display!=='block'||$('searchButton')?.disabled||!(report?.code||report?.stock)||!report?.closeDate)return null;
  return report;
 }
 function researchStock(){
  const latest=root.ShitouResearchIntegration?.getCurrentStock?.();
  const report=completeStock();
- if(!report||String(latest?.analysis?.code||'')!==String(report.code)||String(latest?.analysis?.date||'')!==String(report.closeDate))return null;
+ if(!report||String(latest?.analysis?.code||'')!==String(report.code||report.stock)||String(latest?.analysis?.date||'')!==String(report.closeDate))return null;
  return latest.analysis;
 }
 function riskDescription(a,report){
@@ -40,12 +40,21 @@ function riskDescription(a,report){
  if(!terms.length)terms.push('已備妥研究報告；關鍵價位仍需收盤確認，不能碰到價位就當買點。');
  return terms.join('｜');
 }
+// Reparent the original actions, keeping button IDs, handlers and export state.
+function positionStockActions(report=completeStock()){
+ const panel=$('stockReportActionsPanel'),slot=$('workspaceStockActionsSlot'),result=$('result');if(!panel||!slot||!result)return;
+ if(openMode){if(panel.parentElement!==result||result.firstElementChild!==panel)result.prepend(panel);}
+ else if(panel.parentElement!==slot)slot.append(panel);
+ setHidden(panel,!report||currentTab!=='stock');
+ const context=$('workspaceStockActionsIdentity');if(context&&report){const value=(report.name||'股票')+'（'+String(report.code||report.stock)+'）｜行情 '+report.closeDate;if(context.textContent!==value)context.textContent=value;}
+}
 function renderSummary(){
  const card=$('workspaceStockSummary');if(!card)return;
  const report=completeStock(),a=researchStock();
+ positionStockActions(report);
  if(!report){setHidden(card,true);observedCode='';return;}
  setHidden(card,false);
- const code=String(report.code);
+ const code=String(report.code||report.stock);
  const name=String(report.name||'股票'+code);
  $('workspaceStockName').textContent=name+'（'+code+'）';
  $('workspaceStockDate').textContent='行情基準：'+String(report.closeDate)+'｜收盤 '+(Number.isFinite(Number(report.close))?Number(report.close)+' 元':'待核對');
@@ -55,14 +64,15 @@ function renderSummary(){
  $('workspaceFourReportButton').textContent=a?.limitedHistory?'查看已核驗行情觀察':'查看四策略研究報告';
  $('workspaceFourReportButton').title=hasResearch?'直接查看已產生的四策略研究，不重新計算':'研究報告尚未就緒，先查看原始技術報告';
  $('workspaceStockHelp').textContent=a?.limitedHistory?'已備妥核驗行情與可計算的短期數據；完整策略與交易價位仍有資料限制。':hasResearch?'研究報告已備妥。按鈕只開啟既有內容，不會重新查詢或計算。':'已保留原始個股技術報告；四策略研究尚未完成載入。';
- observedCode=code+'|'+report.closeDate;
+ const nextCode=code+'|'+report.closeDate,newResult=observedCode!==nextCode;observedCode=nextCode;
+ if(newResult&&currentTab==='stock'&&!openMode)$('stockReportActionsPanel')?.scrollIntoView({block:'start',behavior:root.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches?'auto':'smooth'});
 }
 function closeReport(){
  if(!openMode)return;
  const result=$('result');if(result){result.classList.remove('workspace-stock-open','workspace-four-only');result.removeAttribute('aria-modal');result.removeAttribute('role');}
  setHidden($('workspaceReportBackdrop'),true);setHidden($('workspaceReportToolbar'),true);
  doc.body.classList.remove('workspace-report-locked');
- openMode=null;
+ openMode=null;positionStockActions();
  if(lastFocus?.isConnected)lastFocus.focus({preventScroll:true});
  lastFocus=null;
 }
@@ -71,7 +81,7 @@ function openReport(mode){
  const r=completeStock();if(!r){renderSummary();return;}
  if(mode==='four'&&!researchStock()){renderSummary();return;}
  const result=$('result');if(!result)return;
- closeReport();lastFocus=doc.activeElement;openMode=mode;
+ closeReport();lastFocus=doc.activeElement;openMode=mode;positionStockActions(r);
  result.classList.add('workspace-stock-open');result.classList.toggle('workspace-four-only',mode==='four');
  result.setAttribute('role','dialog');result.setAttribute('aria-modal','true');result.setAttribute('aria-label',mode==='four'?'四策略研究完整報告':'個股完整技術報告');
  setHidden($('workspaceReportBackdrop'),false);setHidden($('workspaceReportToolbar'),false);
@@ -129,7 +139,15 @@ function build(){
  four.type=full.type='button';four.addEventListener('click',()=>openReport('four'));full.addEventListener('click',()=>openReport('full'));
  actions.append(four,full);const help=el('p','workspace-stock-help');help.id='workspaceStockHelp';
  card.append(stockName,date,risk,actions,help);
- first.after(card);
+ const actionSlot=el('div');actionSlot.id='workspaceStockActionsSlot';first.after(actionSlot);actionSlot.after(card);
+ const exportPanel=$('stockReportActionsPanel');if(exportPanel){
+  const title=exportPanel.querySelector('.section-title');if(title)title.textContent='個股圖片報告與複製';
+  const context=el('p','workspace-stock-actions-identity');context.id='workspaceStockActionsIdentity';if(title)title.after(context);else exportPanel.prepend(context);
+  const commands=exportPanel.querySelector(':scope > .copy-actions'),grid=commands?.querySelector('.stock-image-generator-grid');if(grid)commands.prepend(grid);
+  const note=exportPanel.querySelector(':scope > .hint');if(note){const notes=el('details','workspace-export-notes'),summary=el('summary',null,'價位與資料使用說明');notes.append(summary,note);exportPanel.append(notes);}
+  positionStockActions();
+ }
+
  const backdrop=el('div');backdrop.id='workspaceReportBackdrop';backdrop.hidden=true;backdrop.addEventListener('click',closeReport);
  const toolbar=el('div');toolbar.id='workspaceReportToolbar';toolbar.hidden=true;const caption=el('span',null,'報告');caption.id='workspaceReportCaption';const close=el('button',null,'✕ 關閉報告');close.id='workspaceReportClose';close.type='button';close.addEventListener('click',closeReport);toolbar.append(caption,close);
  doc.body.append(backdrop,toolbar);
@@ -139,8 +157,9 @@ function build(){
   new MutationObserver(()=>renderSummary()).observe(result,{attributes:true,attributeFilter:['style'],childList:true});
  }
  const search=$('searchButton'),input=$('stockInput');
- function onSearchStart(){closeReport();setHidden(card,true);observedCode='';select('stock');}
+ function onSearchStart(){closeReport();select('stock');setHidden(card,true);setHidden($('stockReportActionsPanel'),true);observedCode='';}
  search?.addEventListener('click',onSearchStart,true);
+ if(search)new MutationObserver(()=>renderSummary()).observe(search,{attributes:true,attributeFilter:['disabled']});
  input?.addEventListener('keydown',e=>{if(e.key==='Enter')onSearchStart();},true);
  const shortcut=$('towerGoldShortcut');shortcut?.addEventListener('click',e=>{e.preventDefault();select('filters','tower');$('towerGoldPanel')?.scrollIntoView({block:'start'});});
  doc.body.classList.add('workspace-v831');
