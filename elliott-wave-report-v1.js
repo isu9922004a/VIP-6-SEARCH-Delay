@@ -1,7 +1,9 @@
 /* Independent phone-sized wave PNGs. Reuses the verified wave result; no new analysis/API. */
 (function(root,factory){const node=typeof module==='object'&&module.exports,api=factory(root,node?require('./elliott-wave-visual-v1'):root.ShitouElliottVisual);if(node)module.exports=api;else root.ShitouWaveReport=api;})(globalThis,function(root,V){
 'use strict';
-const P=V.PHONE_PALETTE,W=1284,H=2778,VERSION='WAVE_REPORT_ALL_SOURCE_5',fmt=x=>Number.isFinite(x)?x.toLocaleString('en-US',{maximumFractionDigits:2,minimumFractionDigits:2}):'待確認';let opening=false,active=null,revision=0;
+const P=V.PHONE_PALETTE,W=1284,H=2778,VERSION='WAVE_REPORT_BEGINNER_6',fmt=x=>Number.isFinite(x)?x.toLocaleString('en-US',{maximumFractionDigits:2,minimumFractionDigits:2}):'待確認';let opening=false,active=null,revision=0;
+const stockTemplate=typeof module==='object'&&module.exports?require('./elliott-wave-stock-beginner-v1'):root.ShitouWaveStockBeginner,stockStudies=new WeakMap();
+function stockAnalysis(raw,m){const current=root.ShitouResearchIntegration?.getCurrentStock?.(),a=current?.analysis,s=current?.source;const W=typeof module==='object'&&module.exports?require('./worker-data-contract-v1'):root.ShitouWorkerDataContractV1,sameHistory=s===raw||s&&W?.fingerprint(s.canonicalBars||s.dailySeries||[])===W?.fingerprint(raw.canonicalBars||raw.dailySeries||[]);if(sameHistory&&a?.code===m.code&&a.date===m.date&&s?.close===m.close&&(!raw.market||s.market===raw.market))return a;if(m.wave.state==='DATA_INSUFFICIENT')return null;const key=m.wave.inputFingerprint||m.identity,old=stockStudies.get(raw);if(old?.key===key)return old.analysis;const C=typeof module==='object'&&module.exports?require('./four-models-research-v1'):root.ShitouFourModels;const analysis=C?.evaluate?.(raw);if(raw&&typeof raw==='object')stockStudies.set(raw,{key,analysis});return analysis;}
 function baseModel(raw,{kind='stock',name,code,date,close,levels=[]}={}){
  const a=V.result(raw),market=kind==='market';code=String(code||raw.code||raw.stock||raw.instrumentType||raw.index||'');date=date||raw.closeDate||raw.date;close=close??raw.close??a.bars?.at(-1)?.close;
  if(!code||!date||a.code!==code||a.date!==date||market&&code!=='TAIEX')throw Error('波浪圖片的股票代號或行情日期不一致，請重新查詢。');
@@ -77,9 +79,11 @@ function buildModel(raw,options={}){
  if(!observations.length)observations.push(ready?'先看價格能否走出新的高點與低點，暫時不猜買價。':'先重新分析這檔股票，等完成行情核對後再產生圖片。');
  if(observations.length<2)observations.push('等新的完成日K出現後，再重新核對走勢與風險。');
  const risk=!ready?'行情還沒核對完整，先不用這張圖決定買賣。':m.kind==='market'?'大盤變強不代表每檔股票都能買，仍要看個股自己的條件。':currentDirection.recentDirection==='DOWN'?'短線正在回檔，先等價格站穩；仍要核對原本的風險計畫。':t.direction==='DOWN'||t.direction==='RANGE'?'先等價格和轉折更清楚，別只因跌深就急著搶反彈。':'就算看起來偏強，也要先核對自己的進場理由與停損。';
- return {...m,currentDirection,...prices,dataReason:ready?null:a.reason||trendReason,explanation:'走勢：'+trendReason+' 波浪：'+waveReason,next:observations.join(' ')+' 不取代原本停損。',trendTitle,trendReason,color,wavePosition,waveReason,observations,risk,displayLevels:levels.map(l=>({...l,displayLabel:({'失守後需收復的關卡':'上方先看這裡','下方歷史觀察':'下方先看這裡','上方反壓':'再往上的壓力'})[l.label]||l.label}))};
+ const output={...m,currentDirection,...prices,dataReason:ready?null:a.reason||trendReason,explanation:'走勢：'+trendReason+' 波浪：'+waveReason,next:observations.join(' ')+' 不取代原本停損。',trendTitle,trendReason,color,wavePosition,waveReason,observations,risk,displayLevels:levels.map(l=>({...l,displayLabel:({'失守後需收復的關卡':'上方先看這裡','下方歷史觀察':'下方先看這裡','上方反壓':'再往上的壓力'})[l.label]||l.label}))};
+ if(m.kind==='stock'){output.beginner=stockTemplate.model(output,stockAnalysis(raw,output));output.identity=JSON.stringify([m.identity,output.beginner]);}return output;
 }
-function render(raw,options={}){
+function render(raw,options={}){if(options.kind!=='market')return stockTemplate.render(buildModel(raw,options),options);return renderLegacy(raw,options);}
+function renderLegacy(raw,options={}){
  const m=buildModel(raw,options),c=(options.document||root.document).createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d'),boxes=[],textBoxes=[];
  const font=(size,bold,color)=>{x.font=`${bold?750:500} ${size}px "Noto Sans TC","Microsoft JhengHei",sans-serif`;x.fillStyle=color;x.textAlign='left';x.textBaseline='top';};
  const text=(value,left,top,width,size=44,{bold=false,color=P.ink,bottom=H-24}={})=>{const rows=V.wrap(x,value,width,size),line=size*1.38,end=top+rows.length*line;if(end>bottom+.01)throw Error('波浪圖片文字超出手機版範圍：'+value);font(size,bold,color);rows.forEach((s,i)=>x.fillText(s,left,top+i*line));textBoxes.push({top,bottom:end,size,text:value});return end;};
