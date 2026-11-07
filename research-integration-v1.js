@@ -39,7 +39,7 @@ function captureStockQuery(input,{activate=false}={}){
  const analysis=forReport(input),code=String(analysis.code||raw.code||raw.stock||'').trim();
  if(!/^\d{4,6}$/.test(code))return null;
  root.ShitouDraxPriceReminder?.clear();
- latestStockQuery={analysis,metrics:stockMetrics(raw,analysis)};
+ latestStockQuery={analysis,metrics:stockMetrics(raw,analysis),source:U.freeze(structuredClone(source(input)))};
  if(activate)activeKind='STOCK_QUERY';
  const selector=by('researchKind');if(selector)selector.value=activeKind;
  render();return latestStockQuery;
@@ -112,10 +112,10 @@ function source(input){const raw=U.normalizeInput(input),r={...raw};
 const stockPreparationJobs=new WeakMap();
 function prepareStockQuery(input){
  if(!input||typeof input!=='object')return prepareStockQueryUncached(input);
- const current=root.ShitouSelectionDataV2?.getSnapshot?.()?.identity,old=stockPreparationJobs.get(input);
- if(old&&(old.pending||old.snapshot===current))return old.promise;
+ const current=root.ShitouSelectionDataV2?.getSnapshot?.()?.identity,receipt=root.ShitouSelectionDataV2?.get?.(String(input.stock||input.code||''))?.historyIdentity,old=stockPreparationJobs.get(input);
+ if(old&&(old.pending||old.snapshot===current&&old.receipt===receipt))return old.promise;
  const entry={snapshot:current,pending:true,promise:null};
- entry.promise=prepareStockQueryUncached(input).then(result=>{entry.pending=false;entry.snapshot=root.ShitouSelectionDataV2?.getSnapshot?.()?.identity;if(result.researchAcquisitionError)stockPreparationJobs.delete(input);return result;},error=>{entry.pending=false;stockPreparationJobs.delete(input);throw error;});
+ entry.promise=prepareStockQueryUncached(input).then(result=>{entry.pending=false;entry.snapshot=root.ShitouSelectionDataV2?.getSnapshot?.()?.identity;entry.receipt=root.ShitouSelectionDataV2?.get?.(String(input.stock||input.code||''))?.historyIdentity;if(result.researchAcquisitionError||result.researchInputErrors?.length||result.priceAdjustment?.verified!==true)stockPreparationJobs.delete(input);return result;},error=>{entry.pending=false;stockPreparationJobs.delete(input);throw error;});
  stockPreparationJobs.set(input,entry);return entry.promise;
 }
 async function prepareStockQueryUncached(input){
@@ -132,17 +132,7 @@ async function prepareStockQueryUncached(input){
   await D.prepareResearchEvidence?.();
   const q=D.context(code).q;
   if(raw.market&&raw.market!==q.market)throw Error('查詢與共用快照市場別不符');
-  if((!D.get(code)||D.get(code).error)&&root.ShitouOfficialResearchHistory){
-   try{const official=await root.ShitouOfficialResearchHistory.load(code,{date,market:q.market});D.remember(official,code);}catch(e){if(root.ShitouOfficialResearchHistory.get(code,date))throw e;}
-  }
-  if(!D.get(code)||D.get(code).error){
-   // A verified DAILY_ONLY fallback is already the common research response.
-   // Validate it against the bound snapshot instead of making the same source
-   // request again and discarding good history when that second request fails.
-   if(raw.dataContract?.sourceMode==='DAILY_ONLY')D.remember(raw,code);
-   else await D.ensure([{code,name:raw.name,q}]);
-  }
-  return D.apply(raw,code);
+  return await D.prepareResearchSource(raw,code);
  }catch(e){
   // ensure() adds an aggregate error prefix. Prefer the same bound per-stock
   // failure used by every scan adapter, preserving independent input errors.
@@ -275,7 +265,7 @@ const oldAnalyze=root.analyzeStock;if(typeof oldAnalyze==='function')root.analyz
 function active(){return flags.fourModelsEnabled||flags.threeDayStructureEnabled||flags.granvilleContextEnabled||flags.candlePatternEnabled||flags.dualScanEnabled||flags.alertPlanEnabled;}
 function appendScanText(kind,scan,out,rows=scan?.candidates||[]){if(!active()||typeof out!=='string'||out.includes('【V8研究附錄】'))return out;const list=rows.map(c=>safely(()=>forReport(c))).filter(Boolean);return out+'\n\n【V8研究附錄】\n'+list.map(R.text).join('\n\n');}
 function pagesForScan(kind,scan,options={}){if(!active())return [];const rows=options.rows||scan?.candidates||[],limit=options.limit===undefined?rows.length:options.limit;return rows.slice(0,limit).flatMap(c=>{const a=safely(()=>forReport(c));return a?R.pages(a,{displayCode:root.ShitouReleaseV50.displayCode,watermark:options.watermark}):[];});}
-root.ShitouResearchIntegration=Object.freeze({appendScanText,pagesForScan,bind,capture,forReport,prepareStockQuery,mountStock,baseline,ranking,selectedRows,exportData,preview,captureStockQuery,clearStockQuery,getCurrentStock:()=>latestStockQuery&&({analysis:latestStockQuery.analysis,metrics:latestStockQuery.metrics}),setFlags,getFlags:()=>({...flags}),getState:()=>({identity,date,records:[...records.values()],baselines:[...baselines],cacheSize:cache.size}),sync,render});
+root.ShitouResearchIntegration=Object.freeze({appendScanText,pagesForScan,bind,capture,forReport,prepareStockQuery,mountStock,baseline,ranking,selectedRows,exportData,preview,captureStockQuery,clearStockQuery,getCurrentStock:()=>latestStockQuery&&({analysis:latestStockQuery.analysis,metrics:latestStockQuery.metrics,source:latestStockQuery.source}),setFlags,getFlags:()=>({...flags}),getState:()=>({identity,date,records:[...records.values()],baselines:[...baselines],cacheSize:cache.size}),sync,render});
 mount();const snapshot=root.ShitouSelectionDataV2?.getSnapshot?.();if(snapshot)bind(snapshot);
 for(const id of ['momentumResult','dayTradeResult','strongStockResult','towerGoldPanel','restaurantResult','structureResult']){const host=by(id);if(host)new MutationObserver(changes=>{if(changes.some(c=>!c.target.closest?.('.research-inline')))schedule();}).observe(host,{childList:true,subtree:true});}
 render();

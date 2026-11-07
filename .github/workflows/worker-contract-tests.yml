@@ -35,11 +35,15 @@ jobs:
         with:
           node-version: '24'
       - name: Recompute every current stock and validate both stop directions
-        run: node scripts/audit-official-research-v829.cjs
+        run: |
+          node scripts/audit-official-research-v829.cjs
+          node scripts/audit-stock-wave-export.cjs
       - uses: actions/upload-artifact@v4
         with:
           name: full-universe-research-V8.2.9
-          path: evidence/research-v829-all-stocks.*
+          path: |
+            evidence/research-v829-all-stocks.*
+            evidence/stock-wave-export-all.*
   browser:
     runs-on: ubuntu-latest
     timeout-minutes: 10
