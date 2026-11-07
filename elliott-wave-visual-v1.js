@@ -21,17 +21,17 @@ function overlay(ctx,a,{bars,x,y,width,height,min,max,labelSize=30,upperY=y-38,l
  for(const [i,p] of points.entries()){
   if(!i)continue;if(!map.has(p.pivotDate)){hidden.push({label:p.label,date:p.pivotDate,reason:'不在目前可見交易日期內'});continue;}
   const b=bars[map.get(p.pivotDate)],actual=p.type==='HIGH'?b.high:b.low;if(actual!==p.price||p.price<min||p.price>max){hidden.push({label:p.label,date:p.pivotDate,reason:'價格與圖上日K不符或超出範圍'});continue;}
-  const px=xp(p.pivotDate),py=yp(p.price),text=(historical?'歷史':i>=6?'修正':'浪')+p.label+(p.confirmedAt?'':'待確認')+(showPrices?' '+priceNumber(p.price):''),color=historical?(vivid?PHONE_PALETTE.muted:'#536d86'):i>=6?(vivid?PHONE_PALETTE.amber:'#b6691c'):(vivid?PHONE_PALETTE.blue:'#176dc0'),lane=p.type==='HIGH'?0:1;
-  font(ctx,labelSize,color,true);placements.push({i,p,px,py,text,color,lane,w:ctx.measureText(text).width+14,h:labelSize+8});
+  const px=xp(p.pivotDate),py=yp(p.price),baseText=(historical?'歷史':i>=6?'修正':'浪')+p.label+(p.confirmedAt?'':'待確認'),text=baseText+(showPrices?' '+priceNumber(p.price):''),color=historical?(vivid?PHONE_PALETTE.muted:'#536d86'):i>=6?(vivid?PHONE_PALETTE.amber:'#b6691c'):(vivid?PHONE_PALETTE.blue:'#176dc0'),lane=p.type==='HIGH'?0:1;
+  font(ctx,labelSize,color,true);placements.push({i,p,px,py,baseText,text,priceShown:showPrices,color,lane,w:ctx.measureText(text).width+14,h:labelSize+8});
  }
  for(const lane of [0,1]){
-  const group=placements.filter(n=>n.lane===lane);while(group.reduce((sum,n)=>sum+n.w+6,-6)>width&&group.length){const n=group.shift();n.omitted=true;hidden.push({label:n.p.label,date:n.p.pivotDate,reason:'舊標記空間不足，保留轉折線並優先顯示較新標記'});}
+  const group=placements.filter(n=>n.lane===lane);if(showPrices)for(const n of group){if(group.reduce((sum,n)=>sum+n.w+6,-6)<=width)break;if(n.i===points.length-1)continue;n.text=n.baseText;n.priceShown=false;font(ctx,labelSize,n.color,true);n.w=ctx.measureText(n.text).width+14;}while(group.reduce((sum,n)=>sum+n.w+6,-6)>width&&group.length){const n=group.shift();n.omitted=true;hidden.push({label:n.p.label,date:n.p.pivotDate,reason:'舊標記空間不足，保留轉折線並優先顯示較新標記'});}
   let edge=x-6;for(const n of group){n.left=Math.max(edge+6,Math.min(n.px-n.w/2,x+width-n.w));edge=n.left+n.w;}
   edge=x+width+6;for(const n of [...group].reverse()){n.left=Math.min(n.left,edge-6-n.w);edge=n.left;}
  }
  for(const n of placements){if(n.omitted)continue;const {i,p,px,py,text,color,lane,w,h,left}=n,top=lane===0?upperY:lowerY;
   ctx.save();ctx.setLineDash(p.confirmedAt?[]:[4,3]);ctx.strokeStyle=color;ctx.lineWidth=!historical&&i===points.length-1?3:1;ctx.fillStyle=historical?'#eef3f8':i===points.length-1?'#d5eaff':vivid?'#edf5ff':'#ffffff';ctx.beginPath();ctx.roundRect(left,top,w,h,6);ctx.fill();ctx.stroke();font(ctx,labelSize,color,true);ctx.fillText(text,left+7,top+3);ctx.setLineDash([3,4]);ctx.globalAlpha=.65;ctx.beginPath();ctx.moveTo(left+w/2,lane===0?top+h:top);ctx.lineTo(px,py);ctx.stroke();ctx.restore();
-  markers.push({namespace:p.namespace,label:p.label,date:p.pivotDate,price:p.price,sourceKey:p.type==='HIGH'?'high':'low',confirmedAt:p.confirmedAt,pointStatus:p.pointStatus,displayLabel:text,priceShown:showPrices,pending:!p.confirmedAt,x:px,y:py,labelRect:{x:left,y:top,width:w,height:h},historical,current:!historical&&i===points.length-1});
+  markers.push({namespace:p.namespace,label:p.label,date:p.pivotDate,price:p.price,sourceKey:p.type==='HIGH'?'high':'low',confirmedAt:p.confirmedAt,pointStatus:p.pointStatus,displayLabel:text,priceShown:n.priceShown,pending:!p.confirmedAt,x:px,y:py,labelRect:{x:left,y:top,width:w,height:h},historical,current:!historical&&i===points.length-1});
  }
 
  ctx.restore();return {enabled:true,historical,scale:a.selectedScale||null,state:a.state,code:a.code,date:a.date,headline:a.headline,markers,segments,hidden,plot:{x,y,width,height,min,max},legacyABCNamespace:'N_STRUCTURE',elliottABCNamespace:'ELLIOTT_CORRECTION'};
