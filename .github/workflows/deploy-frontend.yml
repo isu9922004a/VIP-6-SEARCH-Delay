@@ -34,7 +34,7 @@ jobs:
           npm test
           npm run test:contract
           npm run research:validate
-      - name: Verify V8.7 structure, mobile layout and complete PNG variants
+      - name: Verify V8.7.1 structure, mobile layout and complete PNG variants
         env:
           CHROME_BIN: /usr/bin/google-chrome
         run: |
@@ -85,7 +85,7 @@ jobs:
           npm run test:engulf-range-browser
           npm run test:elliott-browser -- /tmp/v864-browser/elliott
           node scripts/tests/market-date-browser.cjs /tmp/v864-browser/market-date
-      - name: Verify the published V8.7 entry point and new report module
+      - name: Verify the published V8.7.1 entry point and new report module
         run: |
           node - <<'NODE'
           const assert=require('node:assert/strict'),F=require('./research-v83/forecast-engine.js'),M=require('./research-v83/market-engine.js'),S=require('./research-v83/market-freshness.js');
@@ -96,10 +96,10 @@ jobs:
               const [html,version,observations,fifth,report,market,marketJS,history,model,comfort,suite,share,refresh]=await Promise.all(['index.html','version-v50.js','research-v83/report-observations.js','research-v83/stock-fifth-module.js','research-v83/stock-simple-report.js','market-outlook.html','research-v83/market.js','data/index/TAIEX.json','data/kronos/TAIEX.json','market-report-comfort-v864.js','r45-report-suite.js','mobile-image-share-v1.js','market-report-refresh-v864.js'].map(read));
               assert.match(html,/engulf-range-report-v1.js/);assert.match(version,/ENGULF_RANGE_RESEARCH_1/);
               const shared=await read('structure-context-v1.js'),panel=await read('engulf-range-report-v1.js');assert.match(shared,/function confirmationResearch/);assert.match(panel,/K線吞沒與箱體突破確認/);
-              assert.match(version,/DISPLAY='V8\.7'/);assert.match(report,/VERSION='V8\.7'/);assert.match(observations,/REPORT_OBSERVATIONS_8_6_4/);assert.match(fifth,/漲跌力道：/);assert.match(fifth,/關卡有沒有站穩：/);assert.match(market,/market-observations/);assert.match(marketJS,/ShitouReportObservations.fromMarket/);assert.ok(html.indexOf('report-observations.js?')<html.indexOf('stock-fifth-module.js?'));assert.match(html,/report-observations.js\?v=V8\.7/);
-              assert.match(html,/market-report-comfort-v864.js\?v=V8\.7-MARKETPAGE1/);assert.match(comfort,/MARKET_COMFORT_LAYOUT_V864/);assert.match(comfort,/MARKET_ONEPAGE_DYNAMIC_V864/);assert.match(refresh,/INTERVAL=300000/);assert.match(html,/market-report-refresh-v864.js\?v=V8\.7-MARKETPAGE1/);assert.match(comfort,/marketMobileReader/);assert.match(suite,/mountReader/);assert.match(share,/shareAsSingleImage/);assert.match(html,/mobile-image-share-v1.js\?v=V8\.7-MARKETPAGE1/);assert.match(suite,/window.ShitouMarketComfortReport.render\(report,options\)/);
+              assert.match(version,/DISPLAY='V8\.7\.1'/);assert.match(report,/VERSION='V8\.7\.1'/);assert.match(observations,/REPORT_OBSERVATIONS_8_6_4/);assert.match(fifth,/漲跌力道：/);assert.match(fifth,/關卡有沒有站穩：/);assert.match(market,/market-observations/);assert.match(marketJS,/ShitouReportObservations.fromMarket/);assert.ok(html.indexOf('report-observations.js?')<html.indexOf('stock-fifth-module.js?'));assert.match(html,/report-observations.js\?v=V8\.7\.1/);
+              assert.match(html,/market-report-comfort-v864.js\?v=V8\.7\.1-MARKETPAGE1/);assert.match(comfort,/MARKET_COMFORT_LAYOUT_V864/);assert.match(comfort,/MARKET_ONEPAGE_DYNAMIC_V864/);assert.match(refresh,/INTERVAL=300000/);assert.match(html,/market-report-refresh-v864.js\?v=V8\.7\.1-MARKETPAGE1/);assert.match(comfort,/marketMobileReader/);assert.match(suite,/mountReader/);assert.match(share,/shareAsSingleImage/);assert.match(html,/mobile-image-share-v1.js\?v=V8\.7\.1-MARKETPAGE1/);assert.match(suite,/window.ShitouMarketComfortReport.render\(report,options\)/);
               const h=JSON.parse(history),f=JSON.parse(model),a=M.analyze(h);assert.equal(S.historyStatus(h).stale,false);assert.equal(F.evaluate(a.input,f).state,'MODEL_SAMPLE');assert.equal(F.executionVerified(f),true);assert.equal(f.asOf,h.closeDate);assert.ok(h.closeDate>=require('./data/index/TAIEX.json').closeDate);
-              console.log(JSON.stringify({live:true,version:'V8.7',indexDate:h.closeDate,close:h.close,modelDate:f.asOf,target:f.targetDates[0],stockAndMarket:true,momentumAndPriceConfirmation:true,scriptOrderVerified:true,readableMarketABC:true,iphoneMobileReader:true,singleCompleteMarketImage:true,approvedOnePage:true,refreshBeforeExport:true}));return;
+              console.log(JSON.stringify({live:true,version:'V8.7.1',indexDate:h.closeDate,close:h.close,modelDate:f.asOf,target:f.targetDates[0],stockAndMarket:true,momentumAndPriceConfirmation:true,scriptOrderVerified:true,readableMarketABC:true,iphoneMobileReader:true,singleCompleteMarketImage:true,approvedOnePage:true,refreshBeforeExport:true}));return;
             }catch(e){error=e;if(i<7)await new Promise(r=>setTimeout(r,15000));}throw error;
           })().catch(e=>{console.error(e);process.exitCode=1;});
           NODE

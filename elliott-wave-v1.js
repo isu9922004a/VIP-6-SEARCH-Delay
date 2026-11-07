@@ -1,7 +1,7 @@
 /* Extension of unified-analysis wave research. No network, scores, ranks or orders. */
 (function(root,factory){const node=typeof module==='object'&&module.exports,api=factory(node?require('./research-common-v1.js'):root.ShitouResearchCommon,node?require('./indicator-multi-v1.js'):root.ShitouIndicatorMultiV1,node?require('./structure-context-v1.js'):root.ShitouStructureContext,node?require('./worker-data-contract-v1.js'):root.ShitouWorkerDataContractV1,node?require('./shitou-wave-core-v48.js'):root.ShitouWaveCoreV48);if(node)module.exports=api;else root.ShitouElliottWave=api;})(globalThis,function(U,I,S,W,F){
 'use strict';
-const VERSION='ELLIOTT_VISUAL_RESEARCH_1',PARAM=Object.freeze({version:VERSION,pivotLeft:3,pivotRight:3,minBars:63,minLegATR:.75,trendSlopeATR:.03,volumeRatio5:1.2});
+const VERSION='ELLIOTT_VISUAL_RESEARCH_2',PARAM=Object.freeze({version:VERSION,pivotLeft:3,pivotRight:3,minBars:63,minLegATR:.75,trendSlopeATR:.03,volumeRatio5:1.2});
 const flags={researchOnly:true,performanceValidated:false,affectsOriginalScore:false,affectsOriginalRanking:false,affectsOriginalEligibility:false};
 const labels=['起點','1','2','3','4','5','A','B','C'],fmt=x=>Number.isFinite(x)?x.toFixed(2):'待核對';
 function cleanPivots(pv){const out=[];for(const p of pv){if(out.at(-1)?.index===p.index)return {ok:false,points:[],reason:'同一天同時是重要高點與低點，日K無法知道先後。'};const last=out.at(-1);if(last?.type===p.type){if(p.type==='HIGH'?p.price>last.price:p.price<last.price)out[out.length-1]=p;}else out.push(p);}return {ok:true,points:out};}
@@ -26,6 +26,60 @@ function description(c,b,p){const stage=c.points.length-1,dir=c.direction,up=dir
  const turn=stage>=6?(up?'收盤重新站回 ':'收盤重新跌破 '):(up?'價格碰到或跌破 ':'價格碰到或漲過 ');
  return {headline,plain,clarity:c.rules.wave3NotShortest==='PENDING'||forming?'仍待確認':'較明確',reference:{label:'波浪參考價',price:boundary.price,date:boundary.pivotDate,meaning:turn+fmt(boundary.price)+'，這種數法要重新評估；不取代原本停損。'},mainScenario:'主要判讀：'+headline+'。'+plain,alternativeScenario:'備用判讀：這可能只是較大一段走勢中的小波段；'+turn+fmt(boundary.price)+'，重新檢查是否轉入修正或反彈。'};
 }
+// All scales reuse structure-context pivots and the same rules. Longer scales wait longer.
+function scaleConfigs(options={}){
+ const q=options.parameters||{};
+ if(q.pivotRight!==undefined&&(!Number.isInteger(q.pivotRight)||q.pivotRight<1||q.pivotRight>12))throw Error('轉折確認需要1到12根完成日K。');
+ const windows=q.scaleWindows||(q.pivotLeft||q.pivotRight?[q.pivotLeft||q.pivotRight]:[3,5,8]);
+ if(!Array.isArray(windows)||!windows.length||windows.length>4||windows.some(n=>!Number.isInteger(n)||n<1||n>12))throw Error('波段比較設定無效，請使用1到12根完成日K。');
+ return [...new Set(windows)].map((n,i)=>({id:'SCALE_'+n,label:windows.length===3?['小波段','中波段','大波段'][i]:'前後各'+n+'天的波段',pivotLeft:n,pivotRight:q.pivotRight&&windows.length===1&&Number.isInteger(q.pivotRight)&&q.pivotRight>=1&&q.pivotRight<=12?q.pivotRight:n}));
+}
+function pathRules(points,b,direction){
+ const sign=direction==='UP'?1:-1,extreme=z=>sign*(sign===1?z.low:z.high),pass=(from,to,level)=>b.slice(from+1,to+1).every(z=>extreme(z)>sign*level);
+ return {wave2AboveOrigin:points.length<3||pass(points[1].index,points[2].index,points[0].price)?'PASS':'FAIL',wave4NoOverlap:points.length<5||pass(points[3].index,points[4].index,points[1].price)?'PASS':'FAIL'};
+}
+function rejection(points,rules,direction,asOf,scale,b){
+ const failures=[],up=direction==='UP',point=i=>points[i]&&({date:points[i].pivotDate,price:points[i].price,type:points[i].type});
+ const violation=(from,to,boundary)=>b?.slice(points[from].index+1,points[to].index+1).find(z=>up?z.low<=boundary:z.high>=boundary);
+ const two=points[2]&&(violation(1,2,points[0].price)||{date:points[2].pivotDate,low:points[2].price,high:points[2].price}),four=points[4]&&(violation(3,4,points[1].price)||{date:points[4].pivotDate,low:points[4].price,high:points[4].price});
+ const add=(key,text,indices,observed,boundary)=>{if(rules[key]==='FAIL')failures.push({key,text,direction,points:indices.map(point).filter(Boolean),...(observed?{observed:{date:observed.date,price:up?observed.low:observed.high},boundary}:{} )});};
+ add('wave2AboveOrigin',two?two.date+' 的'+(up?'低點 ':'高點 ')+fmt(up?two.low:two.high)+' 已碰到或越過這種分段方式的起點 '+fmt(points[0].price)+'，這種分段方式先不採用。':'起點條件未通過。',[0,2],two,points[0].price);
+ add('wave4NoOverlap',four?four.date+' 的'+(up?'低點 ':'高點 ')+fmt(up?four.low:four.high)+' 已碰回第1段的價格範圍 '+fmt(points[1].price)+'，不能當成標準的五段走法。':'回檔範圍未通過。',[1,4],four,points[1]?.price);
+ add('wave3NotShortest','這組第3段的長度，比第1段和第5段都短，因此不採用。',[0,1,2,3,4,5]);
+ add('progression','這組後續高低點沒有延續原方向，尚不採用這種數法。',[1,3,5]);
+ add('correction','後面的反彈或回檔，不符合目前支援的簡單修正走法。',[5,6,7,8]);
+ return {origin:points[0].pivotDate,rules,failures,availableAt:asOf,scale:{label:scale.label||'目前波段',pivotLeft:scale.pivotLeft,pivotRight:scale.pivotRight}};
+}
+function historicalImpulses(b,pv,p,scale){
+ const result=[],seen=new Set();
+ // Replay each confirmation date. Later, higher same-type pivots must not erase an earlier record.
+ for(const known of [...new Set(pv.map(z=>z.confirmedAt))].sort()){
+  const cleaned=cleanPivots(pv.filter(z=>z.confirmedAt<=known));if(!cleaned.ok||cleaned.points.length<6)continue;
+  const points=cleaned.points.slice(-6),key=points.map(z=>z.pivotDate+':'+z.price).join('|');if(seen.has(key))continue;
+  const direction=points[0].type==='LOW'?'UP':'DOWN',end=b.findIndex(z=>z.date===points[5].confirmedAt),prefix=b.slice(0,end+1);
+  if(end<0||prefix.length<p.minBars)continue;
+  const rules=ruleChecks(points,direction),path=pathRules(points,prefix,direction);for(const key of Object.keys(path))if(path[key]==='FAIL')rules[key]='FAIL';
+  if(['wave2AboveOrigin','wave3NotShortest','wave4NoOverlap','progression'].some(k=>rules[k]!=='PASS'))continue;
+  const atr=U.atr(prefix,14);if(!(atr>0)||points.slice(1).some((x,j)=>Math.abs(x.price-points[j].price)<atr*p.minLegATR))continue;
+  const background=trend(prefix.slice(0,points[3].index+1),p);if(background.direction!==direction&&trend(prefix,p).direction!==direction)continue;
+  seen.add(key);result.push({namespace:'ELLIOTT_HISTORICAL',status:'HISTORICAL_RULES_PASSED',interpretationConfirmed:false,turnsConfirmed:true,direction,points:points.map((x,j)=>({...x,label:labels[j],pointStatus:'CONFIRMED',namespace:'ELLIOTT_HISTORICAL'})),rules,availableAt:points[5].confirmedAt,completedDate:points[5].pivotDate,scale,headline:'歷史五段參考：'+points[0].pivotDate+' 至 '+points[5].pivotDate+'；不代表目前走到第幾浪。'});
+ }
+ return result;
+}
+function analyzeScales(b,options={}){
+ const configs=scaleConfigs(options),results=configs.map(scale=>{const pv=S.pivots(b,scale),parameters={...PARAM,...options.parameters,...scale},a=analyzeBars(b,pv,{parameters});return {scale,a,historical:historicalImpulses(b,pv,parameters,scale)};});
+ const chosen=results.find(x=>x.a.primary)||results[0],out={...chosen.a},seen=new Set(),history=[];
+ for(const entry of results)for(const h of entry.historical){const key=h.points.map(z=>z.pivotDate+':'+z.price).join('|');if(!seen.has(key)){seen.add(key);history.push(h);}}
+ history.sort((a,c)=>c.availableAt.localeCompare(a.availableAt)||a.scale.pivotRight-c.scale.pivotRight);
+ out.historicalCounts=history.slice(0,3);out.selectedScale=chosen.scale;
+ out.scaleComparisons=results.map(({scale,a})=>({scale,state:a.state,headline:a.headline,hasCandidate:!!a.primary,candidateCount:a.counts?.length||0,failedConditions:[...new Set((a.rejected||[]).flatMap(r=>Object.entries(r.rules||{}).filter(([,v])=>v==='FAIL').map(([k])=>k)))]}));
+ const other=results.find(x=>x!==chosen&&x.a.primary&&(JSON.stringify(x.a.primary.points.map(p=>[p.pivotDate,p.price,p.type]))!==JSON.stringify(out.primary?.points.map(p=>[p.pivotDate,p.price,p.type]))));
+ if(other){out.scaleAlternative={scale:other.scale,...other.a.primary};out.scaleDisagreement=true;if(out.primary){out.state='DISAGREEMENT';out.clarity='大小波段有不同解讀，先觀察';}}
+ const rejected=results.flatMap(({a,scale})=>(a.rejected||[]).map(r=>({...r,scale}))).sort((a,c)=>c.origin.localeCompare(a.origin)||a.scale.pivotRight-c.scale.pivotRight);
+ out.diagnostics=rejected.flatMap(r=>(r.failures||[]).map(f=>({...f,origin:r.origin,scale:r.scale,availableAt:r.availableAt}))).filter((f,i,all)=>all.findIndex(z=>z.key===f.key&&z.origin===f.origin)===i).slice(0,3);
+ if(!out.primary){out.rejected=rejected;if(rejected.length){out.state='RULE_VIOLATION';out.reason='已比較不同大小的波段，目前還不能合理標出1到5，先等新的價格轉折。';}out.pendingNote='最近的高低點還需要後續完成日K確認，不能先當成第1浪或反轉成功。';}
+ return out;
+}
 function analyzeBars(b,pv=S.pivots(b),options={}){const p={...PARAM,...options.parameters},t=trend(b,p),asOf=b.at(-1)?.date,clean=cleanPivots(pv.filter(x=>x.confirmedAt&&x.confirmedAt<=asOf)),empty=(state,reason)=>({version:VERSION,state,headline:'目前無法確認波浪位置',reason,trend:t,points:[],counts:[],...flags});
  if(b.length<p.minBars)return empty('DATA_INSUFFICIENT','至少需要63根已核對的完成日K。');if(!clean.ok)return empty('UNCLEAR',clean.reason);if(t.direction==='RANGE'||t.direction==='UNKNOWN')return empty('UNCLEAR','大方向仍在橫盤或證據不足，先不硬套五浪。');
  const seq=clean.points,candidates=[],rejected=[];
@@ -39,7 +93,7 @@ function analyzeBars(b,pv=S.pivots(b),options={}){const p={...PARAM,...options.p
   if(extension!==last)points[points.length-1]=extension;
   else if(points.length<9&&chosen&&(nextType==='HIGH'?chosen.price>last.price:chosen.price<last.price)&&Math.abs(chosen.price-last.price)>t.atr*p.minLegATR)points.push(chosen);
   if(points.length<3||points.slice(1).some((x,i)=>x.type===points[i].type||(x.type==='HIGH'?x.price<=points[i].price:x.price>=points[i].price)||Math.abs(x.price-points[i].price)<t.atr*p.minLegATR))continue;
-  const rules=ruleChecks(points,direction);if(Object.values(rules).includes('FAIL')){rejected.push({origin:points[0].pivotDate,rules});continue;}
+  const rules=ruleChecks(points,direction),path=pathRules(points,b,direction);for(const key of Object.keys(path))if(path[key]==='FAIL')rules[key]='FAIL';if(Object.values(rules).includes('FAIL')){rejected.push(rejection(points,rules,direction,asOf,p,b));continue;}
   const stage=points.length-1;if(stage===3&&points[3].price*sign<=points[1].price*sign)continue;
   const c={namespace:'ELLIOTT_WAVE',direction,points:points.map((x,i)=>({...x,label:labels[i],namespace:i>=6?'ELLIOTT_CORRECTION':'ELLIOTT_IMPULSE'})),rules,availableAt:asOf,evidence:evidence(b,points,direction,p)};
   const hardBoundary=stage===4?points[1].price:stage===5?points[4].price:stage===3?points[0].price:null;
@@ -55,19 +109,19 @@ function analyzeBars(b,pv=S.pivots(b),options={}){const p={...PARAM,...options.p
 }
 
 function plainReason(reason){return String(reason||'每日資料還沒核對完整。').replace(/Worker資料契約|原本資料一致性檢查/g,'行情資料一致性檢查').replace(/OHLC/g,'開盤、最高、最低、收盤價').replace(/統計口徑|價格基準|價格調整基準/g,'計算方式').replace(/核驗/g,'核對').replace(/日K/g,'每日K線').replace(/合法跳動單位/g,'交易所允許的價格刻度');}
-function evaluate(input,options={}){const r=U.normalizeInput(input),code=String(r.stock||r.code||r.instrumentType||r.index||''),date=options.asOf||r.closeDate||r.marketDate,index=['TAIEX','TPEX_INDEX'].includes(r.instrumentType||r.index),fail=reason=>U.freeze({version:VERSION,state:'DATA_INSUFFICIENT',code,date,headline:'目前無法確認波浪位置',reason:plainReason(reason),diagnosticReason:reason,points:[],bars:[],...flags});
+function evaluate(input,options={}){const r=U.normalizeInput(input),code=String(r.stock||r.code||r.instrumentType||r.index||''),date=options.asOf||r.closeDate||r.marketDate,index=['TAIEX','TPEX_INDEX'].includes(r.instrumentType||r.index),fail=reason=>U.freeze({version:VERSION,state:'DATA_INSUFFICIENT',code,date,headline:'目前無法確認波浪位置',reason:plainReason(reason),diagnosticReason:reason,points:[],bars:[],historicalCounts:[],scaleComparisons:[],diagnostics:[],...flags});
  try{
   if(r.completed!==true||r.dailySeriesMeta?.onlyCompletedBars!==true||(r.canonicalBars||r.dailySeries||[]).some(z=>z.completed===false))return fail('尚未核對為完成日K，不使用盤中資料數浪。');
   if(options.asOf&&options.asOf!==(r.closeDate||r.marketDate))return fail('請提供截至該日的資料快照，不能用較晚資料代替。');
   let n;if(index){if(r.stock||r.code&&r.code!==r.instrumentType||r.provenance==='ILLUSTRATION')return fail('大盤身分或資料來源不一致。');n=S.confirmationInput({...r,instrumentType:r.instrumentType||r.index});if(!n.ok)return fail(n.reason);if(!n.volumeUsable)return fail('大盤成交量來源或計算範圍尚未核對。');}
   else {n=U.validate(r);if(!n.ok)return fail(n.reason);if(!r.dataContract||!W.verify(r).ok)return fail('個股行情還沒通過原本資料一致性檢查。');if(r.priceAdjustment?.verified!==true||r.priceAdjustmentConsistent===false||r.corporateActionUnresolved)return fail('價格或除權息基準還沒核對。');if(r.dailyBasisV2?.sourceVolumeWarning||r.sourceVolumeWarning||r.volumeSourceConflict||r.volumeScopeAudit?.formalVolumeEligible===false)return fail('股價與成交量來源有衝突，先停止數浪。');if(r.volumeUnit&&r.dailySeriesMeta?.volumeUnit&&r.volumeUnit!==r.dailySeriesMeta.volumeUnit)return fail('成交量股數、張數單位不一致。');const calendar=r.tradingCalendar;if(!calendar?.verified||!Array.isArray(calendar.dates)||JSON.stringify(calendar.dates.filter(d=>d>=n.bars[0].date&&d<=date))!==JSON.stringify(n.bars.map(z=>z.date)))return fail('每日資料與正式交易日曆還沒核對完整。');}
   const b=n.bars;if(!index&&b.some(z=>['open','high','low','close'].some(k=>!U.legal(z[k]))))return fail('價格不符合台股合法跳動單位。');if(!b?.length||b.at(-1).date!==date||b.at(-1).close!==r.close||b.some(z=>z.completed===false||z.volume<=0)||b.some((z,i)=>i&&Math.abs(z.close/b[i-1].close-1)>.3))return fail('收盤日期、成交量或價格連續性尚未核對。');
-  const verifiedPivots=S.pivots(b);if(options.pivots&&U.hash(options.pivots)!==U.hash(verifiedPivots))return fail('轉折點與完成日K確認結果不一致。');
-  const result=analyzeBars(b,verifiedPivots,options),warnings=!index&&r.priceAdjustment.corporateActionsVerified!==true?['除權息歷史未完整證實，只研究這份已核對、使用同一種計算方式的價格；遇價格斷點停止判讀。']:[];
-  return U.freeze({...result,code,date,source:r.dailySeriesMeta?.source||n.source,priceBasis:r.priceAdjustment.basis,warnings,inputFingerprint:U.hash([code,r.market,date,b,r.priceAdjustment,r.dailySeriesMeta]),bars:b.map((z,i)=>({...z,index:i,ma5:U.ma(b,5,i),ma20:U.ma(b,20,i),ma60:U.ma(b,60,i)})),parameters:PARAM});
+  const verifiedPivots=S.pivots(b,scaleConfigs(options)[0]);if(options.pivots&&U.hash(options.pivots)!==U.hash(verifiedPivots))return fail('轉折點與完成日K確認結果不一致。');
+  const result=analyzeScales(b,options),warnings=!index&&r.priceAdjustment.corporateActionsVerified!==true?['除權息歷史未完整證實，只研究這份已核對、使用同一種計算方式的價格；遇價格斷點停止判讀。']:[];
+  return U.freeze({...result,code,date,source:r.dailySeriesMeta?.source||n.source,priceBasis:r.priceAdjustment.basis,warnings,inputFingerprint:U.hash([code,r.market,date,b,r.priceAdjustment,r.dailySeriesMeta]),bars:b.map((z,i)=>({...z,index:i,ma5:U.ma(b,5,i),ma20:U.ma(b,20,i),ma60:U.ma(b,60,i)})),parameters:{...PARAM,...options.parameters,pivotLeft:result.selectedScale.pivotLeft,pivotRight:result.selectedScale.pivotRight,scaleWindows:result.scaleComparisons.map(x=>x.scale.pivotRight)}});
  }catch(_){return fail('波浪資料暫時無法核對，原本報告仍可使用。');}
 }
 // Backward-compatible fields consumed by existing unified research. One count engine only.
-function legacy(b,pv,computed){const a=computed||analyzeBars(b,pv),c=a.primary,r=c?.rules,complete=c?.points.length>=6;return {version:'ELLIOTT_WAVE_STRUCTURE_RESEARCH_V1',waveCandidate:complete&&r.wave3NotShortest==='PASS'?'IMPULSE_FIVE_CANDIDATE':null,ruleValidation:r?Object.fromEntries(Object.entries(r).map(([k,v])=>[k,v==='PENDING'?null:v==='PASS'])):null,pivots:a.points,alternativeCounts:c?.points.length>=7?['ABC_CORRECTION_CANDIDATE']:[],invalidation:c?.reference.price??null,divergence:{detected:!!c?.evidence.divergence&&(c.evidence.divergence.rsi||c.evidence.divergence.macd),peaks:[],confirmedAt:c?.points[5]?.confirmedAt||null},note:a.reason||c?.plain||a.headline,multiTimeframe:'UNKNOWN',affectsOriginalRanking:false};}
-return Object.freeze({VERSION,PARAM,cleanPivots,ruleChecks,trend,analyzeBars,evaluate,legacy});
+function legacy(b,pv,computed){const a=computed||analyzeScales(b),c=a.primary,r=c?.rules,complete=c?.points.length>=6;return {version:'ELLIOTT_WAVE_STRUCTURE_RESEARCH_V1',waveCandidate:complete&&r.wave3NotShortest==='PASS'?'IMPULSE_FIVE_CANDIDATE':null,ruleValidation:r?Object.fromEntries(Object.entries(r).map(([k,v])=>[k,v==='PENDING'?null:v==='PASS'])):null,pivots:a.points,alternativeCounts:c?.points.length>=7?['ABC_CORRECTION_CANDIDATE']:[],invalidation:c?.reference.price??null,divergence:{detected:!!c?.evidence.divergence&&(c.evidence.divergence.rsi||c.evidence.divergence.macd),peaks:[],confirmedAt:c?.points[5]?.confirmedAt||null},note:a.reason||c?.plain||a.headline,multiTimeframe:'UNKNOWN',affectsOriginalRanking:false};}
+return Object.freeze({VERSION,PARAM,cleanPivots,ruleChecks,trend,analyzeBars,analyzeScales,evaluate,legacy});
 });
