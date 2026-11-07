@@ -207,7 +207,7 @@ function render(report){
  text('V8.7.1｜盤後完成日K研究；條件分不是勝率，到價仍須確認，交易風險自負。',M,H-20,I,18,{size:14,min:12,color:MUTED,bold:false});section('assistant-footer',footY,H-footY);
  c.dataset.reportMode='professional';c.dataset.unifiedReport='true';c.dataset.iphoneFullScreen='1284x2778';c.dataset.fullBleed='true';c.dataset.reportText=encodeURIComponent(JSON.stringify(texts));
  c.dataset.layoutAudit=encodeURIComponent(JSON.stringify({version:'V8.7.1',template:'USER_REFERENCE_PROFESSIONAL',code:report.code||report.stock,date:report.closeDate,width:W,height:H,noOverlap:sections.every((s,i)=>!i||s.top>=sections[i-1].bottom),sections,metricCount:metrics.length,levelCount:levels.length,abc:{A:st.A,B:st.B,C:st.C},close:L.close,trend,shortTrend,momentumCaution,referenceLayout:true}));
- return root.ShitouElliottVisual?.enhancedProfessional(c,report)||c;
+ return c;
 }
 root.ShitouProfessionalV84=Object.freeze({render,trendFor,shortTermFor,trendSummary,professionalMomentumCaution,professionalRsi10,tone});root.renderStockProfessionalInfographicV51=render;
 })(globalThis);

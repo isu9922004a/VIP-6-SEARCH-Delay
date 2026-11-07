@@ -57,7 +57,7 @@ if(JSON.stringify(raw)!==sourceBefore)throw Error('Source analysis mutated');con
  if(!audit.noClipping)throw Error('單頁大盤報告超出安全範圍，已停止匯出。');
  const metrics=[['大盤環境',st.env.state,'市場風險：'+st.env.risk,C.teal],['20日均線',fmt(st.ma20)+' 點',v.maReason,C.teal],['日 RSI 5T',fmt(st.rsi),v.rsiReason,C.orange]],abc=[['A','起漲的低點',st.A,st.fib.ADate,C.teal],['B','前一個高點',st.B,st.fib.BDate,C.orange],['C','回落守住的低點',st.C,st.fib.CDate,C.purple]].map(([key,label,value,date,color])=>({key,label,value,date,color}));
  canvas.marketReaderData={version:v.version,close:v.close,metadata:`行情基準 ${datefmt(v.date)}｜${v.source}`,generated:root.reportGeneratedAt?.()||'',stage:{label:v.headline,headline:v.abcStatus},abc,progress:v.progress.combined,chart:sections.find(s=>s.name==='chart'),metrics,map:v.prices.filter(p=>p.value!==null).map(p=>({value:p.value,label:p.label+'｜'+p.meaning,color:p.color})),scenarios:v.scenarios.map(s=>s.label+'：'+s.body),bullets:[v.newEntry,'已持有：核對個股的風險與停損計畫。',v.freshnessNote].filter(Boolean),trident:tri,tridentNote:'預備線不保證會跌到，也不保證能止跌。',mnemonic:'回落守住 C，再突破 B，才有繼續上漲的線索。'};
- canvas.dataset.iphoneFullScreen='1284x2778';canvas.dataset.shareAsSingleImage='true';canvas.dataset.reportMode='market';canvas.dataset.marketComfortLayout='true';canvas.dataset.marketComfortAudit=JSON.stringify(audit);return root.ShitouElliottVisual?.enhanceMarket(canvas,raw)||canvas;
+ canvas.dataset.iphoneFullScreen='1284x2778';canvas.dataset.shareAsSingleImage='true';canvas.dataset.reportMode='market';canvas.dataset.marketComfortLayout='true';canvas.dataset.marketComfortAudit=JSON.stringify(audit);return canvas;
 }
 // The mobile reader and exported PNG share the same prepared report content.
 function mountReader(canvas){
