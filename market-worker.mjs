@@ -543,67 +543,12 @@ export default {
 // ============================================================
 // 路由 A｜TAIEX
 // ============================================================
-async function handleTaiexV25(request, corsHeaders, debugMode, market) {
-  const debug = { version: VERSION, market, steps: [] };
-
-  try {
-    const [history, marketVolumeHistory] = await Promise.all([
-      fetchTaiexHistoryOfficial(TAIEX_FETCH_MONTHS, debugMode),
-      fetchTaiexMarketVolumeOfficial(TAIEX_VOLUME_FETCH_MONTHS, debugMode)
-        .catch(error => ({
-          rows: [],
-          monthKeys: [],
-          error: error?.message || String(error),
-          debug: debugMode ? [{ error: error?.message || String(error) }] : undefined
-        }))
-    ]);
-
-    const rawRowsCount = history.rows.length;
-    const rows = getCompletedDailyRows(history.rows);
-
-    if (debugMode) {
-      debug.steps.push({
-        step: "completed-daily-filter",
-        rawRows: rawRowsCount,
-        completedRows: rows.length,
-        filteredRows: rawRowsCount - rows.length
-      });
-    }
-
-    if (rows.length < 80) {
-      return jsonResponse({
-        version: VERSION,
-        error: "有效加權指數日線不足，暫時無法完成 MA60 與 N 字分析。",
-        rowsFetched: rows.length,
-        ...(debugMode ? { debug } : {})
-      }, 422, corsHeaders);
-    }
-
-    const dailySeries = buildTaiexDailySeries(
-      rows,
-      marketVolumeHistory.rows,
-      TAIEX_DAILY_SERIES_RETURN_BARS
-    );
-
-    const dailySeriesMeta = buildTaiexDailySeriesMeta(
-      rows,
-      marketVolumeHistory.rows,
-      dailySeries,
-      marketVolumeHistory.error || null
-    );
-
-    if (debugMode) {
-      debug.steps.push({
-        step: "daily-ohlcv-merge",
-        taiexOhlcRows: rows.length,
-        fmtqikVolumeRows: marketVolumeHistory.rows.length,
-        returnedBars: dailySeries.length,
-        firstDate: dailySeries[0]?.date || null,
-        lastDate: dailySeries[dailySeries.length - 1]?.date || null,
-        readyForTrident: dailySeriesMeta.readyForTrident
-      });
-    }
-
+// Shared by the Worker route and verified Pages snapshots. No fetch, clock or alternate N engine.
+export function buildTaiexReportFromHistory({rows, dailySeries, dailySeriesMeta}) {
+  if (!Array.isArray(rows) || rows.length < 80 || !rows.every((row,i) =>
+      isValidDailyRow(row) && (!i || row.date > rows[i-1].date))) {
+    throw new Error("大盤完成日線不足或日期、價格未核對");
+  }
     const latest = rows[rows.length - 1];
     const previous = rows.length >= 2 ? rows[rows.length - 2] : null;
     const closes = rows.map(row => row.close);
@@ -687,17 +632,77 @@ async function handleTaiexV25(request, corsHeaders, debugMode, market) {
         retracement: "回檔價 = B - (B - A) × 回檔比例",
         extension: "延伸目標 = C + (B - A) × 延伸倍數"
       },
-      ...(debugMode ? {
-        debug: {
-          ...debug,
-          requestedMonthKeys: history.monthKeys,
-          monthFetch: history.debug || null,
-          volumeMonthFetch: marketVolumeHistory.debug || null,
-          volumeFetchError: marketVolumeHistory.error || null,
-          recentRows: rows.slice(-10),
-          recentDailySeries: dailySeries.slice(-10)
-        }
-      } : {})
+    };
+    return result;
+}
+
+async function handleTaiexV25(request, corsHeaders, debugMode, market) {
+  const debug = { version: VERSION, market, steps: [] };
+
+  try {
+    const [history, marketVolumeHistory] = await Promise.all([
+      fetchTaiexHistoryOfficial(TAIEX_FETCH_MONTHS, debugMode),
+      fetchTaiexMarketVolumeOfficial(TAIEX_VOLUME_FETCH_MONTHS, debugMode)
+        .catch(error => ({
+          rows: [],
+          monthKeys: [],
+          error: error?.message || String(error),
+          debug: debugMode ? [{ error: error?.message || String(error) }] : undefined
+        }))
+    ]);
+
+    const rawRowsCount = history.rows.length;
+    const rows = getCompletedDailyRows(history.rows);
+
+    if (debugMode) {
+      debug.steps.push({
+        step: "completed-daily-filter",
+        rawRows: rawRowsCount,
+        completedRows: rows.length,
+        filteredRows: rawRowsCount - rows.length
+      });
+    }
+
+    if (rows.length < 80) {
+      return jsonResponse({
+        version: VERSION,
+        error: "有效加權指數日線不足，暫時無法完成 MA60 與 N 字分析。",
+        rowsFetched: rows.length,
+        ...(debugMode ? { debug } : {})
+      }, 422, corsHeaders);
+    }
+
+    const dailySeries = buildTaiexDailySeries(
+      rows,
+      marketVolumeHistory.rows,
+      TAIEX_DAILY_SERIES_RETURN_BARS
+    );
+
+    const dailySeriesMeta = buildTaiexDailySeriesMeta(
+      rows,
+      marketVolumeHistory.rows,
+      dailySeries,
+      marketVolumeHistory.error || null
+    );
+
+    if (debugMode) {
+      debug.steps.push({
+        step: "daily-ohlcv-merge",
+        taiexOhlcRows: rows.length,
+        fmtqikVolumeRows: marketVolumeHistory.rows.length,
+        returnedBars: dailySeries.length,
+        firstDate: dailySeries[0]?.date || null,
+        lastDate: dailySeries[dailySeries.length - 1]?.date || null,
+        readyForTrident: dailySeriesMeta.readyForTrident
+      });
+    }
+
+    const result = buildTaiexReportFromHistory({rows,dailySeries,dailySeriesMeta});
+    if (debugMode) result.debug = {
+      ...debug, requestedMonthKeys: history.monthKeys,
+      monthFetch: history.debug || null, volumeMonthFetch: marketVolumeHistory.debug || null,
+      volumeFetchError: marketVolumeHistory.error || null,
+      recentRows: rows.slice(-10), recentDailySeries: dailySeries.slice(-10)
     };
 
     return jsonResponse(result, 200, corsHeaders);

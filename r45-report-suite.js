@@ -734,7 +734,7 @@ async function generateStock(mode='beginner',withWatermark=false){
 }
 
 async function generateMarket(withWatermark=false,{recheck=true,notice=''}={}){
-  if(typeof lastMarketReportData!=='undefined'&&lastMarketReportData&&recheck&&window.ShitouMarketReportRefresh){const fresh=await window.ShitouMarketReportRefresh.refresh();notice=fresh.notice||'';}
+  if(typeof lastMarketReportData!=='undefined'&&lastMarketReportData&&recheck&&window.ShitouMarketReportRefresh){const fresh=await window.ShitouMarketReportRefresh.refresh();if(!fresh.ready)throw new Error('最新盤後行情尚未核對，請重新載入大盤後再產生圖片。'+(fresh.error||''));notice=fresh.notice||'';}
   const report=typeof lastMarketReportData!=='undefined'?lastMarketReportData:null;if(!report)throw new Error('請先完成大盤分析');
   if(document.fonts?.ready)await document.fonts.ready;
   const result=buildMarketIphoneReport(report,withWatermark,{notice});
