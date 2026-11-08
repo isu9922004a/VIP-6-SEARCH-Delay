@@ -27,6 +27,8 @@ fs.mkdirSync(out,{recursive:true});
    if(u.searchParams.get('market')==='DEEP_SCAN')return reply({type:'MOMENTUM_DEEP_SCAN',results:(u.searchParams.get('codes')||'').split(',').map(code=>({ok:true,code,data:records.get(code)?.daily}))});
   }return route.abort();
  });
+ // Replay exports on the repository index's completed date, not wall-clock today.
+ await page.clock.setFixedTime(new Date(require('../../data/index/TAIEX.json').closeDate+'T14:00:00Z'));
  await page.goto('http://127.0.0.1:'+server.address().port+'/',{waitUntil:'networkidle'});
  await page.waitForFunction(()=>!!globalThis.ShitouResearchIntegration,{},{timeout:10000}).catch(e=>{console.log('LOAD ERRORS',errors);throw e;});
  assert.equal(await page.evaluate(()=>applyAntiTheftWatermarkV3761.toString().includes('ShitouReportWatermark')),true,'legacy watermark entrypoint must delegate to reference style');
