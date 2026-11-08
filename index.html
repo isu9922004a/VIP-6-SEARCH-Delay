@@ -1182,16 +1182,17 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
 </style>
 <link rel="stylesheet" href="./filter-unified-mobile-v1.css?v=V8.7.1">
 <link rel="stylesheet" href="./research-v83/workspace-v831.css?v=V8.7.1-ACTIONSFIRST1">
+<link rel="stylesheet" href="./ui-polish-v1.css?v=V8.7.1">
 </head>
 
-<body>
+<body class="ui-polish-v1">
 
 <header class="header">
 
   <div class="container">
 
-    <h1>🪨 石頭少爺 Agent</h1>
-    <nav aria-label="策略捷徑" style="margin-top:14px"><a id="towerGoldShortcut" href="#towerGoldPanel" style="display:inline-block;padding:12px 16px;background:#fff;color:#164a9c;border-radius:8px;font-weight:800;text-decoration:none">④ 寶塔線點金術（A／B 全量掃描）</a></nav>
+    <h1><span class="ui-brand-mark">🪨</span> 石頭少爺 Agent <span class="ui-release-short">V8.7.1</span></h1>
+    <nav aria-label="策略捷徑" class="ui-inline-1"><a id="towerGoldShortcut" href="#towerGoldPanel" class="ui-inline-2" title="寶塔線 A／B 全量掃描">④ 寶塔線點金術（A／B 全量掃描）</a></nav>
 
     <p>盤後個股判讀＋大盤／產業／個股強弱＋三盤量價波段＋主升段／當沖風險確認</p>
 
@@ -1225,10 +1226,11 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
       <button id="stockSimpleAnalysisWatermarkButton" class="mini-btn" type="button" title="產生含石頭少爺台股分析標題的浮水印版個股報告">浮水印版圖片報告</button>
     </div>
 
-    <div class="hint">可輸入股票代號或繁體中文股票名稱，例如「8039」「台虹」「4939」「亞電」。已內建 1,963 檔上市／上櫃股票代碼與名稱索引，中文名稱可直接快速解析；TWSE／TPEx 官方名稱清單仍會在背景載入校正。</div>
+    <details class="help-fold"><summary>股票名稱與資料來源說明</summary><div class="hint">可輸入股票代號或繁體中文股票名稱，例如「8039」「台虹」「4939」「亞電」。已內建 1,963 檔上市／上櫃股票代碼與名稱索引，中文名稱可直接快速解析；TWSE／TPEx 官方名稱清單仍會在背景載入校正。</div></details>
 
     <div class="market-shortcut">
-      <div class="section-title" style="font-size:16px;margin-bottom:10px">📈 台股大盤加權指數</div>
+      <div class="section-title ui-inline-3">📈 台股大盤加權指數</div>
+<p class="ui-strategy-summary">先看大盤方向，再核對支撐、壓力與風險。</p>
       <div class="market-action-row">
         <a class="market-outlook-entry" href="./market-outlook.html" aria-label="開啟獨立大盤趨勢推演">
           <span class="market-outlook-entry-icon" aria-hidden="true">📈</span>
@@ -1240,84 +1242,95 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
         </a>
         <button id="marketAnalyzeButton" class="btn market-btn market-quick-analyze" type="button" onclick="analyzeMarketIndex()">📈 一鍵分析台股大盤加權指數</button>
       </div>
-      <div class="hint">按一次取得臺灣加權股價指數正式盤後資料；先看市場是順風、震盪還是偏弱，再看價格三線、量能三線與波段回撤位置。ABC／N字保留作輔助，不把單一比例當成反轉答案。</div>
+
       <div id="marketLoading" class="loading">⏳ 正在取得臺灣加權股價指數資料並分析...</div>
       <div id="marketError" class="error"></div>
-    </div>
+
+<details class="help-fold"><summary>查看說明、時段與風險提醒</summary><div class="ui-help-content"><div class="hint">按一次取得臺灣加權股價指數正式盤後資料；先看市場是順風、震盪還是偏弱，再看價格三線、量能三線與波段回撤位置。ABC／N字保留作輔助，不把單一比例當成反轉答案。</div></div></details>
+</div>
 
     <div class="momentum-shortcut">
-      <div class="section-title" style="font-size:16px;margin-bottom:8px">🚀 主動式主升掃描</div>
-      <div class="section-subtitle" style="margin-bottom:10px">盤後分兩步掃描：先從全市場找已經轉強的股票，再用三盤、價格三線、量能三線與波段回撤位置做二次確認。原本 ABC／N字仍保留作結構輔助；回撤比例只告訴你「吐回多少」，不會因碰到 61.8% 就自動列為買點。</div>
-      <div class="rule" style="margin-bottom:10px;overflow-wrap:anywhere">
+      <div class="section-title ui-inline-4">🚀 主動式主升掃描</div>
+<p class="ui-strategy-summary">找出正在轉強的股票，再核對量價與風險。</p>
+
+      <div class="rule ui-inline-6">
         <label for="momentumDeepLimit">主升深入分析範圍：</label>
-        <select id="momentumDeepLimit" style="max-width:100%;padding:8px;border-radius:8px">
+        <select id="momentumDeepLimit" class="ui-inline-7">
           <option value="70">主升快篩排序前70檔（較快）</option><option value="140">主升快篩排序前140檔</option><option value="all">全部主升快篩合格股票（較久）</option>
         </select>
-        <div class="meta">三策略共用排除全額交割、DR、特殊商品、金融、生技、營建與低流動性；其餘主升門檻沿用原設定。上限外與停止後未完成者會分別列出。</div>
+
       </div>
       <div class="momentum-action-row">
         <button id="momentumScanButton" class="btn momentum-btn" type="button" onclick="runMomentumScanV3769()">🚀 主動式主升掃描</button>
         <button id="momentumStopButton" class="momentum-stop-btn" type="button" onclick="stopMomentumScanV3762()">■ 停止掃描</button>
       </div>
-      <div class="momentum-reminder">⏰ 時段提醒：只有「實際開市日」才依盤中／盤後時段切換；週末或證交所公告休市日，一律使用最近完成交易日資料，不會要求不存在的當日行情。此處只改顯示語意，不影響選股公式。</div>
+
       <div id="momentumProgress" class="momentum-progress">
         <div class="momentum-progress-track"><div id="momentumProgressBar" class="momentum-progress-bar"></div></div>
         <div id="momentumProgressText" class="momentum-progress-text">等待開始...</div>
       </div>
       <div id="momentumError" class="error"></div>
-    </div>
+
+<details class="help-fold"><summary>查看說明、時段與風險提醒</summary><div class="ui-help-content"><div class="section-subtitle ui-inline-5">盤後分兩步掃描：先從全市場找已經轉強的股票，再用三盤、價格三線、量能三線與波段回撤位置做二次確認。原本 ABC／N字仍保留作結構輔助；回撤比例只告訴你「吐回多少」，不會因碰到 61.8% 就自動列為買點。</div><div class="meta">三策略共用排除全額交割、DR、特殊商品、金融、生技、營建與低流動性；其餘主升門檻沿用原設定。上限外與停止後未完成者會分別列出。</div><div class="momentum-reminder">⏰ 時段提醒：只有「實際開市日」才依盤中／盤後時段切換；週末或證交所公告休市日，一律使用最近完成交易日資料，不會要求不存在的當日行情。此處只改顯示語意，不影響選股公式。</div></div></details>
+</div>
 
     <div class="daytrade-shortcut">
-      <div class="section-title" style="font-size:16px;margin-bottom:8px">⚡ 明日當沖盤前適配（已檢查突破警訊）</div>
-      <div class="section-subtitle" style="margin-bottom:10px">
-        盤後先找下一交易日觀察股：低位轉強、突破確認、強勢延續都只是候選類型。先檢查量價與關鍵價位，再用波段回撤量尺確認目前是在淺回、正常整理還是深度回檔；比例不是明天的買點。
-        原本流動性、假突破、長上影、爆量滯漲與過熱風險全部保留，不會因新增費波量尺就放寬。
-        允許 0 檔，不會為了湊名次而降低安全標準。
-      </div>
-      <div class="rule" style="margin-bottom:10px;overflow-wrap:anywhere">
+      <div class="section-title ui-inline-4">⚡ 明日當沖盤前適配（已檢查突破警訊）</div>
+<p class="ui-strategy-summary">挑選下一交易日的觀察股，開盤後仍要確認。</p>
+
+      <div class="rule ui-inline-6">
         <label for="dayTradeDeepLimit">深入分析範圍：</label>
-        <select id="dayTradeDeepLimit" style="max-width:100%;padding:8px;border-radius:8px">
+        <select id="dayTradeDeepLimit" class="ui-inline-7">
           <option value="70">快篩排序前 70 檔（較快）</option>
           <option value="140">前140檔（沿用既有安全上限，避免資料服務超載）</option>
         </select>
-        <div class="meta">先從完整市場快篩，再深入分析前70或140檔。選140檔時，若第一輪正式候選少於3檔，會自動從剩餘快篩合格股再擴掃最多60檔；不是放寬條件，而是增加覆蓋。範圍外股票只代表尚未分析，不代表不合格。</div>
+
       </div>
       <div class="daytrade-action-row">
         <button id="dayTradeScanButton" class="btn daytrade-btn" type="button" title="交易日建議 17:35～18:00 查詢；報告的市場日期與個股日期必須一致" onclick="runDayTradeScanV1()">⚡ 明日當沖盤前適配（已檢查突破警訊）</button>
         <button id="dayTradeStopButton" class="momentum-stop-btn" type="button" onclick="stopDayTradeScanV1()">■ 停止掃描</button>
       </div>
-      <div class="daytrade-query-time-note">
-        ⏰ 當沖選股正常查詢時間：交易日 17:35～18:00（建議 18:00）。產生報告後，請確認「市場日期」與「個股日期」一致；若 18:00 後仍不一致，請勿採用結果，需等待資料服務刷新。
-      </div>
-      <div class="momentum-reminder">
-        📌 「盤前適配」只代表收盤後的下一交易日觀察資格，不是直接進場。原分數完整保留，但進場檢查會依突破觸發、距最近上方關卡空間、流動性、追價風險與隔日可執行性覆蓋級別及排名；開盤後仍須確認量能、站穩與失效條件，才叫「隔日開盤啟動」。
-      </div>
+
+
       <div class="momentum-progress">
         <div class="momentum-progress-track"><div id="dayTradeProgressBar" class="momentum-progress-bar"></div></div>
         <div id="dayTradeProgressText" class="momentum-progress-text">等待開始...</div>
       </div>
       <div id="dayTradeError" class="error"></div>
-    </div>
+
+<details class="help-fold"><summary>查看說明、時段與風險提醒</summary><div class="ui-help-content"><div class="section-subtitle ui-inline-5">
+        盤後先找下一交易日觀察股：低位轉強、突破確認、強勢延續都只是候選類型。先檢查量價與關鍵價位，再用波段回撤量尺確認目前是在淺回、正常整理還是深度回檔；比例不是明天的買點。
+        原本流動性、假突破、長上影、爆量滯漲與過熱風險全部保留，不會因新增費波量尺就放寬。
+        允許 0 檔，不會為了湊名次而降低安全標準。
+      </div><div class="meta">先從完整市場快篩，再深入分析前70或140檔。選140檔時，若第一輪正式候選少於3檔，會自動從剩餘快篩合格股再擴掃最多60檔；不是放寬條件，而是增加覆蓋。範圍外股票只代表尚未分析，不代表不合格。</div><div class="daytrade-query-time-note">
+        ⏰ 當沖選股正常查詢時間：交易日 17:35～18:00（建議 18:00）。產生報告後，請確認「市場日期」與「個股日期」一致；若 18:00 後仍不一致，請勿採用結果，需等待資料服務刷新。
+      </div><div class="momentum-reminder">
+        📌 「盤前適配」只代表收盤後的下一交易日觀察資格，不是直接進場。原分數完整保留，但進場檢查會依突破觸發、距最近上方關卡空間、流動性、追價風險與隔日可執行性覆蓋級別及排名；開盤後仍須確認量能、站穩與失效條件，才叫「隔日開盤啟動」。
+      </div></div></details>
+</div>
 
 
     <div class="strong-stock-shortcut" id="strongStockShortcut">
       <div class="section-title">🔎 第三套｜強勢飆股濾網（獨立策略）</div>
-      <div class="section-subtitle">新版主軸為「三盤轉折＋價格三線＋量能三線＋波段回撤量尺」：先找真正轉強，再量這一波已回吐多少；費波比例只描述位置，不保證反轉。條件分只代表結構完整度，不是勝率。</div>
-      <div class="strong-stock-reminder">📌 查詢前請先記分，再按「查詢強勢飆股濾網」。V50 沿用快篩合格股分批取得「完成日K」後直接在前端計算三盤、價格三線、量能三線與回撤位置。選股條件沒有放寬；看到 50%、61.8% 仍只代表觀察區，最後要等價格確認。資料日期不同就直接停止，不拿舊資料硬算。</div>
-      <div class="meta">資料實際取自 Market Worker 的 ALL_STOCKS；GitHub 專案內 latest.json 更新，不代表 Worker 一定已同步。</div>
-      <div class="rule" style="margin-top:12px"><label for="strongStockDeepLimit">完整日K深入分析範圍：</label>
-        <select id="strongStockDeepLimit" style="padding:9px;max-width:100%;border-radius:8px">
+<p class="ui-strategy-summary">先找強勢候選，再檢查價格、量能與資料日期。</p>
+
+
+
+      <div class="rule ui-inline-8"><label for="strongStockDeepLimit">完整日K深入分析範圍：</label>
+        <select id="strongStockDeepLimit" class="ui-inline-9">
           <option value="70">快篩前70檔</option><option value="140" selected>快篩前140檔</option><option value="all">全部快篩合格股（可能需較久）</option>
-        </select><div class="meta">先快篩完整市場；共用七類排除條件，官方變更交易名單與市場同日才掃描。上限外僅屬尚未分析，不得算成淘汰或全市場零候選。</div>
+        </select>
       </div>
       <div class="strong-stock-actions">
         <button id="strongStockScanButton" class="btn" type="button" onclick="runStrongStockScanV47()">🔎 查詢強勢飆股濾網</button>
         <button id="strongStockStopButton" class="momentum-stop-btn show" type="button" onclick="stopStrongStockScanV47()" disabled>■ 停止</button>
       </div>
       <div class="strong-stock-progress"><div id="strongStockProgressBar"></div></div>
-      <div id="strongStockProgressText" class="meta">等待盤後查詢…</div>
+
       <div id="strongStockError" class="error"></div>
-    </div>
+
+<details class="help-fold"><summary>查看說明、時段與風險提醒</summary><div class="ui-help-content"><div class="section-subtitle">新版主軸為「三盤轉折＋價格三線＋量能三線＋波段回撤量尺」：先找真正轉強，再量這一波已回吐多少；費波比例只描述位置，不保證反轉。條件分只代表結構完整度，不是勝率。</div><div class="strong-stock-reminder">📌 查詢前請先記分，再按「查詢強勢飆股濾網」。V50 沿用快篩合格股分批取得「完成日K」後直接在前端計算三盤、價格三線、量能三線與回撤位置。選股條件沒有放寬；看到 50%、61.8% 仍只代表觀察區，最後要等價格確認。資料日期不同就直接停止，不拿舊資料硬算。</div><div class="meta">資料實際取自 Market Worker 的 ALL_STOCKS；GitHub 專案內 latest.json 更新，不代表 Worker 一定已同步。</div><div class="meta">先快篩完整市場；共用七類排除條件，官方變更交易名單與市場同日才掃描。上限外僅屬尚未分析，不得算成淘汰或全市場零候選。</div><div id="strongStockProgressText" class="meta">等待盤後查詢…</div></div></details>
+</div>
 
     <div id="loading" class="loading">⏳ 正在取得股票資料並分析...</div>
 
@@ -1332,7 +1345,7 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
           <div id="momentumHeroTitle" class="momentum-hero-title">🚀 主動式主升掃描｜候選排行</div>
           <div id="momentumMeta" class="meta">-</div>
         </div>
-        <div class="meta" style="text-align:right">石頭少爺 Agent V50｜R5.3.2.8.1-TOWER-SHADOW.5.1-DATEGATE.1-REVIEW.2-OBSERVE.2-RESTAURANT.2-RSICTX.1-TOP8.1-SNAPFIX.1-NOPARALLEL.1-BUGFIX.1-FULLBLEED.1-IPHONECARD.1-MOBILE-LINE.1-HEALTH.3-STRUCTURE.1-UNIFIEDUI.1-DATASYNC.1-CLOSE.1｜RSI多週期暨餐廳前八強單張總覽版<br>盤後量價資金二次確認；三週期原始分數完整保留</div>
+        <div class="meta ui-inline-10"><span class="ui-legacy-version">石頭少爺 Agent V50｜R5.3.2.8.1-TOWER-SHADOW.5.1-DATEGATE.1-REVIEW.2-OBSERVE.2-RESTAURANT.2-RSICTX.1-TOP8.1-SNAPFIX.1-NOPARALLEL.1-BUGFIX.1-FULLBLEED.1-IPHONECARD.1-MOBILE-LINE.1-HEALTH.3-STRUCTURE.1-UNIFIEDUI.1-DATASYNC.1-CLOSE.1｜RSI多週期暨餐廳前八強單張總覽版</span><br>盤後量價資金二次確認；三週期原始分數完整保留</div>
       </div>
       <div class="momentum-reminder">📌 判讀原則：排名是「主升型態相似度／位置品質」篩選，不是上漲保證。盈虧比是有效上下關卡的動態價差比，不是勝率；高檔延伸、RSI過熱或MA20乖離過大會另外警示。</div>
       <div class="momentum-summary-grid">
@@ -1348,18 +1361,13 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
         <div class="momentum-summary-card"><div class="k">B級候選</div><div id="momentumBCount" class="v">-</div></div>
         <div class="momentum-summary-card"><div class="k">重試救回</div><div id="momentumRetryRecoveredCount" class="v">-</div></div>
       </div>
-      <details class="rule" style="margin:12px 0"><summary style="cursor:pointer;font-weight:800">主升為什麼只剩這些股票？查看範圍、等待C與淘汰原因</summary><div id="momentumAudit" style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:420px;overflow:auto;line-height:1.8;margin-top:10px"></div></details>
+      <details class="rule ui-inline-11"><summary class="ui-inline-12">主升為什麼只剩這些股票？查看範圍、等待C與淘汰原因</summary><div id="momentumAudit" class="ui-inline-13"></div></details>
       <div id="momentumList" class="momentum-list"></div>
       <div class="momentum-image-actions">
-        <button id="copyMomentumReportButton" class="copy-btn newbie-copy-btn" type="button" onclick="copyMomentumScanReportV3763()">📋 一鍵複製精簡完整戰報</button>
-        <button id="downloadMomentumFullReportButton" class="copy-btn" type="button" onclick="downloadMomentumFullReportV377713()">📄 下載完整詳細 TXT</button>
-        <button id="copyMomentumFullPart1Button" class="copy-btn" type="button" onclick="copyMomentumFullReportPartV377713(1)">📋 完整版分段複製 1/2</button>
-        <button id="copyMomentumFullPart2Button" class="copy-btn" type="button" onclick="copyMomentumFullReportPartV377713(2)">📋 完整版分段複製 2/2</button>
-        <button id="generateMomentumImageButton" class="copy-btn image-btn" type="button" onclick="generateMomentumScanImageV3762(false)">🖼️ 前8檔圖片報告</button>
-        <button id="generateMomentumWatermarkImageButton" class="copy-btn watermark-image-btn" type="button" onclick="downloadMomentumTop8ImageWatermarkV377716()">🛡️ 前8檔圖片報告（防盜浮水印版）</button>
-        <button id="downloadMomentumAllCandidatesImageButton" class="copy-btn image-btn" type="button" onclick="downloadMomentumAllCandidatesImageV377715()">🖼️ 匯出全部選股圖片報告</button>
-        <button id="downloadMomentumAllCandidatesImageWatermarkButton" class="copy-btn watermark-image-btn" type="button" onclick="downloadMomentumAllCandidatesImageWatermarkV377716()">🛡️ 匯出全部選股圖片報告（防盜浮水印版）</button>
-      </div>
+<div class="ui-export-group"><p class="ui-export-label">文字報告</p><button id="copyMomentumReportButton" class="copy-btn newbie-copy-btn" type="button" onclick="copyMomentumScanReportV3763()">📋 一鍵複製精簡完整戰報</button><button id="downloadMomentumFullReportButton" class="copy-btn" type="button" onclick="downloadMomentumFullReportV377713()">📄 下載完整詳細 TXT</button><button id="copyMomentumFullPart1Button" class="copy-btn" type="button" onclick="copyMomentumFullReportPartV377713(1)">📋 完整版分段複製 1/2</button><button id="copyMomentumFullPart2Button" class="copy-btn" type="button" onclick="copyMomentumFullReportPartV377713(2)">📋 完整版分段複製 2/2</button></div>
+<div class="ui-export-group"><p class="ui-export-label">圖片報告</p><button id="generateMomentumImageButton" class="copy-btn image-btn" type="button" onclick="generateMomentumScanImageV3762(false)">🖼️ 前8檔圖片報告</button><button id="downloadMomentumAllCandidatesImageButton" class="copy-btn image-btn" type="button" onclick="downloadMomentumAllCandidatesImageV377715()">🖼️ 匯出全部選股圖片報告</button></div>
+<div class="ui-export-group"><p class="ui-export-label">浮水印版（防盜）</p><button id="generateMomentumWatermarkImageButton" class="copy-btn watermark-image-btn" type="button" onclick="downloadMomentumTop8ImageWatermarkV377716()">🛡️ 前8檔圖片報告（防盜浮水印版）</button><button id="downloadMomentumAllCandidatesImageWatermarkButton" class="copy-btn watermark-image-btn" type="button" onclick="downloadMomentumAllCandidatesImageWatermarkV377716()">🛡️ 匯出全部選股圖片報告（防盜浮水印版）</button></div>
+</div>
       <div id="momentumImageMessage" class="copy-message"></div>
     </section>
   </section>
@@ -1373,8 +1381,8 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
           <div class="daytrade-hero-title">⚡ 明日當沖觀察名單｜盤後篩選，已檢查過熱與假突破</div>
           <div id="dayTradeMeta" class="meta">-</div>
         </div>
-        <div class="meta" style="text-align:right">
-          石頭少爺 Agent V50｜R5.3.2.8.1-TOWER-SHADOW.5.1-DATEGATE.1-REVIEW.2-OBSERVE.2-RESTAURANT.2-RSICTX.1-TOP8.1-SNAPFIX.1-NOPARALLEL.1-BUGFIX.1-FULLBLEED.1-IPHONECARD.1-MOBILE-LINE.1-HEALTH.3-STRUCTURE.1-UNIFIEDUI.1-DATASYNC.1-CLOSE.1｜RSI多週期暨餐廳前八強單張總覽版<br>
+        <div class="meta ui-inline-10"><span class="ui-legacy-version">
+          石頭少爺 Agent V50｜R5.3.2.8.1-TOWER-SHADOW.5.1-DATEGATE.1-REVIEW.2-OBSERVE.2-RESTAURANT.2-RSICTX.1-TOP8.1-SNAPFIX.1-NOPARALLEL.1-BUGFIX.1-FULLBLEED.1-IPHONECARD.1-MOBILE-LINE.1-HEALTH.3-STRUCTURE.1-UNIFIEDUI.1-DATASYNC.1-CLOSE.1｜RSI多週期暨餐廳前八強單張總覽版</span><br>
           當沖掃描排序分與三週期適配分分開呈現，不混合計算
         </div>
       </div>
@@ -1392,9 +1400,9 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
         <span class="key-resistance">🧱 <strong>上方第一道壓力</strong>＝價格往上最先可能遇到的關卡</span>
       </div>
 
-      <details class="rule" style="margin:12px 0">
-        <summary style="cursor:pointer;font-weight:800">為什麼只剩這些股票？查看範圍與淘汰原因</summary>
-        <div id="dayTradeAudit" style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:420px;overflow:auto;line-height:1.8;margin-top:10px"></div>
+      <details class="rule ui-inline-11">
+        <summary class="ui-inline-12">為什麼只剩這些股票？查看範圍與淘汰原因</summary>
+        <div id="dayTradeAudit" class="ui-inline-13"></div>
       </details>
       <div class="daytrade-summary-grid">
         <div class="daytrade-summary-card"><div class="k">初步候選</div><div id="dayTradeCandidateCount" class="v">-</div></div>
@@ -1409,21 +1417,10 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
       <div id="dayTradeList" class="momentum-list"></div>
 
       <div class="daytrade-image-actions">
-        <button id="copyDayTradeReportButton" class="copy-btn newbie-copy-btn" type="button" onclick="copyDayTradeReportV1()">📋 複製當沖選股文字報告</button>
-        <button id="downloadDayTradeFullReportButton" class="copy-btn" type="button" onclick="downloadDayTradeFullReportV1()">📄 下載完整詳細 TXT</button>
-        <button class="copy-btn" type="button" onclick="copyDayTradeReportPartV1(1)">📋 完整版分段複製 1/2</button>
-        <button class="copy-btn" type="button" onclick="copyDayTradeReportPartV1(2)">📋 完整版分段複製 2/2</button>
-
-        <button id="generateDayTradeImageButton" class="copy-btn image-btn" type="button" onclick="generateDayTradeImageV1(false)">🖼️ 前8檔圖片報告</button>
-        <button id="copyDayTradeTop8ImageButton" class="copy-btn image-btn" type="button" onclick="copyDayTradeTop8ImageV377727(false)">📋 複製前8檔圖片報告</button>
-        <button id="generateDayTradeWatermarkImageButton" class="copy-btn watermark-image-btn" type="button" onclick="generateDayTradeImageV1(true)">🛡️ 前8檔圖片報告（防盜浮水印版）</button>
-        <button id="copyDayTradeTop8ImageWatermarkButton" class="copy-btn watermark-image-btn" type="button" onclick="copyDayTradeTop8ImageV377727(true)">📋🛡️ 複製前8檔圖片（浮水印）</button>
-
-        <button id="downloadDayTradeAllCandidatesImageButton" class="copy-btn image-btn" type="button" onclick="downloadDayTradeAllCandidatesImageV1(false)">🖼️ 匯出全部選股圖片報告</button>
-        <button id="copyDayTradeAllCandidatesImageButton" class="copy-btn image-btn" type="button" onclick="copyDayTradeAllCandidatesImageV377727(false)">📋 複製全部選股圖片報告</button>
-        <button id="downloadDayTradeAllCandidatesImageWatermarkButton" class="copy-btn watermark-image-btn" type="button" onclick="downloadDayTradeAllCandidatesImageV1(true)">🛡️ 匯出全部選股圖片報告（防盜浮水印版）</button>
-        <button id="copyDayTradeAllCandidatesImageWatermarkButton" class="copy-btn watermark-image-btn" type="button" onclick="copyDayTradeAllCandidatesImageV377727(true)">📋🛡️ 複製全部選股圖片（浮水印）</button>
-      </div>
+<div class="ui-export-group"><p class="ui-export-label">文字報告</p><button id="copyDayTradeReportButton" class="copy-btn newbie-copy-btn" type="button" onclick="copyDayTradeReportV1()">📋 複製當沖選股文字報告</button><button id="downloadDayTradeFullReportButton" class="copy-btn" type="button" onclick="downloadDayTradeFullReportV1()">📄 下載完整詳細 TXT</button><button class="copy-btn" type="button" onclick="copyDayTradeReportPartV1(1)">📋 完整版分段複製 1/2</button><button class="copy-btn" type="button" onclick="copyDayTradeReportPartV1(2)">📋 完整版分段複製 2/2</button></div>
+<div class="ui-export-group"><p class="ui-export-label">圖片報告</p><button id="generateDayTradeImageButton" class="copy-btn image-btn" type="button" onclick="generateDayTradeImageV1(false)">🖼️ 前8檔圖片報告</button><button id="copyDayTradeTop8ImageButton" class="copy-btn image-btn" type="button" onclick="copyDayTradeTop8ImageV377727(false)">📋 複製前8檔圖片報告</button><button id="downloadDayTradeAllCandidatesImageButton" class="copy-btn image-btn" type="button" onclick="downloadDayTradeAllCandidatesImageV1(false)">🖼️ 匯出全部選股圖片報告</button><button id="copyDayTradeAllCandidatesImageButton" class="copy-btn image-btn" type="button" onclick="copyDayTradeAllCandidatesImageV377727(false)">📋 複製全部選股圖片報告</button></div>
+<div class="ui-export-group"><p class="ui-export-label">浮水印版（防盜）</p><button id="generateDayTradeWatermarkImageButton" class="copy-btn watermark-image-btn" type="button" onclick="generateDayTradeImageV1(true)">🛡️ 前8檔圖片報告（防盜浮水印版）</button><button id="copyDayTradeTop8ImageWatermarkButton" class="copy-btn watermark-image-btn" type="button" onclick="copyDayTradeTop8ImageV377727(true)">📋🛡️ 複製前8檔圖片（浮水印）</button><button id="downloadDayTradeAllCandidatesImageWatermarkButton" class="copy-btn watermark-image-btn" type="button" onclick="downloadDayTradeAllCandidatesImageV1(true)">🛡️ 匯出全部選股圖片報告（防盜浮水印版）</button><button id="copyDayTradeAllCandidatesImageWatermarkButton" class="copy-btn watermark-image-btn" type="button" onclick="copyDayTradeAllCandidatesImageV377727(true)">📋🛡️ 複製全部選股圖片（浮水印）</button></div>
+</div>
       <div id="dayTradeImageMessage" class="copy-message"></div>
     </section>
   </section>
@@ -1433,19 +1430,14 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
     <section class="panel">
       <div class="section-title">🔎 強勢飆股濾網｜已確認候選排行（第三套獨立策略）</div>
       <div id="strongStockMeta" class="meta">-</div>
-      <div id="strongStockSummary" class="rule" style="margin-top:12px;line-height:1.8;overflow-wrap:anywhere">-</div>
-      <div class="strong-stock-reminder" style="margin-top:12px">S＝強中強、A＝條件完整、B＝可觀察。排序先看量價結構，再用回撤量尺補充位置；不是勝率，也不是碰到某個比例就買。隔日仍要確認觀察價與防守價。</div>
+      <div id="strongStockSummary" class="rule ui-inline-14">-</div>
+      <div class="strong-stock-reminder ui-inline-8">S＝強中強、A＝條件完整、B＝可觀察。排序先看量價結構，再用回撤量尺補充位置；不是勝率，也不是碰到某個比例就買。隔日仍要確認觀察價與防守價。</div>
       <div id="strongStockList" class="momentum-list"></div>
       <div class="strong-stock-image-actions">
-        <button class="copy-btn" type="button" onclick="copyStrongStockTextV47()">📋 一鍵複製全部文字報告</button>
-        <button class="copy-btn" type="button" onclick="downloadStrongStockTextV47()">📄 下載完整 TXT</button>
-        <button id="strongStockTopImage" class="copy-btn image-btn" type="button" onclick="showStrongStockImageV47(false,false)">🖼️ 前8檔圖片報告</button>
-        <button class="copy-btn" type="button" onclick="copyStrongStockImageV47(false)">📋 複製前8檔圖片報告</button>
-        <button class="copy-btn watermark-image-btn" type="button" onclick="showStrongStockImageV47(false,true)">🛡️ 前8檔浮水印圖片</button>
-        <button id="strongStockAllImage" class="copy-btn image-btn" type="button" onclick="showStrongStockImageV47(true,false)">🖼️ 全部候選完整圖片報告（多頁ZIP）</button>
-        <button class="copy-btn" type="button" onclick="copyStrongStockImageV47(true)">📋 複製全部候選圖片（多頁改ZIP）</button>
-        <button class="copy-btn watermark-image-btn" type="button" onclick="showStrongStockImageV47(true,true)">🛡️ 全部候選浮水印圖片</button>
-      </div>
+<div class="ui-export-group"><p class="ui-export-label">文字報告</p><button class="copy-btn" type="button" onclick="copyStrongStockTextV47()">📋 一鍵複製全部文字報告</button><button class="copy-btn" type="button" onclick="downloadStrongStockTextV47()">📄 下載完整 TXT</button></div>
+<div class="ui-export-group"><p class="ui-export-label">圖片報告</p><button id="strongStockTopImage" class="copy-btn image-btn" type="button" onclick="showStrongStockImageV47(false,false)">🖼️ 前8檔圖片報告</button><button class="copy-btn" type="button" onclick="copyStrongStockImageV47(false)">📋 複製前8檔圖片報告</button><button id="strongStockAllImage" class="copy-btn image-btn" type="button" onclick="showStrongStockImageV47(true,false)">🖼️ 全部候選完整圖片報告（多頁ZIP）</button><button class="copy-btn" type="button" onclick="copyStrongStockImageV47(true)">📋 複製全部候選圖片（多頁改ZIP）</button></div>
+<div class="ui-export-group"><p class="ui-export-label">浮水印版（防盜）</p><button class="copy-btn watermark-image-btn" type="button" onclick="showStrongStockImageV47(false,true)">🛡️ 前8檔浮水印圖片</button><button class="copy-btn watermark-image-btn" type="button" onclick="showStrongStockImageV47(true,true)">🛡️ 全部候選浮水印圖片</button></div>
+</div>
       <div id="strongStockMessage" class="copy-message"></div>
     </section>
   </section>
@@ -1458,8 +1450,8 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
           <div id="marketClose" class="market-index-value">-</div>
           <div id="marketChange" class="market-index-change flat">-</div>
         </div>
-        <div style="text-align:right">
-          <div class="meta"><strong>石頭少爺 Agent V50｜R5.3.2.8.1-TOWER-SHADOW.5.1-DATEGATE.1-REVIEW.2-OBSERVE.2-RESTAURANT.2-RSICTX.1-TOP8.1-SNAPFIX.1-NOPARALLEL.1-BUGFIX.1-FULLBLEED.1-IPHONECARD.1-MOBILE-LINE.1-HEALTH.3-STRUCTURE.1-UNIFIEDUI.1-DATASYNC.1-CLOSE.1｜RSI多週期暨餐廳前八強單張總覽版</strong></div>
+        <div class="ui-inline-10">
+          <div class="meta"><span class="ui-legacy-version"><strong>石頭少爺 Agent V50｜R5.3.2.8.1-TOWER-SHADOW.5.1-DATEGATE.1-REVIEW.2-OBSERVE.2-RESTAURANT.2-RSICTX.1-TOP8.1-SNAPFIX.1-NOPARALLEL.1-BUGFIX.1-FULLBLEED.1-IPHONECARD.1-MOBILE-LINE.1-HEALTH.3-STRUCTURE.1-UNIFIEDUI.1-DATASYNC.1-CLOSE.1｜RSI多週期暨餐廳前八強單張總覽版</strong></span></div>
           <div id="marketDate" class="meta">-</div>
           <div id="marketSource" class="meta">-</div>
         </div>
@@ -1485,7 +1477,7 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
     <section class="panel">
       <div class="section-title">② 📐 大盤費波那契 N字分析</div>
       <div id="marketNStatus" class="fib-status not-formed">-</div>
-      <div id="marketNMessage" class="fib-message" style="margin-top:12px">-</div>
+      <div id="marketNMessage" class="fib-message ui-inline-8">-</div>
       <div class="fib-grid">
         <div class="fib-point"><div class="point-name">起漲點 A</div><div id="marketA" class="point-price">-</div><div id="marketADate" class="point-date">-</div></div>
         <div class="fib-point"><div class="point-name">波段高點 B</div><div id="marketB" class="point-price">-</div><div id="marketBDate" class="point-date">-</div></div>
@@ -1524,10 +1516,10 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
       <div class="section-title">③ 📋 一鍵複製大盤加權指數分析戰報</div>
       <div class="hint">直接使用大盤 Worker 回傳的正式 A／B／C 與生命週期；戰報以「市場環境 → 對個股操作影響 → 關鍵關卡 → 下一交易日劇本」呈現，不再一比一套用個股模板。</div>
       <div class="market-copy-actions">
-        <button id="copyMarketReportButton" class="copy-btn" type="button" onclick="copyMarketReport()">📋 一鍵複製大盤戰報</button>
-        <button id="generateMarketImageButton" class="copy-btn image-btn" type="button" onclick="generateMarketInfographicV3328(false)">🖼️ 生成大盤分析圖</button>
-        <button id="generateMarketWatermarkImageButton" class="copy-btn watermark-image-btn" type="button" onclick="generateMarketInfographicV3328(true)">🛡️ 生成大盤分析圖（防盜浮水印）</button>
-      </div>
+<div class="ui-export-group"><p class="ui-export-label">文字報告</p><button id="copyMarketReportButton" class="copy-btn" type="button" onclick="copyMarketReport()">📋 一鍵複製大盤戰報</button></div>
+<div class="ui-export-group"><p class="ui-export-label">圖片報告</p><button id="generateMarketImageButton" class="copy-btn image-btn" type="button" onclick="generateMarketInfographicV3328(false)">🖼️ 生成大盤分析圖</button></div>
+<div class="ui-export-group"><p class="ui-export-label">浮水印版（防盜）</p><button id="generateMarketWatermarkImageButton" class="copy-btn watermark-image-btn" type="button" onclick="generateMarketInfographicV3328(true)">🛡️ 生成大盤分析圖（防盜浮水印）</button></div>
+</div>
       <div id="marketCopyMessage" class="copy-message"></div>
     </section>
   </section>
@@ -1613,7 +1605,7 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
       <section id="snrConfluencePanelV532" class="snr-panel-v532" aria-labelledby="snrTitleV532">
         <div class="snr-head-v532">
           <div>
-            <div id="snrTitleV532" class="v46-section-title" style="margin-bottom:4px">🧭 支撐壓力共振｜三種方法有沒有指向同一區？</div>
+            <div id="snrTitleV532" class="v46-section-title ui-inline-15">🧭 支撐壓力共振｜三種方法有沒有指向同一區？</div>
             <div class="v46-note">ABC 看價格結構、三叉戟看動態位置、歷史支撐壓力看過去常有反應的價區；三者不互相取代。</div>
           </div>
           <div id="snrDataBadgeV532" class="snr-badge-v532">資料整理中</div>
@@ -1636,7 +1628,7 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
 
       <section class="v46-checklist" aria-labelledby="v46ChecklistTitle">
         <div class="v46-checklist-head">
-          <div id="v46ChecklistTitle" class="v46-section-title" style="margin-bottom:0">進場前六問</div>
+          <div id="v46ChecklistTitle" class="v46-section-title ui-inline-16">進場前六問</div>
           <div id="v46ChecklistResult" class="v46-checklist-result">尚未檢查</div>
         </div>
         <div id="v46ChecklistItems" class="v46-checklist-grid"></div>
@@ -1696,7 +1688,7 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
     <section id="tradeabilityPanel" class="panel tradeability-panel">
       <div class="tradeability-head">
         <div>
-          <div class="section-title" style="margin-bottom:5px">🎯 這檔現在適合怎麼觀察？</div>
+          <div class="section-title ui-inline-17">🎯 這檔現在適合怎麼觀察？</div>
           <div id="tradeabilityPrimary" class="tradeability-primary">-</div>
         </div>
         <div class="tradeability-rule">先看白話判讀，再看原分數。<br>條件分數越高越有利；風險分數越低越好。<br>分數不是上漲機率，也不是保證獲利。</div>
@@ -1717,20 +1709,20 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
       <div id="tradeabilityNote" class="tradeability-note">-</div>
       <details id="tradeabilityFactorAuditDetails" class="score-glossary">
         <summary>🧪 因子影響試算｜只揭露權重，不改分數</summary>
-        <div id="tradeabilityFactorAudit" class="tradeability-explain" style="margin-top:12px;white-space:pre-line">資料服務尚未回傳因子影響資料。</div>
+        <div id="tradeabilityFactorAudit" class="tradeability-explain ui-inline-18">資料服務尚未回傳因子影響資料。</div>
       </details>
       <details id="tradeabilityAblationDetails" class="score-glossary">
         <summary>🧪 權重敏感度試算｜比較替代公式，不改正式分數</summary>
-        <div id="tradeabilityAblation" class="tradeability-explain" style="margin-top:12px;white-space:pre-line">資料服務尚未回傳權重敏感度資料。</div>
+        <div id="tradeabilityAblation" class="tradeability-explain ui-inline-18">資料服務尚未回傳權重敏感度資料。</div>
       </details>
       <details id="tradeabilityReplayDetails" class="score-glossary">
         <summary>🧪 歷史回看資料｜時間隔離研究，不改正式分數</summary>
-        <div class="tradeability-explain" style="margin-top:12px">只在你按下按鈕時額外運算；正常查詢與主升／當沖掃描不增加額外運算。判讀只看當時以前，隔日／3日／5日只作後續結果標記。</div>
-        <div class="quick-actions" style="justify-content:flex-start;margin-top:10px">
+        <div class="tradeability-explain ui-inline-8">只在你按下按鈕時額外運算；正常查詢與主升／當沖掃描不增加額外運算。判讀只看當時以前，隔日／3日／5日只作後續結果標記。</div>
+        <div class="quick-actions ui-inline-19">
           <button id="replayResearchRunButton" class="mini-btn" type="button" onclick="runReplayResearchV39B7()">🧪 建立最近24個歷史回看錨點</button>
           <button id="replayResearchDownloadButton" class="mini-btn" type="button" onclick="downloadReplayResearchV39B7()" disabled>⬇️ 下載歷史回看資料檔</button>
         </div>
-        <div id="tradeabilityReplayStatus" class="tradeability-explain" style="margin-top:10px;white-space:pre-line">尚未建立歷史回看資料。</div>
+        <div id="tradeabilityReplayStatus" class="tradeability-explain ui-inline-20">尚未建立歷史回看資料。</div>
       </details>
       <details class="score-glossary">
         <summary>📖 報告的數字怎麼看？點開看白話說明</summary>
@@ -1803,7 +1795,7 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
 
           <div><div class="target-base-label">基準價</div><div id="targetBase" class="target-base">-</div></div>
 
-          <div style="text-align:right"><div class="target-base-label">最新收盤倍數</div><div id="currentMultiple" class="target-base">-</div></div>
+          <div class="ui-inline-10"><div class="target-base-label">最新收盤倍數</div><div id="currentMultiple" class="target-base">-</div></div>
 
         </div>
 
