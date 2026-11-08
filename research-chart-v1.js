@@ -3,7 +3,7 @@
 'use strict';
 const VERSION='RESEARCH_CHART_8_2_9',W=1284,H=2778;
 const fmt=x=>Number.isFinite(x)?String(+x.toFixed(2)):'待核';
-function page(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouReleaseV50?.displayCode||'V8.7.1',watermark=false}={}){
+function page(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouReleaseV50?.displayCode||'V8.7.2',watermark=false}={}){
  const V=globalThis.ShitouElliottVisual||(typeof module==='object'&&module.exports?require('./elliott-wave-visual-v1.js'):null),wave=null;const measure=wave?doc.createElement('canvas').getContext('2d'):null,extra=wave?Math.ceil(V.linesFor(wave).reduce((sum,l)=>sum+V.wrap(measure,l,W-136,34).length*34*1.45+14,38)):0,waveGap=wave?40:0,PAGE_H=H+extra+waveGap;
  const u=a?.unifiedResearch,n=a?.nContinuation,d=u?.state==='RESEARCH_ONLY'?u.chart:n?.state==='RESEARCH_ONLY'?n.chart:null;if(!d?.bars?.length)return null;
  const bars=d.bars.slice(-80),start=bars[0].index,end=bars.at(-1).index,patterns=d.patterns.filter(x=>x.type==='DOUBLE_BOTTOM'?x.points.some(v=>v.index>=start):x.endIndex>=start).slice(0,2);

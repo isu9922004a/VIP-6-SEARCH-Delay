@@ -40,7 +40,7 @@ def main():
     ids=lambda p:Counter(x['id'] for _,x,_ in p.nodes if 'id' in x)
     onclick=lambda p:Counter(x['onclick'] for _,x,_ in p.nodes if 'onclick' in x)
     classes=lambda p:Counter(c for _,x,_ in p.nodes for c in x.get('class','').split())
-    link='./ui-polish-v1.css?v=V8.7.1'
+    link='./ui-polish-v1.css?v=V8.7.2'
     text=lambda s:re.sub(r'\s+','',re.sub('<[^>]+>','',s.split('<body',1)[1].split('<script',1)[0]))
     # Original static text, including warnings, stays a subsequence after additions/reordering.
     words=lambda s:Counter(re.findall(r'[\u3400-\u9fffA-Za-z0-9／.]+',re.sub('<[^>]+>',' ',s.split('<body',1)[1].split('<script',1)[0])))
