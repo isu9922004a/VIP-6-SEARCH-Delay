@@ -10,6 +10,8 @@ fs.mkdirSync(out,{recursive:true});
  try{
  browser=await chromium.launch({executablePath:process.env.CHROME_BIN||'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
  const page=await browser.newPage({viewport:{width:428,height:926},isMobile:true,hasTouch:true});page.on('pageerror',e=>errors.push(e.message));page.on('requestfailed',r=>{if(r.url().startsWith('blob:'))console.log('BLOB FAILED',r.url(),r.failure());});
+ // Follow the existing UI: dynamic export lists keep secondary actions folded.
+ async function revealExport(id){const button=page.locator('#'+id);if(!await button.isVisible()){const more=button.locator('..').locator(':scope > .up-more-btn');if(await more.isVisible())await more.click();}}
  await page.route('**/*',route=>{
   const u=new URL(route.request().url()),reply=data=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(data)});
   if(u.hostname==='127.0.0.1'){
@@ -58,7 +60,7 @@ fs.mkdirSync(out,{recursive:true});
   if(record.code==='9933'&&!process.env.V84_RENDER_ONLY){
    await page.evaluate(()=>ShitouWorkspaceV831.openReport('full'));
    for(const id of ['generateStockBeginnerImageButton','generateStockBeginnerWatermarkImageButton','generateStockProfessionalImageButton','generateStockProfessionalWatermarkImageButton','generateThreePanImageButton','generateThreePanWatermarkImageButton','generateTowerStockImageButton','generateTowerStockWatermarkImageButton']){
-    await page.locator('#'+id).click();
+    await revealExport(id);await page.locator('#'+id).click();
     await page.waitForFunction(()=>document.querySelector('#imagePreviewModal')?.classList.contains('show')&&document.querySelector('#imagePreviewImg')?.complete&&document.querySelector('#imageDownloadLink')?.href.startsWith('blob:'),{},{timeout:30000});
     
     const [download]=await Promise.all([page.waitForEvent('download',{timeout:15000}),page.locator('#imageDownloadLink').click({timeout:7000})]);
@@ -84,7 +86,7 @@ fs.mkdirSync(out,{recursive:true});
  ]){
   await page.evaluate(filter=>{ShitouWorkspaceV831.select('filters',filter);const ids={momentum:'momentumResult',daytrade:'dayTradeResult',strong:'strongStockResult',tower:'towerGoldPanel'};document.getElementById(ids[filter]).style.display='block';},filter);
   for(const id of ids){
-   await page.locator('#'+id).click();
+   await revealExport(id);await page.locator('#'+id).click();
    await page.waitForFunction(()=>document.querySelector('#imagePreviewModal')?.classList.contains('show')&&document.querySelector('#imageDownloadLink')?.href.startsWith('blob:'),{},{timeout:45000});
    const [download]=await Promise.all([page.waitForEvent('download'),page.locator('#imageDownloadLink').click()]);const file=path.join(out,id+'.png');await download.saveAs(file);const bytes=fs.readFileSync(file);assert.equal(bytes.subarray(1,4).toString(),'PNG');
    checks.push({button:id,status:'PASS',bytes:bytes.length,width:bytes.readUInt32BE(16),height:bytes.readUInt32BE(20)});await page.evaluate(()=>closeInfographicPreviewV3328());console.log('PASS scan button',id);
@@ -104,7 +106,7 @@ fs.mkdirSync(out,{recursive:true});
  },{s:scans,f:require('../restaurant-strict-fixture.cjs').fixture({code:'9999'})});
  for(const [filter,id] of [['restaurant','restaurantImage'],['restaurant','restaurantAllImages'],['structure','structureImage'],['structure','structureAllImages'],['structureB','structurePrewatchImage'],['market','generateMarketImageButton'],['market','generateMarketWatermarkImageButton']]){
   await page.evaluate(filter=>{ShitouWorkspaceV831.select(filter==='market'?'market':'filters',filter==='structureB'?'structure':filter);if(filter==='structureB'){document.querySelector('#structureMode').value='B';document.querySelector('#structureMode').dispatchEvent(new Event('change'));}if(filter==='market')document.getElementById('marketResult').style.display='block';},filter);
-  await page.locator('#'+id).click();await page.waitForFunction(()=>document.querySelector('#imagePreviewModal')?.classList.contains('show')&&document.querySelector('#imageDownloadLink')?.href.startsWith('blob:'),{},{timeout:30000});
+  await revealExport(id);await page.locator('#'+id).click();await page.waitForFunction(()=>document.querySelector('#imagePreviewModal')?.classList.contains('show')&&document.querySelector('#imageDownloadLink')?.href.startsWith('blob:'),{},{timeout:30000});
   const [download]=await Promise.all([page.waitForEvent('download'),page.locator('#imageDownloadLink').click()]);await download.saveAs(path.join(out,id+'.png'));checks.push({button:id,status:'PASS',fixture:filter.startsWith('structure')||filter==='restaurant'?'SYNTHETIC':'RECORDED'});console.log('PASS additional button',id);
   if(id==='structureAllImages'){
    const [zip]=await Promise.all([page.waitForEvent('download'),page.locator('#r45PreviewZip').click()]);const file=path.join(out,'structure-complete.zip');await zip.saveAs(file);assert.equal(fs.readFileSync(file).subarray(0,2).toString(),'PK');checks.push({button:'r45PreviewZip',status:'PASS'});
@@ -113,7 +115,7 @@ fs.mkdirSync(out,{recursive:true});
  }
  await page.evaluate(()=>{globalThis.__clipboardPng=0;Object.defineProperty(navigator,'clipboard',{configurable:true,value:{write:async items=>{const blob=await items[0].getType('image/png');if(blob.size>0)globalThis.__clipboardPng++;}}});ShitouWorkspaceV831.select('filters','daytrade');});
  for(const id of ['copyDayTradeTop8ImageButton','copyDayTradeTop8ImageWatermarkButton','copyDayTradeAllCandidatesImageButton','copyDayTradeAllCandidatesImageWatermarkButton']){
-  const before=await page.evaluate(()=>__clipboardPng);await page.locator('#'+id).click();await page.waitForFunction(before=>__clipboardPng>before,before);checks.push({button:id,status:'PASS_PNG_CLIPBOARD'});await page.evaluate(()=>closeInfographicPreviewV3328());console.log('PASS image clipboard',id);
+  const before=await page.evaluate(()=>__clipboardPng);await revealExport(id);await page.locator('#'+id).click();await page.waitForFunction(before=>__clipboardPng>before,before);checks.push({button:id,status:'PASS_PNG_CLIPBOARD'});await page.evaluate(()=>closeInfographicPreviewV3328());console.log('PASS image clipboard',id);
  }
  await page.evaluate(()=>ShitouWorkspaceV831.select('filters','tower'));
  const [towerZip]=await Promise.all([page.waitForEvent('download'),page.locator('#towerZip').click()]);const zipPath=path.join(out,'tower-complete.zip');await towerZip.saveAs(zipPath);assert.equal(fs.readFileSync(zipPath).subarray(0,2).toString(),'PK');checks.push({button:'towerZip',status:'PASS'});
