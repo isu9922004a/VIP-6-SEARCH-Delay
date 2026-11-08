@@ -45,6 +45,14 @@ const normalize=s=>String(s).replace(/[\s｜]/g,'');
    await page.evaluate(()=>{ShitouResearchIntegration.clearStockQuery();ShitouSelectionDataV2.reset();});
    await page.locator('#stockInput').fill(record.code);await page.locator('#searchButton').click();
    await page.waitForFunction(code=>ShitouResearchIntegration.getCurrentStock()?.analysis.code===code,record.code,{timeout:25000});
+   // Compare one settled model state. Availability can change between the
+   // initial technical result and the asynchronous card update.
+   await page.waitForFunction(code=>{
+    const a=ShitouResearchIntegration.getCurrentStock()?.analysis;
+    if(a?.code!==code||ShitouKronosData?.statusFor(a).status==='LOADING')return false;
+    const expected=ShitouResearchReport.view(a),dom=[...document.querySelectorAll('#researchStock .research-card-field')].map(e=>({title:e.querySelector('.research-card-label').textContent,value:e.querySelector('.research-card-value').textContent}));
+    return dom.length>0&&JSON.stringify(dom)===JSON.stringify([...expected.summary,...expected.details]);
+   },record.code,{timeout:40000});
    const result=await page.evaluate(()=>{
     const a=ShitouResearchIntegration.getCurrentStock().analysis,R=ShitouResearchReport,v=R.view(a),raw=shitouGetLastReportV82(),before=JSON.stringify(a),entries=[];
     for(const kind of ['MAIN','DAYTRADE','STRONG','TOWER','RESTAURANT','STRUCTURE_A','STRUCTURE_B']){
@@ -56,8 +64,9 @@ const normalize=s=>String(s).replace(/[\s｜]/g,'');
     const summary=R.pages(a,{stockMode:true}),full=R.pages(a,{stockMode:true,detail:true}),chart=R.candlePage(a),pages=[...summary,...full,...(chart?[chart]:[])],printed=[],overflow=[];
     let activeHeight=2778;const proto=CanvasRenderingContext2D.prototype,old=proto.fillText;proto.fillText=function(text,x,y,...rest){const w=this.measureText(String(text)).width;if(x<0||x+w>1284.5||y<0||y>activeHeight)overflow.push({text:String(text),x,y,width:w});printed.push(String(text));return old.call(this,text,x,y,...rest);};
     try{for(const p of pages){activeHeight=p.height;const c=p.renderExportRegion();c.width=c.height=1;}}finally{proto.fillText=old;}
-    return {guideEvidence:R.guideContext(a),code:a.code,date:a.date,state:a.state,priceBasis:a.unifiedResearch?.chart?.basisVerified,calendarVerified:a.unifiedResearch?.chart?.calendarVerified,entry:a.unifiedResearch?.entryDecision,entries,dom,expected:[...v.summary,...v.details],summaryExpected:v.summary,summary:summary.map(x=>JSON.parse(x.dataset.researchAudit)),full:full.map(x=>JSON.parse(x.dataset.researchAudit)),chart:chart?JSON.parse(chart.dataset.researchAudit):null,overflow,unchanged:before===JSON.stringify(a),summaryCount:summary.length};
+    return {modelStatus:ShitouKronosData?.statusFor(a).status,guideEvidence:R.guideContext(a),code:a.code,date:a.date,state:a.state,priceBasis:a.unifiedResearch?.chart?.basisVerified,calendarVerified:a.unifiedResearch?.chart?.calendarVerified,entry:a.unifiedResearch?.entryDecision,entries,dom,expected:[...v.summary,...v.details],summaryExpected:v.summary,summary:summary.map(x=>JSON.parse(x.dataset.researchAudit)),full:full.map(x=>JSON.parse(x.dataset.researchAudit)),chart:chart?JSON.parse(chart.dataset.researchAudit):null,overflow,unchanged:before===JSON.stringify(a),summaryCount:summary.length};
    });
+   assert.notEqual(result.modelStatus,'LOADING');
    if(result.guideEvidence){const g=result.guideEvidence;assert.ok(g.upper.every((x,i)=>!i||x.price>g.upper[i-1].price));if(process.env.RESEARCH_FALLBACK==='1')assert.equal(g.active,false);}
    assert.ok(result.entries.every(x=>x.inputUnchanged&&x.sameReport),JSON.stringify({entries:result.entries,expected:result.expected.filter(x=>['價格與交易日證據','資料狀態','行情資料完整性','技術現況'].includes(x.title))}));assert.deepEqual(result.dom,result.expected);assert.ok(result.unchanged);assert.deepEqual(result.overflow,[]);
    for(const [pages,expected] of [[result.summary,result.summaryExpected],[result.full,result.expected]]){
