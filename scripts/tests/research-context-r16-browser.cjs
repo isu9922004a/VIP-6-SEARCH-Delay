@@ -45,6 +45,18 @@ const normalize=s=>String(s).replace(/[\s｜]/g,'');
    await page.evaluate(()=>{ShitouResearchIntegration.clearStockQuery();ShitouSelectionDataV2.reset();});
    await page.locator('#stockInput').fill(record.code);await page.locator('#searchButton').click();
    await page.waitForFunction(code=>ShitouResearchIntegration.getCurrentStock()?.analysis.code===code,record.code,{timeout:25000});
+   // Register scanner sidecars before taking the comparison snapshot: mounting
+   // those cards can itself start a model request. Observe the existing render
+   // debounce instead of comparing midway through another request.
+   await page.evaluate(()=>{
+    const a=ShitouResearchIntegration.getCurrentStock().analysis,raw=shitouGetLastReportV82();
+    window.__r16BeforeBaselineRender=document.getElementById('researchRows').firstElementChild;
+    window.__r16BaselineRows=['MAIN','DAYTRADE','STRONG','TOWER','RESTAURANT','STRUCTURE_A','STRUCTURE_B'].map(kind=>{
+     const row={code:a.code,kind,score:{total:88},eligible:false,report:raw},before=JSON.stringify(row);
+     ShitouResearchIntegration.baseline(kind,{date:a.date,candidates:[row]},[row]);return {kind,row,before};
+    });
+   });
+   await page.waitForFunction(()=>document.getElementById('researchRows').firstElementChild!==window.__r16BeforeBaselineRender);
    // Compare one settled model state. Availability can change between the
    // initial technical result and the asynchronous card update.
    await page.waitForFunction(code=>{
@@ -55,9 +67,8 @@ const normalize=s=>String(s).replace(/[\s｜]/g,'');
    },record.code,{timeout:40000});
    const result=await page.evaluate(()=>{
     const a=ShitouResearchIntegration.getCurrentStock().analysis,R=ShitouResearchReport,v=R.view(a),raw=shitouGetLastReportV82(),before=JSON.stringify(a),entries=[];
-    for(const kind of ['MAIN','DAYTRADE','STRONG','TOWER','RESTAURANT','STRUCTURE_A','STRUCTURE_B']){
-     const row={code:a.code,kind,score:{total:88},eligible:false,report:raw},old=JSON.stringify(row),x=ShitouResearchIntegration.forReport(row);
-     ShitouResearchIntegration.baseline(kind,{date:a.date,candidates:[row]},[row]);
+    for(const {kind,row,before:old} of window.__r16BaselineRows){
+     const x=ShitouResearchIntegration.forReport(row);
      entries.push({kind,inputUnchanged:JSON.stringify(row)===old,sameReport:JSON.stringify(R.view(x))===JSON.stringify(v),diff:R.view(x).details.filter((f,i)=>JSON.stringify(f)!==JSON.stringify(v.details[i]))});
     }
     const dom=[...document.querySelectorAll('#researchStock .research-card-field')].map(e=>({title:e.querySelector('.research-card-label').textContent,value:e.querySelector('.research-card-value').textContent}));
