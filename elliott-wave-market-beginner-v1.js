@@ -14,7 +14,7 @@ function reference(l,i,close,date){
 function model(m){
  if(m.kind!=='market'||m.code!=='TAIEX')throw Error('大盤白話圖片僅使用已核對的加權指數行情');
  const wave=m.wave,last=wave.bars?.at(-1),ready=wave.state!=='DATA_INSUFFICIENT'&&last?.date===m.date&&last.close===m.close&&Number.isFinite(wave.trend?.ma20)&&Number.isFinite(wave.trend?.slope),reading=B.waveReading(m),direction=m.currentDirection?.state;
- const summaries={BULLISH:'大盤整體偏強，近期也在往上走',UPTREND_PULLBACK:'大盤整體偏強，最近正在回落',BEARISH:'大盤整體偏弱，近期也在往下走',DOWNTREND_REBOUND:'大盤整體偏弱，最近出現反彈',SHORT_BULLISH:'短線有反彈，整體轉強仍待確認',SHORT_BEARISH:'短線正在回落，先觀察能否停住',RANGE:'大盤仍在來回整理，先等方向清楚',MIXED:'漲跌線索不一致，先等方向清楚'};
+ const summaries={BULLISH:m.currentDirection.recentDirection==='FLAT'?'大盤整體偏強，近期價格大致持平':'大盤整體偏強，近期也在往上走',UPTREND_PULLBACK:'大盤整體偏強，最近正在回落',BEARISH:m.currentDirection.recentDirection==='FLAT'?'大盤整體偏弱，近期價格大致持平':'大盤整體偏弱，近期也在往下走',DOWNTREND_REBOUND:'大盤整體偏弱，最近出現反彈',SHORT_BULLISH:'短線有反彈，整體轉強仍待確認',SHORT_BEARISH:'短線正在回落，先觀察能否停住',RANGE:'大盤仍在來回整理，先等方向清楚',MIXED:'漲跌線索不一致，先等方向清楚'};
  const references=ready?m.levels.map((l,i)=>positive(l.price)?reference(l,i,m.close,m.date):null).filter(Boolean):[],above=references.filter(l=>l.price>m.close).sort((a,b)=>a.price-b.price),below=references.filter(l=>l.price<m.close).sort((a,b)=>b.price-a.price);
  const watch=references.find(l=>l.kind==='RECLAIM')||above[0]||references.find(l=>l.kind==='RESISTANCE')||null,support=references.find(l=>l.kind==='SUPPORT')||below[0]||null;
  const mainScenario=!ready?'主要觀察：先核對完整日線，再判斷方向。':!watch?'主要觀察：上方關卡尚未提供，先不猜點位。':watch.relation==='BELOW'?'主要觀察：收盤站回'+fmt(watch.price)+'點，再看能否守穩。':watch.relation==='AT'?'主要觀察：收盤剛好到'+fmt(watch.price)+'點，還要確認守穩。':'主要觀察：已站上'+fmt(watch.price)+'點，接著看能否守穩。';
