@@ -30,10 +30,8 @@ function reasonFor(plan,analysis,m,ready){
  if(plan?.weak)return {code:'WEAK_SETUP',text:'原進場檢查仍判定偏弱，先等轉強。',source,issues:all};
  return {code:'WAIT_CONDITIONS',text:'原本的價格、量能或風險條件尚未通過。',source,issues:all};
 }
-function model(m,analysis){
+function waveReading(m,quoteVerified=false){
  const wave=m.wave,last=wave.bars?.at(-1),primary=wave.primary,end=primary?.points?.at(-1),ready=wave.state!=='DATA_INSUFFICIENT'&&last?.date===m.date&&last?.close===m.close;
- const candidate=analysis?.openingPlan,plan=ready&&candidate?.code===m.code&&candidate.date===m.date&&candidate.close===m.close?candidate:null;
- const limited=analysis?.limitedHistory,quoteVerified=limited?.verified===true&&limited.code===m.code&&limited.date===m.date&&limited.close===m.close;
  const direction=m.currentDirection?.state,summary=direction==='DATA_INSUFFICIENT'?(quoteVerified?'行情已核對，完整判讀仍有資料限制':'行情尚未核對完整，先不判斷多空'):direction==='BULLISH'?'近期走勢偏強，買進條件仍要另外確認':direction==='UPTREND_PULLBACK'?'整體偏強，最近回落，留意能否守穩':direction==='DOWNTREND_REBOUND'?'整體仍偏弱，最近出現反彈':direction==='BEARISH'?'目前走勢偏弱，先觀察是否止跌':direction==='SHORT_BULLISH'?'最近有反彈，是否轉強仍要等確認':direction==='SHORT_BEARISH'?'最近往下回落，先看能否停住':direction==='RANGE'?m.currentDirection.recentDirection==='UP'?'短線有上漲，整體仍在來回波動':m.currentDirection.recentDirection==='DOWN'?'短線有回落，整體仍在來回波動':'目前來回整理，先等方向清楚':'漲跌線索不一致，先等方向清楚';
  let phase='目前看不出第幾浪，先看真實價格。',waveTitle='這次為什麼沒有浪號？',waveLines;
  if(!ready){phase='資料還不夠，這次先不標第幾浪。';waveLines=['完整行情尚未核對，這次先不標浪號。','先處理圖區說明的資料限制，再重新判讀。','不使用猜測或缺漏的價格補畫波浪。'];}
@@ -46,6 +44,13 @@ function model(m,analysis){
   waveLines=[number?(up?'上漲分段：':'下跌分段：')+shown.slice(-3).join('；')+'。':'A、B、C是修正分段，與原本ABC/N字不同。',!end.confirmedAt?end.label+'待確認：還不能確定這段已經結束。':wave.scaleDisagreement?'不同大小波段的看法不一致，先當觀察。':'實線確認高低點，數浪仍可能改變。','浪號用來理解走勢，不能單靠數字決定買賣。'];
  }else if(wave.historicalCounts?.length){waveTitle='圖上是過去的分段';phase='灰藍數字是過去走法，不能當目前位置。';waveLines=['灰藍數字只回顧過去，不能當目前第幾浪。','目前分段尚未確認，先等新的高低點。','先看真實價格、均價與原方法的條件。'];}
  else{if(wave.state==='RULE_VIOLATION')phase='這段走勢暫時不適用目前的數浪規則。';waveLines=[wave.state==='RULE_VIOLATION'?'這段走勢不符合目前採用的數浪規則。':'高低點還沒有形成清楚、可採用的排列。','這次先不標1～5，仍可觀察已核對的行情。','沒有浪號，並不是買進或賣出的訊號。'];}
+ return {summary,phase,waveTitle,waveLines};
+}
+function model(m,analysis){
+ const wave=m.wave,last=wave.bars?.at(-1),primary=wave.primary,end=primary?.points?.at(-1),ready=wave.state!=='DATA_INSUFFICIENT'&&last?.date===m.date&&last?.close===m.close;
+ const candidate=analysis?.openingPlan,plan=ready&&candidate?.code===m.code&&candidate.date===m.date&&candidate.close===m.close?candidate:null;
+ const limited=analysis?.limitedHistory,quoteVerified=limited?.verified===true&&limited.code===m.code&&limited.date===m.date&&limited.close===m.close;
+ const direction=m.currentDirection?.state,{summary,phase,waveTitle,waveLines}=waveReading(m,quoteVerified);
  const issues=plan?.dataIssues?.length,range=plan?.entryRange,rangeValid=positive(range?.low)&&positive(range?.high)&&range.low<=range.high&&positive(plan?.stop)&&plan.stop<range.low&&positive(plan?.target)&&plan.target>range.high;
  const enabled=ready&&!issues&&plan?.state==='CONDITIONAL'&&!plan.weak&&rangeValid,watch=ready&&positive(plan?.watch)?plan.watch:null,stop=ready&&positive(plan?.stop)?plan.stop:null,target=ready&&positive(plan?.target)?plan.target:null,low=ready&&positive(last?.low)?last.low:null;
  const reason=reasonFor(plan,analysis,m,ready),observation=watchSentence(m.close,watch),oldPullback=positive(m.levels[1]?.price)?m.levels[1].price:null;
@@ -86,5 +91,5 @@ function render(m,{document:doc=root.document,watermarked=false}={}){
  const audit={version:m.version,template:VERSION,release:m.release,kind:m.kind,code:m.code,date:m.date,close:m.close,width:W,height:H,trendTitle:m.trendTitle,trendReason:m.trendReason,wavePosition:m.wavePosition,waveReason:m.waveReason,currentDirection:m.currentDirection,chartLevels:b.chartLevels,priceGuides:m.priceGuides,state:m.wave.state,dataReason:m.dataReason,explanation:m.explanation,scales:m.scales,next:m.next,observations:m.observations,originalLevels:m.levels,waveReference:m.wave.primary?.reference||null,beginner:b,chart,watermarked:!!watermarked,boxes,textBoxes,noClipping,noOverlap,noCardOverflow,identity:m.identity};
  c.dataset.waveReportAudit=JSON.stringify(audit);c.dataset.researchAudit=JSON.stringify(audit);c.dataset.iphoneFullScreen='1284x2778';c.dataset.shareAsSingleImage='true';return c;
 }
-return Object.freeze({VERSION,model,render,groupPrices,watchSentence});
+return Object.freeze({VERSION,model,render,groupPrices,watchSentence,waveReading});
 });
