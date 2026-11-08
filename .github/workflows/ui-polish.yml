@@ -6,6 +6,9 @@ permissions:
   contents: read
 jobs:
   visual:
+    # This byte-identical PNG contract belongs to pure UI branches.
+    # Report revisions have their own before/after visual contract.
+    if: startsWith(github.head_ref, 'feat/ui-polish-')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
