@@ -48,10 +48,10 @@ function waveReading(m,quoteVerified=false){
 }
 // Measurements for explanation only. Existing pivots, evidence and trade gates stay authoritative.
 function retraceMeasure(start,end,current,direction,{unit='元',label='前波',estimated=false,source='CONFIRMED_SWING'}={}){
- const sign=direction==='UP'?1:direction==='DOWN'?-1:0,span=sign*(end?.price-start?.price),amount=sign*(end?.price-current?.price);
+ const sign=direction==='UP'?1:direction==='DOWN'?-1:0,span=sign*(end?.price-start?.price),amount=sign*(end?.price-current?.price)+0;
  if(!sign||![start?.price,end?.price,current?.price].every(positive)||![span,amount].every(Number.isFinite)||span<=0)return {status:'UNAVAILABLE',ratioPct:null,text:'回吐深度：沒有可靠的波段端點，這次先不算。'};
  const ratioPct=amount/span*100,pct=ratioPct.toFixed(1),verb=direction==='UP'?'漲':'跌',back=direction==='UP'?'退':'收回';
- const text=amount>span?label+'：前波'+verb+fmt(span)+unit+'已全'+(direction==='UP'?'退回，還跌過起點。':'收回，還漲過起點。'):amount<0?label+'：已'+(direction==='UP'?'超過前波高點，沒有回吐。':'低於前波低點，尚非反彈。'):label+(estimated?'暫估':'')+'：先'+verb+fmt(span)+unit+'，'+back+fmt(amount)+unit+'（'+pct+'%）。';
+ const text=amount>span?label+'：前波'+verb+fmt(span)+unit+'已全'+(direction==='UP'?'退回，還跌過起點。':'收回，還漲過起點。'):amount<0?label+'：已'+(direction==='UP'?'超過前波高點，沒有回吐。':'低於前波低點，尚非反彈。'):label+(estimated?'暫估':'')+'：先'+verb+fmt(span)+unit+'，'+back+amount.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+unit+'（'+pct+'%）。';
  return {status:amount<0?'EXTENDED':estimated?'ESTIMATED':'MEASURED',direction,source,start:{...start},end:{...end},current:{...current},span,amount,ratioPct,estimated,text,meaning:'百分比的分母是前一段漲跌幅，不是股價；不代表碰到比例就反轉。'};
 }
 function readingEvidence(m){
