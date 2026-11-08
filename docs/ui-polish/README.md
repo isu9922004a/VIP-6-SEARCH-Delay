@@ -62,6 +62,7 @@ python3 scripts/audit-ui-polish.py /tmp/shitou-ui-polish-before/index.html
 - **OS 深色預設未加**：原 `initUiTheme` 把「未儲存」與「明確儲存 light」都表示成無 dark-mode 的相同 DOM；純 CSS 無法區分。為遵守禁止 JavaScript 修改及手動選擇優先，不硬加會覆蓋手動選擇的 `prefers-color-scheme`。若日後允許調整純 UI JS，才可補上明確偏好標記。
 - 原 JS 產生的版本文字、icon-only 按鈕或候選 DOM 不重寫；能保留既有描述名稱的入口不改事件。只有靜態展示結構可加分組。無法新增動態逐價位語意 chip 時保留原圖例與資料。
 - 外掛現有 important 必須用少量有註解的 important 覆蓋。舊 dark-mode 逐元件規則原位保留；新層沒有再新增逐元件深色規則。
+- TXT 的既有長版本檔名不修改；測試將已下載內容存為短證據檔名，避免 Linux 檔名長度限制。這不代表已修正各作業系統的長檔名相容性。
 - 本次未修改模型、Worker、行情、掃描／排序或圖片繪製，不提升任何資格，也沒有績效提升宣稱。
 
 ## 可以後續清理、此次不刪的舊規則
