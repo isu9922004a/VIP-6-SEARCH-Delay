@@ -1,7 +1,7 @@
 name: Market beginner wave report clarity
 on:
   pull_request:
-    paths: ['research-integration-v1.js', 'scripts/tests/research-context-r16-browser.cjs', 'elliott-wave-market-beginner-v1.js', 'elliott-wave-stock-beginner-v1.js', 'elliott-wave-report-v1.js', 'elliott-wave-visual-v1.js', 'scripts/tests/market-wave-beginner.test.cjs', 'scripts/tests/market-wave-clear-browser.cjs', '.github/workflows/market-wave-clear.yml']
+    paths: ['scripts/tests/wave-reading-evidence.test.cjs', 'research-integration-v1.js', 'scripts/tests/research-context-r16-browser.cjs', 'elliott-wave-market-beginner-v1.js', 'elliott-wave-stock-beginner-v1.js', 'elliott-wave-report-v1.js', 'elliott-wave-visual-v1.js', 'scripts/tests/market-wave-beginner.test.cjs', 'scripts/tests/market-wave-clear-browser.cjs', '.github/workflows/market-wave-clear.yml']
 permissions:
   contents: read
 jobs:
