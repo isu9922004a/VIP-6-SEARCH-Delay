@@ -1,7 +1,7 @@
 name: UI polish visual contract
 on:
   pull_request:
-    paths: ['index.html', 'ui-polish-v1.css', 'scripts/audit-ui-polish.py', 'scripts/tests/ui-polish-browser.cjs', '.github/workflows/ui-polish.yml']
+    paths: ['index.html', 'ui-polish-v1.css', 'scripts/audit-ui-polish.py', 'scripts/tests/ui-polish-browser.cjs', 'scripts/tests/ui-polish-controls-browser.cjs', '.github/workflows/ui-polish.yml']
 permissions:
   contents: read
 jobs:
@@ -33,6 +33,7 @@ jobs:
         env:
           CHROME_BIN: /usr/bin/google-chrome
         run: |
+          node scripts/tests/ui-polish-controls-browser.cjs /tmp/ui-polish-evidence/controls
           node scripts/tests/research-context-r16-browser.cjs /tmp/ui-polish-evidence/context
           node scripts/tests/v84-report-browser.cjs /tmp/ui-polish-evidence/exports
           node scripts/tests/elliott-browser.cjs /tmp/ui-polish-evidence/elliott
