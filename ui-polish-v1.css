@@ -298,3 +298,29 @@ html body.ui-polish-v1 .ui-release-short {
   margin-left: auto; font-size: var(--font-12); padding: var(--space-4) var(--space-8);
   border-radius: var(--radius-pill); border: 1px solid currentColor; white-space: nowrap;
 }
+/* Legacy wave chips and stage cards have literal light fills. Bind both themes
+   to the same semantic tokens rather than adding dark-only component rules. */
+html body.ui-polish-v1 .wave-price-row b {
+  background: var(--info-bg); color: var(--info-fg); border: 1px solid var(--info-border);
+  border-radius: var(--radius-8); padding: var(--space-8) var(--space-12); font-size: var(--font-16);
+}
+html body.ui-polish-v1 :is(.wave-risk, .v50-alert) {
+  background: var(--warning-bg); color: var(--warning-fg); border-color: var(--warning-border);
+  border-radius: var(--radius-12);
+}
+html body.ui-polish-v1 .v50-alert strong { color: inherit; }
+html body.ui-polish-v1 .v50-price-label { color: var(--gray-600); font-size: var(--font-14); }
+html body.ui-polish-v1 .v50-close-value { color: var(--gray-900); font-size: var(--font-28); }
+html body.ui-polish-v1 .stage-card-v53245 { background: var(--gray-50); border-radius: var(--radius-16); }
+html body.ui-polish-v1 .stage-card-v53245 :is(.stage-label, .stage-plain) { color: var(--gray-900); }
+html body.ui-polish-v1 .stage-card-v53245 .stage-label { font-size: var(--font-28); }
+html body.ui-polish-v1 .stage-card-v53245 :is(.stage-kicker, .stage-reasons) { color: var(--gray-600); font-size: var(--font-14); }
+html body.ui-polish-v1 .stage-card-v53245 .stage-plain { font-size: var(--font-16); }
+html body.ui-polish-v1 .stage-card-v53245 .stage-warning { color: var(--warning-fg); background: var(--warning-bg); }
+html body.ui-polish-v1 .stage-card-v53245 .stage-fake { color: var(--danger-fg); background: var(--danger-bg); }
+html body.ui-polish-v1 #marketResult .market-index-name { color: var(--gray-900); font-size: var(--font-22); }
+html body.ui-polish-v1 #marketClose { font-size: var(--font-28); }
+html body.ui-polish-v1 .market-hero :is(#marketDate, #marketSource) { white-space: normal; }
+html body.ui-polish-v1 .v50-buy-call[data-tone="red"] { color: var(--danger-fg); background: var(--danger-bg); border-color: var(--danger-border); }
+html body.ui-polish-v1 .v50-buy-call[data-tone="green"] { color: var(--success-fg); background: var(--success-bg); border-color: var(--success-border); }
+html body.ui-polish-v1 .v50-buy-call[data-tone="gray"] { color: var(--gray-900); background: var(--gray-50); border-color: var(--gray-300); }
