@@ -15,7 +15,7 @@ function baseModel(raw,{kind='stock',name,code,date,close,levels=[]}={}){
  const scales=a.scaleComparisons?.length?a.scaleComparisons.map(s=>s.scale.label+'：'+(s.hasCandidate?'有觀察走法':'先等確認')).join('／'):'資料尚未核對，不猜測波浪位置。';
  const next=p?.reference?`${p.reference.label} ${fmt(p.reference.price)}：${p.reference.meaning}`:'先看原報告的支撐與壓力，等新的完成日K確認後再數浪；不只因一根上漲就進場。';
  const identity=JSON.stringify([kind,code,date,close,a.inputFingerprint||[a.state,a.reason],levels]);
- return {version:VERSION,release:root.ShitouReleaseV50?.displayCode||'V8.7.1',title,kind,code,date,close,name:name||raw.name||(market?'臺灣加權指數':'個股'),wave:a,explanation,scales,next,levels:levels.slice(0,3),identity};
+ return {version:VERSION,release:root.ShitouReleaseV50?.displayCode||'V8.7.2',title,kind,code,date,close,name:name||raw.name||(market?'臺灣加權指數':'個股'),wave:a,explanation,scales,next,levels:levels.slice(0,3),identity};
 }
 // Descriptive price facts only: these never change formal signals or wave counts.
 function directionView(wave,close){
