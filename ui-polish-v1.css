@@ -249,7 +249,7 @@ html body.ui-polish-v1 :is(.watermark-image-btn, .image-btn) { color: var(--info
 }
 
 /* Static inline styles migrated verbatim; spacing normalized to the token scale. */
-html body.ui-polish-v1 .ui-inline-1{margin-top:14px}
+html body.ui-polish-v1 .ui-inline-1{margin-top:var(--space-16)}
 html body.ui-polish-v1 .ui-inline-2{display:inline-block;padding:12px 16px;background:var(--gray-0);color:var(--primary);border-radius:var(--radius-8);font-weight:800;text-decoration:none}
 html body.ui-polish-v1 .ui-inline-3{font-size:var(--font-16);margin-bottom:var(--space-12)}
 html body.ui-polish-v1 .ui-inline-4{font-size:var(--font-16);margin-bottom:8px}
@@ -265,7 +265,7 @@ html body.ui-polish-v1 .ui-inline-13{white-space:pre-wrap;overflow-wrap:anywhere
 html body.ui-polish-v1 .ui-inline-14{margin-top:12px;line-height:1.8;overflow-wrap:anywhere}
 html body.ui-polish-v1 .ui-inline-15{margin-bottom:4px}
 html body.ui-polish-v1 .ui-inline-16{margin-bottom:0}
-html body.ui-polish-v1 .ui-inline-17{margin-bottom:5px}
+html body.ui-polish-v1 .ui-inline-17{margin-bottom:var(--space-4)}
 html body.ui-polish-v1 .ui-inline-18{margin-top:12px;white-space:pre-line}
 html body.ui-polish-v1 .ui-inline-19{justify-content:flex-start;margin-top:var(--space-12)}
 html body.ui-polish-v1 .ui-inline-20{margin-top:var(--space-12);white-space:pre-line}

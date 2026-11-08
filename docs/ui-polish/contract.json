@@ -5,6 +5,7 @@
     "protectedAttributesUnchanged": true,
     "originalClassesRetained": true,
     "inlineScriptsByteIdentical": true,
+    "originalInlineStylesheetsByteIdentical": true,
     "existingScriptOrderAndVersionsUnchanged": true,
     "existingStylesheetOrderAndVersionsUnchanged": true,
     "newStylesheetLastInHead": true,
