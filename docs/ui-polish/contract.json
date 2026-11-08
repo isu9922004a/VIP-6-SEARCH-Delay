@@ -1,0 +1,32 @@
+{
+  "checks": {
+    "idMultisetUnchanged": true,
+    "onclickMultisetUnchanged": true,
+    "protectedAttributesUnchanged": true,
+    "originalClassesRetained": true,
+    "inlineScriptsByteIdentical": true,
+    "originalInlineStylesheetsByteIdentical": true,
+    "existingScriptOrderAndVersionsUnchanged": true,
+    "existingStylesheetOrderAndVersionsUnchanged": true,
+    "newStylesheetLastInHead": true,
+    "staticWarningsAndTextRetained": true,
+    "staticInlineStylesRemoved": true
+  },
+  "idCount": 303,
+  "onclickCount": 52,
+  "inlineScriptBlocks": 13,
+  "externalScriptCount": 102,
+  "existingStylesheets": 8,
+  "before": {
+    "inlineStyles": 34,
+    "colorKinds": 378,
+    "fontSizeKinds": 64,
+    "radiusKinds": 21
+  },
+  "after": {
+    "inlineStyles": 0,
+    "colorKinds": 378,
+    "fontSizeKinds": 64,
+    "radiusKinds": 21
+  }
+}

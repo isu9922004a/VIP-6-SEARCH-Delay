@@ -5,11 +5,13 @@ const root=path.resolve(__dirname,'../..'),out=path.resolve(process.argv[2]||pat
 const fixture=require('../fixtures/multi-stock-worker-responses-20261022.json'),records=new Map(fixture.records.map(r=>[r.code,r]));
 fs.mkdirSync(out,{recursive:true});
 (async()=>{
- const server=http.createServer((req,res)=>{const f=path.resolve(root,'.'+new URL(req.url,'http://localhost').pathname.replace(/\/$/,'/index.html'));if(!f.startsWith(root+path.sep)){res.writeHead(403);return res.end();}fs.readFile(f,(e,b)=>{if(e){res.writeHead(404);return res.end();}res.setHeader('Content-Type',({'.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.html':'text/html; charset=utf-8','.json':'application/json'})[path.extname(f)]||'application/octet-stream');res.end(b);});});
+ const server=http.createServer((req,res)=>{const f=path.resolve(root,'.'+new URL(req.url,'http://localhost').pathname.replace(/\/$/,'/index.html'));if(!f.startsWith(root+path.sep)){res.writeHead(403);return res.end();}fs.readFile(f,(e,b)=>{if(e){res.writeHead(404);return res.end();}res.setHeader('Content-Type',({'.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.html':'text/html; charset=utf-8','.json':'application/json'})[path.extname(f)]||'application/octet-stream');res.end(b);});});
  await new Promise(r=>server.listen(0,'127.0.0.1',r));let browser;const checks=[],errors=[];
  try{
  browser=await chromium.launch({executablePath:process.env.CHROME_BIN||'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
  const page=await browser.newPage({viewport:{width:428,height:926},isMobile:true,hasTouch:true});page.on('pageerror',e=>errors.push(e.message));page.on('requestfailed',r=>{if(r.url().startsWith('blob:'))console.log('BLOB FAILED',r.url(),r.failure());});
+ // Follow the existing UI: dynamic export lists keep secondary actions folded.
+ async function revealExport(id){const button=page.locator('#'+id);if(!await button.isVisible()){const more=button.locator('..').locator(':scope > .up-more-btn');if(await more.isVisible())await more.click();}}
  await page.route('**/*',route=>{
   const u=new URL(route.request().url()),reply=data=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(data)});
   if(u.hostname==='127.0.0.1'){
@@ -25,6 +27,8 @@ fs.mkdirSync(out,{recursive:true});
    if(u.searchParams.get('market')==='DEEP_SCAN')return reply({type:'MOMENTUM_DEEP_SCAN',results:(u.searchParams.get('codes')||'').split(',').map(code=>({ok:true,code,data:records.get(code)?.daily}))});
   }return route.abort();
  });
+ // Replay exports on the repository index's completed date, not wall-clock today.
+ await page.clock.setFixedTime(new Date(require('../../data/index/TAIEX.json').closeDate+'T14:00:00Z'));
  await page.goto('http://127.0.0.1:'+server.address().port+'/',{waitUntil:'networkidle'});
  await page.waitForFunction(()=>!!globalThis.ShitouResearchIntegration,{},{timeout:10000}).catch(e=>{console.log('LOAD ERRORS',errors);throw e;});
  assert.equal(await page.evaluate(()=>applyAntiTheftWatermarkV3761.toString().includes('ShitouReportWatermark')),true,'legacy watermark entrypoint must delegate to reference style');
@@ -58,7 +62,7 @@ fs.mkdirSync(out,{recursive:true});
   if(record.code==='9933'&&!process.env.V84_RENDER_ONLY){
    await page.evaluate(()=>ShitouWorkspaceV831.openReport('full'));
    for(const id of ['generateStockBeginnerImageButton','generateStockBeginnerWatermarkImageButton','generateStockProfessionalImageButton','generateStockProfessionalWatermarkImageButton','generateThreePanImageButton','generateThreePanWatermarkImageButton','generateTowerStockImageButton','generateTowerStockWatermarkImageButton']){
-    await page.locator('#'+id).click();
+    await revealExport(id);await page.locator('#'+id).click();
     await page.waitForFunction(()=>document.querySelector('#imagePreviewModal')?.classList.contains('show')&&document.querySelector('#imagePreviewImg')?.complete&&document.querySelector('#imageDownloadLink')?.href.startsWith('blob:'),{},{timeout:30000});
     
     const [download]=await Promise.all([page.waitForEvent('download',{timeout:15000}),page.locator('#imageDownloadLink').click({timeout:7000})]);
@@ -84,7 +88,7 @@ fs.mkdirSync(out,{recursive:true});
  ]){
   await page.evaluate(filter=>{ShitouWorkspaceV831.select('filters',filter);const ids={momentum:'momentumResult',daytrade:'dayTradeResult',strong:'strongStockResult',tower:'towerGoldPanel'};document.getElementById(ids[filter]).style.display='block';},filter);
   for(const id of ids){
-   await page.locator('#'+id).click();
+   await revealExport(id);await page.locator('#'+id).click();
    await page.waitForFunction(()=>document.querySelector('#imagePreviewModal')?.classList.contains('show')&&document.querySelector('#imageDownloadLink')?.href.startsWith('blob:'),{},{timeout:45000});
    const [download]=await Promise.all([page.waitForEvent('download'),page.locator('#imageDownloadLink').click()]);const file=path.join(out,id+'.png');await download.saveAs(file);const bytes=fs.readFileSync(file);assert.equal(bytes.subarray(1,4).toString(),'PNG');
    checks.push({button:id,status:'PASS',bytes:bytes.length,width:bytes.readUInt32BE(16),height:bytes.readUInt32BE(20)});await page.evaluate(()=>closeInfographicPreviewV3328());console.log('PASS scan button',id);
@@ -104,7 +108,7 @@ fs.mkdirSync(out,{recursive:true});
  },{s:scans,f:require('../restaurant-strict-fixture.cjs').fixture({code:'9999'})});
  for(const [filter,id] of [['restaurant','restaurantImage'],['restaurant','restaurantAllImages'],['structure','structureImage'],['structure','structureAllImages'],['structureB','structurePrewatchImage'],['market','generateMarketImageButton'],['market','generateMarketWatermarkImageButton']]){
   await page.evaluate(filter=>{ShitouWorkspaceV831.select(filter==='market'?'market':'filters',filter==='structureB'?'structure':filter);if(filter==='structureB'){document.querySelector('#structureMode').value='B';document.querySelector('#structureMode').dispatchEvent(new Event('change'));}if(filter==='market')document.getElementById('marketResult').style.display='block';},filter);
-  await page.locator('#'+id).click();await page.waitForFunction(()=>document.querySelector('#imagePreviewModal')?.classList.contains('show')&&document.querySelector('#imageDownloadLink')?.href.startsWith('blob:'),{},{timeout:30000});
+  await revealExport(id);await page.locator('#'+id).click();await page.waitForFunction(()=>document.querySelector('#imagePreviewModal')?.classList.contains('show')&&document.querySelector('#imageDownloadLink')?.href.startsWith('blob:'),{},{timeout:30000});
   const [download]=await Promise.all([page.waitForEvent('download'),page.locator('#imageDownloadLink').click()]);await download.saveAs(path.join(out,id+'.png'));checks.push({button:id,status:'PASS',fixture:filter.startsWith('structure')||filter==='restaurant'?'SYNTHETIC':'RECORDED'});console.log('PASS additional button',id);
   if(id==='structureAllImages'){
    const [zip]=await Promise.all([page.waitForEvent('download'),page.locator('#r45PreviewZip').click()]);const file=path.join(out,'structure-complete.zip');await zip.saveAs(file);assert.equal(fs.readFileSync(file).subarray(0,2).toString(),'PK');checks.push({button:'r45PreviewZip',status:'PASS'});
@@ -113,10 +117,17 @@ fs.mkdirSync(out,{recursive:true});
  }
  await page.evaluate(()=>{globalThis.__clipboardPng=0;Object.defineProperty(navigator,'clipboard',{configurable:true,value:{write:async items=>{const blob=await items[0].getType('image/png');if(blob.size>0)globalThis.__clipboardPng++;}}});ShitouWorkspaceV831.select('filters','daytrade');});
  for(const id of ['copyDayTradeTop8ImageButton','copyDayTradeTop8ImageWatermarkButton','copyDayTradeAllCandidatesImageButton','copyDayTradeAllCandidatesImageWatermarkButton']){
-  const before=await page.evaluate(()=>__clipboardPng);await page.locator('#'+id).click();await page.waitForFunction(before=>__clipboardPng>before,before);checks.push({button:id,status:'PASS_PNG_CLIPBOARD'});await page.evaluate(()=>closeInfographicPreviewV3328());console.log('PASS image clipboard',id);
+  const before=await page.evaluate(()=>__clipboardPng);await revealExport(id);await page.locator('#'+id).click();await page.waitForFunction(before=>__clipboardPng>before,before);checks.push({button:id,status:'PASS_PNG_CLIPBOARD'});await page.evaluate(()=>closeInfographicPreviewV3328());console.log('PASS image clipboard',id);
  }
  await page.evaluate(()=>ShitouWorkspaceV831.select('filters','tower'));
  const [towerZip]=await Promise.all([page.waitForEvent('download'),page.locator('#towerZip').click()]);const zipPath=path.join(out,'tower-complete.zip');await towerZip.saveAs(zipPath);assert.equal(fs.readFileSync(zipPath).subarray(0,2).toString(),'PK');checks.push({button:'towerZip',status:'PASS'});
+ // Exercise the original text export controls as well as the PNG controls above.
+ await page.context().grantPermissions(['clipboard-read','clipboard-write']);await page.evaluate(()=>{globalThis.__textCopies=[];navigator.clipboard.writeText=async text=>{__textCopies.push(String(text));};const original=document.execCommand.bind(document);document.execCommand=(command,...args)=>{const value=document.activeElement?.value||getSelection()?.toString()||'',ok=original(command,...args);if(command==='copy'&&ok)__textCopies.push(String(value));return ok;};});
+ const textCopies=[['stock','#copyReportButton'],['stock','#copyNewbieButton'],['stock','#copyThreePanReportButton'],['stock','#copyTowerStockReportButton'],['momentum','#copyMomentumReportButton'],['momentum','#copyMomentumFullPart1Button'],['momentum','#copyMomentumFullPart2Button'],['daytrade','#copyDayTradeReportButton'],['daytrade','[onclick="copyDayTradeReportPartV1(1)"]'],['daytrade','[onclick="copyDayTradeReportPartV1(2)"]'],['strong','[onclick="copyStrongStockTextV47()"]'],['tower','#towerCopy'],['restaurant','#restaurantCopy'],['structure','#structureCopy'],['market','#copyMarketReportButton']];
+ async function exportTab(filter){await page.evaluate(filter=>{ShitouWorkspaceV831.closeReport();ShitouWorkspaceV831.select(filter==='stock'?'stock':filter==='market'?'market':'filters',filter);if(filter==='stock')ShitouWorkspaceV831.openReport('full');const ids={momentum:'momentumResult',daytrade:'dayTradeResult',strong:'strongStockResult',market:'marketResult'};if(ids[filter])document.getElementById(ids[filter]).style.display='block';},filter);}
+ for(const [filter,selector] of textCopies){await exportTab(filter);const b=page.locator(selector);if(!await b.isVisible()){const more=b.locator('..').locator(':scope > .up-more-btn');if(await more.isVisible())await more.click();}console.log('TRY text clipboard',selector);const n=await page.evaluate(()=>__textCopies.length);await b.click();await page.waitForFunction(n=>__textCopies.length>n,n);assert.ok(await page.evaluate(()=>__textCopies.at(-1).trim().length>0));checks.push({button:selector,status:'PASS_TEXT_CLIPBOARD'});console.log('PASS text clipboard',selector);}
+ for(const [filter,selector] of [['stock','#downloadTowerStockReportButton'],['momentum','#downloadMomentumFullReportButton'],['daytrade','#downloadDayTradeFullReportButton'],['strong','[onclick="downloadStrongStockTextV47()"]'],['tower','#towerDownload'],['restaurant','#restaurantText'],['restaurant','#restaurantJSON']]){await exportTab(filter);const b=page.locator(selector);if(!await b.isVisible()){const more=b.locator('..').locator(':scope > .up-more-btn');if(await more.isVisible())await more.click();}const [d]=await Promise.all([page.waitForEvent('download'),b.click()]);const file=path.join(out,'text-'+checks.length+path.extname(d.suggestedFilename()));await d.saveAs(file);assert.ok(fs.statSync(file).size>0);checks.push({button:selector,status:'PASS_TEXT_DOWNLOAD',originalFilenameLength:d.suggestedFilename().length});console.log('PASS text download',selector);}
+ await page.evaluate(()=>ShitouWorkspaceV831.closeReport());
  for(const width of [390,428,1440]){await page.setViewportSize({width,height:926});await page.evaluate(()=>ShitouWorkspaceV831.select('stock'));assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'viewport overflow '+width);await page.screenshot({path:path.join(out,'home-'+width+'.png')});}
  await page.screenshot({path:path.join(out,'home-mobile.png')});
  assert.deepEqual(errors,[]);fs.writeFileSync(path.join(out,'report-checks.json'),JSON.stringify({checks,errors,scope:'Recorded worker responses through real query buttons; report renderers and PNG pixels'},null,2));

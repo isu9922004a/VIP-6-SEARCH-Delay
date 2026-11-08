@@ -1,0 +1,328 @@
+/* Page presentation only. Report canvases and their drawing code are untouched.
+   Higher specificity is intentional: ui-polish-v85.css is loaded in the body;
+   its position and every existing dependency/version are preserved. */
+:root {
+  --primary: #0b5ed7;
+  --on-primary: #ffffff;
+  --focus: var(--primary);
+  --gray-0: #ffffff;
+  --gray-50: #f4f7fb;
+  --gray-100: #e8eef5;
+  --gray-300: #b6c4d5;
+  --gray-600: #526176;
+  --gray-900: #18283d;
+  --success-fg: #146343; --success-bg: #edf9f2; --success-border: #77ad91;
+  --warning-fg: #78500b; --warning-bg: #fff8e8; --warning-border: #c29b4e;
+  --danger-fg: #9f1239; --danger-bg: #fff1f4; --danger-border: #ca718a;
+  --info-fg: #164b88; --info-bg: #edf5ff; --info-border: #7d9fc9;
+  --up: #b91c1c; --down: #087548;
+  --font-12: 12px; --font-14: 14px; --font-16: 16px;
+  --font-18: 18px; --font-22: 22px; --font-28: 28px;
+  --radius-8: 8px; --radius-12: 12px; --radius-16: 16px; --radius-pill: 999px;
+  --space-4: 4px; --space-8: 8px; --space-12: 12px;
+  --space-16: 16px; --space-24: 24px; --space-32: 32px;
+  --shadow-card: 0 4px 16px #18283d0a;
+  --shadow-layer: 0 12px 32px #18283d24;
+}
+/* Token changes only: the original button, body class and localStorage remain
+   authoritative. OS-default theme needs a JS change to distinguish saved light
+   from no preference, so it is deliberately deferred under the no-JS contract. */
+html body.ui-polish-v1.dark-mode {
+  --gray-0: #14253a; --gray-50: #0b1727; --gray-100: #20344c;
+  --gray-300: #60758e; --gray-600: #b5c5d8; --gray-900: #edf3fc;
+  --success-fg: #a1edc4; --success-bg: #143a2b; --success-border: #539d78;
+  --warning-fg: #ffe0a0; --warning-bg: #3a2d15; --warning-border: #b19254;
+  --danger-fg: #ffb8cd; --danger-bg: #402135; --danger-border: #c8829c;
+  --info-fg: #bfdcff; --info-bg: #19354e; --info-border: #789dc4;
+  --up: #ff99a6; --down: #69e1b1;
+  --focus: var(--info-fg);
+  --shadow-card: 0 4px 16px #00000020; --shadow-layer: 0 12px 32px #00000040;
+}
+html body.ui-polish-v1 {
+  --blue: var(--primary); --blue2: var(--primary); --bg: var(--gray-50);
+  --card: var(--gray-0); --text: var(--gray-900); --muted: var(--gray-600); --line: var(--gray-300);
+  --green: var(--success-fg); --greenbg: var(--success-bg);
+  --red: var(--danger-fg); --redbg: var(--danger-bg);
+  --yellow: var(--warning-fg); --yellowbg: var(--warning-bg);
+  --cyan: var(--info-fg); --cyanbg: var(--info-bg);
+  --up-surface: var(--gray-0); --up-soft: var(--gray-50); --up-border: var(--gray-300);
+  --up-ink: var(--gray-900); --up-muted: var(--gray-600); --up-accent: var(--primary);
+  background: var(--gray-50); color: var(--gray-900);
+  font-size: var(--font-16); font-variant-numeric: tabular-nums;
+  line-height: 1.65; padding-bottom: max(var(--space-24), env(safe-area-inset-bottom));
+}
+html body.ui-polish-v1 :focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
+html body.ui-polish-v1 :is(button, input, select, textarea, a, summary) { -webkit-tap-highlight-color: transparent; }
+html body.ui-polish-v1 :is(button, select, input, textarea) { font: inherit; }
+html body.ui-polish-v1 :is(button, .up-nav a, summary, .market-outlook-entry) { min-height: 44px; }
+html body.ui-polish-v1 button {
+  border-radius: var(--radius-8); line-height: 1.5; padding: var(--space-12) var(--space-16);
+  white-space: normal; overflow-wrap: anywhere; cursor: pointer;
+}
+html body.ui-polish-v1 button:disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }
+html body.ui-polish-v1 button:not(:disabled):active { filter: brightness(.9); }
+html body.ui-polish-v1 .container { max-width: 1184px; }
+html body.ui-polish-v1 main.container { padding-top: var(--space-24); }
+html body.ui-polish-v1 .header { background: var(--primary); padding: 0; border: 0; }
+html body.ui-polish-v1 .header .container { padding: var(--space-16); }
+html body.ui-polish-v1 .header h1 { font-size: var(--font-22); color: var(--on-primary); letter-spacing: 0; }
+html body.ui-polish-v1 .header p { color: var(--on-primary); opacity: .9; font-size: var(--font-14); margin: var(--space-4) 0; }
+html body.ui-polish-v1 .version-pill { font-size: var(--font-12); border-radius: var(--radius-pill); }
+html body.ui-polish-v1 .up-nav {
+  position: sticky; top: 0; z-index: 200; background: var(--gray-0);
+  border-color: var(--gray-300); box-shadow: var(--shadow-card);
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-inline: max(var(--space-16), calc((100vw - 1152px) / 2));
+}
+html body.ui-polish-v1 .up-nav-links { gap: var(--space-8); padding: var(--space-8) 0; }
+html body.ui-polish-v1 .up-nav a {
+  min-height: 44px; border-radius: var(--radius-pill); padding: var(--space-8) var(--space-16);
+  font-size: var(--font-14); color: var(--gray-600);
+}
+html body.ui-polish-v1 .up-nav a:is(.is-active, [aria-current="location"]) {
+  color: var(--info-fg); background: var(--info-bg); border-color: var(--info-border);
+}
+html body.ui-polish-v1 .up-anchor { scroll-margin-top: calc(88px + env(safe-area-inset-top)); }
+html body.ui-polish-v1 :is(.panel, #workspaceV831, #workspaceStockSummary, #workspaceSearchPanel) {
+  background: var(--gray-0); color: var(--gray-900); border: 1px solid var(--gray-300);
+  border-radius: var(--radius-16); padding: var(--space-24); box-shadow: var(--shadow-card);
+}
+html body.ui-polish-v1 #workspaceV831 { margin-bottom: var(--space-24); }
+html body.ui-polish-v1 :is(.workspace-v831-title, .section-title, .momentum-hero-title, .daytrade-hero-title) {
+  color: var(--gray-900); font-size: var(--font-18); line-height: 1.5; margin-bottom: var(--space-12);
+}
+html body.ui-polish-v1 :is(.hint, .meta, .section-subtitle, .workspace-v831-intro, .workspace-stock-date, .workspace-stock-help) {
+  color: var(--gray-600); font-size: var(--font-14); line-height: 1.8; overflow-wrap: anywhere;
+}
+html body.ui-polish-v1 :is(.workspace-v831-version, .workspace-v831-advanced summary, .up-note-toggle) {
+  font-size: var(--font-12); color: var(--gray-600);
+}
+html body.ui-polish-v1 :is(.workspace-v831-tab, .workspace-v831-filter) {
+  border-radius: var(--radius-8); color: var(--gray-900); background: var(--gray-50);
+  border-color: var(--gray-300); font-size: var(--font-14); padding: var(--space-12);
+}
+html body.ui-polish-v1 #workspaceV831 :is(.workspace-v831-tab[aria-selected="true"], .workspace-v831-filter[aria-pressed="true"]) {
+  background: var(--primary); color: var(--on-primary); border-color: var(--primary);
+}
+html body.ui-polish-v1 .search-row { gap: var(--space-12); align-items: stretch; }
+html body.ui-polish-v1 #stockInput {
+  min-height: 56px; font-size: var(--font-18); border: 1px solid var(--gray-300);
+  border-radius: var(--radius-12); background: var(--gray-0); color: var(--gray-900);
+  padding: var(--space-16); box-shadow: none;
+}
+html body.ui-polish-v1 #stockInput::placeholder { color: var(--gray-600); }
+html body.ui-polish-v1 #searchButton { background: var(--primary); color: var(--on-primary); border-radius: var(--radius-12); min-height: 56px; }
+html body.ui-polish-v1 :is(.mini-btn, .copy-btn, .workspace-secondary) {
+  background: var(--gray-0); color: var(--gray-900); border: 1px solid var(--gray-300);
+  font-size: var(--font-14); box-shadow: none;
+}
+html body.ui-polish-v1 .quick-actions { gap: var(--space-8); margin-top: var(--space-12); }
+html body.ui-polish-v1 .quick-actions .mini-btn { flex: 1 1 140px; }
+html body.ui-polish-v1 :is(.market-shortcut, .momentum-shortcut, .daytrade-shortcut, .strong-stock-shortcut) {
+  background: var(--gray-0); border: 1px solid var(--gray-300); border-top: 4px solid var(--primary);
+  border-radius: var(--radius-16); margin-block: var(--space-24); padding: var(--space-24); box-shadow: var(--shadow-card);
+}
+html body.ui-polish-v1 .ui-strategy-summary { margin: 0 0 var(--space-16); font-size: var(--font-16); color: var(--gray-600); }
+html body.ui-polish-v1 :is(.market-action-row, .momentum-action-row, .daytrade-action-row, .strong-stock-actions) {
+  gap: var(--space-12); align-items: stretch;
+}
+html body.ui-polish-v1 :is(.rule, .market-outlook-entry) {
+  background: var(--gray-50); color: var(--gray-900); border-color: var(--gray-300); border-radius: var(--radius-12);
+}
+html body.ui-polish-v1 .market-outlook-entry strong { color: var(--info-fg); font-size: var(--font-16); }
+html body.ui-polish-v1 :is(.momentum-progress-track, .strong-stock-progress) {
+  height: 8px; border-radius: var(--radius-pill); background: var(--gray-100);
+}
+html body.ui-polish-v1 :is(.momentum-progress-bar, #strongStockProgressBar) { background: var(--primary); border-radius: var(--radius-pill); }
+html body.ui-polish-v1 :is(.momentum-progress-text, #strongStockProgressText) { margin-top: var(--space-8); color: var(--gray-600); font-size: var(--font-14); }
+html body.ui-polish-v1 :is(.momentum-stop-btn:not(:disabled), button[id*="Stop"]:not(:disabled)) {
+  color: var(--danger-fg); background: var(--danger-bg); border-color: var(--danger-border);
+}
+html body.ui-polish-v1 button[aria-busy="true"] { background-image: linear-gradient(100deg, transparent, #ffffff24, transparent); background-size: 200% 100%; }
+html body.ui-polish-v1 button[aria-busy="true"]::after { content: " · 處理中"; font-size: var(--font-12); }
+html body.ui-polish-v1 :is(.momentum-summary-grid, .daytrade-summary-grid) {
+  display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: var(--space-12);
+}
+html body.ui-polish-v1 :is(.momentum-summary-card, .daytrade-summary-card) {
+  border: 1px solid var(--gray-300); border-radius: var(--radius-12); padding: var(--space-16);
+  background: var(--gray-0); min-width: 0;
+}
+html body.ui-polish-v1 :is(.momentum-summary-card, .daytrade-summary-card) .v { color: var(--gray-900); font-size: var(--font-28); }
+html body.ui-polish-v1 :is(.momentum-summary-card, .daytrade-summary-card) .k { color: var(--gray-600); font-size: var(--font-12); }
+html body.ui-polish-v1 :is(.momentum-card, .filter-stock-card) {
+  background: var(--gray-0); border: 1px solid var(--gray-300); border-left-width: 4px;
+  border-radius: var(--radius-12); padding: var(--space-16); box-shadow: var(--shadow-card); color: var(--gray-900);
+}
+html body.ui-polish-v1 .momentum-card:has(.momentum-badge.s) { border-left-color: var(--success-border); }
+html body.ui-polish-v1 .momentum-card:has(.momentum-badge.a) { border-left-color: var(--info-border); }
+html body.ui-polish-v1 .momentum-card:has(.momentum-badge.b) { border-left-color: var(--warning-border); }
+html body.ui-polish-v1 .momentum-badge { border-radius: var(--radius-pill); font-size: var(--font-12); padding: var(--space-4) var(--space-8); }
+html body.ui-polish-v1 .momentum-badge.s { background: var(--success-bg); color: var(--success-fg); border: 1px solid var(--success-border); }
+html body.ui-polish-v1 .momentum-badge.a { background: var(--info-bg); color: var(--info-fg); border: 1px solid var(--info-border); }
+html body.ui-polish-v1 .momentum-badge.b { background: var(--warning-bg); color: var(--warning-fg); border: 1px solid var(--warning-border); }
+html body.ui-polish-v1 :is(.momentum-name, .stock-name, .workspace-stock-name) { color: var(--gray-900); font-size: var(--font-22); }
+html body.ui-polish-v1 :is(.momentum-metric, .v46-level-card, .v46-snapshot-card, .v46-audience-card, .tradeability-card, .tradeability-factor, .card, .level, .fib-point) {
+  background: var(--gray-50); color: var(--gray-900); border-color: var(--gray-300); border-radius: var(--radius-12);
+}
+html body.ui-polish-v1 :is(.momentum-metric .k, .v46-note, .v46-level-card .k) { color: var(--gray-600); font-size: var(--font-14); }
+html body.ui-polish-v1 :is(.momentum-metric .v, .v46-price, .v46-snapshot-card .v) { font-size: var(--font-22); font-variant-numeric: tabular-nums; }
+html body.ui-polish-v1 :is(.v46-level-card, .card, .fib-point) :is(.value, .point-price, .v46-price) { text-align: right; }
+html body.ui-polish-v1 :is(.v46-section-title, .v46-eyebrow) { color: var(--info-fg); font-size: var(--font-16); }
+html body.ui-polish-v1 :is(.v46-state, .v46-current-price span) { font-size: var(--font-28); }
+html body.ui-polish-v1 :is(.v46-hero, .v50-panel, .v50-box, .v50-score-row) {
+  background: var(--gray-50); color: var(--gray-900); border-color: var(--gray-300); border-radius: var(--radius-12);
+}
+html body.ui-polish-v1 :is(.v50-title, .v50-box strong, .v50-score-copy) { color: var(--gray-900); font-size: var(--font-16); }
+html body.ui-polish-v1 :is(.v50-meta, .v50-shadow-note, .v50-score-copy small) { color: var(--gray-600); font-size: var(--font-14); }
+html body.ui-polish-v1 :is(.v50-buy-call, .workspace-stock-risk, .momentum-reminder, .daytrade-query-time-note, .strong-stock-reminder) {
+  background: var(--warning-bg); color: var(--warning-fg); border: 1px solid var(--warning-border);
+  border-left-width: 4px; border-radius: var(--radius-12); padding: var(--space-16); line-height: 1.8;
+}
+html body.ui-polish-v1 :is(.v50-buy-call strong, .v50-score-number) { color: inherit; }
+html body.ui-polish-v1 :is(.error, .research-error) {
+  background: var(--danger-bg); color: var(--danger-fg); border: 1px solid var(--danger-border);
+  border-left-width: 4px; border-radius: var(--radius-12); padding: var(--space-16);
+}
+html body.ui-polish-v1 :is(.loading, .status) { color: var(--info-fg); background: var(--info-bg); border-color: var(--info-border); }
+html body.ui-polish-v1 .market-index-change.up { color: var(--up); }
+html body.ui-polish-v1 .market-index-change.down { color: var(--down); }
+html body.ui-polish-v1 :is(.help-fold, details.rule, .workspace-export-notes) {
+  margin-block: var(--space-12); border: 1px solid var(--gray-300); border-radius: var(--radius-12);
+  background: var(--gray-50); color: var(--gray-900); padding: 0 var(--space-16);
+}
+html body.ui-polish-v1 :is(.help-fold, details.rule, .workspace-export-notes) > summary {
+  cursor: pointer; font-size: var(--font-14); font-weight: 700; padding-block: var(--space-12); line-height: 1.5;
+}
+html body.ui-polish-v1 .help-fold .up-note { max-height: none; overflow: visible; -webkit-line-clamp: unset; display: block; cursor: auto; }
+html body.ui-polish-v1 .help-fold .up-note::after, html body.ui-polish-v1 .help-fold .up-note-toggle { display: none; }
+html body.ui-polish-v1 .ui-help-content { padding-bottom: var(--space-16); }
+html body.ui-polish-v1 .ui-legacy-version { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+html body.ui-polish-v1 :is(#momentumAudit, #dayTradeAudit) { font-family: ui-monospace, "PingFang TC", monospace; font-size: var(--font-14); }
+html body.ui-polish-v1 :is(.momentum-image-actions, .daytrade-image-actions, .strong-stock-image-actions, .market-copy-actions) {
+  display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: var(--space-16); align-items: start;
+}
+html body.ui-polish-v1 .ui-export-group { display: grid; gap: var(--space-8); min-width: 0; }
+html body.ui-polish-v1 .ui-export-label { color: var(--gray-600); font-size: var(--font-12); font-weight: 700; margin: 0; }
+html body.ui-polish-v1 .ui-export-group button { width: 100%; margin: 0; font-size: var(--font-14); }
+html body.ui-polish-v1 .stock-image-generator-grid { gap: var(--space-16); }
+html body.ui-polish-v1 .stock-image-generator-card { border-radius: var(--radius-12); background: var(--gray-50); border-color: var(--info-border); }
+html body.ui-polish-v1 .stock-image-generator-title { color: var(--gray-900); font-size: var(--font-16); }
+html body.ui-polish-v1 .stock-image-generator-note { color: var(--gray-600); font-size: var(--font-14); }
+html body.ui-polish-v1 .stock-image-generator-actions { gap: var(--space-8); }
+html body.ui-polish-v1 main table { display: block; max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; font-variant-numeric: tabular-nums; }
+html body.ui-polish-v1 main td { text-align: right; }
+html body.ui-polish-v1 main td:first-child { text-align: left; }
+/* Existing filter-unified/mobile, watermark and v85 rules use !important.
+   These narrow exceptions override only those legacy declarations; no report
+   canvas, preview image, dynamic DOM or visibility/width/progress value is changed. */
+html body.ui-polish-v1 #towerGoldShortcut { color: var(--info-fg) !important; background: var(--info-bg) !important; border-radius: var(--radius-8) !important; padding: var(--space-12) var(--space-16) !important; }
+html body.ui-polish-v1 .filter-unified .btn { background: var(--primary) !important; color: var(--on-primary) !important; border-color: var(--primary) !important; box-shadow: none !important; }
+html body.ui-polish-v1 .filter-unified .momentum-stop-btn:not(:disabled) { color: var(--danger-fg) !important; background: var(--danger-bg) !important; border-color: var(--danger-border) !important; }
+html body.ui-polish-v1 .filter-unified .momentum-stop-btn:disabled { color: var(--gray-600) !important; background: var(--gray-50) !important; border-color: var(--gray-300) !important; }
+html body.ui-polish-v1 .filter-unified select { border-radius: var(--radius-8) !important; padding: var(--space-12) !important; font-size: var(--font-16) !important; }
+html body.ui-polish-v1 :is(.watermark-image-btn, .image-btn) { color: var(--info-fg) !important; background: var(--info-bg) !important; border-color: var(--info-border) !important; }
+@media (min-width: 1100px) {
+  html body.ui-polish-v1 :is(.momentum-summary-grid, .daytrade-summary-grid) { grid-template-columns: repeat(6,minmax(0,1fr)); }
+}
+@media (max-width: 600px) {
+  html body.ui-polish-v1 .container { padding-inline: max(var(--space-8), env(safe-area-inset-left)); }
+  html body.ui-polish-v1 main.container { padding-top: var(--space-16); }
+  html body.ui-polish-v1 :is(.panel, #workspaceV831, #workspaceSearchPanel, #workspaceStockSummary) { padding: var(--space-16); }
+  html body.ui-polish-v1 .header .container { padding: var(--space-12) var(--space-16); }
+  html body.ui-polish-v1 .header p { font-size: var(--font-12); }
+  html body.ui-polish-v1 .quick-actions { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
+  html body.ui-polish-v1 .quick-actions .mini-btn { min-width: 0; width: 100%; }
+  html body.ui-polish-v1 :is(.momentum-summary-grid, .daytrade-summary-grid) { grid-template-columns: repeat(2,minmax(0,1fr)) !important; }
+  html body.ui-polish-v1 :is(.momentum-image-actions, .daytrade-image-actions, .strong-stock-image-actions, .market-copy-actions) { display: grid; grid-template-columns: minmax(0,1fr); }
+  html body.ui-polish-v1 .ui-export-group { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  html body.ui-polish-v1 .ui-export-label { grid-column: 1 / -1; }
+  html body.ui-polish-v1 .stock-image-generator-grid { grid-template-columns: minmax(0,1fr); }
+}
+@media (hover: hover) {
+  html body.ui-polish-v1 button:not(:disabled):hover { filter: brightness(.95); box-shadow: var(--shadow-card); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  html:has(body.ui-polish-v1) { scroll-behavior: smooth; }
+  html body.ui-polish-v1 :is(button, .panel, .error, .loading) { transition: background-color .15s, border-color .15s, opacity .15s; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html:has(body.ui-polish-v1) { scroll-behavior: auto; }
+  html body.ui-polish-v1 :is(button, .panel, .up-nav-links) { transition: none; animation: none; scroll-behavior: auto; }
+}
+
+/* Static inline styles migrated verbatim; spacing normalized to the token scale. */
+html body.ui-polish-v1 .ui-inline-1{margin-top:var(--space-16)}
+html body.ui-polish-v1 .ui-inline-2{display:inline-block;padding:12px 16px;background:var(--gray-0);color:var(--primary);border-radius:var(--radius-8);font-weight:800;text-decoration:none}
+html body.ui-polish-v1 .ui-inline-3{font-size:var(--font-16);margin-bottom:var(--space-12)}
+html body.ui-polish-v1 .ui-inline-4{font-size:var(--font-16);margin-bottom:8px}
+html body.ui-polish-v1 .ui-inline-5{margin-bottom:var(--space-12)}
+html body.ui-polish-v1 .ui-inline-6{margin-bottom:var(--space-12);overflow-wrap:anywhere}
+html body.ui-polish-v1 .ui-inline-7{max-width:100%;padding:8px;border-radius:var(--radius-8)}
+html body.ui-polish-v1 .ui-inline-8{margin-top:12px}
+html body.ui-polish-v1 .ui-inline-9{padding:var(--space-12);max-width:100%;border-radius:var(--radius-8)}
+html body.ui-polish-v1 .ui-inline-10{text-align:right}
+html body.ui-polish-v1 .ui-inline-11{margin:12px 0}
+html body.ui-polish-v1 .ui-inline-12{cursor:pointer;font-weight:800}
+html body.ui-polish-v1 .ui-inline-13{white-space:pre-wrap;overflow-wrap:anywhere;max-height:420px;overflow:auto;line-height:1.8;margin-top:var(--space-12)}
+html body.ui-polish-v1 .ui-inline-14{margin-top:12px;line-height:1.8;overflow-wrap:anywhere}
+html body.ui-polish-v1 .ui-inline-15{margin-bottom:4px}
+html body.ui-polish-v1 .ui-inline-16{margin-bottom:0}
+html body.ui-polish-v1 .ui-inline-17{margin-bottom:var(--space-4)}
+html body.ui-polish-v1 .ui-inline-18{margin-top:12px;white-space:pre-line}
+html body.ui-polish-v1 .ui-inline-19{justify-content:flex-start;margin-top:var(--space-12)}
+html body.ui-polish-v1 .ui-inline-20{margin-top:var(--space-12);white-space:pre-line}
+/* The existing workspace summary uses an ID selector and a 32px target. */
+html body.ui-polish-v1 #workspaceV831 summary { min-height: 44px; padding-block: var(--space-12); }
+html body.ui-polish-v1 #stockReportActionsPanel .workspace-export-notes summary,
+html body.ui-polish-v1 #workspaceReportToolbar button { min-height: 44px; }
+html body.ui-polish-v1 .r45-candidate-banner {
+  font-size: var(--font-14); line-height: 1.65; padding: var(--space-12) var(--space-16);
+  background: var(--warning-bg); color: var(--warning-fg); border-color: var(--warning-border);
+  border-radius: var(--radius-12);
+}
+html body.ui-polish-v1 :is(.daytrade-key-legend, .daytrade-key-prices) :is(.key-now, .key-trigger, .key-b, .key-defense, .key-resistance) {
+  display: inline-block; border: 1px solid var(--gray-300); border-radius: var(--radius-8);
+  padding: var(--space-4) var(--space-8); font-size: var(--font-14);
+}
+/* ID-scoped workspace rules otherwise outrank generic page typography. */
+html body.ui-polish-v1 :is(#workspaceV831, #workspaceSearchPanel, #stockReportActionsPanel, #workspaceStockSummary, #result, #marketResult, #momentumResult, #dayTradeResult, #strongStockResult) button {
+  font-size: var(--font-14); border-radius: var(--radius-8);
+}
+html body.ui-polish-v1 #workspaceV831 :is(.workspace-v831-title, .section-title) { font-size: var(--font-18); }
+html body.ui-polish-v1 #workspaceV831 .workspace-v831-intro { font-size: var(--font-14); }
+html body.ui-polish-v1 #workspaceV831 .workspace-v831-version { font-size: var(--font-12); }
+html body.ui-polish-v1 :is(#momentumResult, #dayTradeResult, #strongStockResult) .rule { border-radius: var(--radius-12); }
+/* Legacy filter/mobile title declarations are important, so this exception is required. */
+html body.ui-polish-v1 .filter-unified .section-title { font-size: var(--font-18) !important; }
+html body.ui-polish-v1 .header h1 { display: flex; align-items: center; gap: var(--space-8); }
+html body.ui-polish-v1 .ui-brand-mark { font-size: var(--font-18); flex: 0 0 auto; }
+html body.ui-polish-v1 .ui-release-short {
+  margin-left: auto; font-size: var(--font-12); padding: var(--space-4) var(--space-8);
+  border-radius: var(--radius-pill); border: 1px solid currentColor; white-space: nowrap;
+}
+/* Legacy wave chips and stage cards have literal light fills. Bind both themes
+   to the same semantic tokens rather than adding dark-only component rules. */
+html body.ui-polish-v1 .wave-price-row b {
+  background: var(--info-bg); color: var(--info-fg); border: 1px solid var(--info-border);
+  border-radius: var(--radius-8); padding: var(--space-8) var(--space-12); font-size: var(--font-16);
+}
+html body.ui-polish-v1 :is(.wave-risk, .v50-alert) {
+  background: var(--warning-bg); color: var(--warning-fg); border-color: var(--warning-border);
+  border-radius: var(--radius-12);
+}
+html body.ui-polish-v1 .v50-alert strong { color: inherit; }
+html body.ui-polish-v1 .v50-price-label { color: var(--gray-600); font-size: var(--font-14); }
+html body.ui-polish-v1 .v50-close-value { color: var(--gray-900); font-size: var(--font-28); }
+html body.ui-polish-v1 .stage-card-v53245 { background: var(--gray-50); border-radius: var(--radius-16); }
+html body.ui-polish-v1 .stage-card-v53245 :is(.stage-label, .stage-plain) { color: var(--gray-900); }
+html body.ui-polish-v1 .stage-card-v53245 .stage-label { font-size: var(--font-28); }
+html body.ui-polish-v1 .stage-card-v53245 :is(.stage-kicker, .stage-reasons) { color: var(--gray-600); font-size: var(--font-14); }
+html body.ui-polish-v1 .stage-card-v53245 .stage-plain { font-size: var(--font-16); }
+html body.ui-polish-v1 .stage-card-v53245 .stage-warning { color: var(--warning-fg); background: var(--warning-bg); }
+html body.ui-polish-v1 .stage-card-v53245 .stage-fake { color: var(--danger-fg); background: var(--danger-bg); }
+html body.ui-polish-v1 #marketResult .market-index-name { color: var(--gray-900); font-size: var(--font-22); }
+html body.ui-polish-v1 #marketClose { font-size: var(--font-28); }
+html body.ui-polish-v1 .market-hero :is(#marketDate, #marketSource) { white-space: normal; }
+html body.ui-polish-v1 .v50-buy-call[data-tone="red"] { color: var(--danger-fg); background: var(--danger-bg); border-color: var(--danger-border); }
+html body.ui-polish-v1 .v50-buy-call[data-tone="green"] { color: var(--success-fg); background: var(--success-bg); border-color: var(--success-border); }
+html body.ui-polish-v1 .v50-buy-call[data-tone="gray"] { color: var(--gray-900); background: var(--gray-50); border-color: var(--gray-300); }
