@@ -18,3 +18,10 @@
 #marketSimpleAnalysisWatermarkButton:hover{background:#2b8190}
 #marketSimpleAnalysisButton,#marketSimpleAnalysisWatermarkButton{line-height:1.4;white-space:normal}
 @media(max-width:600px){#marketSimpleAnalysisButton,#marketSimpleAnalysisWatermarkButton{width:100%;min-height:48px}}
+
+/* Wave PNG preview only: preserve the complete image ratio at phone width. */
+@media(max-width:600px){
+ #simpleMarketReportDialog[data-report-full-bleed="true"]{width:100vw;max-width:100vw;max-height:100dvh;margin:0;padding:0;border:0;border-radius:0}
+ #simpleMarketReportDialog[data-report-full-bleed="true"] h2,#simpleMarketReportDialog[data-report-full-bleed="true"] .simple-market-report-controls,#simpleMarketReportDialog[data-report-full-bleed="true"] #simpleMarketShareStatus{margin:12px}
+ #simpleMarketReportDialog[data-report-full-bleed="true"] img{width:100%;max-width:none;height:auto;margin:0;border-radius:0;object-fit:contain}
+}

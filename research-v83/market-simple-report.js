@@ -151,6 +151,7 @@ async function open(watermarked=false,researchCanvas=null){if(opening)return nul
   activeUrl=URL.createObjectURL(blob);
   let dialog=root.document.getElementById('simpleMarketReportDialog');
   if(!dialog){dialog=root.document.createElement('dialog');dialog.id='simpleMarketReportDialog';dialog.setAttribute('aria-label','大盤精簡分析圖片預覽');dialog.addEventListener('close',cleanup);root.document.body.append(dialog);}
+  dialog.dataset.reportFullBleed=result.dataset?.fullBleed==='true'?'true':'false';
   dialog.replaceChildren();
   const title=root.document.createElement('h2');title.textContent=(wavePicture?'大盤波浪分析':researchCanvas?'吞沒與箱體研究':'大盤精簡分析')+'｜TAIEX｜'+VERSION+'｜'+(watermarked?'浮水印版':'無浮水印版');
   const controls=root.document.createElement('div');controls.className='simple-market-report-controls';
