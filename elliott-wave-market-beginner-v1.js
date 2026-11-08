@@ -1,0 +1,54 @@
+/* Market-only phone view. Reuses verified wave/price data; never creates a trade plan. */
+(function(root,factory){const node=typeof module==='object'&&module.exports,api=factory(root,node?require('./elliott-wave-visual-v1'):root.ShitouElliottVisual,node?require('./elliott-wave-stock-beginner-v1'):root.ShitouWaveStockBeginner);if(node)module.exports=api;else root.ShitouWaveMarketBeginner=api;})(globalThis,function(root,V,B){
+'use strict';
+const VERSION='MARKET_WAVE_BEGINNER_1',W=1284,H=2778,P=V.PHONE_PALETTE;
+const positive=n=>Number.isFinite(n)&&n>0,fmt=n=>positive(n)?n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'這次未提供';
+function relation(close,price){return close<price?'BELOW':close>price?'ABOVE':'AT';}
+function reference(l,i,close,date){
+ const sourceLabel=String(l.label||'原報告參考'),text=sourceLabel;
+ const kind=/備用|預備/.test(text)?'BACKUP':/收復|收回/.test(text)?'RECLAIM':/上方波動/.test(text)?'UPPER_ESTIMATE':/支撐|下方|防守|回檔|低點/.test(text)?'SUPPORT':/壓力|反壓|上緣|高點/.test(text)?'RESISTANCE':'REFERENCE';
+ const label={BACKUP:'備用觀察',RECLAIM:'轉強觀察',UPPER_ESTIMATE:'上方參考',SUPPORT:'下方觀察',RESISTANCE:'上方觀察',REFERENCE:'原報告參考'}[kind],state=relation(close,l.price);
+ const meaning=kind==='BACKUP'?'前一道關卡失守後再觀察，不保證跌到或止跌。':kind==='SUPPORT'?(state==='BELOW'?'收盤已在下方，先看能否收回，不直接當成支撐。':state==='AT'?'收盤剛好在這裡，仍要等後續確認守穩。':'後續回落時看能否守住，不保證止跌。'):kind==='UPPER_ESTIMATE'?'依近期波動估計的參考，不是確定壓力或目標。':state==='BELOW'?'先看完成日K收盤能否站回，再看後續能否守穩。':state==='AT'?'收盤剛好到這條線，仍要看後續能否守穩。':'收盤已在這條線上方，仍要看後續能否守穩。';
+ return {...l,label,sourceLabel,sourceIndex:i,role:'MARKET_REFERENCE',kind,relation:state,color:kind==='SUPPORT'?P.teal:kind==='BACKUP'?P.purple:P.amber,meaning,date,lineMode:'FULL'};
+}
+function model(m){
+ if(m.kind!=='market'||m.code!=='TAIEX')throw Error('大盤白話圖片僅使用已核對的加權指數行情');
+ const wave=m.wave,last=wave.bars?.at(-1),ready=wave.state!=='DATA_INSUFFICIENT'&&last?.date===m.date&&last.close===m.close&&Number.isFinite(wave.trend?.ma20)&&Number.isFinite(wave.trend?.slope),reading=B.waveReading(m),direction=m.currentDirection?.state;
+ const summaries={BULLISH:'大盤整體偏強，近期也在往上走',UPTREND_PULLBACK:'大盤整體偏強，最近正在回落',BEARISH:'大盤整體偏弱，近期也在往下走',DOWNTREND_REBOUND:'大盤整體偏弱，最近出現反彈',SHORT_BULLISH:'短線有反彈，整體轉強仍待確認',SHORT_BEARISH:'短線正在回落，先觀察能否停住',RANGE:'大盤仍在來回整理，先等方向清楚',MIXED:'漲跌線索不一致，先等方向清楚'};
+ const references=ready?m.levels.map((l,i)=>positive(l.price)?reference(l,i,m.close,m.date):null).filter(Boolean):[],above=references.filter(l=>l.price>m.close).sort((a,b)=>a.price-b.price),below=references.filter(l=>l.price<m.close).sort((a,b)=>b.price-a.price);
+ const watch=references.find(l=>l.kind==='RECLAIM')||above[0]||references.find(l=>l.kind==='RESISTANCE')||null,support=references.find(l=>l.kind==='SUPPORT')||below[0]||null;
+ const mainScenario=!ready?'主要觀察：先核對完整日線，再判斷方向。':!watch?'主要觀察：上方關卡尚未提供，先不猜點位。':watch.relation==='BELOW'?'主要觀察：收盤站回'+fmt(watch.price)+'點，再看能否守穩。':watch.relation==='AT'?'主要觀察：收盤剛好到'+fmt(watch.price)+'點，還要確認守穩。':'主要觀察：已站上'+fmt(watch.price)+'點，接著看能否守穩。';
+ const alternativeScenario=!ready?'備用觀察：資料未齊，不補畫可能的走法。':!support?'備用觀察：下方關卡尚未提供，暫不猜點位。':support.relation==='BELOW'?'備用觀察：已低於'+fmt(support.price)+'點，留意能否收回。':'備用觀察：若收盤跌破'+fmt(support.price)+'點，留意風險增加。';
+ const answer=!ready?'行情尚未核對完整，這次先不判斷。':['BEARISH','SHORT_BEARISH','DOWNTREND_REBOUND'].includes(direction)?'大盤仍偏弱，先等止跌，個股買點另行確認。':direction==='BULLISH'?'大盤走勢偏強，個股仍要另看買進條件。':'先觀察，大盤關卡不是個股買進通知。';
+ const entryLines=ready?[answer,mainScenario,alternativeScenario,'站回也不能直接買，仍要核對量能與個股條件。']:[answer,'原因：'+String(m.dataReason||wave.reason||'完成日K資料不足。').slice(0,48),'可用行情核對完成前，不補畫浪號或猜測點位。','大盤資料不足時，也不能據此放行個股進場。'];
+ const holdingLines=['先核對所持個股原訂的停損與買進理由。',!ready?'行情尚有資料限制，這次不新增風險點位。':support?support.relation==='BELOW'?'大盤已低於'+fmt(support.price)+'點，留意能否收回。':'大盤收盤若跌破'+fmt(support.price)+'點，重新檢查風險。':'下方關卡尚未提供，先看個股自己的風險條件。','大盤觀察線不是你所持個股的認賠價。','沒有持股成本與風險資料，這張圖不代填賣價。'];
+ const rawChartLevels=ready?[...references,{role:'LATEST_CLOSE',label:'收盤',price:m.close,color:P.ink,date:m.date,lineMode:'ENDPOINT',meaning:'當天完成日K的指數收盤，不是個股買價。'},{role:'MA20',label:'20日均值',price:wave.trend.ma20,color:P.blue,date:m.date,lineMode:'ENDPOINT',meaning:'最近20天收盤指數平均，不保證止跌。'}]:[];
+ const chartLevels=B.groupPrices(rawChartLevels).map(g=>({...g,label:g.members.length>3?'同價：'+g.members.length+'項參考':[...new Set(g.members.map(l=>l.label))].join('／')}));
+ const originalLevels=m.levels.map(l=>({...l})),displayLevels=m.levels.map(l=>({label:l.label||'原報告參考',price:ready&&positive(l.price)?l.price:null})),known=displayLevels.filter(l=>positive(l.price)).length;
+ return {version:VERSION,code:m.code,date:m.date,ready,summary:ready?summaries[direction]||summaries.MIXED:'行情尚未核對完整，先不判斷多空',phase:ready?reading.phase:'資料還不夠，這次先不標第幾浪。',waveTitle:ready?reading.waveTitle:'這次為什麼沒有浪號？',waveLines:ready?reading.waveLines:['完整行情尚未核對，這次先不標浪號。','先處理圖區說明的資料限制，再重新判讀。','不使用猜測或缺漏的價格補畫波浪。'],trendReason:m.trendReason,recentReason:m.currentDirection?.reason,trendBasis:'20日均值與既有斜率',recentSessions:m.currentDirection?.lookbackSessions||null,entryTitle:'還沒買的人：現在該怎麼看？',entryState:ready?'OBSERVE':'DATA',entryEnabled:false,entryRange:null,entryLines,holdingTitle:'已經持有：先核對個股停損計畫',holdingLines,mainScenario,alternativeScenario,watch,support,chartLevels,rawChartLevels,originalLevels,displayLevels,knownOriginalLevels:known,originalTitle:known?'原報告的三條觀察線，各有用途':'原報告的觀察線：這次尚未提供',originalEmptyLines:['上方、下方與備用參考，須等原報告提供。','不自行補上買價、目標或停損。'],originalNote:'原報告關卡供市場觀察，不直接換算個股買價或停損。',personalStop:null,researchOnly:true,affectsOriginalEligibility:false,affectsOriginalRanking:false};
+}
+function render(m,{document:doc=root.document,watermarked=false}={}){
+ const b=m.marketBeginner;if(!b||b.version!==VERSION)throw Error('大盤白話圖片資料尚未準備完整');const c=doc.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d'),M=40,CW=W-80,boxes=[],textBoxes=[];
+ const font=(size,bold)=>{x.font=`${bold?750:500} ${size}px "Noto Sans CJK TC","Noto Sans TC","Microsoft JhengHei",sans-serif`;x.textAlign='left';x.textBaseline='top';};
+ const wrap=(s,width,size,bold)=>{font(size,bold);const lines=[];for(const p of String(s).split('\n')){let line='';for(const token of p.match(/\d{4}-\d{2}-\d{2}|\d+(?:,\d{3})*(?:\.\d+)?|[A-Za-z]+|[\s\S]/g)||[]){if(line&&x.measureText(line+token).width>width){lines.push(line);line=token;}else line+=token;}lines.push(line);}return lines;};
+ const draw=(text,left,top,width,size=38,color=P.ink,bold=false)=>{const rows=wrap(text,width,size,bold),line=size+12;font(size,bold);x.fillStyle=color;for(let i=0;i<rows.length;i++){x.fillText(rows[i],left,top+i*line);textBoxes.push({text:rows[i],top:top+i*line,bottom:top+i*line+size,left,right:left+x.measureText(rows[i]).width,size});}return top+rows.length*line;};
+ const card=(name,y,h,fill='#fff',border=P.border)=>{x.fillStyle=fill;x.strokeStyle=border;x.lineWidth=2;x.beginPath();x.roundRect(M,y,CW,h,25);x.fill();x.stroke();boxes.push({name,top:y,bottom:y+h});};
+ const heading=(text,y,color=P.ink)=>{for(const size of [45,43,41,39])if(wrap(text,CW-68,size,true).length===1)return draw(text,M+34,y,CW-68,size,color,true);throw Error('大盤白話標題超出範圍');};
+ const body=(lines,y,bottom,{emphasis=false,color=P.ink}={})=>{for(const base of [40,38,36,34,32]){const sizes=lines.map((_,i)=>emphasis&&i===0?base+2:base),height=lines.reduce((n,t,i)=>n+wrap(t,CW-68,sizes[i],emphasis&&i===0).length*(sizes[i]+12)+(i?3:0),0);if(y+height>bottom)continue;let at=y;for(let i=0;i<lines.length;i++)at=draw(lines[i],M+34,at,CW-68,sizes[i],emphasis&&i===0?color:P.ink,emphasis&&i===0)+3;return at;}throw Error('大盤白話內文超出範圍：'+lines.join('／'));};
+ x.fillStyle=P.canvas;x.fillRect(0,0,W,H);draw('石頭少爺・大盤波浪分析',44,38,900,34,P.teal,true);draw(m.release,1035,44,205,30,P.teal,true);
+ const identity=m.name+'（'+m.code+'）';let titleSize=61;while(titleSize>40&&wrap(identity,1196,titleSize,true).length>1)titleSize-=3;draw(identity,44,100,1196,titleSize,P.ink,true);draw(m.date+' '+(b.ready?'盤後':'資料待核對')+'｜收盤 '+fmt(m.close)+' 點',44,186,1196,38);
+ card('position',255,190);heading(b.summary,283,b.ready?(m.currentDirection.recentDirection==='UP'?P.bull:P.teal):P.muted);let phaseSize=36;while(phaseSize>32&&(wrap(b.phase,CW-68,phaseSize,false).length-1)*(phaseSize+12)+phaseSize>79)phaseSize-=2;draw(b.phase,M+34,356,CW-68,phaseSize);
+ const chart=b.ready?V.chart(x,m.wave,{x:M,y:462,width:CW,height:866,annotate:true,priceLabels:true,wavePrices:true,vivid:true,beginner:true,indexChart:true,levels:b.chartLevels}):{chartReady:false,reason:m.dataReason||m.wave.reason};
+ if(chart.chartReady)boxes.push({name:'chart',top:462,bottom:1328});else{card('chart',462,866,'#f5f8fb');heading('資料未核對完整，暫時不畫波浪。',722,P.muted);body([String(m.dataReason||'完成行情尚未準備完整。').slice(0,180),'先重新載入大盤行情，個股原有風險計畫仍要遵守。'],810,1260);}
+ card('wave-reading',1340,226);heading(b.waveTitle,1360);body(b.waveLines,1410,1564);
+ card('not-owned',1584,386,'#f7fbff','#8eb4d0');heading(b.entryTitle,1606,P.teal);body(b.entryLines,1670,1958,{emphasis:true,color:P.teal});
+ card('owned',1988,370,'#fffaf2','#d5b78a');heading(b.holdingTitle,2010,P.amber);body(b.holdingLines,2075,2348,{emphasis:true});
+ card('prices',2376,238);heading(b.originalTitle,2397);if(b.knownOriginalLevels){for(let i=0;i<3;i++){const l=b.displayLevels[i]||{label:'參考關卡',price:null};draw(l.label,M+34,2464+i*44,740,36);draw(fmt(l.price),W-316,2464+i*44,236,36,P.muted,true);}}else body(b.originalEmptyLines,2464,2604);
+ draw(b.originalNote,44,2635,1196,32,P.muted);draw(m.release+'｜行情 '+m.date+'｜1284×2778 單張白話版',44,2683,1196,31,P.muted);draw('大盤關卡不是個股買賣價，持股仍依自己的風險計畫。',44,2727,1196,31,P.teal,true);
+ if(watermarked)(root.ShitouReportWatermark||(typeof require==='function'?require('./report-watermark-v84.js'):null)).apply(c,'market');
+ const noCardOverflow=boxes.every(b=>textBoxes.filter(t=>t.top>=b.top&&t.top<b.bottom).every(t=>t.bottom<=b.bottom)),noClipping=textBoxes.every(t=>t.top>=0&&t.bottom<=H&&t.left>=0&&t.right<=W),noOverlap=boxes.every((r,i)=>!i||r.top>=boxes[i-1].bottom);if(!noClipping||!noOverlap||!noCardOverflow)throw Error('大盤波浪白話版超出圖片安全範圍');
+ const audit={version:m.version,template:VERSION,release:m.release,reportType:'ELLIOTT_WAVE_STANDALONE',headline:m.wave.headline,kind:m.kind,code:m.code,name:m.name,date:m.date,close:m.close,width:W,height:H,trendTitle:m.trendTitle,trendReason:m.trendReason,wavePosition:m.wavePosition,waveReason:m.waveReason,currentDirection:m.currentDirection,chartLevels:b.chartLevels,priceGuides:m.priceGuides,state:m.wave.state,dataReason:m.dataReason,explanation:m.explanation,scales:m.scales,next:m.next,observations:m.observations,originalLevels:m.levels,waveReference:m.wave.primary?.reference||null,marketBeginner:b,chart,watermarked:!!watermarked,boxes,textBoxes,noClipping,noOverlap,noCardOverflow,identity:m.identity};
+ c.dataset.waveReportAudit=JSON.stringify(audit);c.dataset.researchAudit=JSON.stringify(audit);c.dataset.iphoneFullScreen='1284x2778';c.dataset.shareAsSingleImage='true';return c;
+}
+return Object.freeze({VERSION,model,render});
+});
