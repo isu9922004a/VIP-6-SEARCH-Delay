@@ -19,3 +19,5 @@
 改動檔案：elliott-wave-stock-beginner-v1.js（共用可測量尺與排版）；elliott-wave-market-beginner-v1.js（重用同資料及排版）；elliott-wave-report-v1.js（快取身分）；index.html／market-outlook.html／version-v50.js（快取）；scripts/tests/wave-reading-evidence.test.cjs（新單元）；scripts/tests/stock-wave-clear-browser.cjs／market-wave-clear-browser.cjs（對照與iPhone預覽）；scripts/audit-all-stock-images.cjs（全市場來源核對）；相關兩個workflow（驗收）。
 
 研究績效限制維持，不宣稱勝率改善。僅Pages前端；Worker無需部署。回滾可revert本次合併，保留其他工作與後續行情。
+
+手機預覽補正：兩個波浪畫布標記fullBleed，沿用主站既有滿寬預覽；獨立大盤對話框僅對此標記採用手機滿寬CSS，其他精簡報告不套用。實際下載PNG內容不受CSS影響。

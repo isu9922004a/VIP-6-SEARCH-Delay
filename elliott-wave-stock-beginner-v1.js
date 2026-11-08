@@ -131,7 +131,7 @@ function render(m,{document:doc=root.document,watermarked=false}={}){
  if(watermarked)(root.ShitouReportWatermark||(typeof require==='function'?require('./report-watermark-v84.js'):null)).apply(c,'stock');
  const noCardOverflow=boxes.every(b=>textBoxes.filter(t=>t.top>=b.top&&t.top<b.bottom).every(t=>t.bottom<=b.bottom)),noClipping=textBoxes.every(t=>t.top>=0&&t.bottom<=H&&t.left>=0&&t.right<=W),noOverlap=boxes.every((r,i)=>!i||r.top>=boxes[i-1].bottom);if(!noClipping||!noOverlap||!noCardOverflow)throw Error('個股波浪白話版超出圖片安全範圍');
  const audit={version:m.version,template:VERSION,release:m.release,kind:m.kind,code:m.code,date:m.date,close:m.close,width:W,height:H,trendTitle:m.trendTitle,trendReason:m.trendReason,wavePosition:m.wavePosition,waveReason:m.waveReason,currentDirection:m.currentDirection,chartLevels:b.chartLevels,priceGuides:m.priceGuides,state:m.wave.state,dataReason:m.dataReason,explanation:m.explanation,scales:m.scales,next:m.next,observations:m.observations,originalLevels:m.levels,waveReference:m.wave.primary?.reference||null,beginner:b,chart,watermarked:!!watermarked,boxes,textBoxes,noClipping,noOverlap,noCardOverflow,identity:m.identity};
- c.dataset.waveReportAudit=JSON.stringify(audit);c.dataset.researchAudit=JSON.stringify(audit);c.dataset.iphoneFullScreen='1284x2778';c.dataset.shareAsSingleImage='true';return c;
+ c.dataset.waveReportAudit=JSON.stringify(audit);c.dataset.researchAudit=JSON.stringify(audit);c.dataset.fullBleed='true';c.dataset.iphoneFullScreen='1284x2778';c.dataset.shareAsSingleImage='true';return c;
 }
 return Object.freeze({VERSION,model,render,groupPrices,watchSentence,waveReading,readingEvidence,retraceMeasure});
 });
