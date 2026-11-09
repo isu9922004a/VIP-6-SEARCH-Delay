@@ -18,3 +18,9 @@ test('cached publication requires a matching complete catalog and files with the
  const save=()=>fs.writeFileSync(path.join(dir,'manifest.json'),JSON.stringify(catalog));
  try{assert.equal(A.plan(input,dir),true);save();assert.equal(A.plan(input,dir),true);fs.writeFileSync(path.join(dir,'TAIEX.json'),file);assert.equal(A.plan(input,dir),false);fs.appendFileSync(path.join(dir,'TAIEX.json'),' ');assert.equal(A.plan(input,dir),true);fs.writeFileSync(path.join(dir,'TAIEX.json'),file);delete catalog.unavailable['4743'];save();assert.equal(A.plan(input,dir),true);}finally{fs.rmSync(dir,{recursive:true,force:true});}
 });
+test('all multiline future workflow shell blocks pass bash syntax validation',()=>{
+ const cp=require('node:child_process');for(const name of ['kronos-future.yml','kronos-future-review.yml']){
+ const rows=fs.readFileSync(path.resolve(__dirname,'../../.github/workflows',name),'utf8').split('\n');
+ for(let i=0;i<rows.length;i++){const m=rows[i].match(/^(\s*)run:\s*\|\s*$/);if(!m)continue;const indent=m[1].length,block=[];for(i++;i<rows.length;i++){if(rows[i].trim()&&rows[i].match(/^\s*/)[0].length<=indent){i--;break;}block.push(rows[i].slice(indent+2));}cp.execFileSync('bash',['-n'],{input:block.join('\n')+'\n'});}
+ }
+});
