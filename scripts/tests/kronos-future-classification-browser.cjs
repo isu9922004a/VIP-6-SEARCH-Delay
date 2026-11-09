@@ -24,7 +24,7 @@ const selected=all.filter((_,i)=>i%shards===shard);fs.mkdirSync(out,{recursive:t
      for(const line of ['本次分類範圍固定為 '+lo+'～'+hi+' '+unit,'高於'+hi+unit+'，列為「偏多」。','介於'+lo+'～'+hi+unit+'（含上下緣），列為「盤整」。','低於'+lo+unit+'，列為「偏空」。'])if(!a.logicalTexts.includes(line))throw Error('Missing dynamic classification explanation');
      if(!text.includes('占比非實際勝率或市場保證')||!text.includes('中途仍可能大漲大跌，不是低買高賣的獲利區間')||!text.includes('原停損'))throw Error('Missing risk/position warning');
      if(a.kind==='market'&&!text.includes('不等於每一檔股票的漲跌機率'))throw Error('Missing index warning');
-     if(!a.logicalTexts.includes('明天收盤：'+a.shares.rows[0].denominator+'種模擬中，有'+a.shares.rows[0].counts[1]+'種在範圍內；三排共用此範圍。'))throw Error('Missing actual-sample beginner explanation');
+     if(!a.logicalTexts.includes('下個交易日收盤：'+a.shares.rows[0].denominator+'種模擬中，有'+a.shares.rows[0].counts[1]+'種在範圍內；三排共用此範圍。'))throw Error('Missing actual-sample beginner explanation');
      for(const row of a.shares.rows)if(row.counts.reduce((x,y)=>x+y,0)!==row.denominator||row.displayUnits.reduce((x,y)=>x+y,0)!==1000)throw Error('Invalid share counts');
     }
     // Plot, axes and date labels remain byte-identical; the new per-horizon captions start at y=1488.

@@ -20,7 +20,15 @@ jobs:
         with: {node-version: '24'}
       - run: npm test
       - run: npm run test:contract
+      - run: node scripts/audit-wave-formal-isolation.cjs /tmp/wave-v88-formal-isolation.json
       - run: node scripts/wave-pit-study.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: wave-v88-formal-isolation-and-pit-status
+          path: |
+            /tmp/wave-v88-formal-isolation.json
+            /tmp/wave-pit-study/status.json
   browser:
     runs-on: ubuntu-latest
     timeout-minutes: 20

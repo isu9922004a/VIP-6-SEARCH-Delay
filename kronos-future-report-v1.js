@@ -40,7 +40,7 @@ function render(source,forecast,{document:doc=root.document,watermarked=false}={
   text('高於'+upper+unit+'，列為「偏多」。',74,1946,1136,36,P.bull,true);
   text('介於'+lower+'～'+upper+unit+'（含上下緣），列為「盤整」。',74,1994,1136,36,P.ink,true);
   text('低於'+lower+unit+'，列為「偏空」。',74,2042,1136,36,P.bear,true);
-  text('明天收盤：'+shares.rows[0].denominator+'種模擬中，有'+shares.rows[0].counts[1]+'種在範圍內；三排共用此範圍。',74,2090,1136,28,P.muted);
+  text('下個交易日收盤：'+shares.rows[0].denominator+'種模擬中，有'+shares.rows[0].counts[1]+'種在範圍內；三排共用此範圍。',74,2090,1136,28,P.muted);
   const columns=[74,370,650,930],widths=[260,240,240,240],labels=['時間（交易日）','偏多占比','盤整占比','偏空占比'],colors=[P.muted,P.bull,P.muted,P.bear];labels.forEach((label,i)=>text(label,columns[i],2132,widths[i],30,colors[i],true));
   shares.rows.forEach((row,i)=>{const y=2174+i*52;text(row.horizon===1?'下一交易日':'第'+row.horizon+'交易日',columns[0],y+4,widths[0],36,P.ink,true);row.displayPercent.forEach((p,j)=>text(p,columns[j+1],y,widths[j+1],44,colors[j+1],true));});
   text('分類非買價／停損／目標價；占比非實際勝率或市場保證。',74,2340,1136,28,P.muted);

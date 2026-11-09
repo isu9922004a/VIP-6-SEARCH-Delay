@@ -64,6 +64,7 @@ test('a trusted independent index reuses its exact wave object; changed history 
  assert.equal(E.matchesSnapshot(a,a.elliottWave),true);assert.equal(V.result(a),a.elliottWave);
  const changed={...a,input:{...a.input,bars:structuredClone(a.input.bars)}};changed.input.bars[20].high+=1;
  assert.equal(E.matchesSnapshot(changed,a.elliottWave),false);assert.equal(V.result(changed).state,'DATA_INSUFFICIENT');
+ for(const edit of [x=>x.input.bars[20].completed=false,x=>x.input.bars[20].code='2330',x=>x.input.bars[20].volumeUnit='lots',x=>x.input.calendar.dates.splice(20,1)]){const x={...a,input:structuredClone(a.input)};edit(x);assert.equal(E.matchesSnapshot(x,a.elliottWave),false);assert.equal(V.result(x).state,'DATA_INSUFFICIENT');}
  const forged=structuredClone(a);assert.equal(E.matchesSnapshot(forged,forged.elliottWave),false);
  const r=F.report(94),wave=E.evaluate(r),edit=structuredClone(r);edit.dailySeries[20].high+=.5;assert.equal(E.matchesSnapshot(edit,wave),false);
 });
