@@ -22,7 +22,7 @@ async function fromHistory(history,{now,calculator}={}){
  const build=calculator||(await import('./market-worker.mjs?v=V8.7.2-MARKETFRESH1')).buildTaiexReportFromHistory;
  const report=build({rows:history.dailySeries,dailySeries:history.dailySeries,dailySeriesMeta:history.dailySeriesMeta});
  // Evidence belongs to this exact history, never to an earlier Worker response.
- Object.assign(report,{version:(root.ShitouReleaseV50?.displayCode||'V8.7.2')+'｜已核驗大盤歷史重算',historyMonthsRequested:null,completed:true,volumeUnit:history.volumeUnit,priceAdjustment:history.priceAdjustment,tradingCalendar:history.tradingCalendar,sourceReceipt:history.sourceReceipt,reportOrigin:'VERIFIED_INDEX_SNAPSHOT',calculationWindowBars:history.dailySeries.length});
+ Object.assign(report,{version:(root.ShitouReleaseV50?.displayCode||'V8.7.3')+'｜已核驗大盤歷史重算',historyMonthsRequested:null,completed:true,volumeUnit:history.volumeUnit,priceAdjustment:history.priceAdjustment,tradingCalendar:history.tradingCalendar,sourceReceipt:history.sourceReceipt,reportOrigin:'VERIFIED_INDEX_SNAPSHOT',calculationWindowBars:history.dailySeries.length});
  report.dailySeriesMeta={...history.dailySeriesMeta};
  report.logic={...report.logic,historyWindow:`使用這份已核驗的 ${history.dailySeries.length} 根完成日K；不沿用舊服務的指標或ABC價位。`};
  if(!valid(report)||report.closeDate!==history.closeDate||report.close!==history.close)throw Error('大盤計算結果與行情不一致');

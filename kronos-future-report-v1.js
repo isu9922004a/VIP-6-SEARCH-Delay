@@ -36,7 +36,7 @@ function render(source,forecast,{document:doc=root.document,watermarked=false}={
  card('shares',1826,432);heading('電腦模擬：接下來可能怎麼走？',1844);
  if(shares.state==='READY'){
   text('模型模擬占比｜本批共 '+shares.sampleCount+' 種走法',74,1895,1136,28,P.muted);
-  const bandNumber=v=>market?money(v):v.toFixed(2);text('盤整觀察範圍：'+bandNumber(shares.band.lower)+'～'+bandNumber(shares.band.upper)+' '+shares.instrument.unit,74,1931,1136,32,P.ink,true);
+  const bandNumber=v=>market?money(v):v.toFixed(2);text('盤整分類：'+bandNumber(shares.band.lower)+'～'+bandNumber(shares.band.upper)+' '+shares.instrument.unit+'｜非買價／停損／目標價',74,1931,1136,32,P.ink,true);
   const columns=[74,370,650,930],widths=[260,240,240,240],labels=['時間（交易日）','偏多占比','盤整占比','偏空占比'],colors=[P.muted,P.bull,P.muted,P.bear];labels.forEach((label,i)=>text(label,columns[i],1975,widths[i],30,colors[i],true));
   shares.rows.forEach((row,i)=>{const y=2020+i*53;text(row.horizon===1?'下一交易日':'第'+row.horizon+'交易日',columns[0],y+4,widths[0],36,P.ink,true);row.displayPercent.forEach((p,j)=>text(p,columns[j+1],y,widths[j+1],44,colors[j+1],true));});
   text('這是在多種模擬中，各種結果出現的比例，不是市場實際會發生的保證。',74,2184,1136,28,P.muted);
