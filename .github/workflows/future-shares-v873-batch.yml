@@ -1,0 +1,79 @@
+name: V8.7.3 frozen full-universe acceptance
+on:
+  push:
+    branches: ['feat/future-shares-v873']
+    paths: ['kronos-future-report-v1.js', 'kronos-future-shares-v873.js', 'scripts/future-shares-v873-*.cjs', 'scripts/aggregate-future-shares-v873.cjs', 'scripts/tests/future-shares-v873-batch.cjs', '.github/workflows/future-shares-v873-batch.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  batch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 42575040043
+          name: future-v873-frozen-baselines
+          path: /tmp/future-v873-frozen
+      - name: Original values, all statistics, both PNGs and all text rules
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+          V873_SHARD: ${{ matrix.shard }}
+          V873_SHARDS: '4'
+        run: node scripts/tests/future-shares-v873-batch.cjs /tmp/v873-batch
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v873-audit-${{ matrix.shard }}
+          path: /tmp/v873-batch/audit
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v873-review-images-${{ matrix.shard }}
+          path: /tmp/v873-batch/review
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: v873-all-images-${{ matrix.shard }}
+          path: |
+            /tmp/v873-batch/normal
+            /tmp/v873-batch/watermarked
+            /tmp/v873-batch/limited
+          compression-level: 0
+          retention-days: 7
+  acceptance:
+    needs: batch
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 42575040043
+          name: future-v873-frozen-baselines
+          path: /tmp/future-v873-frozen
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: v873-audit-*
+          merge-multiple: true
+          path: /tmp/v873-audits
+      - run: node scripts/aggregate-future-shares-v873.cjs /tmp/v873-audits /tmp/v873-summary
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v873-acceptance
+          path: /tmp/v873-summary
