@@ -1,0 +1,29 @@
+name: Verify published future K buttons
+on:
+  push:
+    branches: ['feat/future-kronos-v872']
+    paths: ['.github/workflows/future-live-verification.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Actual published stock and market clean and marked downloads
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+          RESEARCH_BROWSER_ORIGIN: https://isu9922004a.github.io/VIP-6-SEARCH-Delay/
+        run: node scripts/tests/kronos-future-live-browser.cjs /tmp/future-live
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: future-live-verification
+          path: /tmp/future-live
