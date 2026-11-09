@@ -1,0 +1,54 @@
+name: Deploy report button label update
+on:
+  push:
+    branches: ['main']
+    paths: ['.github/workflows/report-button-labels-deploy.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  deploy:
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy-data-pages.yml
+    with:
+      artifact-name: report-button-label-pages
+  verify:
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Verify published captions, original bindings and phone layout
+        env:
+          EXPECTED_INDEX_SHA: 'a0ae9c00ebcc75184c1af04058f9bacf626b4950a35ee215b47754c1821f1286'
+          EXPECTED_MARKET_SHA: 'ed491514f52198258f833ca53aff94963906c692ba760eb9520f5375872a64ae'
+        run: |
+          node - <<'NODE'
+          const fs=require('fs'),assert=require('assert/strict'),crypto=require('crypto'),{chromium}=require('playwright-core'),base='https://isu9922004a.github.io/VIP-6-SEARCH-Delay/';
+          (async()=>{
+            const expected={'index.html':process.env.EXPECTED_INDEX_SHA,'market-outlook.html':process.env.EXPECTED_MARKET_SHA};
+            for(const[file,sha]of Object.entries(expected)){let ok=false;for(let i=0;i<6;i++){const r=await fetch(base+file+'?labels='+Date.now());if(r.ok&&crypto.createHash('sha256').update(Buffer.from(await r.arrayBuffer())).digest('hex')===sha){ok=true;break;}await new Promise(r=>setTimeout(r,10000));}assert.equal(ok,true,file+' published bytes');}
+            const browser=await chromium.launch({executablePath:'/usr/bin/google-chrome',headless:true,args:['--no-sandbox']}),errors=[],results=[];
+            try{for(const[file,prefix,bound]of [['index.html','stock','simpleBound'],['market-outlook.html','market','marketSimpleBound']]){
+              const p=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});p.on('pageerror',e=>errors.push(e.message));await p.goto(base+file+'?labels='+Date.now(),{waitUntil:'load'});await p.evaluate(()=>document.fonts.ready);
+              const names=['Ai模擬明日走勢圖片報告','浮水印版Ai模擬明日走勢圖片報告'],ids=[prefix+'SimpleAnalysisButton',prefix+'SimpleAnalysisWatermarkButton'];
+              for(const width of [360,390,428,768]){await p.setViewportSize({width,height:844});for(let i=0;i<2;i++){const b=p.locator('#'+ids[i]);assert.equal(await b.innerText(),names[i]);const a=await b.evaluate((e,bound)=>({bound:e.dataset[bound],popup:e.getAttribute('aria-haspopup'),height:e.getBoundingClientRect().height,width:e.getBoundingClientRect().width,inside:e.scrollWidth<=e.clientWidth+1}),bound);assert.equal(a.bound,'true');assert.equal(a.popup,'dialog');assert.ok(a.height>=44&&a.width>0&&a.inside);results.push({file,width,id:ids[i],label:names[i],height:a.height});}assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));}
+              await p.setViewportSize({width:390,height:844});await p.screenshot({path:'/tmp/'+prefix+'-button-labels.png',fullPage:true});await p.close();
+            }assert.deepEqual(errors,[]);fs.writeFileSync('/tmp/button-label-results.json',JSON.stringify({status:'PASS',results,consoleErrors:errors},null,2));console.log('BUTTON_LABELS_LIVE_PASS '+JSON.stringify({buttons:4,widths:[360,390,428,768],originalBindings:true,errors}));}finally{await browser.close();}
+          })().catch(e=>{console.error(e);process.exitCode=1;});
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: report-button-label-proof
+          path: |
+            /tmp/*-button-labels.png
+            /tmp/button-label-results.json
