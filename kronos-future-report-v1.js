@@ -1,7 +1,7 @@
 /* One-click 20-session PNGs. Independent of one-day forecasts and wave/entry decisions. */
 (function(root,factory){const node=typeof module==='object'&&module.exports,api=factory(root,node?require('./kronos-future-core-v1'):root.ShitouKronosFutureCore,node?require('./elliott-wave-visual-v1'):root.ShitouElliottVisual,node?require('./kronos-future-shares-v873'):root.ShitouFutureShares);if(node)module.exports=api;else root.ShitouKronosFutureReport=api;})(globalThis,function(root,C,V,S){
 'use strict';
-const VERSION='KRONOS_FUTURE_REPORT_V873_2',W=1284,H=2778,P=V.PHONE_PALETTE,models=new Map();let opening=false,revision=0,active=null;
+const VERSION='KRONOS_FUTURE_REPORT_V873_3',W=1284,H=2778,P=V.PHONE_PALETTE,models=new Map();let opening=false,revision=0,active=null;
 const money=x=>Number.isFinite(x)?x.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'未取得';
 function render(source,forecast,{document:doc=root.document,watermarked=false}={}){
  const m=C.evaluate(source,forecast);if(m.state!=='READY')throw Error(m.reason);const shares=S.evaluate(source,forecast);if(shares.state==='UNSUPPORTED')throw Error(shares.reason);const market=shares.instrument.type==='index',canvas=doc.createElement('canvas');canvas.width=W;canvas.height=H;const x=canvas.getContext('2d'),boxes=[],texts=[],logicalTexts=[];
@@ -40,11 +40,11 @@ function render(source,forecast,{document:doc=root.document,watermarked=false}={
   text('高於'+upper+unit+'，列為「偏多」。',74,1946,1136,36,P.bull,true);
   text('介於'+lower+'～'+upper+unit+'（含上下緣），列為「盤整」。',74,1994,1136,36,P.ink,true);
   text('低於'+lower+unit+'，列為「偏空」。',74,2042,1136,36,P.bear,true);
-  text('三個時間點共用此範圍；下一份盤後報告依新資料重算。',74,2090,1136,28,P.muted);
+  text('明天收盤：'+shares.rows[0].denominator+'種模擬中，有'+shares.rows[0].counts[1]+'種在範圍內；三排共用此範圍。',74,2090,1136,28,P.muted);
   const columns=[74,370,650,930],widths=[260,240,240,240],labels=['時間（交易日）','偏多占比','盤整占比','偏空占比'],colors=[P.muted,P.bull,P.muted,P.bear];labels.forEach((label,i)=>text(label,columns[i],2132,widths[i],30,colors[i],true));
   shares.rows.forEach((row,i)=>{const y=2174+i*52;text(row.horizon===1?'下一交易日':'第'+row.horizon+'交易日',columns[0],y+4,widths[0],36,P.ink,true);row.displayPercent.forEach((p,j)=>text(p,columns[j+1],y,widths[j+1],44,colors[j+1],true));});
   text('分類非買價／停損／目標價；占比非實際勝率或市場保證。',74,2340,1136,28,P.muted);
-  text('盤整只看那天收盤，不代表中途沒有大漲大跌。',74,2380,1136,28,P.muted);
+  text('只比收盤位置，中途仍可能大漲大跌，不是低買高賣的獲利區間。',74,2380,1136,28,P.muted);
  }else{
   body(['新增占比尚未完成：'+shares.reason,'本次不填入百分比，原有模型走法與價位保持原樣。','請先核對資料，再重新產生統計。'],1920,2400);
  }

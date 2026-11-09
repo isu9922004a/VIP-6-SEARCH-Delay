@@ -21,8 +21,9 @@ const selected=all.filter((_,i)=>i%shards===shard);fs.mkdirSync(out,{recursive:t
     if(/預覽|尚未上線|說明預覽/.test(text))throw Error('Preview label shipped');
     if(a.shares.state==='READY'){const n=v=>a.kind==='market'?v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):v.toFixed(2),lo=n(a.shares.band.lower),hi=n(a.shares.band.upper),unit=a.shares.instrument.unit;
      for(const line of ['本次分類範圍固定為 '+lo+'～'+hi+' '+unit,'高於'+hi+unit+'，列為「偏多」。','介於'+lo+'～'+hi+unit+'（含上下緣），列為「盤整」。','低於'+lo+unit+'，列為「偏空」。'])if(!a.logicalTexts.includes(line))throw Error('Missing dynamic classification explanation');
-     if(!text.includes('占比非實際勝率或市場保證')||!text.includes('不代表中途沒有大漲大跌')||!text.includes('原停損'))throw Error('Missing risk/position warning');
+     if(!text.includes('占比非實際勝率或市場保證')||!text.includes('中途仍可能大漲大跌，不是低買高賣的獲利區間')||!text.includes('原停損'))throw Error('Missing risk/position warning');
      if(a.kind==='market'&&!text.includes('不等於每一檔股票的漲跌機率'))throw Error('Missing index warning');
+     if(!a.logicalTexts.includes('明天收盤：'+a.shares.rows[0].denominator+'種模擬中，有'+a.shares.rows[0].counts[1]+'種在範圍內；三排共用此範圍。'))throw Error('Missing actual-sample beginner explanation');
      for(const row of a.shares.rows)if(row.counts.reduce((x,y)=>x+y,0)!==row.denominator||row.displayUnits.reduce((x,y)=>x+y,0)!==1000)throw Error('Invalid share counts');
     }
     if(!watermarked){const p=old.getContext('2d').getImageData(0,465,1284,1075).data,q=c.getContext('2d').getImageData(0,465,1284,1075).data;for(let i=0;i<p.length;i++)if(p[i]!==q[i])throw Error('Chart pixels changed');first=a;}

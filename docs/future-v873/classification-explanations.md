@@ -21,3 +21,8 @@ are reported with reasons; they are not turned into invented forecasts.
 
 The deployment workflow tests all four shards and units before publishing, then
 checks actual stock/index clean/watermarked downloads and the main market toolbar.
+
+The explanation also reads the actual next-session denominator and inside-band
+count (for example148 of150) directly from the verified statistics. It explicitly
+says that this is a closing-location comparison, not an intraday trading-profit
+range. No percentage, threshold or model path is recalculated by this wording.
