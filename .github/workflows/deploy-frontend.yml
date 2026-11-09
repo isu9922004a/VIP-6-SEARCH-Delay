@@ -11,7 +11,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -44,6 +44,7 @@ jobs:
           npm run test:engulf-range-browser
           npm run test:elliott-browser -- /tmp/v864-browser/elliott
           node scripts/tests/wave-postclose-browser.cjs /tmp/v864-browser/postclose
+          node scripts/tests/wave-postclose-universe-browser.cjs /tmp/v864-browser/postclose-universe
           node scripts/tests/strong-all-memory-browser.cjs /tmp/v864-browser/strong-memory
           node scripts/tests/market-date-browser.cjs /tmp/v864-browser/market-date
           node scripts/tests/structure-v863-browser.cjs /tmp/v864-browser
