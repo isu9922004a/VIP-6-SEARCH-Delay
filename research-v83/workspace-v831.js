@@ -102,7 +102,7 @@ function select(tab,filter){
  if(tab==='stock')renderSummary();
  if(tab==='filters'&&currentFilter==='tower')$('towerGoldPanel')?.scrollIntoView({block:'nearest'});
 }
-function heading(title){const div=el('div','workspace-v831-header');div.append(el('span','workspace-v831-title',title),el('span','workspace-v831-version',(root.ShitouReleaseV50?.displayCode||'V8.7.2')+'｜研究工作台'));return div;}
+function heading(title){const div=el('div','workspace-v831-header');div.append(el('span','workspace-v831-title',title),el('span','workspace-v831-version',(root.ShitouReleaseV50?.displayCode||'V8.7.3')+'｜研究工作台'));return div;}
 function build(){
  const main=doc.querySelector('main.container'),first=main?.querySelector(':scope > section.panel');
  if(!first||$('workspaceV831'))return;

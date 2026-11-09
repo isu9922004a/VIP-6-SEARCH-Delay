@@ -39,7 +39,7 @@ test('V8.7.2 market clean and watermark variants keep exactly the same analysis'
   const canvas=report.page(snapshot,{document:fakeDocument(),watermarked:mode}),audit=JSON.parse(canvas.dataset.researchAudit);
   assert.equal(audit.watermarked,mode);
   assert.equal(audit.title,mode?watermarked.title:clean.title);
-  assert.equal(audit.version,'V8.7.2');
+  assert.equal(audit.version,'V8.7.3');
   assert.equal(canvas.width,1284);assert.ok(canvas.height>=2778&&canvas.height<=8192);
   assert.equal(audit.noClipping,true);
  }

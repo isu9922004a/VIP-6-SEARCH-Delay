@@ -1,0 +1,43 @@
+name: V8.7.3 entry points and regression
+on:
+  pull_request:
+    paths: ['kronos-future-*.js', 'scripts/*future*v873*.cjs', 'scripts/tests/*v873*.cjs', 'index.html', 'market-outlook.html', 'version-v50.js', '.github/workflows/future-shares-v873-review.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 42575040043
+          name: future-v873-frozen-baselines
+          path: /tmp/future-v873-frozen
+      - run: |
+          npm test
+          npm run test:contract
+          npm run research:validate
+      - name: Six real instruments, downloads, share, stale selection and model expiry
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+        run: node scripts/tests/future-shares-v873-browser.cjs /tmp/v873-review
+      - name: Original image and wave entry points
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+        run: |
+          node scripts/tests/elliott-browser.cjs /tmp/v873-review/wave
+          node scripts/tests/kronos-future-browser.cjs /tmp/v873-review/future
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v873-browser-acceptance
+          path: /tmp/v873-review
