@@ -18,6 +18,17 @@ from future_cache import CausalCache
 
 HORIZON = 20
 
+def validate_future_rows(rows):
+    """All original closes must be usable; other finite OHLC values stay unmodified.
+
+    Invalid open/high/low bars cannot be drawn as candles, but must not discard
+    otherwise valid original closing paths from the distribution.
+    """
+    if len(rows)!=HORIZON or any(not isinstance(b.get(k),(int,float)) or isinstance(b.get(k),bool) or not math.isfinite(b[k]) for b in rows for k in ['open','high','low','close']):
+        raise ValueError('模型輸出含缺值、非有限值或不完整路徑，不補造價格')
+    if any(b['close']<=0 for b in rows):
+        raise ValueError('模型收盤路徑含非正值，不列模擬占比；不刪除路徑或補造價格')
+
 def display_signature(paths, candle_path):
     h=2166136261
     values=[v for path in paths for v in path]
@@ -81,8 +92,7 @@ def infer_future(predictor, lock, receipt, source, calendar, code, sample_count=
                 if [d.strftime('%Y-%m-%d') for d in output.index] != future:
                     raise ValueError('模型輸出交易日不一致')
                 rows=output[['open','high','low','close']].to_dict(orient='records')
-                if len(rows)!=HORIZON or any(not isinstance(b[k],(int,float)) or not math.isfinite(b[k]) or b[k]<=0 for b in rows for k in ['open','high','low','close']):
-                    raise ValueError('模型輸出含缺值、非正值或不完整路徑，不補造價格')
+                validate_future_rows(rows)
                 samples.append(rows)
             print('FUTURE_PROGRESS',code,len(samples),sample_count,round(time.monotonic()-started,2),flush=True)
     invalid=sum(not valid_bar(b) for p in samples for b in p)
