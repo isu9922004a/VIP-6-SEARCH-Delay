@@ -16,7 +16,7 @@ function baseModel(raw,{kind='stock',name,code,date,close,levels=[]}={},verified
  const scales=a.scaleComparisons?.length?a.scaleComparisons.map(s=>s.scale.label+'：'+(s.hasCandidate?'有觀察走法':'先等確認')).join('／'):'資料尚未核對，不猜測波浪位置。';
  const next=p?.reference?`${p.reference.label} ${fmt(p.reference.price)}：${p.reference.meaning}`:'先看原報告的支撐與壓力，等新的完成日K確認後再數浪；不只因一根上漲就進場。';
  const identity=JSON.stringify([kind,code,date,close,a.inputFingerprint||[a.state,a.reason],levels]);
- return {version:VERSION,release:root.ShitouReleaseV50?.displayCode||'V8.7.3',title,kind,code,date,close,name:name||raw.name||(market?'臺灣加權指數':'個股'),wave:a,explanation,scales,next,levels:levels.slice(0,3),identity};
+ return {version:VERSION,release:root.ShitouReleaseV50?.displayCode||'V8.8',title,kind,code,date,close,name:name||raw.name||(market?'臺灣加權指數':'個股'),wave:a,explanation,scales,next,levels:levels.slice(0,3),identity};
 }
 // Descriptive price facts only: these never change formal signals or wave counts.
 function directionView(wave,close){
@@ -85,6 +85,13 @@ function buildModel(raw,options={}){
  if(m.kind==='stock'){output.beginner=stockTemplate.model(output,study,raw);output.identity=JSON.stringify([m.identity,output.beginner]);}else{output.marketBeginner=marketTemplate.model(output,raw);output.identity=JSON.stringify([m.identity,output.marketBeginner]);}return output;
 }
 function render(raw,options={}){if(options.kind!=='market')return stockTemplate.render(buildModel(raw,options),options);return marketTemplate.render(buildModel(raw,options),options);}
+// All machine/text exports take an already computed model; they never recount waves.
+function exportAnalysis(m){
+ if(m?.wave?.code!==m?.code||m.wave.date!==m.date)throw Error('匯出與已核對波浪結果不一致');
+ const data={release:m.release,kind:m.kind,code:m.code,date:m.date,close:m.close,identity:m.identity,wave:m.wave,originalLevels:m.levels,entry:m.beginner?.compactEntryLines||m.marketBeginner?.compactEntryLines,holding:m.beginner?.compactHoldingLines||m.marketBeginner?.compactHoldingLines,researchOnly:true,performanceValidated:false};
+ const fields=['code','date','wave','state','fromDate','toDate','availableAt','meanVolume','relativeVolume','changePct','durationSessions','atr14','ma5','ma10'],quote=v=>'"'+String(v??'').replaceAll('"','""')+'"',rows=Object.entries(m.wave.perWaveEvidence||{}).map(([wave,v])=>({code:m.code,date:m.date,wave,...v}));
+ return {json:JSON.stringify(data,null,2),txt:[m.name+'（'+m.code+'）｜'+m.date,...V.linesFor(m.wave),...(data.entry||[]),...(data.holding||[])].join('\n'),csv:[fields.map(quote).join(','),...rows.map(row=>fields.map(k=>quote(row[k])).join(','))].join('\n')};
+}
 function renderLegacy(raw,options={}){
  const m=buildModel(raw,options),c=(options.document||root.document).createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d'),boxes=[],textBoxes=[];
  const font=(size,bold,color)=>{x.font=`${bold?750:500} ${size}px "Noto Sans TC","Microsoft JhengHei",sans-serif`;x.fillStyle=color;x.textAlign='left';x.textBaseline='top';};
@@ -123,5 +130,5 @@ function init(){mount();let queued=false;new root.MutationObserver(()=>{if(!queu
  const control=e.target.closest?.('#imageDownloadLink,#imageShareButton,#lineShareSave,#r45PreviewZip,#simpleMarketReportDialog a[download],#simpleMarketLineShareButton');if(!control||!active)return;const img=root.document.getElementById('imagePreviewImg')||root.document.querySelector('#simpleMarketReportDialog img');if(img?.src!==active.url)return;try{if(identity(payload(active.kind))===active.key)return;}catch(_){}e.preventDefault();e.stopImmediatePropagation();message(active.kind,'行情或查詢已更新，請重新產生波浪圖片後再下載或分享。');
  },true);}
 if(root.document){if(root.document.readyState==='loading')root.document.addEventListener('DOMContentLoaded',init,{once:true});else init();}
-return Object.freeze({VERSION,PHONE_PALETTE:P,W,H,buildModel,render,open,mount,getState:()=>active?{kind:active.kind,audit:JSON.parse(JSON.stringify(active.audit))}:null});
+return Object.freeze({VERSION,PHONE_PALETTE:P,W,H,buildModel,render,exportAnalysis,open,mount,getState:()=>active?{kind:active.kind,audit:JSON.parse(JSON.stringify(active.audit))}:null});
 });
