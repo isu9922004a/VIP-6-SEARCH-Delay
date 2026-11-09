@@ -7,7 +7,7 @@ permissions:
 jobs:
   report-clarity:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
@@ -28,6 +28,10 @@ jobs:
         env:
           CHROME_BIN: /usr/bin/google-chrome
         run: node scripts/tests/stock-wave-clear-browser.cjs /tmp/stock-wave-clear
+      - name: Encode clean and watermarked wave PNGs for every published stock
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+        run: node scripts/tests/wave-postclose-universe-browser.cjs /tmp/stock-wave-clear/postclose-universe
       - name: Check existing image, download and sharing behaviour
         env:
           CHROME_BIN: /usr/bin/google-chrome
