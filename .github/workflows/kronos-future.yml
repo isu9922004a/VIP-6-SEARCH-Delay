@@ -175,8 +175,8 @@ jobs:
     with:
       artifact-name: future-kronos-pages
   failure-status:
-    needs: [sources, infer, publish, deploy]
-    if: always() && github.ref == 'refs/heads/main' && (needs.sources.result == 'failure' || needs.infer.result == 'failure' || needs.publish.result == 'failure' || needs.deploy.result == 'failure')
+    needs: [sources, infer, publish, deploy, verify-live]
+    if: always() && github.ref == 'refs/heads/main' && (needs.sources.result == 'failure' || needs.infer.result == 'failure' || needs.publish.result == 'failure' || needs.deploy.result == 'failure' || needs.verify-live.result == 'failure')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -234,6 +234,7 @@ jobs:
           CHROME_BIN: /usr/bin/google-chrome
         run: |
           python scripts/verify-deployed-frontend.py
+          node scripts/verify-deployed-future-data.cjs
           node scripts/tests/kronos-future-live-browser.cjs /tmp/future-update-live
           node -e 'const r=require("/tmp/future-update-live/results.json");if(!r.source?.fresh||r.images?.length!==4)throw Error("Latest stock and index images did not complete; old-model blocking alone is not recovery");'
       - uses: actions/upload-artifact@v4
