@@ -1,0 +1,38 @@
+name: V8.7.3 actual stock and market preview
+on:
+  push:
+    branches: ['feat/future-shares-v873']
+    paths: ['kronos-future-report-v1.js', 'kronos-future-shares-v873.js', 'scripts/tests/future-shares-v873-preview.cjs', '.github/workflows/future-shares-v873-preview.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 42575040043
+          name: future-v873-frozen-baselines
+          path: /tmp/future-v873-frozen
+      - env:
+          CHROME_BIN: /usr/bin/google-chrome
+        run: node scripts/tests/future-shares-v873-preview.cjs /tmp/future-v873-preview
+      - name: Export two preview images for the review workspace
+        run: |
+          node - <<'NODE'
+          const fs=require('fs'),path=require('path'),root='/tmp/future-v873-preview';for(const f of fs.readdirSync(root).filter(f=>f.endsWith('.png')&&!f.includes('浮水印')))console.log('V873_PREVIEW_PNG '+JSON.stringify({file:f,base64:fs.readFileSync(path.join(root,f)).toString('base64')}));
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: future-v873-preview
+          path: /tmp/future-v873-preview
