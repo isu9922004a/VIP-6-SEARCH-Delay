@@ -348,7 +348,7 @@ function view(a,{includeWave=true}={}){
 }
 function lines(a){
  const v=view(a);
- return [globalThis.ShitouReleaseV50?.displayRelease||'石頭少爺 V8.7.3｜四策略研究',`${a.name}（${a.code}）｜${a.date||'日期待確認'}`,`【現況】${v.stage}`,...[...v.summary,...v.details].map(f=>`【${f.title}】${f.value}`),'原榜分數、資格與排序保留；本區僅提供研究摘要。'];
+ return [globalThis.ShitouReleaseV50?.displayRelease||'石頭少爺 V8.8｜四策略研究',`${a.name}（${a.code}）｜${a.date||'日期待確認'}`,`【現況】${v.stage}`,...[...v.summary,...v.details].map(f=>`【${f.title}】${f.value}`),'原榜分數、資格與排序保留；本區僅提供研究摘要。'];
 }
 function text(a){return lines(a).join('\n');}
 function wrap(ctx,s,width){const out=[];for(const p of String(s).split('\n')){let row='';for(const token of p.match(/[A-Za-z0-9][A-Za-z0-9._/%+\-]*[，。！？；：、）】」』]*|[\s\S][，。！？；：、）】」』]*/g)||[]){
@@ -356,7 +356,7 @@ function wrap(ctx,s,width){const out=[];for(const p of String(s).split('\n')){le
  if(row&&ctx.measureText(row+token).width>width){out.push(row);row=token;}else row+=token;
  }out.push(row);}return out;}
 function roundRectPath(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
-function pages(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouReleaseV50?.displayCode||'V8.7.3',watermark=false,stockMetrics=null,stockMode=!!stockMetrics,detail=false,iphoneFullScreen=false}={}){
+function pages(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouReleaseV50?.displayCode||'V8.8',watermark=false,stockMetrics=null,stockMode=!!stockMetrics,detail=false,iphoneFullScreen=false}={}){
  const W=1284,H=2778,M=54,FIELD_FONT=56,FIELD_LINE=77,LABEL_FONT=40,MAX_BOTTOM=2430;
  const ctx=doc.createElement('canvas').getContext('2d');
  if(!ctx)throw Error('Canvas 2D unavailable');

@@ -20,7 +20,7 @@ function compactFifth(a,g){const s=g.sections[4],f=s.forecast||{},p=root.ShitouO
   {text:'依據：'+proof},
   {text:`站不回觀察價或續跌，${bear?'勿急著搶反彈或只因模型偏空追空':'勿因模型偏多而貿然進場'}；跳空重算價位與風險，已持股者按原計畫。`}
  ]};}
-function pages(a,report,{doc,displayCode='V8.7.3',wrap,watermark=false,stockMode=false}){
+function pages(a,report,{doc,displayCode='V8.8',wrap,watermark=false,stockMode=false}){
  const guide=report.actionGuide,canvas=doc.createElement('canvas');let H=MIN_H;canvas.width=W;canvas.height=H;const ctx=canvas.getContext('2d'),compact=compactFifth(a,guide),trace=[];
  const font=(size,bold=false)=>{ctx.font=`${bold?750:600} ${size}px "Microsoft JhengHei","Segoe UI Emoji",sans-serif`;};
  const measure=(text,width,size,bold=false)=>{font(size,bold);return wrap(ctx,String(text),width);};

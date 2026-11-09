@@ -90,7 +90,7 @@ jobs:
           node - <<'NODE'
           const fs=require('fs'),r=JSON.parse(fs.readFileSync('/tmp/future-classification-live/results.json'));
           if(!r.source?.fresh||r.images?.length!==4)throw Error('Current model images did not complete');
-          for(const report of r.images){if(report.audit.version!=='KRONOS_FUTURE_REPORT_V873_3'||!report.audit.logicalTexts.some(s=>s.includes('本次分類範圍固定為')))throw Error('New explanation not deployed');}
+          for(const report of r.images){if(report.audit.version!=='KRONOS_FUTURE_REPORT_V88_1'||!report.audit.logicalTexts.some(s=>s.includes('本次分類範圍固定為')))throw Error('New explanation not deployed');}
           NODE
       - uses: actions/upload-artifact@v4
         if: always()

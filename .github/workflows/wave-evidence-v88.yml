@@ -1,0 +1,117 @@
+name: Validate and deploy V8.8 wave evidence
+on:
+  workflow_dispatch:
+  push:
+    branches: ['feat/wave-evidence-20261110', 'main']
+    paths: ['elliott-wave-*.js', 'kronos-future-*.js', 'version-v50.js', 'research-validation-v1.js', 'scripts/tests/wave-*.cjs', '.github/workflows/wave-evidence-v88.yml']
+concurrency:
+  group: wave-evidence-v88-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - run: npm test
+      - run: npm run test:contract
+      - run: node scripts/wave-pit-study.cjs
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CHROME_BIN: /usr/bin/google-chrome
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - run: npm ci
+      - name: Install CJK fonts
+        timeout-minutes: 3
+        run: |
+          sudo apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 update -qq
+          sudo apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 install -y fonts-noto-cjk
+      - run: npm run test:elliott-browser -- /tmp/wave-v88-elliott
+      - run: npm run test:browser -- /tmp/wave-v88-browser
+      - run: node scripts/tests/wave-postclose-browser.cjs /tmp/wave-v88-postclose
+      - run: node scripts/tests/kronos-future-browser.cjs /tmp/wave-v88-future
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: wave-v88-local-images-and-tests
+          path: /tmp/wave-v88-*
+  universe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix: {shard: [0, 1, 2, 3]}
+    env:
+      CHROME_BIN: /usr/bin/google-chrome
+      POSTCLOSE_SHARD: ${{ matrix.shard }}
+      POSTCLOSE_SHARDS: '4'
+      POSTCLOSE_SKIP_DRS: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - run: npm ci
+      - name: Install CJK fonts
+        timeout-minutes: 3
+        run: |
+          sudo apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 update -qq
+          sudo apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 install -y fonts-noto-cjk
+      - run: node scripts/tests/wave-postclose-universe-browser.cjs /tmp/wave-v88-universe
+      - name: Freeze previous future renderer and verify every actual model PNG
+        env:
+          CLASSIFICATION_SHARD: ${{ matrix.shard }}
+          CLASSIFICATION_SHARDS: '4'
+          CLASSIFICATION_BASELINE: /tmp/wave-v88-future-baseline.js
+        run: |
+          git fetch --depth=1 origin b2dfc0bf99a2b7d6db5639f60c26cc3e2d34281e
+          git show b2dfc0bf99a2b7d6db5639f60c26cc3e2d34281e:kronos-future-report-v1.js > /tmp/wave-v88-future-baseline.js
+          node scripts/tests/kronos-future-classification-browser.cjs /tmp/wave-v88-future-universe
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: wave-v88-universe-${{ matrix.shard }}
+          path: |
+            /tmp/wave-v88-universe/results.json
+            /tmp/wave-v88-future-universe/audit-*.json
+            /tmp/wave-v88-future-universe/review
+  deploy:
+    needs: [unit, browser, universe]
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/deploy-data-pages.yml
+    with:
+      artifact-name: wave-v88-pages
+  live:
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CHROME_BIN: /usr/bin/google-chrome
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: main}
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - run: npm ci
+      - name: Install CJK fonts
+        timeout-minutes: 3
+        run: |
+          sudo apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 update -qq
+          sudo apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 install -y fonts-noto-cjk
+      - run: python scripts/verify-deployed-frontend.py
+      - run: node scripts/tests/kronos-future-live-browser.cjs /tmp/wave-v88-live-future
+      - run: node scripts/tests/market-actions-top-live-browser.cjs /tmp/wave-v88-live-market
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: wave-v88-production-evidence
+          path: /tmp/wave-v88-live-*

@@ -17,6 +17,7 @@ const selected=all.filter((_,i)=>i%shards===shard);fs.mkdirSync(out,{recursive:t
    for(const watermarked of [false,true]){const c=ShitouKronosFutureReport.render(source,forecast,{watermarked}),a=JSON.parse(c.dataset.futureReportAudit),text=a.logicalTexts.join('\n');
     if(c.width!==1284||c.height!==2778||!a.noClipping||!a.noOverlap||!a.noCardOverflow||!a.noTextOverlap)throw Error('Canvas/text bounds');
     if(JSON.stringify(a.baseline)!==JSON.stringify(original.baseline)||JSON.stringify(a.shares)!==JSON.stringify(original.shares))throw Error('Original numbers, labels or statistics changed');
+    if(JSON.stringify(a.horizonDistributions.rows.map(r=>[r.horizon,r.date,r.p10,r.median,r.p90]))!==JSON.stringify([1,3,5,20].map(h=>({h,b:a.model.bands[h-1]})).map(({h,b})=>[h,b.date,b.p10,b.median,b.p90])))throw Error('Wrong horizon distribution');
     if(first&&JSON.stringify(first.logicalTexts)!==JSON.stringify(a.logicalTexts))throw Error('Watermark changed the explanation');
     if(/預覽|尚未上線|說明預覽/.test(text))throw Error('Preview label shipped');
     if(a.shares.state==='READY'){const n=v=>a.kind==='market'?v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):v.toFixed(2),lo=n(a.shares.band.lower),hi=n(a.shares.band.upper),unit=a.shares.instrument.unit;
@@ -26,7 +27,8 @@ const selected=all.filter((_,i)=>i%shards===shard);fs.mkdirSync(out,{recursive:t
      if(!a.logicalTexts.includes('明天收盤：'+a.shares.rows[0].denominator+'種模擬中，有'+a.shares.rows[0].counts[1]+'種在範圍內；三排共用此範圍。'))throw Error('Missing actual-sample beginner explanation');
      for(const row of a.shares.rows)if(row.counts.reduce((x,y)=>x+y,0)!==row.denominator||row.displayUnits.reduce((x,y)=>x+y,0)!==1000)throw Error('Invalid share counts');
     }
-    if(!watermarked){const p=old.getContext('2d').getImageData(0,465,1284,1075).data,q=c.getContext('2d').getImageData(0,465,1284,1075).data;for(let i=0;i<p.length;i++)if(p[i]!==q[i])throw Error('Chart pixels changed');first=a;}
+    // Plot, axes and date labels remain byte-identical; the new per-horizon captions start at y=1488.
+    if(!watermarked){const p=old.getContext('2d').getImageData(0,465,1284,1013).data,q=c.getContext('2d').getImageData(0,465,1284,1013).data;for(let i=0;i<p.length;i++)if(p[i]!==q[i])throw Error('Chart pixels changed');first=a;}
     images.push({watermarked,png:c.toDataURL('image/png')});c.width=c.height=1;
    }
    old.width=old.height=1;if(sourceBefore!==JSON.stringify(source)||modelBefore!==JSON.stringify(forecast))throw Error('Input mutated');return {state:first.shares.state==='READY'?'COMPLETE':'STATISTICS_LIMITED',reason:first.shares.reason||null,images,shares:first.shares};
