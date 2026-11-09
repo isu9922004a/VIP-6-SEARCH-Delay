@@ -38,7 +38,13 @@ function validate(input,dir,shards=16){
  if(!Object.keys(instruments).length)throw Error('沒有通過核對的20日模型結果');
  return {schema:'shitou-kronos-future-catalog-v1',asOf:input.date,targetDates:input.targetDates,identity:input.identity,generatedAt:new Date().toISOString(),instruments,unavailable,sourceCount:input.jobs.size+Object.keys(input.unavailable).length};
 }
-function plan(input,dir){try{const c=read(path.join(dir,'manifest.json'));return c.identity!==input.identity||[...input.jobs.keys()].some(code=>!c.instruments[code]&&!c.unavailable[code]);}catch{return true;}}
+function plan(input,dir){try{
+ const c=read(path.join(dir,'manifest.json'));if(c.schema!=='shitou-kronos-future-catalog-v1'||c.identity!==input.identity||c.asOf!==input.date)return true;
+ for(const code of input.jobs.keys()){const entry=c.instruments?.[code];if(!entry){if(!c.unavailable?.[code])return true;continue;}
+  const relative=code==='TAIEX'?'TAIEX.json':'stocks/'+code+'.json';if(entry.path!==relative||sha(fs.readFileSync(path.join(dir,relative)))!==entry.sha256)return true;
+ }return false;
+ }catch{return true;}}
+
 function main(root=path.resolve(__dirname,'..'),args=process.argv.slice(2)){
  const input=inputs(root,args[3]||null),dir=path.join(root,'data/kronos-future');
  if(args[0]==='plan'){const needed=plan(input,dir);console.log(JSON.stringify({needed,date:input.date,stocks:input.jobs.size,samples:150,days:20}));if(process.env.GITHUB_OUTPUT)fs.appendFileSync(process.env.GITHUB_OUTPUT,`needed=${needed}\nidentity=${input.identity}\n`);return;}

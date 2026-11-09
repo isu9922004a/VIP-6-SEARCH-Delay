@@ -4,9 +4,15 @@
 const VERSION='KRONOS_FUTURE_CORE_1',HORIZON=20,MODEL='NeoQuasar/Kronos-small',REVISION='901c26c1332695a2a8f243eb2f37243a37bea320',TOKENIZER='0e0117387f39004a9016484a186a908917e22426',CODE='67b630e67f6a18c9e9be918d9b4337c960db1e9a';
 const positive=x=>Number.isFinite(x)&&x>0,iso=d=>/^\d{4}-\d{2}-\d{2}$/.test(d||''),hex=s=>typeof s==='string'&&/^[a-f0-9]{64}$/.test(s),bad=reason=>({state:'UNAVAILABLE',reason,modelRun:false,tradeAllowed:false});
 function displaySignature(paths,candle){let h=2166136261;const view=new DataView(new ArrayBuffer(8));const add=value=>{view.setFloat64(0,value,false);for(let i=0;i<8;i++)h=Math.imul(h^view.getUint8(i),16777619);};for(const p of paths)for(const v of p)add(v);add(candle?candle.sampleIndex:-1);if(candle)for(const b of candle.bars)for(const k of ['open','high','low','close'])add(b[k]);return(h>>>0).toString(16).padStart(8,'0');}
-function executionVerified(f){const e=f?.execution;return !!(e&&e.schema==='kronos-future-execution-v1'&&e.backend==='PYTORCH_KRONOS'&&e.simulation===false&&e.completed===true&&e.mode==='LIVE_POST_CLOSE_20D'&&e.inferenceAlgorithm==='CAUSAL_KV_CACHE_1'&&e.horizonTradingDays===HORIZON&&e.sampleCountPerRow===1&&e.sampleCount===f.sampleCount&&e.symbol===f.symbol&&e.asOf===f.asOf&&e.inputLastDate===f.asOf&&e.historySignature===f.historySignature&&JSON.stringify(e.targetDates)===JSON.stringify(f.targetDates)&&e.inputCutoff===f.asOf+'T13:30:00+08:00'&&positive(e.runtimeSeconds)&&e.completedAt===f.generatedAt&&e.startedAt<=e.completedAt&&['modelWeightsSHA256','tokenizerWeightsSHA256','runtimeSHA256','baseRuntimeSHA256','upstreamCodeSHA256','inputTensorSHA256','rawSamplesSHA256'].every(k=>hex(e[k]))&&e.displaySignature===displaySignature(f.closePaths,f.candlePath));}
+function executionVerified(f){try{const e=f?.execution;return !!(e&&e.schema==='kronos-future-execution-v1'&&e.backend==='PYTORCH_KRONOS'&&e.simulation===false&&e.completed===true&&e.mode==='LIVE_POST_CLOSE_20D'&&e.inferenceAlgorithm==='CAUSAL_KV_CACHE_1'&&e.horizonTradingDays===HORIZON&&e.sampleCountPerRow===1&&e.sampleCount===f.sampleCount&&e.symbol===f.symbol&&e.asOf===f.asOf&&e.inputLastDate===f.asOf&&e.historySignature===f.historySignature&&JSON.stringify(e.targetDates)===JSON.stringify(f.targetDates)&&e.inputCutoff===f.asOf+'T13:30:00+08:00'&&positive(e.runtimeSeconds)&&e.completedAt===f.generatedAt&&e.startedAt<=e.completedAt&&['modelWeightsSHA256','tokenizerWeightsSHA256','runtimeSHA256','baseRuntimeSHA256','upstreamCodeSHA256','inputTensorSHA256','rawSamplesSHA256'].every(k=>hex(e[k]))&&e.displaySignature===displaySignature(f.closePaths,f.candlePath));}catch{return false;}}
+function isFresh(f,now=new Date()){
+ if(f?.kind!=='KRONOS_FUTURE_INFERENCE'||!iso(f.targetDates?.[0]))return false;
+ const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'}).formatToParts(now),get=k=>parts.find(p=>p.type===k)?.value,today=[get('year'),get('month'),get('day')].join('-');
+ return f.targetDates[0]>today||f.targetDates[0]===today&&Number(get('hour'))<15;
+}
 function evaluate(source,f){
- if(!source||source.completed!==true||source.corporateActionUnresolved||source.priceAdjustmentConsistent===false||source.priceAdjustment?.verified!==true)return bad('完成日K或價格基準尚未核對，先看原行情報告。');
+ if(!source||source.completed!==true||source.isComplete===false||source.dailySeriesMeta?.onlyCompletedBars===false||source.corporateActionUnresolved||source.priceAdjustmentConsistent===false||source.priceAdjustment?.verified!==true)return bad('完成日K或價格基準尚未核對，先看原行情報告。');
+ if(source.volumeSourceConflict||source.sourceVolumeWarning||source.dailyBasisV2?.sourceVolumeWarning||source.volumeScopeAudit?.formalVolumeEligible===false)return bad('成交量來源或統計範圍尚未核對，先不使用這份模型。');
  const original=source.canonicalBars||source.dailySeries||[],window=F.inputWindow(original),bars=window.bars,date=source.closeDate,code=String(source.stock||source.code||source.instrumentType||''),market=source.instrumentType==='TAIEX'?'TWSE_INDEX':source.market;
  if(bars.length<63)return bad('目前只有'+bars.length+'根可用日K，20日模型至少需要63根；不跨越價格斷點補值。');
  if(!iso(date)||bars.at(-1).date!==date||bars.at(-1).close!==source.close||bars.some((b,i)=>!F.validBar(b)||!iso(b.date)||i&&b.date<=bars[i-1].date))return bad('行情日期、價格或日K順序未對齊。');
@@ -27,5 +33,5 @@ function evaluate(source,f){
   reading:['說明：藍線是多種收盤走法的中間位置，不是保證路線。','深色帶涵蓋中間一半走法，淺色帶涵蓋中間八成走法。',c?'框線K棒只是一條完整模擬路徑，不代表每天會照著走。':'本批沒有完整合格的模擬K棒，先看藍線與色帶。','色帶越寬，表示走法越分散；50%／80%不是實際勝率。'],
   researchOnly:true,performanceValidated:false,tradeAllowed:false,affectsOriginalEligibility:false,affectsOriginalRanking:false,personalStop:null,identity:[code,market,date,f.historySignature,f.execution.displaySignature].join('|')};
 }
-return Object.freeze({VERSION,HORIZON,evaluate,executionVerified,displaySignature});
+return Object.freeze({VERSION,HORIZON,evaluate,isFresh,executionVerified,displaySignature});
 });
