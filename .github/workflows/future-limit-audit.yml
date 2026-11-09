@@ -1,0 +1,48 @@
+name: Audit future report limitations with original model outputs
+on:
+  workflow_dispatch:
+  push:
+    branches: ['feat/future-limit-audit']
+    paths: ['scripts/audit-future-limitations.cjs', 'scripts/diagnose-future-output.py', '.github/workflows/future-limit-audit.yml']
+permissions:
+  contents: read
+jobs:
+  history:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node scripts/audit-future-limitations.cjs /tmp/future-limit-audit
+      - uses: actions/upload-artifact@v4
+        with:
+          name: future-limit-history
+          path: /tmp/future-limit-audit
+  model:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: kronos/requirements.txt
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: kronos-weights-${{ hashFiles('kronos/model-lock.json') }}
+      - run: |
+          python -m pip install torch==2.7.1 --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install -r kronos/requirements.txt
+      - run: python scripts/diagnose-future-output.py --shard ${{ matrix.shard }} --shards 2 --output /tmp/future-output-diagnosis
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: future-output-diagnosis-${{ matrix.shard }}
+          path: /tmp/future-output-diagnosis
