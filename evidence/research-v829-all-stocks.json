@@ -67127,7 +67127,7 @@
       "name": "共信-KY",
       "market": "TPEX",
       "status": "PENDING",
-      "reason": "資料不足｜共用日K：Worker已宣告股數，但日K與同日市場成交量無法交叉驗證 6617",
+      "reason": "資料不足｜共用日K：成交量與成交金額統計範圍未確認，隔離正式量價判斷 6617",
       "officialReason": null
     },
     {
