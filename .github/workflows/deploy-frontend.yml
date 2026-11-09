@@ -72,7 +72,7 @@ jobs:
   live:
     needs: deploy
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
         with:
@@ -87,6 +87,7 @@ jobs:
           RESEARCH_BROWSER_ORIGIN: https://isu9922004a.github.io/VIP-6-SEARCH-Delay/
         run: |
           python3 scripts/verify-deployed-frontend.py
+          node scripts/tests/kronos-future-live-browser.cjs /tmp/v864-browser/future-live
           npm run test:engulf-range-browser
           npm run test:elliott-browser -- /tmp/v864-browser/elliott
           node scripts/tests/wave-postclose-browser.cjs /tmp/v864-browser/postclose
