@@ -1182,7 +1182,7 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
 </style>
 <link rel="stylesheet" href="./filter-unified-mobile-v1.css?v=V8.7.2">
 <link rel="stylesheet" href="./research-v83/workspace-v831.css?v=V8.7.2-ACTIONSFIRST1">
-<link rel="stylesheet" href="./ui-polish-v1.css?v=V8.7.2">
+<link rel="stylesheet" href="./ui-polish-v1.css?v=V8.7.3-MARKETTOP1">
 </head>
 
 <body class="ui-polish-v1">
@@ -1443,6 +1443,17 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
   </section>
 
   <section id="marketResult" class="market-result">
+    <section id="marketReportActionsPanel" class="panel market-report-actions-top" aria-label="大盤圖片報告與複製">
+      <div class="section-title">🖼️ 大盤圖片報告與複製</div>
+      <details class="help-fold"><summary>查看報告與資料說明</summary><div class="hint">直接使用大盤 Worker 回傳的正式 A／B／C 與生命週期；戰報以「市場環境 → 對個股操作影響 → 關鍵關卡 → 下一交易日劇本」呈現，不再一比一套用個股模板。</div></details>
+      <div class="market-copy-actions">
+<div class="ui-export-group"><p class="ui-export-label">文字報告</p><button id="copyMarketReportButton" class="copy-btn" type="button" onclick="copyMarketReport()">📋 一鍵複製大盤戰報</button></div>
+<div class="ui-export-group"><p class="ui-export-label">圖片報告</p><button id="generateMarketImageButton" class="copy-btn image-btn" type="button" onclick="generateMarketInfographicV3328(false)">🖼️ 生成大盤分析圖</button></div>
+<div class="ui-export-group"><p class="ui-export-label">浮水印版（防盜）</p><button id="generateMarketWatermarkImageButton" class="copy-btn watermark-image-btn" type="button" onclick="generateMarketInfographicV3328(true)">🛡️ 生成大盤分析圖（防盜浮水印）</button></div>
+</div>
+      <div id="marketCopyMessage" class="copy-message"></div>
+    </section>
+
     <section class="panel">
       <div class="market-hero">
         <div>
@@ -1512,16 +1523,7 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
       </div>
     </section>
 
-    <section class="panel">
-      <div class="section-title">③ 📋 一鍵複製大盤加權指數分析戰報</div>
-      <div class="hint">直接使用大盤 Worker 回傳的正式 A／B／C 與生命週期；戰報以「市場環境 → 對個股操作影響 → 關鍵關卡 → 下一交易日劇本」呈現，不再一比一套用個股模板。</div>
-      <div class="market-copy-actions">
-<div class="ui-export-group"><p class="ui-export-label">文字報告</p><button id="copyMarketReportButton" class="copy-btn" type="button" onclick="copyMarketReport()">📋 一鍵複製大盤戰報</button></div>
-<div class="ui-export-group"><p class="ui-export-label">圖片報告</p><button id="generateMarketImageButton" class="copy-btn image-btn" type="button" onclick="generateMarketInfographicV3328(false)">🖼️ 生成大盤分析圖</button></div>
-<div class="ui-export-group"><p class="ui-export-label">浮水印版（防盜）</p><button id="generateMarketWatermarkImageButton" class="copy-btn watermark-image-btn" type="button" onclick="generateMarketInfographicV3328(true)">🛡️ 生成大盤分析圖（防盜浮水印）</button></div>
-</div>
-      <div id="marketCopyMessage" class="copy-message"></div>
-    </section>
+
   </section>
 
   <section id="result" class="result">

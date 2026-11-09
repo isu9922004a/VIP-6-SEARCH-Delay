@@ -204,6 +204,29 @@ html body.ui-polish-v1 :is(.momentum-image-actions, .daytrade-image-actions, .st
 html body.ui-polish-v1 .ui-export-group { display: grid; gap: var(--space-8); min-width: 0; }
 html body.ui-polish-v1 .ui-export-label { color: var(--gray-600); font-size: var(--font-12); font-weight: 700; margin: 0; }
 html body.ui-polish-v1 .ui-export-group button { width: 100%; margin: 0; font-size: var(--font-14); }
+/* Market exports sit before the index details; only the original controls move. */
+html body.ui-polish-v1 #marketReportActionsPanel .market-copy-actions {
+  display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: var(--space-8);
+}
+html body.ui-polish-v1 #marketReportActionsPanel .ui-export-group { display: contents; }
+html body.ui-polish-v1 #marketReportActionsPanel .ui-export-label { display: none; }
+/* Existing export modules set display:grid inline. Override only that layout so
+   their original buttons can share this toolbar's two columns and keep bindings. */
+html body.ui-polish-v1 #marketReportActionsPanel :is([data-wave-export-kind="market"], [data-future-export-kind="market"]) { display: contents !important; }
+html body.ui-polish-v1 #marketReportActionsPanel button { min-width: 0; max-width: 100%; width: 100%; box-sizing: border-box; min-height: 48px; font-size: var(--font-16); white-space: normal; overflow-wrap: anywhere; }
+html body.ui-polish-v1 #marketReportActionsPanel :is(strong, [role="status"]) { grid-column: 1 / -1; }
+html body.ui-polish-v1 #marketReportActionsPanel #generateMarketImageButton { order: 1; }
+html body.ui-polish-v1 #marketReportActionsPanel #generateMarketWatermarkImageButton { order: 2; }
+html body.ui-polish-v1 #marketReportActionsPanel [data-wave-export-kind] strong { order: 10; margin-top: var(--space-8); }
+html body.ui-polish-v1 #marketReportActionsPanel #waveMarketCleanButton { order: 11; }
+html body.ui-polish-v1 #marketReportActionsPanel #waveMarketMarkedButton { order: 12; }
+html body.ui-polish-v1 #marketReportActionsPanel #waveMarketStatus { order: 13; }
+html body.ui-polish-v1 #marketReportActionsPanel [data-future-export-kind] strong { order: 20; margin-top: var(--space-8); }
+html body.ui-polish-v1 #marketReportActionsPanel #futureMarketCleanButton { order: 21; }
+html body.ui-polish-v1 #marketReportActionsPanel #futureMarketMarkedButton { order: 22; }
+html body.ui-polish-v1 #marketReportActionsPanel #futureMarketStatus { order: 23; }
+html body.ui-polish-v1 #marketReportActionsPanel #copyMarketReportButton { order: 30; grid-column: 1 / -1; }
+html body.ui-polish-v1 #marketReportActionsPanel label:has([data-elliott-toggle]) { order: 40; grid-column: 1 / -1; }
 html body.ui-polish-v1 .stock-image-generator-grid { gap: var(--space-16); }
 html body.ui-polish-v1 .stock-image-generator-card { border-radius: var(--radius-12); background: var(--gray-50); border-color: var(--info-border); }
 html body.ui-polish-v1 .stock-image-generator-title { color: var(--gray-900); font-size: var(--font-16); }

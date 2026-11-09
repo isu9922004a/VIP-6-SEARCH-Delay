@@ -1,0 +1,39 @@
+name: Deploy and verify market image buttons at the top
+on:
+  workflow_dispatch:
+  push:
+    branches: ['main']
+    paths: ['.github/workflows/market-actions-top-deploy.yml']
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy-data-pages.yml
+    with:
+      artifact-name: market-actions-top-pages
+  verify:
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Verify the published UI and real image buttons
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+        run: |
+          python scripts/verify-deployed-frontend.py
+          node scripts/tests/market-actions-top-live-browser.cjs /tmp/market-actions-top-live
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: market-actions-top-live
+          path: /tmp/market-actions-top-live
