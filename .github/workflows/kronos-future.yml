@@ -12,7 +12,8 @@ permissions:
   contents: read
 concurrency:
   group: kronos-future-20d
-  cancel-in-progress: false
+  # A new preview revision supersedes old preview inference; main finishes its current batch.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 jobs:
   sources:
     runs-on: ubuntu-latest
