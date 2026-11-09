@@ -36,7 +36,7 @@ function waveReading(m,quoteVerified=false){
  let phase='目前看不出第幾浪，先看真實價格。',waveTitle='這次為什麼沒有浪號？',waveLines;
  if(!ready){phase='資料還不夠，這次先不標第幾浪。';waveLines=['完整行情尚未核對，這次先不標浪號。','先處理圖區說明的資料限制，再重新判讀。','不使用猜測或缺漏的價格補畫波浪。'];}
  else if(primary&&end){
-  waveTitle='圖上的浪號，怎麼看？';const up=primary.direction==='UP',number=/^[1-5]$/.test(end.label),map=up?{'1':'可能在第1段上漲，還要等後續確認。','2':'可能在第2段回落，要再看能否守住。','3':'可能在第3段上漲，還要等價格確認。','4':'可能在第4段整理，還不能直接當成買點。','5':'可能在第5段上漲後段，先留意追高風險。'}:{'1':'可能在第1段下跌，先看能否停住。','2':'下跌後出現反彈，仍要等轉強確認。','3':'可能在第3段下跌，還不能確定已經跌完。','4':'可能在第4段反彈，還要看能否漲回關卡。','5':'可能在下跌後段，止跌仍要等價格確認。'};
+  waveTitle='圖上的浪號，怎麼看？';const up=primary.direction==='UP',number=/^[1-5]$/.test(end.label),map=up?{'1':'可能在第1段上漲，還要等後續確認。','2':'可能在第2段回落，要再看能否守住。','3':'可能在第3段上漲，還要等價格確認。','4':'可能在第4段整理，還不能直接當成買點。','5':end.confirmedAt?'第5段高點已確認，後續走法仍要再觀察。':'第5段上漲仍在形成，不能先認定已到末端。'}:{'1':'可能在第1段下跌，先看能否停住。','2':'下跌後出現反彈，仍要等轉強確認。','3':'可能在第3段下跌，還不能確定已經跌完。','4':'可能在第4段反彈，還要看能否漲回關卡。','5':end.confirmedAt?'第5段低點已確認，是否止跌仍要看價格。':'第5段下跌仍在形成，不能先認定已跌完。'};
   phase=number?map[end.label]:'可能在'+end.label+'段修正，仍要等價格確認。';
   if(m.currentDirection?.legDirection!=='UNKNOWN'&&m.currentDirection?.recentDirection!=='FLAT'&&m.currentDirection?.recentDirection!==m.currentDirection?.legDirection)phase=m.wavePosition.replace(/^波浪位置：/,'').replace(/浪/g,'段').replace(/候選/g,'仍在觀察');
   const definitions=up?{'1':'先上漲','2':'中間回落','3':'接續上漲','4':'再次整理','5':'上漲後段'}:{'1':'先下跌','2':'中間反彈','3':'接續下跌','4':'再次反彈','5':'下跌後段'};

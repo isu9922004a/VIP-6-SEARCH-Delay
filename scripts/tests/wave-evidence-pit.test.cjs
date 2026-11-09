@@ -44,6 +44,9 @@ test('forming fifth never declares divergence; confirmed comparison is reproduci
  const ready=E.evaluate(F.report(99,{completeFive:true})),d=ready.primary.evidence.divergence;assert.ok(d.availableAt<=ready.date);assert.equal(d.third.macdPeak,ready.perWaveEvidence['3'].macdPeak);assert.equal(d.fifth.macdPeak,ready.perWaveEvidence['5'].macdPeak);
  const p=structuredClone(ready.points);p[5].price=p[3].price;assert.equal(E.divergenceEvidence(p,ready.perWaveEvidence,'UP',ready.date).state,'NOT_APPLICABLE');
 });
+test('a fifth still forming below wave three is pending, not a prematurely declared truncated fifth',()=>{
+ const R=require('../../elliott-wave-report-v1');for(const down of [false,true]){const source=F.report(90,{down}),a=E.evaluate(source);assert.equal(a.points.at(-1).label,'5');assert.equal(a.points.at(-1).confirmedAt,null);assert.equal(a.primary.rules.wave3NotShortest,'PENDING');assert.equal(a.primary.evidence.divergence.state,'PENDING');assert.ok((a.points[5].price-a.points[3].price)*(down?-1:1)<0);assert.match(R.buildModel(source).beginner.phase,/仍在形成/);}
+});
 test('Bollinger uses population sigma (20,2); zero-width percentB is unavailable and upper band is no sell signal',()=>{
  const b=F.rows(30).map(z=>({...z,close:100})),flat=E.bollinger(b);assert.equal(flat.middle,100);assert.equal(flat.bandwidth,0);assert.equal(flat.percentB,null);
  b.at(-1).close=120;const bb=E.bollinger(b),values=b.slice(-20).map(z=>z.close),mean=U.mean(values),sigma=Math.sqrt(U.mean(values.map(v=>(v-mean)**2)));assert.equal(bb.upper,mean+2*sigma);assert.equal(bb.lower,mean-2*sigma);

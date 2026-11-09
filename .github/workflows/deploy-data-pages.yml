@@ -15,7 +15,9 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # Full-market Pages synchronization can exceed ten minutes. Do not cancel a
+    # healthy syncing_files deployment before the deploy action can finish.
+    timeout-minutes: 25
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url || steps.deployment_retry.outputs.page_url || steps.deployment_final.outputs.page_url }}
@@ -41,6 +43,7 @@ jobs:
         continue-on-error: true
         with:
           artifact_name: ${{ inputs.artifact-name }}
+          timeout: 1200000
 
       - name: Wait for a concurrent Pages deployment before retrying
         if: steps.deployment.outcome == 'failure'
@@ -51,6 +54,7 @@ jobs:
         continue-on-error: true
         with:
           artifact_name: ${{ inputs.artifact-name }}
+          timeout: 1200000
       - name: Allow a pending Pages deployment to finish
         if: steps.deployment_retry.outcome == 'failure'
         run: sleep 40
@@ -59,3 +63,4 @@ jobs:
         if: steps.deployment_retry.outcome == 'failure'
         with:
           artifact_name: ${{ inputs.artifact-name }}
+          timeout: 1200000
