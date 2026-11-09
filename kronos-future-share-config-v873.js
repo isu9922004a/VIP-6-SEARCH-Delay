@@ -1,0 +1,2 @@
+/* Presentation-only distribution settings. Does not control trade eligibility. */
+(function(root){'use strict';const value=Object.freeze({classificationVersion:'FUTURE_CLOSE_SHARE_1',lookbackTR:14,bandMultiplier:1,horizons:Object.freeze([1,5,20]),percentageDecimals:1,distributionWarningShare:.80,distributionWarningMinStocks:30});if(typeof module==='object'&&module.exports)module.exports=value;else root.ShitouFutureShareConfig=value;})(globalThis);
