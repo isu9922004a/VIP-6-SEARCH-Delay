@@ -98,6 +98,13 @@ jobs:
       pages: write
       id-token: write
     uses: ./.github/workflows/kronos-forecast.yml
+  future-forecast:
+    needs: update-market-snapshot
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/kronos-future.yml
   deploy:
     needs: update-market-snapshot
     permissions:

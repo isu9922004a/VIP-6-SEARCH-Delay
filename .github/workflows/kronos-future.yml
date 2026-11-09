@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches: ['main', 'feat/future-kronos-v872']
-    paths: ['kronos/future.py', 'kronos/future_cache.py', 'kronos-future-core-v1.js', 'scripts/kronos-future-automation.cjs', '.github/workflows/kronos-future.yml']
+    paths: ['kronos/future.py', 'kronos/future_cache.py', 'kronos-future-core-v1.js', 'scripts/kronos-future-automation.cjs', 'scripts/kronos-future-update-status.cjs', 'scripts/retry-transient.cjs', '.github/workflows/kronos-future.yml']
   schedule:
     - cron: '57 9-23 * * 1-5'
     - cron: '57 23 * * 0-4'
@@ -17,20 +17,25 @@ concurrency:
 jobs:
   sources:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
+    permissions:
+      contents: write
     outputs:
       needed: ${{ steps.plan.outputs.needed }}
       identity: ${{ steps.plan.outputs.identity }}
+      date: ${{ steps.plan.outputs.date }}
       revision: ${{ steps.revision.outputs.sha }}
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.ref_name }}
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
       - run: node scripts/verify-market-snapshot.mjs
-      - run: node scripts/update-kronos-sources.cjs
+      - run: node --test scripts/tests/kronos-future-update.test.cjs
+      - run: node scripts/retry-transient.cjs node scripts/update-kronos-sources.cjs
       - id: revision
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - id: plan
@@ -42,6 +47,29 @@ jobs:
           path: |
             data/index/TAIEX.json
             data/kronos/calendar.json
+      - name: Record this update without replacing the verified model catalog
+        env:
+          FUTURE_DATE: ${{ steps.plan.outputs.date }}
+          EXPECTED_IDENTITY: ${{ steps.plan.outputs.identity }}
+          FUTURE_NEEDED: ${{ steps.plan.outputs.needed }}
+        run: |
+          if [ "$FUTURE_NEEDED" = true ]; then
+            node scripts/kronos-future-update-status.cjs RUNNING INFERENCE
+          else
+            node scripts/kronos-future-update-status.cjs READY VERIFIED_CACHE
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/kronos-future/update-status.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'data: record 20-session model update status'
+          # Frozen index/calendar were uploaded above; do not publish or rebase local fetches.
+          git restore -- data/index/TAIEX.json data/kronos/calendar.json
+          for attempt in 1 2 3; do
+            git pull --rebase origin "$GITHUB_REF_NAME"
+            if git push origin "HEAD:$GITHUB_REF_NAME"; then exit 0; fi
+          done
+          exit 1
   infer:
     needs: sources
     if: needs.sources.outputs.needed == 'true'
@@ -69,10 +97,15 @@ jobs:
         with:
           path: ~/.cache/huggingface
           key: kronos-weights-${{ hashFiles('kronos/model-lock.json') }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
       - run: |
-          python -m pip install torch==2.7.1 --index-url https://download.pytorch.org/whl/cpu
-          python -m pip install -r kronos/requirements.txt
-      - run: python kronos/future.py --all --index --samples 150 --batch-size 30 --threads 2 --shards 16 --shard ${{ matrix.shard }}
+          node scripts/retry-transient.cjs python -m pip install torch==2.7.1 --index-url https://download.pytorch.org/whl/cpu
+          node scripts/retry-transient.cjs python -m pip install -r kronos/requirements.txt
+      - name: Isolate this shard from previously published model files
+        run: rm -rf data/kronos-future
+      - run: node scripts/retry-transient.cjs python kronos/future.py --all --index --samples 150 --batch-size 30 --threads 2 --shards 16 --shard ${{ matrix.shard }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -108,6 +141,7 @@ jobs:
         run: |
           node scripts/verify-market-snapshot.mjs
           node scripts/kronos-future-automation.cjs publish /tmp/future-results "$EXPECTED_IDENTITY" /tmp/future-inputs
+          node scripts/kronos-future-update-status.cjs READY VERIFIED_PUBLICATION
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add data/kronos-future
@@ -120,9 +154,19 @@ jobs:
             if git push origin "HEAD:$GITHUB_REF_NAME"; then exit 0; fi
           done
           exit 1
+  deploy-status:
+    needs: sources
+    if: github.ref == 'refs/heads/main' && needs.sources.outputs.needed == 'true'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy-data-pages.yml
+    with:
+      artifact-name: future-update-status-pages
   deploy:
-    needs: publish
-    if: github.ref == 'refs/heads/main'
+    needs: [sources, publish]
+    if: always() && github.ref == 'refs/heads/main' && needs.sources.result == 'success' && (needs.publish.result == 'success' || needs.sources.outputs.needed == 'false')
     permissions:
       contents: read
       pages: write
@@ -130,3 +174,70 @@ jobs:
     uses: ./.github/workflows/deploy-data-pages.yml
     with:
       artifact-name: future-kronos-pages
+  failure-status:
+    needs: [sources, infer, publish, deploy]
+    if: always() && github.ref == 'refs/heads/main' && (needs.sources.result == 'failure' || needs.infer.result == 'failure' || needs.publish.result == 'failure' || needs.deploy.result == 'failure')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Publish a truthful failure status, never old predictions
+        env:
+          FUTURE_DATE: ${{ needs.sources.outputs.date }}
+          EXPECTED_IDENTITY: ${{ needs.sources.outputs.identity }}
+          FAILURE_STAGE: ${{ needs.sources.result == 'failure' && 'SOURCES' || needs.infer.result == 'failure' && 'INFERENCE' || needs.publish.result == 'failure' && 'VERIFICATION' || 'DEPLOYMENT' }}
+        run: |
+          node scripts/kronos-future-update-status.cjs FAILED "$FAILURE_STAGE"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/kronos-future/update-status.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'data: record failed 20-session update for recovery'
+          for attempt in 1 2 3; do
+            git pull --rebase origin main
+            if git push origin HEAD:main; then exit 0; fi
+          done
+          exit 1
+  deploy-failure-status:
+    needs: failure-status
+    if: always() && needs.failure-status.result == 'success'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy-data-pages.yml
+    with:
+      artifact-name: future-failure-status-pages
+  verify-live:
+    needs: deploy
+    if: always() && needs.deploy.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Verify deployed files and real stock and index image buttons
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+        run: |
+          python scripts/verify-deployed-frontend.py
+          node scripts/tests/kronos-future-live-browser.cjs /tmp/future-update-live
+          node -e 'const r=require("/tmp/future-update-live/results.json");if(!r.source?.fresh||r.images?.length!==4)throw Error("Latest stock and index images did not complete; old-model blocking alone is not recovery");'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: future-update-live
+          path: /tmp/future-update-live

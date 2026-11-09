@@ -47,7 +47,7 @@ function plan(input,dir){try{
 
 function main(root=path.resolve(__dirname,'..'),args=process.argv.slice(2)){
  const input=inputs(root,args[3]||null),dir=path.join(root,'data/kronos-future');
- if(args[0]==='plan'){const needed=plan(input,dir);console.log(JSON.stringify({needed,date:input.date,stocks:input.jobs.size,samples:150,days:20}));if(process.env.GITHUB_OUTPUT)fs.appendFileSync(process.env.GITHUB_OUTPUT,`needed=${needed}\nidentity=${input.identity}\n`);return;}
+ if(args[0]==='plan'){const needed=plan(input,dir);console.log(JSON.stringify({needed,date:input.date,stocks:input.jobs.size,samples:150,days:20}));if(process.env.GITHUB_OUTPUT)fs.appendFileSync(process.env.GITHUB_OUTPUT,`needed=${needed}\nidentity=${input.identity}\ndate=${input.date}\n`);return;}
  if(args[0]!=='publish'||args[2]!==input.identity)throw Error('20日模型來源已變更，等待下一輪重算');
  const catalog=validate(input,args[1]);fs.rmSync(dir,{recursive:true,force:true});fs.mkdirSync(path.join(dir,'stocks'),{recursive:true});
  for(const entry of Object.values(catalog.instruments))fs.copyFileSync(path.join(args[1],entry.path),path.join(dir,entry.path));
