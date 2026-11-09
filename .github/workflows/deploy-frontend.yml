@@ -34,6 +34,7 @@ jobs:
           npm test
           npm run test:contract
           npm run research:validate
+      # Browser release expectations are read from version-v50.js.
       - name: Verify current-release structure, mobile layout and complete PNG variants
         env:
           CHROME_BIN: /usr/bin/google-chrome

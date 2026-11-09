@@ -1,11 +1,13 @@
 'use strict';
+const RELEASE=require('../../version-v50').displayCode;
+
 const fs=require('fs'),path=require('path'),assert=require('node:assert/strict');
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright-core');
 const out=path.resolve(__dirname,'../../evidence/v84-live');fs.mkdirSync(out,{recursive:true});
 (async()=>{const browser=await chromium.launch({executablePath:process.env.CHROME_BIN||'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});const checks=[],errors=[];
 try{const page=await browser.newPage({viewport:{width:428,height:926},isMobile:true,hasTouch:true});page.on('pageerror',e=>errors.push(e.message));
  await page.goto('https://isu9922004a.github.io/VIP-6-SEARCH-Delay/?audit=V8.7.2',{waitUntil:'networkidle',timeout:60000});
- await page.waitForFunction(()=>globalThis.ShitouReleaseV50?.displayCode==='V8.7.3',{},{timeout:15000});
+ await page.waitForFunction(release=>globalThis.ShitouReleaseV50?.displayCode===release,RELEASE,{timeout:15000});
  checks.push({version:await page.evaluate(()=>ShitouReleaseV50.displayCode)});console.log('PASS deployed V8.7.2');
  const assetFailures=await page.evaluate(async()=>{const urls=[...document.querySelectorAll('script[src],link[rel=stylesheet]')].map(e=>e.src||e.href).filter(u=>u.startsWith(location.origin));return (await Promise.all(urls.map(async url=>{try{return {url,status:(await fetch(url)).status};}catch(e){return {url,error:e.message};}}))).filter(r=>r.error||r.status!==200);});assert.deepEqual(assetFailures,[]);
  await page.locator('#stockInput').fill('2313');await page.locator('#searchButton').click();
