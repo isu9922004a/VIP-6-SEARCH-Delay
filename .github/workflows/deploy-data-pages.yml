@@ -28,6 +28,7 @@ jobs:
         run: |
           mkdir -p /tmp/verified-site
           tar --exclude=./.git --exclude=./.github --exclude=./evidence --exclude=./scripts --exclude=./third_party --exclude=./kronos --exclude=./node_modules -cf - . | tar -xf - -C /tmp/verified-site
+          node scripts/prepare-pages-runtime-data.cjs /tmp/verified-site
           test -s /tmp/verified-site/data/kronos/manifest.json
           test -s /tmp/verified-site/data/index/TAIEX.json
           test ! -d /tmp/verified-site/kronos
