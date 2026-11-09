@@ -1,0 +1,54 @@
+name: Recover verified future forecast publication
+on:
+  push:
+    branches: ['feat/future-kronos-v872']
+    paths: ['.github/workflows/kronos-future-recover.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: future-publication-recovery
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 42562827270
+          name: future-inputs
+          path: /tmp/future-inputs
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 42562827270
+          pattern: future-results-*
+          path: /tmp/future-results
+          merge-multiple: true
+      - name: Reverify all original samples before publication
+        env:
+          EXPECTED_IDENTITY: 798fce8e4845c39356161a765b02a65c1968a7e07537201f05585a249b13dac3
+        run: |
+          node scripts/verify-market-snapshot.mjs
+          node scripts/kronos-future-automation.cjs publish /tmp/future-results "$EXPECTED_IDENTITY" /tmp/future-inputs
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/kronos-future
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'data: verified real 20-session Kronos forecasts'
+          for attempt in 1 2 3; do
+            git pull --rebase origin "$GITHUB_REF_NAME"
+            node -e 'const A=require("./scripts/kronos-future-automation.cjs");if(A.inputs(process.cwd(),"/tmp/future-inputs").identity!==process.env.EXPECTED_IDENTITY)throw Error("Inputs changed");'
+            if git push origin "HEAD:$GITHUB_REF_NAME"; then exit 0; fi
+          done
+          exit 1

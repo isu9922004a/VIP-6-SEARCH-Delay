@@ -115,9 +115,7 @@ jobs:
           for attempt in 1 2 3; do
             git pull --rebase origin "$GITHUB_REF_NAME"
             node scripts/verify-market-snapshot.mjs
-            EXPECTED_IDENTITY="$EXPECTED_IDENTITY" node - <<'NODE'
-            const A=require('./scripts/kronos-future-automation.cjs');if(A.inputs(process.cwd(),'/tmp/future-inputs').identity!==process.env.EXPECTED_IDENTITY)throw Error('Future inputs changed before publish');
-            NODE
+            node -e 'const A=require("./scripts/kronos-future-automation.cjs");if(A.inputs(process.cwd(),"/tmp/future-inputs").identity!==process.env.EXPECTED_IDENTITY)throw Error("Future inputs changed before publish");'
             if git push origin "HEAD:$GITHUB_REF_NAME"; then exit 0; fi
           done
           exit 1
