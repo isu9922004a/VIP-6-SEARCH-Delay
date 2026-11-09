@@ -1,7 +1,7 @@
 /* One-click 20-session PNGs. Independent of one-day forecasts and wave/entry decisions. */
 (function(root,factory){const node=typeof module==='object'&&module.exports,api=factory(root,node?require('./kronos-future-core-v1'):root.ShitouKronosFutureCore,node?require('./elliott-wave-visual-v1'):root.ShitouElliottVisual,node?require('./kronos-future-shares-v873'):root.ShitouFutureShares);if(node)module.exports=api;else root.ShitouKronosFutureReport=api;})(globalThis,function(root,C,V,S){
 'use strict';
-const VERSION='KRONOS_FUTURE_REPORT_V873_1',W=1284,H=2778,P=V.PHONE_PALETTE,models=new Map();let opening=false,revision=0,active=null;
+const VERSION='KRONOS_FUTURE_REPORT_V873_2',W=1284,H=2778,P=V.PHONE_PALETTE,models=new Map();let opening=false,revision=0,active=null;
 const money=x=>Number.isFinite(x)?x.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'未取得';
 function render(source,forecast,{document:doc=root.document,watermarked=false}={}){
  const m=C.evaluate(source,forecast);if(m.state!=='READY')throw Error(m.reason);const shares=S.evaluate(source,forecast);if(shares.state==='UNSUPPORTED')throw Error(shares.reason);const market=shares.instrument.type==='index',canvas=doc.createElement('canvas');canvas.width=W;canvas.height=H;const x=canvas.getContext('2d'),boxes=[],texts=[],logicalTexts=[];
@@ -33,23 +33,26 @@ function render(source,forecast,{document:doc=root.document,watermarked=false}={
  const last=m.bands.at(-1),metricStrings=[],metrics=[['第20日中間價格',[last.median]],['中間一半走法',[last.p25,last.p75]],['中間八成走法',[last.p10,last.p90]]];
  boxes.push({name:'metrics',top:1628,bottom:1774});metrics.forEach(([label,values],i)=>{const xx=40+i*408;x.fillStyle='#fff';x.strokeStyle=P.border;x.lineWidth=2;x.beginPath();x.roundRect(xx,1628,388,146,22);x.fill();x.stroke();text(label,xx+20,1639,348,28,P.muted,true);if(values.length===1){const value=money(values[0]);metricStrings.push(value);text(value,xx+20,1692,348,44,P.blue,true);}else{const lower=money(values[0])+'～',upper=money(values[1]);metricStrings.push(lower,upper);text(lower,xx+20,1677,348,40,P.blue,true);text(upper,xx+20,1722,348,40,P.blue,true);}});
  text('以上是第20日的模擬收盤分布，不是買價、停損或保證目標。',44,1787,1196,28,P.muted);
- card('shares',1826,432);heading('電腦模擬：接下來可能怎麼走？',1844);
+ card('shares',1826,594);heading('模型模擬占比｜三排百分比，告訴你模擬分歧有多大',1842);
  if(shares.state==='READY'){
-  text('模型模擬占比｜本批共 '+shares.sampleCount+' 種走法',74,1895,1136,28,P.muted);
-  const bandNumber=v=>market?money(v):v.toFixed(2);text('盤整分類：'+bandNumber(shares.band.lower)+'～'+bandNumber(shares.band.upper)+' '+shares.instrument.unit+'｜非買價／停損／目標價',74,1931,1136,32,P.ink,true);
-  const columns=[74,370,650,930],widths=[260,240,240,240],labels=['時間（交易日）','偏多占比','盤整占比','偏空占比'],colors=[P.muted,P.bull,P.muted,P.bear];labels.forEach((label,i)=>text(label,columns[i],1975,widths[i],30,colors[i],true));
-  shares.rows.forEach((row,i)=>{const y=2020+i*53;text(row.horizon===1?'下一交易日':'第'+row.horizon+'交易日',columns[0],y+4,widths[0],36,P.ink,true);row.displayPercent.forEach((p,j)=>text(p,columns[j+1],y,widths[j+1],44,colors[j+1],true));});
-  text('這是在多種模擬中，各種結果出現的比例，不是市場實際會發生的保證。',74,2184,1136,28,P.muted);
-  text('盤整只看那天收盤靠近原價，不代表中途沒有大漲大跌。',74,2222,1136,28,P.muted);
+  const bandNumber=v=>market?money(v):v.toFixed(2),lower=bandNumber(shares.band.lower),upper=bandNumber(shares.band.upper),unit=shares.instrument.unit;
+  text('本次分類範圍固定為 '+lower+'～'+upper+' '+unit,74,1898,1136,36,P.ink,true);
+  text('高於'+upper+unit+'，列為「偏多」。',74,1946,1136,36,P.bull,true);
+  text('介於'+lower+'～'+upper+unit+'（含上下緣），列為「盤整」。',74,1994,1136,36,P.ink,true);
+  text('低於'+lower+unit+'，列為「偏空」。',74,2042,1136,36,P.bear,true);
+  text('三個時間點共用此範圍；下一份盤後報告依新資料重算。',74,2090,1136,28,P.muted);
+  const columns=[74,370,650,930],widths=[260,240,240,240],labels=['時間（交易日）','偏多占比','盤整占比','偏空占比'],colors=[P.muted,P.bull,P.muted,P.bear];labels.forEach((label,i)=>text(label,columns[i],2132,widths[i],30,colors[i],true));
+  shares.rows.forEach((row,i)=>{const y=2174+i*52;text(row.horizon===1?'下一交易日':'第'+row.horizon+'交易日',columns[0],y+4,widths[0],36,P.ink,true);row.displayPercent.forEach((p,j)=>text(p,columns[j+1],y,widths[j+1],44,colors[j+1],true));});
+  text('分類非買價／停損／目標價；占比非實際勝率或市場保證。',74,2340,1136,28,P.muted);
+  text('盤整只看那天收盤，不代表中途沒有大漲大跌。',74,2380,1136,28,P.muted);
  }else{
-  body(['新增占比尚未完成：'+shares.reason,'本次不填入百分比，原有模型走法與價位保持原樣。','請先核對資料，再重新產生統計。'],1920,2240);
+  body(['新增占比尚未完成：'+shares.reason,'本次不填入百分比，原有模型走法與價位保持原樣。','請先核對資料，再重新產生統計。'],1920,2400);
  }
- card('planning',2274,316,'#f7fbff');heading('第20日怎麼看？接著怎麼做？',2290);
+ card('planning',2432,240,'#f7fbff');heading('第20日怎麼看？接著怎麼做？',2448);
  const interpretation=shares.state==='READY'?shares.rows.at(-1).line:'新增占比仍待核對，先看原報告條件。';
- body(market?[interpretation,'還沒買：先看大盤，再核對個股自己的條件。','已持有：依所持個股原停損與部位計畫處理。','大盤的模擬占比，不等於每一檔股票的漲跌機率。']:[interpretation,'還沒買：先看原報告條件；模擬附近的價格不是買價。','已持有：原停損與部位計畫優先，模型只作輔助。','模型看漲也須核對原條件，不把模擬價當買進通知。'],2350,2580);
- text('1284×2778｜'+(root.ShitouReleaseV50?.displayCode||'V8.7.3')+'｜Kronos真實20日取樣',44,2591,1196,30,P.muted);
- text(market?'指數依官方點位；取樣尚未證明能預測未來漲跌。':'歷史採未還原價，公司行動未完整核對，模型僅供研究。',44,2650,1196,30,P.amber,true);
- text('模擬占比不是實際勝率；進場與持股仍依原條件及風險計畫。',44,2708,1196,29,P.teal,true);
+ body(market?[interpretation,'還沒買：先看大盤，再核對個股自己的條件。','已持有：依個股原停損與部位計畫處理。']:[interpretation,'還沒買：核對原買進條件；模擬價不是買價。','已持有：原停損與部位計畫優先，模型僅作輔助。'],2507,2672);
+ text('1284×2778｜'+(root.ShitouReleaseV50?.displayCode||'V8.7.3')+'｜Kronos真實20日取樣',44,2686,1196,28,P.muted);
+ text(market?'大盤占比不等於每一檔股票的漲跌機率；取樣未證實能預測漲跌。':'歷史未還原價，公司行動未完整核對；模型僅供研究。',44,2730,1196,28,P.amber,true);
  const noClipping=texts.every(t=>t.left>=0&&t.right<=W&&t.top>=0&&t.bottom<=H),noOverlap=boxes.every((b,i)=>!i||b.top>=boxes[i-1].bottom),noCardOverflow=boxes.every(b=>texts.filter(t=>t.top>=b.top&&t.top<b.bottom).every(t=>t.bottom<=b.bottom));if(!noClipping||!noOverlap||!noCardOverflow)throw Error('未來K棒圖片超出手機安全範圍');
  if(watermarked)(root.ShitouReportWatermark||(typeof require==='function'?require('./report-watermark-v84'):null)).apply(canvas,market?'market':'stock');
  const baseline={raw:{date:m.date,close:m.close,median:last.median,p25:last.p25,p75:last.p75,p10:last.p10,p90:last.p90,sampleCount:m.sampleCount,targetDates:m.targetDates,historySignature:forecast.historySignature,displaySignature:forecast.execution.displaySignature},display:{header:texts.find(t=>t.top===196)?.text,prices:metricStrings,axes:texts.filter(t=>t.left===44&&t.size===21).map(t=>t.text),dates:texts.filter(t=>[1413,1451].includes(t.top)&&/^\d{4}-\d{2}-\d{2}$/.test(t.text)).map(t=>t.text)}};

@@ -1,0 +1,90 @@
+name: Validate and deploy future report classification explanations
+on:
+  workflow_dispatch:
+  push:
+    branches: ['main', 'feat/future-classification-v873']
+    paths: ['kronos-future-report-v1.js', 'scripts/tests/kronos-future-classification-browser.cjs', '.github/workflows/future-classification-deploy.yml']
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm test
+      - run: npm run test:contract
+  reports:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Freeze the previous deployed renderer
+        run: git show 14c494308588956e4285848c01dc8ec2a6632974:kronos-future-report-v1.js > /tmp/future-classification-baseline.js
+      - name: Every current instrument, unchanged chart and numbers, both actual PNG files
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+          CLASSIFICATION_BASELINE: /tmp/future-classification-baseline.js
+          CLASSIFICATION_SHARD: ${{ matrix.shard }}
+          CLASSIFICATION_SHARDS: '4'
+        run: node scripts/tests/kronos-future-classification-browser.cjs /tmp/future-classification
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: future-classification-${{ matrix.shard }}
+          path: |
+            /tmp/future-classification/audit-*.json
+            /tmp/future-classification/review
+  deploy:
+    needs: [unit, reports]
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/deploy-data-pages.yml
+    with:
+      artifact-name: future-classification-pages
+  live:
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Verify deployed assets and current stock/index normal and watermarked downloads
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+        run: |
+          python scripts/verify-deployed-frontend.py
+          node scripts/tests/kronos-future-live-browser.cjs /tmp/future-classification-live
+          node scripts/tests/market-actions-top-live-browser.cjs /tmp/future-classification-market
+          node - <<'NODE'
+          const fs=require('fs'),r=JSON.parse(fs.readFileSync('/tmp/future-classification-live/results.json'));
+          if(!r.source?.fresh||r.images?.length!==4)throw Error('Current model images did not complete');
+          for(const report of r.images){if(report.audit.version!=='KRONOS_FUTURE_REPORT_V873_2'||!report.audit.logicalTexts.some(s=>s.includes('本次分類範圍固定為')))throw Error('New explanation not deployed');}
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: future-classification-live
+          path: |
+            /tmp/future-classification-live
+            /tmp/future-classification-market
