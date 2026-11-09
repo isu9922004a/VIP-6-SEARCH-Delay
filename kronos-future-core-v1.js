@@ -33,5 +33,10 @@ function evaluate(source,f){
   reading:['說明：藍線是多種收盤走法的中間位置，不是保證路線。','深色帶涵蓋中間一半走法，淺色帶涵蓋中間八成走法。',c?'框線K棒只是一條完整模擬路徑，不代表每天會照著走。':'本批沒有完整合格的模擬K棒，先看藍線與色帶。','色帶越寬，表示走法越分散；50%／80%不是實際勝率。'],
   researchOnly:true,performanceValidated:false,tradeAllowed:false,affectsOriginalEligibility:false,affectsOriginalRanking:false,personalStop:null,identity:[code,market,date,f.historySignature,f.execution.displaySignature].join('|')};
 }
-return Object.freeze({VERSION,HORIZON,evaluate,isFresh,executionVerified,displaySignature});
+function horizonDistributions(source,forecast){
+ const m=evaluate(source,forecast);
+ if(m.state!=='READY')return {state:'UNAVAILABLE',reason:'未取得隔日模型區間：'+m.reason,rows:[],tradeAllowed:false};
+ return {state:'READY',code:m.code,date:m.date,sampleCount:m.sampleCount,identity:m.identity,sourceHistorySignature:forecast.historySignature,rawSamplesSHA256:forecast.execution.rawSamplesSHA256,rows:[1,3,5,20].map(horizon=>({horizon,...m.bands[horizon-1],kind:'SIMULATED_CLOSE_DISTRIBUTION',intradayRange:false,profitRange:false})),tradeAllowed:false,researchOnly:true,performanceValidated:false};
+}
+return Object.freeze({VERSION,HORIZON,evaluate,isFresh,executionVerified,displaySignature,horizonDistributions});
 });

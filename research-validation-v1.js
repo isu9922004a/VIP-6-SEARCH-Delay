@@ -70,5 +70,38 @@ function walkForwardEngulfRange(snapshots,{trainEnd,testStart}={}){
  const test=snapshots.filter(s=>s.date>=testStart),train=snapshots.filter(s=>s.date<=trainEnd);
  return {status:test.length?'RESEARCH_ONLY':'INSUFFICIENT_DATA',trainEnd,testStart,trainCount:train.length,testCount:test.length,results:test.map(compareEngulfRange),performanceProven:false,notes:'固定參數，無訓練或尋優；跨日依賴、存活者母體及原始快照須由來源證明。'};
 }
-return Object.freeze({GROUPS,FOUNDATION_GROUPS,DUAL_GROUPS,ENGULF_RANGE_GROUPS,engulfRangeGates,compareEngulfRange,walkForwardEngulfRange,wilson,outcome,metrics,compare,walkForward});
+const WAVE_STUDY_CONFIG=Object.freeze({version:'WAVE_PIT_STUDY_1',engineVersion:'ELLIOTT_VISUAL_RESEARCH_3',confirmationKeys:['VOLUME','MACD','MA5_10'],minTestDates:30});
+function waveEvents(snapshot){
+ validateSnapshot(snapshot);
+ if(!/^[a-f0-9]{64}$/.test(snapshot.sourceSnapshotHash||''))throw Error('缺少已凍結來源快照 SHA-256，不能建立可追溯事件');
+ return snapshot.analyses.map(a=>{
+  const wave=a.elliottWave||a.unifiedResearch?.elliottWave;
+  if(!wave||wave.version!==WAVE_STUDY_CONFIG.engineVersion||wave.code!==a.code||wave.date!==snapshot.date)throw Error('波浪研究與同股同日快照不一致');
+  const pointSets=[wave.points||[],...(wave.historicalCounts||[]).map(h=>h.points)];
+  if(pointSets.flat().some(p=>!p.availableAt||p.availableAt>snapshot.date||p.confirmedAt&&p.confirmedAt>snapshot.date))throw Error('事件引用尚不可得的轉折');
+  return {signalDate:snapshot.date,signalAt:snapshot.signalAt,availableAt:snapshot.inputsAvailableAt,sourceSnapshotHash:snapshot.sourceSnapshotHash,waveScale:wave.selectedScale||null,rules:wave.primary?.rules||null,evidence:wave.primary?.evidence||wave.confirmationEvidence||null,modelRevision:wave.version,code:a.code,market:a.market||null,state:wave.state,outcome:null,researchOnly:true,performanceValidated:false,affectsOriginalEligibility:false};
+ });
+}
+function compareWaveEvidence(snapshot){
+ const events=waveEvents(snapshot),map=new Map(snapshot.analyses.map(a=>[a.code,a])),labels=new Map(),missing=[];
+ for(const a of snapshot.analyses){const rows=(snapshot.outcomes||[]).filter(r=>r.code===a.code),v=rows.length===1?outcome(rows[0],a):null;if(v)labels.set(a.code,v);else missing.push(a.code);}
+ const confirmed=code=>{const a=map.get(code),w=a.elliottWave||a.unifiedResearch?.elliottWave,facts=w.confirmationEvidence?.facts||[];return WAVE_STUDY_CONFIG.confirmationKeys.every(key=>facts.some(f=>f.key===key&&f.category==='SUPPORTING'));};
+ const groups={BASELINE:[...snapshot.baselineCodes],WITH_WAVE_BACKGROUND:[...snapshot.baselineCodes],WITH_RESEARCH_CONFIRMATION:snapshot.baselineCodes.filter(confirmed)},results={};
+ for(const [name,codes] of Object.entries(groups)){
+  const observed=codes.map(c=>labels.get(c)).filter(Boolean),realized={1:[],3:[],5:[]};
+  for(const code of codes){const rows=(snapshot.outcomes||[]).filter(r=>r.code===code),row=rows.length===1?rows[0]:null,e=row?.execution;
+   if(!labels.has(code)||e?.date!==row.expectedTradingDates?.[0]||!(e.price>=row.futureBars?.[0]?.low&&e.price<=row.futureBars?.[0]?.high)||e?.verified!==true||e.filled!==true||e.roundTripCostsVerified!==true||!['buyFeePct','sellFeePct','taxPct','slippagePct'].every(k=>Number.isFinite(e[k])&&e[k]>=0)||!(e.price>0))continue;
+   for(const horizon of [1,3,5]){const exits=(e.exits||[]).filter(x=>x.horizon===horizon&&x.verified===true&&x.filled===true&&x.date===row.expectedTradingDates?.[horizon-1]&&x.date>=e.date&&x.price>=row.futureBars?.[horizon-1]?.low&&x.price<=row.futureBars?.[horizon-1]?.high&&x.price>0);if(exits.length===1)realized[horizon].push(pct(exits[0].price,e.price)-e.buyFeePct-e.sellFeePct-e.taxPct-e.slippagePct);}
+  }
+  results[name]={codes,observed:observed.length,missingOutcomes:codes.filter(c=>!labels.has(c)),researchFilterOnly:name==='WITH_RESEARCH_CONFIRMATION',horizons:Object.fromEntries([1,3,5].map(h=>{const values=observed.map(r=>r['return'+h]).filter(Number.isFinite),net=realized[h];return [h,{closeObservationCount:values.length,closeReturnPct:mean(values),positiveCloseShare:values.length?values.filter(v=>v>0).length/values.length:null,descriptiveWilsonCI:wilson(values.filter(v=>v>0).length,values.length),verifiedRealizedTradeCount:net.length,netRealizedReturnPct:mean(net),netExpectationPct:mean(net),realizedStatus:net.length?'RESEARCH_ONLY':'NEEDS_VERIFIED_FILLS_EXITS_AND_COSTS'}];})),mfe:mean(observed.map(r=>r.mfe).filter(Number.isFinite)),mae:mean(observed.map(r=>r.mae).filter(Number.isFinite)),falseBreakoutShare:observed.some(r=>r.falseBreakout!==null)?observed.filter(r=>r.falseBreakout===true).length/observed.filter(r=>r.falseBreakout!==null).length:null,portfolioDrawdown:null,portfolioDrawdownStatus:'NEEDS_VERIFIED_PORTFOLIO_AND_EQUITY',performanceValidated:false};
+ }
+ return {date:snapshot.date,config:WAVE_STUDY_CONFIG,status:missing.length?'INCOMPLETE_OUTCOMES':'RESEARCH_ONLY',events:events.map(e=>({...e,outcome:labels.get(e.code)||null})),groups:results,performanceValidated:false,notes:['基準＋波浪背景不改交易，使用完全相同正式榜；量價確認組只作事後分群研究。','收盤漲跌、盤中觸價與已實現交易報酬分開；沒有已核對進出場及雙邊成本，不算交易獲利。','Wilson僅為描述性區間，未處理同股與跨日相依；須日期區塊樣本外驗證，不能宣稱提高勝率。']};
+}
+function walkForwardWave(snapshots,{trainEnd,testStart}={}){
+ if(!trainEnd||!testStart||trainEnd>=testStart)throw Error('訓練與樣本外區間重疊');
+ const pairs=new Set(),ids=new Set();for(const s of snapshots){validateSnapshot(s);if(ids.has(s.snapshotId))throw Error('重複快照');ids.add(s.snapshotId);for(const a of s.analyses){const key=s.date+':'+a.code;if(pairs.has(key))throw Error('同股同日重複計數');pairs.add(key);}}
+ const test=snapshots.filter(s=>s.date>=testStart),results=test.map(compareWaveEvidence),days=new Set(test.map(s=>s.date)).size;
+ return {config:WAVE_STUDY_CONFIG,trainEnd,testStart,trainCount:snapshots.filter(s=>s.date<=trainEnd).length,testCount:test.length,testDates:days,status:days<WAVE_STUDY_CONFIG.minTestDates?'INSUFFICIENT_OUT_OF_SAMPLE_DATA':'RESEARCH_ONLY',results,performanceValidated:false,notes:'固定門檻，不訓練模型或用測試集尋優。歷史母體、資料可得時間、成交及成本均須獨立核對；特殊浪型仍不支援。'};
+}
+return Object.freeze({WAVE_STUDY_CONFIG,waveEvents,compareWaveEvidence,walkForwardWave,GROUPS,FOUNDATION_GROUPS,DUAL_GROUPS,ENGULF_RANGE_GROUPS,engulfRangeGates,compareEngulfRange,walkForwardEngulfRange,wilson,outcome,metrics,compare,walkForward});
 });

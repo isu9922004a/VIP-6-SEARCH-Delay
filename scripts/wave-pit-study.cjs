@@ -1,0 +1,6 @@
+'use strict';
+// Input must be recorded PIT snapshots. Current history is never relabelled as an old published signal.
+const fs=require('node:fs'),path=require('node:path'),V=require('../research-validation-v1');
+const [input,outArg,trainEnd,testStart]=process.argv.slice(2),out=path.resolve(outArg||'/tmp/wave-pit-study');fs.mkdirSync(out,{recursive:true});
+if(!input){const result={status:'NEEDS_VERIFIED_PIT_SNAPSHOTS',performanceValidated:false,config:V.WAVE_STUDY_CONFIG,reason:'目前完成行情不能證明過去當日的正式榜、發布時間、成交與成本。請提供已凍結的PIT快照；不以今天的完整浪型回填歷史買點。',required:['sourceSnapshotHash','pointInTimeVerified','historicalUniverseVerified','signalAt','inputsAvailableAt','baselineCodes','analyses','outcomes','trainEnd','testStart']};fs.writeFileSync(path.join(out,'status.json'),JSON.stringify(result,null,2));console.log(JSON.stringify(result));}
+else{const snapshots=JSON.parse(fs.readFileSync(input,'utf8')),result=V.walkForwardWave(snapshots,{trainEnd,testStart}),events=result.results.flatMap(r=>r.events);fs.writeFileSync(path.join(out,'study.json'),JSON.stringify(result,null,2));fs.writeFileSync(path.join(out,'events.jsonl'),events.map(e=>JSON.stringify(e)).join('\n')+'\n');console.log(JSON.stringify({status:result.status,events:events.length,testDates:result.testDates,performanceValidated:false}));}
