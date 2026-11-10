@@ -1,6 +1,8 @@
 /* Reference professional report. Every value comes from the current stock's existing analysis. */
 (function(root){
 'use strict';
+const Copy=typeof module==='object'&&module.exports?require('./report-beginner-copy-v88.js'):globalThis.ShitouReportCopyV88;
+const explain=value=>Copy?Copy.line(value):String(value??'');
 const W=1284,H=2778,M=26,G=12,I=W-M*2,INK='#233B53',MUTED='#52657C',NAVY='#123E68';
 const tone=Object.freeze({green:'#11834A',red:'#C92D45',orange:'#A45700',blue:'#136CC3',purple:'#7045A5'});
 const price=v=>Number.isFinite(v)?v.toFixed(2)+' 元':'尚未建立';
@@ -127,11 +129,11 @@ function render(report){
  const c=root.document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d'),sections=[],texts=[];
 
  const font=(size,bold=true)=>{x.font=`${bold?800:600} ${size}px "Microsoft JhengHei","Noto Sans TC","Segoe UI Emoji",sans-serif`;x.textBaseline='top';x.textAlign='left';};
- function wrap(value,width,size,bold=true){font(size,bold);const lines=[];for(const p of clean(value).split('\n')){let line='';for(const ch of [...p]){if(line&&x.measureText(line+ch).width>width){lines.push(line);line=ch;}else line+=ch;}lines.push(line);}return lines;}
+ function wrap(value,width,size,bold=true){font(size,bold);const lines=[];for(const p of explain(clean(value)).split('\n')){let line='';for(const ch of [...p]){if(line&&x.measureText(line+ch).width>width){lines.push(line);line=ch;}else line+=ch;}lines.push(line);}return lines;}
  function text(value,px,py,w,h,{size=25,min=17,color=INK,bold=true,line=1.3}={}){
   let rows,n=size;for(;n>=min;n--){rows=wrap(value,w,n,bold);if(rows.length*n*line<=h)break;}
   if(n<min)throw Error('專業報告文字超出安全範圍：'+clean(value).slice(0,35));
-  font(n,bold);x.fillStyle=color;rows.forEach((r,i)=>x.fillText(r,px,py+i*n*line));texts.push(clean(value));
+  font(n,bold);x.fillStyle=color;rows.forEach((r,i)=>x.fillText(r,px,py+i*n*line));texts.push(explain(clean(value)));
  }
  function panel(px,py,w,h,fill='#fff',border='#cfdeeb'){x.beginPath();x.roundRect(px,py,w,h,12);x.fillStyle=fill;x.fill();x.strokeStyle=border;x.lineWidth=1.5;x.stroke();}
  function section(id,y,h){sections.push({id,top:y,bottom:y+h});}

@@ -1,6 +1,8 @@
 /* Independent report: only the complete fifth-section narrative plus stock identity. */
 (function(root,factory){const node=typeof module==='object'&&module.exports,api=factory(root,node?require('../research-report-v1.js'):root.ShitouResearchReport);if(node)module.exports=api;else root.ShitouSimpleStockReport=api;})(globalThis,function(root,R){
 'use strict';
+const Copy=typeof module==='object'&&module.exports?require('../report-beginner-copy-v88.js'):globalThis.ShitouReportCopyV88;
+const explain=value=>Copy?Copy.line(value):String(value??'');
 const TITLE='個股精簡分析',VERSION='V8.8',WATERMARK='石頭少爺台股分析'+VERSION+'版',TOPIC='明天可能怎麼走？該怎麼做？',W=1284,MIN_H=2778,MAX_H=8192;
 const V=typeof module==='object'&&module.exports?require('../elliott-wave-visual-v1.js'):root.ShitouElliottVisual;
 const titleFor=()=>TITLE;
@@ -23,7 +25,7 @@ function page(a,{document:doc=root.document,watermarked=false}={}){const wave=nu
  for(const b of layout.blocks){draw(b.lines,M+padding,y+b.size,b.size,colors[b.tone]||(b.kind==='heading'?colors.muted:b.kind==='warning'?colors.yellow:colors.text),b.bold,b.line);y+=b.height+extraGap;}
  draw([data.version+'｜1/1'],W-M-190,H-111,29,colors.muted,true);
  if(watermarked)(root.ShitouReportWatermark||(typeof require==='function'?require('../report-watermark-v84.js'):null)).apply(canvas,'stock');
- const audit={chart:chartAudit,elliottWave:wave?{headline:wave.headline,clarity:wave.clarity}:null,watermarkStyle:watermarked?'REFERENCE_DIAGONAL_V84':null,title:data.title,watermarked:data.watermarked,topic:TOPIC,width:W,height:H,extendedHeight:H>MIN_H,code:data.code,date:data.date,version:data.version,bodyFont:layout.body,bodyBottom:y,onlyFifthSection:true,completeNarrative:true,sourceBlocks:data.blocks,structureStrength:data.structureStrength,reportObservations:data.reportObservations,modelRun:data.modelRun,sourceState:data.sourceState,noClipping:y<=H-104,topSafeArea:140,bottomSafeArea:104};
+ const audit={wordingVersion:Copy?.VERSION,chart:chartAudit,elliottWave:wave?{headline:wave.headline,clarity:wave.clarity}:null,watermarkStyle:watermarked?'REFERENCE_DIAGONAL_V84':null,title:data.title,watermarked:data.watermarked,topic:TOPIC,width:W,height:H,extendedHeight:H>MIN_H,code:data.code,date:data.date,version:data.version,bodyFont:layout.body,bodyBottom:y,onlyFifthSection:true,completeNarrative:true,sourceBlocks:data.blocks,structureStrength:data.structureStrength,reportObservations:data.reportObservations,modelRun:data.modelRun,sourceState:data.sourceState,noClipping:y<=H-104,topSafeArea:140,bottomSafeArea:104};
  if(!audit.noClipping)throw Error('獨立報告超出安全區，停止匯出。');canvas.dataset.researchAudit=JSON.stringify(audit);return {width:W,height:H,dataset:{researchAudit:JSON.stringify(audit)},renderExportRegion:()=>canvas,toBlob:(cb,type='image/png')=>canvas.toBlob(cb,type)};
 }
 let activeUrl=null,activeImageBlob=null,activeImageFile=null,sharePending=false;

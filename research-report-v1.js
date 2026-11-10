@@ -1,5 +1,7 @@
 (function(r,f){const a=f();if(typeof module==='object'&&module.exports)module.exports=a;else r.ShitouResearchReport=a;})(globalThis,function(){
 'use strict';
+const Copy=typeof module==='object'&&module.exports?require('./report-beginner-copy-v88.js'):globalThis.ShitouReportCopyV88;
+const explain=value=>Copy?Copy.line(value):String(value??'');
 const B=typeof module==='object'&&module.exports?require('./research-beginner-v1.js'):globalThis.ShitouResearchBeginner;
 const D=typeof module==='object'&&module.exports?require('./research-entry-direction-v1.js'):globalThis.ShitouEntryDirection;
 const Z=globalThis.ShitouResearchZhTW||(typeof require==='function'?require('./research-zh-tw-v1.js'):null);
@@ -281,7 +283,7 @@ function conflictSummary(a){
 // Additional indicator studies do not silently override the four-model situation.
 function view(a,{includeWave=true}={}){
  const waveView=globalThis.ShitouElliottVisual,waveFields=includeWave&&waveView?.enabled()?waveView.linesFor(waveView.result(a)).map(value=>({title:'艾略特波浪｜輔助觀察',value})):[];
- const engulfRange=Structure.confirmationView(a.engulfRangeResearch||a.unifiedResearch?.structureContext?.confirmationResearch||a.foundation?.engulfRangeResearch,a);
+ const rawEngulfRange=Structure.confirmationView(a.engulfRangeResearch||a.unifiedResearch?.structureContext?.confirmationResearch||a.foundation?.engulfRangeResearch,a),engulfRange=Copy?{...rawEngulfRange,wordingVersion:Copy.VERSION,fields:rawEngulfRange.fields.map(Copy.field)}:rawEngulfRange;
  const d=a.foundation?.dualScanContext,p=a.foundation?.alertPlan,t=technicalOutlook(a),f=a.features,valid=a.validation?.technicalModelAvailable===true,study=a.indicatorStudy;
  const technicalSummary=[
   {title:'研究重點',value:glanceEvidence(a)},
@@ -351,7 +353,7 @@ function lines(a){
  return [globalThis.ShitouReleaseV50?.displayRelease||'石頭少爺 V8.8｜四策略研究',`${a.name}（${a.code}）｜${a.date||'日期待確認'}`,`【現況】${v.stage}`,...[...v.summary,...v.details].map(f=>`【${f.title}】${f.value}`),'原榜分數、資格與排序保留；本區僅提供研究摘要。'];
 }
 function text(a){return lines(a).join('\n');}
-function wrap(ctx,s,width){const out=[];for(const p of String(s).split('\n')){let row='';for(const token of p.match(/[A-Za-z0-9][A-Za-z0-9._/%+\-]*[，。！？；：、）】」』]*|[\s\S][，。！？；：、）】」』]*/g)||[]){
+function wrap(ctx,s,width){const out=[];for(const p of explain(s).split('\n')){let row='';for(const token of p.match(/[A-Za-z0-9][A-Za-z0-9._/%+\-]*[，。！？；：、）】」』]*|[\s\S][，。！？；：、）】」』]*/g)||[]){
  if(ctx.measureText(token).width>width){for(const ch of token){if(row&&ctx.measureText(row+ch).width>width){out.push(row);row=ch;}else row+=ch;}continue;}
  if(row&&ctx.measureText(row+token).width>width){out.push(row);row=token;}else row+=token;
  }out.push(row);}return out;}
