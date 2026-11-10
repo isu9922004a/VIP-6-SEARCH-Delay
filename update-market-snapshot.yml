@@ -98,7 +98,8 @@ jobs:
           done
           exit 1
   forecast:
-    needs: update-market-snapshot
+    needs: [prepare, update-market-snapshot]
+    if: always() && needs.prepare.result == 'success' && (needs.prepare.outputs.action == 'MODEL' || needs.update-market-snapshot.result == 'success')
     permissions: {contents: write, pages: write, id-token: write}
     uses: ./.github/workflows/kronos-forecast.yml
   future-forecast:
@@ -113,8 +114,8 @@ jobs:
     uses: ./.github/workflows/deploy-data-pages.yml
     with: {artifact-name: market-pages}
   verify:
-    needs: [prepare, update-market-snapshot, future-forecast, deploy]
-    if: always() && needs.prepare.result == 'success' && ((needs.prepare.outputs.action == 'DEPLOY' && needs.deploy.result == 'success') || needs.future-forecast.result == 'success')
+    needs: [prepare, update-market-snapshot, forecast, future-forecast, deploy]
+    if: always() && needs.prepare.result == 'success' && ((needs.prepare.outputs.action == 'DEPLOY' && needs.deploy.result == 'success') || (needs.future-forecast.result == 'success' && needs.forecast.result == 'success'))
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -146,8 +147,8 @@ jobs:
         if: always()
         with: {name: postclose-live-reports, path: '/tmp/postclose-live-*'}
   failure:
-    needs: [prepare, update-market-snapshot, future-forecast, deploy, verify]
-    if: always() && needs.prepare.result == 'success' && (needs.update-market-snapshot.result == 'failure' || needs.future-forecast.result == 'failure' || needs.deploy.result == 'failure' || needs.verify.result == 'failure')
+    needs: [prepare, update-market-snapshot, forecast, future-forecast, deploy, verify]
+    if: always() && needs.prepare.result == 'success' && (needs.update-market-snapshot.result == 'failure' || needs.forecast.result == 'failure' || needs.future-forecast.result == 'failure' || needs.deploy.result == 'failure' || needs.verify.result == 'failure')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

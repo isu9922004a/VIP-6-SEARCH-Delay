@@ -33,14 +33,14 @@ async function running(update,{fetcher=fetch,repository=process.env.GITHUB_REPOS
 }
 async function plan(root,{now=new Date(),fetcher=fetch,online=true}={}){
  const expected=await expectedDate(root,now),market=read(root,'data/market/latest.json'),history=read(root,'data/research/manifest.json'),index=read(root,'data/index/TAIEX.json'),catalog=read(root,'data/kronos-future/manifest.json'),update=read(root,'data/kronos-future/update-status.json');
- let modelNeeded=true;try{modelNeeded=A.plan(A.inputs(root),path.join(root,'data/kronos-future'));}catch{}
+ let modelNeeded=true;try{modelNeeded=A.plan(A.inputs(root),path.join(root,'data/kronos-future'));if(!modelNeeded){const day=require('./kronos-automation.cjs');modelNeeded=day.needsRun(day.inputs(root),path.join(root,'data/kronos'));}}catch{}
  const active=online&&update?.marketDate===expected?await running(update,{fetcher}):false;
  const isPublished=online&&!modelNeeded?await published(root,{fetcher}):false;
  return decide({expected,market,history,index,catalog,modelNeeded,update,active,published:isPublished});
 }
 async function record(root,state,stage){
  const date=await expectedDate(root),catalog=read(root,'data/kronos-future/manifest.json');let identity=null;
- if(state==='READY'){const input=A.inputs(root);if(A.plan(input,path.join(root,'data/kronos-future')))throw Error('未取得本批完整合格模型，不可標完成');identity=input.identity;}
+ if(state==='READY'){const input=A.inputs(root);if(A.plan(input,path.join(root,'data/kronos-future')))throw Error('未取得本批完整合格模型，不可標完成');const day=require('./kronos-automation.cjs');if(day.needsRun(day.inputs(root),path.join(root,'data/kronos')))throw Error('隔日模型尚未完成核對，不可將整批標完成');identity=input.identity;}
  const next=U.build({state,stage,date,identity,catalog,runId:process.env.GITHUB_RUN_ID,runAttempt:process.env.GITHUB_RUN_ATTEMPT,repository:process.env.GITHUB_REPOSITORY}),file=path.join(root,'data/kronos-future/update-status.json'),old=read(root,'data/kronos-future/update-status.json');
  if(state==='FAILED'&&old?.state==='FAILED'&&old.runId===next.runId&&old.runAttempt===next.runAttempt&&old.marketDate===date)return false;
  if(!U.mayReplace(old,next))return false;
