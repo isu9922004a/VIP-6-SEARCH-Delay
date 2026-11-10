@@ -11,7 +11,11 @@ function mayReplace(old,next){
  if(old?.schema!==SCHEMA)return true;
  if(old.marketDate!==next.marketDate)return old.marketDate<next.marketDate;
  if(BigInt(old.runId)!==BigInt(next.runId))return BigInt(old.runId)<BigInt(next.runId);
- return old.runAttempt<=next.runAttempt;
+ if(old.runAttempt!==next.runAttempt)return old.runAttempt<next.runAttempt;
+ if(old.state==='READY'&&old.stage==='VERIFIED_LIVE'&&next.state!=='READY')return false;
+ const rank={SOURCES:1,INFERENCE:2,VERIFIED_CACHE:3,VERIFIED_PUBLICATION:4,DEPLOYMENT:5,VERIFIED_LIVE:6};
+ if(old.state==='RUNNING'&&next.state==='RUNNING'&&(rank[old.stage]||0)>(rank[next.stage]||0))return false;
+ return true;
 }
 function main(root=path.resolve(__dirname,'..')){
  const file=path.join(root,'data/kronos-future/update-status.json'),market=JSON.parse(fs.readFileSync(path.join(root,'data/market/latest.json'))),catalogFile=path.join(root,'data/kronos-future/manifest.json'),catalog=fs.existsSync(catalogFile)?JSON.parse(fs.readFileSync(catalogFile)):null;

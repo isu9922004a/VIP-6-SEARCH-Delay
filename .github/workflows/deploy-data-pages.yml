@@ -16,8 +16,9 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     # Full-market Pages synchronization can exceed ten minutes. Do not cancel a
-    # healthy syncing_files deployment before the deploy action can finish.
-    timeout-minutes: 25
+    # healthy syncing_files deployment before its supported ten-minute action limit.
+    # Forty minutes allows all three attempts plus packaging and 20/40s backoff.
+    timeout-minutes: 40
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url || steps.deployment_retry.outputs.page_url || steps.deployment_final.outputs.page_url }}
@@ -36,14 +37,14 @@ jobs:
           test ! -d /tmp/verified-site/kronos
       - uses: actions/upload-pages-artifact@v3
         with:
-          name: ${{ inputs.artifact-name }}
+          name: ${{ inputs.artifact-name }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: /tmp/verified-site
       - uses: actions/deploy-pages@v4
         id: deployment
         continue-on-error: true
         with:
-          artifact_name: ${{ inputs.artifact-name }}
-          timeout: 1200000
+          artifact_name: ${{ inputs.artifact-name }}-${{ github.run_id }}-${{ github.run_attempt }}
+          timeout: 600000
 
       - name: Wait for a concurrent Pages deployment before retrying
         if: steps.deployment.outcome == 'failure'
@@ -53,8 +54,8 @@ jobs:
         if: steps.deployment.outcome == 'failure'
         continue-on-error: true
         with:
-          artifact_name: ${{ inputs.artifact-name }}
-          timeout: 1200000
+          artifact_name: ${{ inputs.artifact-name }}-${{ github.run_id }}-${{ github.run_attempt }}
+          timeout: 600000
       - name: Allow a pending Pages deployment to finish
         if: steps.deployment_retry.outcome == 'failure'
         run: sleep 40
@@ -62,5 +63,5 @@ jobs:
         id: deployment_final
         if: steps.deployment_retry.outcome == 'failure'
         with:
-          artifact_name: ${{ inputs.artifact-name }}
-          timeout: 1200000
+          artifact_name: ${{ inputs.artifact-name }}-${{ github.run_id }}-${{ github.run_attempt }}
+          timeout: 600000

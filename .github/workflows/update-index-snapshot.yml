@@ -33,7 +33,7 @@ jobs:
         run: node scripts/index-update-plan.cjs
       - name: Refresh independent index with official completed-session validation
         if: steps.plan.outputs.needed == 'true'
-        run: node scripts/update-index-snapshot.cjs
+        run: node scripts/retry-transient.cjs node scripts/update-index-snapshot.cjs
       - uses: actions/setup-python@v5
         if: steps.plan.outputs.needed == 'true'
         with:

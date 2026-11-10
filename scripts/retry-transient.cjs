@@ -1,7 +1,7 @@
 'use strict';
 // Retry transport failures only. Validation/model failures keep their original exit status.
 const {spawnSync}=require('node:child_process');
-const TRANSIENT=/(?:fetch failed|ECONNRESET|ETIMEDOUT|EAI_AGAIN|ENOTFOUND|ECONNREFUSED|ConnectTimeoutError|ReadTimeout|ConnectionError|Connection reset|Connection timed out|Temporary failure in name resolution|Max retries exceeded|HTTP(?: Error)?[ :]+(?:429|500|502|503|504)\b|(?:429|500|502|503|504) (?:Client|Server) Error|remote end hung up)/i;
+const TRANSIENT=/(?:TEMPORARY_NON_JSON|fetch failed|ECONNRESET|ETIMEDOUT|EAI_AGAIN|ENOTFOUND|ECONNREFUSED|ConnectTimeoutError|ReadTimeout|ConnectionError|Connection reset|Connection timed out|Temporary failure in name resolution|Max retries exceeded|HTTP(?: Error)?[ :]+(?:429|500|502|503|504)\b|(?:429|500|502|503|504) (?:Client|Server) Error|remote end hung up)/i;
 async function retry(command,args,{run=(c,a)=>spawnSync(c,a,{encoding:'utf8',maxBuffer:32*1024*1024}),sleep=ms=>new Promise(r=>setTimeout(r,ms)),write=s=>process.stdout.write(s),attempts=3}={}){
  for(let attempt=1;attempt<=attempts;attempt++){
   const result=run(command,args),output=(result.stdout||'')+(result.stderr||'');write(output);

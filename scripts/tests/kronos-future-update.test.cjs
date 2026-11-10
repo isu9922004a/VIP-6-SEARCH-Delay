@@ -35,7 +35,7 @@ test('stock and market mismatch messages distinguish running, failure, unknown a
 });
 test('market update directly calls independent 20-day pipeline without changing one-day pipeline',()=>{
  const root=path.resolve(__dirname,'../..'),market=fs.readFileSync(path.join(root,'.github/workflows/update-market-snapshot.yml'),'utf8'),future=fs.readFileSync(path.join(root,'.github/workflows/kronos-future.yml'),'utf8');
- assert.match(market,/future-forecast:\s+needs: update-market-snapshot[\s\S]*?uses: \.\/\.github\/workflows\/kronos-future.yml/);
+ assert.match(market,/future-forecast:\s+needs: \[prepare, update-market-snapshot\][\s\S]*?uses: \.\/\.github\/workflows\/kronos-future.yml/);
  assert.match(market,/uses: \.\/\.github\/workflows\/kronos-forecast.yml/);
  assert.match(future,/node scripts\/retry-transient.cjs python kronos\/future.py --all --index --samples 150 --batch-size 30 --threads 2 --shards 16/);
  assert.match(future,/Future inputs changed before publish/);
