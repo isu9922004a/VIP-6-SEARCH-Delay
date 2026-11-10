@@ -4431,3 +4431,6 @@ function sleepV26(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 export {applyVerifiedDailyBridgeV2,dailyBridgeMissingSessionsV2,dailyBridgeRowV2,fetchStockAnalysisViaProxyV265};
+
+// Build-time official-source recovery reuses the Worker parsers and calculations.
+export {fetchTaiexHistoryOfficial,fetchTaiexMarketVolumeOfficial,getCompletedDailyRows,buildTaiexDailySeries,buildTaiexDailySeriesMeta};

@@ -1,0 +1,21 @@
+name: Recover current post-close stock and index reports
+on:
+  workflow_dispatch:
+  push:
+    branches: ['main']
+    paths: ['.github/workflows/postclose-recovery.yml', 'scripts/postclose-recovery.cjs', 'scripts/taiex-source-recovery.cjs', 'scripts/update-kronos-sources.cjs']
+  workflow_run:
+    workflows: ['Update independent index and its model']
+    types: [completed]
+    branches: [main]
+  schedule:
+    # Independent heartbeat; official calendar prevents weekend/holiday guessing.
+    - cron: '21,51 6-23 * * *'
+permissions: {contents: write, actions: read, pages: write, id-token: write}
+concurrency:
+  group: postclose-recovery
+  cancel-in-progress: false
+jobs:
+  recover:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/update-market-snapshot.yml

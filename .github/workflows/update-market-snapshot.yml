@@ -1,7 +1,9 @@
 name: Update TWSE TPEx market snapshot
 on:
+  workflow_call:
   workflow_dispatch:
   push:
+    branches: ['main']
     paths:
       - '.github/workflows/update-market-snapshot.yml'
       - 'scripts/update-market-snapshot.mjs'
@@ -14,48 +16,59 @@ on:
       - 'scripts/tests/update-market-snapshot.test.mjs'
       - '.github/workflows/deploy-data-pages.yml'
   schedule:
-    # UTC. Retry through Taipei next morning if the post-close scheduler is delayed.
-    # Scheduled Actions are best-effort; workflow_dispatch and push also recover a missed run.
-    - cron: '7,27,47 9-23 * * 1-5'
+    # UTC: start at Taipei 14:07; the shared calendar/cutoff and official-source
+    # verification decide readiness. Continue recovery through the next morning.
+    - cron: '7,27,47 6-23 * * 1-5'
     - cron: '27 23 * * 0-4'
 permissions:
   contents: write
+  actions: read
 concurrency:
   group: market-data-update
   cancel-in-progress: false
 jobs:
-  update-market-snapshot:
+  prepare:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    outputs:
+      action: ${{ steps.plan.outputs.action }}
+      expected: ${{ steps.plan.outputs.expected }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
+        with: {ref: main}
       - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
+        with: {node-version: '24'}
+      - id: plan
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/postclose-recovery.cjs
+  update-market-snapshot:
+    needs: prepare
+    if: needs.prepare.outputs.action == 'MARKET'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: main, fetch-depth: 0}
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
       - name: Test exchange calendar and snapshot guards
-        run: node --test scripts/tests/update-market-snapshot.test.mjs
+        run: node --test scripts/tests/update-market-snapshot.test.mjs scripts/tests/postclose-recovery.test.cjs
+      - name: Record the current session source synchronization
+        run: node scripts/postclose-recovery.cjs record RUNNING SOURCES
       - name: Fetch verified latest completed snapshot
         shell: bash
         run: |
           set -euo pipefail
           for attempt in 1 2 3; do
-            echo "Verified snapshot attempt $attempt/3"
-            if node scripts/update-market-snapshot.mjs && node scripts/verify-market-snapshot.mjs; then
-              exit 0
-            fi
-            if [ "$attempt" -lt 3 ]; then sleep $((attempt * 45)); fi
+            if node scripts/update-market-snapshot.mjs && node scripts/verify-market-snapshot.mjs; then exit 0; fi
+            if [ "$attempt" -lt 3 ]; then sleep $((attempt * 20)); fi
           done
-          echo "::error::Official same-date market data unavailable. Old snapshot retained; scans must wait."
+          echo '::error::Official same-date market data unavailable; do not relabel the old snapshot.'
           exit 1
       - name: Record freshness audit
         if: always()
-        shell: bash
-        run: |
-          node scripts/verify-market-snapshot.mjs >> "$GITHUB_STEP_SUMMARY" 2>&1 || true
+        run: node scripts/verify-market-snapshot.mjs >> "$GITHUB_STEP_SUMMARY" 2>&1 || true
       - name: Publish official completed-session calendar for research
         run: node scripts/update-research-calendar.mjs
       - name: Update official research history for all stocks
@@ -64,24 +77,18 @@ jobs:
         run: |
           node - <<'NODE'
           const market=require('./data/market/latest.json'),history=require('./data/research/manifest.json');
-          if(history.verified!==true||history.date!==market.tradeDateIso||history.snapshotContentSha256!==market.contentSha256)throw Error('Research archive has not caught up; keep the run failed and retry on the next schedule');
+          if(history.verified!==true||history.date!==market.tradeDateIso||history.snapshotContentSha256!==market.contentSha256)throw Error('Research archive has not caught up; retain the failure and retry');
           NODE
       - name: Audit all updated research results
         run: |
-          if ! git diff --quiet -- data/research/manifest.json; then
-            node scripts/audit-official-research-v829.cjs
-          fi
-      - name: Commit verified market data
-        shell: bash
+          if ! git diff --quiet -- data/research/manifest.json; then node scripts/audit-official-research-v829.cjs; fi
+      - name: Commit verified market data and its current update status together
         run: |
           set -euo pipefail
-          if [ -z "$(git status --porcelain -- data/market data/research evidence/research-v829-all-stocks.json evidence/research-v829-all-stocks.csv evidence/official-research-universe-*.json)" ]; then
-            echo 'Verified snapshot unchanged.'
-            exit 0
-          fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- data/market data/research evidence/research-v829-all-stocks.json evidence/research-v829-all-stocks.csv evidence/official-research-universe-*.json
+          git add -- data/market data/research data/kronos-future/update-status.json evidence/research-v829-all-stocks.json evidence/research-v829-all-stocks.csv evidence/official-research-universe-*.json
+          if git diff --cached --quiet; then exit 0; fi
           TRADE_DATE=$(node -e "process.stdout.write(String(require('./data/market/latest.json').tradeDate))")
           git commit -m "data: verified complete market snapshot ${TRADE_DATE}"
           for attempt in 1 2 3; do
@@ -89,30 +96,72 @@ jobs:
             node scripts/verify-market-snapshot.mjs
             if git push origin HEAD:main; then exit 0; fi
           done
-          echo '::error::Verified data could not be published; do not report success.'
           exit 1
   forecast:
     needs: update-market-snapshot
-    permissions:
-      contents: write
-      pages: write
-      id-token: write
+    permissions: {contents: write, pages: write, id-token: write}
     uses: ./.github/workflows/kronos-forecast.yml
   future-forecast:
-    needs: update-market-snapshot
-    permissions:
-      contents: write
-      pages: write
-      id-token: write
+    needs: [prepare, update-market-snapshot]
+    if: always() && needs.prepare.result == 'success' && (needs.prepare.outputs.action == 'MODEL' || needs.update-market-snapshot.result == 'success')
+    permissions: {contents: write, actions: read, pages: write, id-token: write}
     uses: ./.github/workflows/kronos-future.yml
   deploy:
-    needs: update-market-snapshot
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
+    needs: [prepare, update-market-snapshot]
+    if: always() && needs.prepare.result == 'success' && (needs.prepare.outputs.action == 'DEPLOY' || needs.update-market-snapshot.result == 'success')
+    permissions: {contents: read, pages: write, id-token: write}
     uses: ./.github/workflows/deploy-data-pages.yml
-    with:
-      artifact-name: market-pages
-
-
+    with: {artifact-name: market-pages}
+  verify:
+    needs: [prepare, update-market-snapshot, future-forecast, deploy]
+    if: always() && needs.prepare.result == 'success' && ((needs.prepare.outputs.action == 'DEPLOY' && needs.deploy.result == 'success') || needs.future-forecast.result == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: main, fetch-depth: 0}
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - run: npm ci
+      - run: sudo apt-get install -y fonts-noto-cjk
+      - name: Require current website bytes, current model and actual stock/index PNGs
+        env: {CHROME_BIN: /usr/bin/google-chrome}
+        run: |
+          python scripts/verify-deployed-frontend.py
+          node scripts/verify-deployed-future-data.cjs
+          node scripts/tests/postclose-live-browser.cjs /tmp/postclose-live-wave
+          node scripts/tests/kronos-future-live-browser.cjs /tmp/postclose-live-future
+          node -e 'const r=require("/tmp/postclose-live-future/results.json");if(!r.source?.fresh||r.images?.length!==4)throw Error("Current model images are not available");'
+      - name: Mark complete only after production images pass
+        run: |
+          node scripts/postclose-recovery.cjs record READY VERIFIED_LIVE
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/kronos-future/update-status.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'data: verified post-close stock and index reports live'
+          git pull --rebase origin main
+          git push origin HEAD:main
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: postclose-live-reports, path: '/tmp/postclose-live-*'}
+  failure:
+    needs: [prepare, update-market-snapshot, future-forecast, deploy, verify]
+    if: always() && needs.prepare.result == 'success' && (needs.update-market-snapshot.result == 'failure' || needs.future-forecast.result == 'failure' || needs.deploy.result == 'failure' || needs.verify.result == 'failure')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: main, fetch-depth: 0}
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - env:
+          FAILURE_STAGE: ${{ needs.update-market-snapshot.result == 'failure' && 'SOURCES' || needs.future-forecast.result == 'failure' && 'INFERENCE' || 'DEPLOYMENT' }}
+        run: |
+          node scripts/postclose-recovery.cjs record FAILED "$FAILURE_STAGE"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/kronos-future/update-status.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'data: record current post-close recovery failure'
+          git pull --rebase origin main
+          git push origin HEAD:main

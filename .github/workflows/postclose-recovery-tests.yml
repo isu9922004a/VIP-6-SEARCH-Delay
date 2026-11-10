@@ -1,0 +1,44 @@
+name: Verify post-close recovery guards
+on:
+  workflow_dispatch:
+  push:
+    branches: ['fix/postclose-recovery-20261110', 'main']
+    paths: ['scripts/postclose-recovery.cjs', 'scripts/taiex-source-recovery.cjs', 'scripts/update-kronos-sources.cjs', 'scripts/tests/postclose-*.cjs', 'scripts/update-market-snapshot.mjs', 'research-v83/market-freshness.js', '.github/workflows/postclose-*.yml', '.github/workflows/update-market-snapshot.yml', 'scripts/kronos-future-update-status.cjs']
+permissions: {contents: read}
+jobs:
+  guards:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - run: npm test
+      - run: npm run test:contract
+      - name: Check shared clock, retry states and workflow syntax
+        run: |
+          node --check scripts/postclose-recovery.cjs
+          node --check scripts/tests/postclose-live-browser.cjs
+          python - <<'PY'
+          import yaml,pathlib
+          for name in ['postclose-recovery.yml','update-market-snapshot.yml','kronos-future.yml','postclose-recovery-tests.yml']:
+            data=yaml.safe_load(pathlib.Path('.github/workflows',name).read_text())
+            assert data['jobs'], name
+          PY
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env: {CHROME_BIN: /usr/bin/google-chrome}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - run: npm ci
+      - run: sudo apt-get install -y fonts-noto-cjk
+      - run: npm run test:elliott-browser -- /tmp/postclose-wave-regression
+      - run: npm run test:browser -- /tmp/postclose-browser-regression
+      - run: node scripts/tests/kronos-future-browser.cjs /tmp/postclose-future-regression
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: postclose-regression-images
+          path: /tmp/postclose-*-regression

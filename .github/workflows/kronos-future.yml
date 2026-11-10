@@ -6,7 +6,7 @@ on:
     branches: ['main', 'feat/future-kronos-v872']
     paths: ['kronos/future.py', 'kronos/future_cache.py', 'kronos-future-core-v1.js', 'scripts/kronos-future-automation.cjs', 'scripts/kronos-future-update-status.cjs', 'scripts/retry-transient.cjs', '.github/workflows/kronos-future.yml']
   schedule:
-    - cron: '57 9-23 * * 1-5'
+    - cron: '57 7-23 * * 1-5'
     - cron: '57 23 * * 0-4'
 permissions:
   contents: read
@@ -194,7 +194,7 @@ jobs:
           EXPECTED_IDENTITY: ${{ needs.sources.outputs.identity }}
           FAILURE_STAGE: ${{ needs.sources.result == 'failure' && 'SOURCES' || needs.infer.result == 'failure' && 'INFERENCE' || needs.publish.result == 'failure' && 'VERIFICATION' || 'DEPLOYMENT' }}
         run: |
-          node scripts/kronos-future-update-status.cjs FAILED "$FAILURE_STAGE"
+          node scripts/postclose-recovery.cjs record FAILED "$FAILURE_STAGE"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add data/kronos-future/update-status.json

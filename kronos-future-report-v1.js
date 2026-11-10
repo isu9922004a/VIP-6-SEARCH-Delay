@@ -67,7 +67,7 @@ function updateMessage(sourceDate,catalog,update,now=Date.now()){
  const dates='行情 '+sourceDate+'；20日模型 '+(catalog?.asOf||'尚未取得')+'。';
  const stamp=Date.parse(update?.updatedAt),current=update?.schema==='shitou-kronos-future-update-v1'&&update.marketDate===sourceDate&&Number.isFinite(stamp)&&now>=stamp&&now-stamp<=6*60*60*1000;
  if(!current)return dates+'最新20日模型尚未同步，尚無可確認的更新進度；目前不使用舊模型產圖。';
- if(update.state==='RUNNING')return dates+'同日20日模型更新中，正在計算與核對，完成發布後才能產圖。';
+ if(update.state==='RUNNING')return dates+(update.stage==='SOURCES'?'正在同步官方行情與歷史日K，完成同日核對後才計算20日模型。':'同日20日模型更新中，正在計算與核對，完成發布後才能產圖。');
  if(update.state==='FAILED')return dates+'本次20日模型更新失敗。'+(typeof update.reason==='string'?update.reason.slice(0,160):'')+'系統會依排程重試，目前不使用舊模型產圖。';
  return dates+'同日模型已完成核對，網站檔案仍待同步；請重新整理後再產圖。';
 }

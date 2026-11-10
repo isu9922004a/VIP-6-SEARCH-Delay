@@ -7,6 +7,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import Release from '../version-v50.js';
 import {updateScanExclusions} from './update-scan-exclusions.mjs';
 
 const ROOT = process.cwd();
@@ -438,7 +439,7 @@ export function taipeiMarketClock(now = new Date(), calendar = null) {
   const closure=marketCalendarClosure(calendar,today);
   const isWeekend=weekday===0||weekday===6;
   return { today, weekday, minutes, officialClosure:closure, marketClosed:isWeekend||!!closure,
-    weekdayTradingCandidate:weekday >= 1 && weekday <= 5 && !closure, afterCutoff:minutes >= 17 * 60 + 35 };
+    weekdayTradingCandidate:weekday >= 1 && weekday <= 5 && !closure, afterCutoff:minutes >= Release.postcloseDataCutoffMinutes };
 }
 
 export function expectedCompletedDate(calendar=null, now=new Date()) {
@@ -554,10 +555,10 @@ export function verifySnapshotAdvancement(snapshot, previous, now = new Date()) 
   const get = type => String(parts.find(p => p.type === type)?.value || '');
   const today = `${get('year')}${get('month')}${get('day')}`;
   const weekday = new Date(`${get('year')}-${get('month')}-${get('day')}T00:00:00Z`).getUTCDay();
-  const afterCutoff = Number(get('hour')) * 60 + Number(get('minute')) >= 17 * 60 + 35;
+  const afterCutoff = taipeiMarketClock(now,snapshot?.marketCalendar).afterCutoff;
   const closure=marketCalendarClosure(snapshot?.marketCalendar,today);
   if (date > today) throw new Error(`來源交易日 ${date} 晚於台灣今天 ${today}；拒絕發布`);
-  if (date === today && !afterCutoff) throw new Error(`台灣 ${today} 尚未達 17:35 盤後保守發布時段；拒絕發布`);
+  if (date === today && !afterCutoff) throw new Error(`台灣 ${today} 尚未達盤後來源核對時段；拒絕發布`);
   const expected=expectedCompletedDate(snapshot?.marketCalendar,now);
   if(date!==expected)throw new Error(`快照 ${date} 並非最近已完成交易日 ${expected}；保留上一份快照，稍後重試`);
 
