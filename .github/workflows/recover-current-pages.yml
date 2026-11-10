@@ -27,7 +27,7 @@ jobs:
             const repo = {owner: context.repo.owner, repo: context.repo.repo};
             const site = await github.request('GET /repos/{owner}/{repo}/pages', repo);
             core.info('Coordinate with the configured Pages publisher: ' + site.data.build_type);
-            const pages_deployment_id = '319bb15cefc8b2f10a3070b35556ef3626da5727';
+            const pages_deployment_id = '6f22609bc648bc9e235acae2df189d86e6616470';
             const runs = await github.rest.actions.listWorkflowRunsForRepo({
               owner: context.repo.owner, repo: context.repo.repo,
               head_sha: pages_deployment_id, per_page: 100
