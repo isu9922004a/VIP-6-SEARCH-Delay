@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches: ['main']
-    paths: ['.github/workflows/kronos-forecast.yml', 'kronos/**', 'scripts/kronos-automation.cjs']
+    paths: ['.github/workflows/kronos-forecast.yml', 'kronos/**', 'scripts/kronos-automation.cjs', 'scripts/update-kronos-sources.cjs', 'scripts/taiex-source-recovery.cjs', 'scripts/retry-transient.cjs']
   schedule:
     # Independent recovery attempts if a chained run is interrupted (UTC).
     - cron: '19 10-23 * * 1-5'
@@ -31,13 +31,8 @@ jobs:
           node-version: '24'
       - name: Require a fresh complete market snapshot
         run: node scripts/verify-market-snapshot.mjs
-      - name: Refresh independent index and trading calendar with retries
-        run: |
-          for attempt in 1 2 3; do
-            if node scripts/update-kronos-sources.cjs; then exit 0; fi
-            if [ "$attempt" -lt 3 ]; then sleep $((attempt * 30)); fi
-          done
-          exit 1
+      - name: Refresh independent index and calendar with bounded transport retries
+        run: node scripts/retry-transient.cjs node scripts/update-kronos-sources.cjs
       - id: revision
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - name: Check source alignment and skip already completed inputs
