@@ -21,6 +21,8 @@ jobs:
       - run: npm test
       - run: npm run test:contract
       - run: node scripts/audit-wave-formal-isolation.cjs /tmp/wave-v88-formal-isolation.json
+      - name: Verify every warm-cache wave export against the signed official source
+        run: node scripts/audit-stock-wave-export.cjs
       - run: node scripts/wave-pit-study.cjs
       - uses: actions/upload-artifact@v4
         if: always()
@@ -29,6 +31,8 @@ jobs:
           path: |
             /tmp/wave-v88-formal-isolation.json
             /tmp/wave-pit-study/status.json
+            evidence/stock-wave-export-all.json
+            evidence/stock-wave-export-all.csv
   browser:
     runs-on: ubuntu-latest
     timeout-minutes: 20
