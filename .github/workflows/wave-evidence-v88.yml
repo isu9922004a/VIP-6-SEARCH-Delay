@@ -50,16 +50,16 @@ jobs:
           sudo apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 install -y fonts-noto-cjk
       - run: npm run test:elliott-browser -- /tmp/wave-v88-elliott
       - run: npm run test:browser -- /tmp/wave-v88-browser
-      - run: npm run test:engulf-range-browser
+      - run: |
+          npm run test:engulf-range-browser
+          mv ../engulf-range-browser /tmp/wave-v88-engulf
       - run: node scripts/tests/wave-postclose-browser.cjs /tmp/wave-v88-postclose
       - run: node scripts/tests/kronos-future-browser.cjs /tmp/wave-v88-future
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: wave-v88-local-images-and-tests
-          path: |
-            /tmp/wave-v88-*
-            ../engulf-range-browser
+          path: /tmp/wave-v88-*
   universe:
     runs-on: ubuntu-latest
     timeout-minutes: 25
