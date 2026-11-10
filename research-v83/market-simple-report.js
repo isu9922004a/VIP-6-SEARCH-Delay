@@ -5,6 +5,8 @@
  else root.ShitouMarketSimpleReport=api;
 })(globalThis,function(root){
 'use strict';
+const Copy=typeof module==='object'&&module.exports?require('../report-beginner-copy-v88.js'):globalThis.ShitouReportCopyV88;
+const explain=value=>Copy?Copy.line(value):String(value??'');
 const TITLE='大盤精簡分析',VERSION='V8.8',WATERMARK='石頭少爺台股分析'+VERSION+'版',W=1284,MIN_H=2778,MAX_H=8192;
 const V=typeof module==='object'&&module.exports?require('../elliott-wave-visual-v1.js'):root.ShitouElliottVisual;
 const titleFor=()=>TITLE;
@@ -52,7 +54,7 @@ function model(snapshot,{watermarked=false}={}){
 
 }
 function wrap(ctx,text,maxWidth){
- const lines=[];for(const para of String(text).split('\n')){
+ const lines=[];for(const para of explain(text).split('\n')){
   let line='';for(const char of Array.from(para)){
    if(line&&ctx.measureText(line+char).width>maxWidth){lines.push(line);line=char;}
    else line+=char;
@@ -102,7 +104,7 @@ function page(snapshot,{document:doc=root.document,watermarked=false}={}){
  if(y>panelBottom-22)throw Error('大盤報告內容超過畫布安全區，已停止輸出避免裁切。');
  draw([VERSION+'｜1/1'],W-M-205,H-77,29,colors.muted,true);
  if(watermarked)(root.ShitouReportWatermark||(typeof require==='function'?require('../report-watermark-v84.js'):null)).apply(canvas,'market');
- const audit={chart:chartAudit,elliottWave:null,extendedHeight:H>MIN_H,watermarkStyle:watermarked?'REFERENCE_DIAGONAL_V84':null,title:data.title,watermarked:data.watermarked,version:VERSION,width:W,height:H,date:data.date,close:data.close,bodyFont:layout.size,bodyBottom:y,safeBottom:panelBottom-22,noClipping:true,modelRun:data.modelRun,forecastState:data.forecastState,source:data.source,levels:data.levels,completeNarrative:true,blockCount:data.blocks.length,sections:7,regime:data.risk.regime.key,technicalDirection:data.risk.technicalDirection,combinedDirection:data.risk.combinedDirection,crashRisk:data.risk.crashRisk.level,executionVerified:data.modelRun};
+ const audit={wordingVersion:Copy?.VERSION,chart:chartAudit,elliottWave:null,extendedHeight:H>MIN_H,watermarkStyle:watermarked?'REFERENCE_DIAGONAL_V84':null,title:data.title,watermarked:data.watermarked,version:VERSION,width:W,height:H,date:data.date,close:data.close,bodyFont:layout.size,bodyBottom:y,safeBottom:panelBottom-22,noClipping:true,modelRun:data.modelRun,forecastState:data.forecastState,source:data.source,levels:data.levels,completeNarrative:true,blockCount:data.blocks.length,sections:7,regime:data.risk.regime.key,technicalDirection:data.risk.technicalDirection,combinedDirection:data.risk.combinedDirection,crashRisk:data.risk.crashRisk.level,executionVerified:data.modelRun};
  canvas.dataset.researchAudit=JSON.stringify(audit);
  return {width:W,height:H,dataset:{researchAudit:JSON.stringify(audit)},renderExportRegion:()=>canvas,toBlob:(cb,type='image/png')=>canvas.toBlob(cb,type)};
 }

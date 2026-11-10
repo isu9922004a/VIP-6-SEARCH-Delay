@@ -2,8 +2,8 @@ name: Validate and deploy V8.8 wave evidence
 on:
   workflow_dispatch:
   push:
-    branches: ['feat/wave-evidence-20261110', 'main']
-    paths: ['elliott-wave-*.js', 'kronos-future-*.js', 'version-v50.js', 'research-validation-v1.js', 'scripts/tests/wave-*.cjs', '.github/workflows/wave-evidence-v88.yml']
+    branches: ['feat/wave-evidence-20261110', 'feat/report-beginner-copy-v88', 'main']
+    paths: ['report-beginner-copy-v88.js', 'shitou-wave-ui-v48.js', 'engulf-range-report-v1.js', 'structure-reversal-report-v1.js', 'research-chart-v1.js', 'research-report-v1.js', 'research-v83/*-simple-report.js', 'stock-professional-v84.js', 'scripts/tests/report-beginner-copy.test.cjs', 'scripts/tests/kronos-future-*.cjs', 'elliott-wave-*.js', 'kronos-future-*.js', 'version-v50.js', 'research-validation-v1.js', 'scripts/tests/wave-*.cjs', '.github/workflows/wave-evidence-v88.yml']
 concurrency:
   group: wave-evidence-v88-${{ github.ref }}
   cancel-in-progress: true
@@ -50,6 +50,9 @@ jobs:
           sudo apt-get -o Acquire::Retries=2 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20 install -y fonts-noto-cjk
       - run: npm run test:elliott-browser -- /tmp/wave-v88-elliott
       - run: npm run test:browser -- /tmp/wave-v88-browser
+      - run: |
+          npm run test:engulf-range-browser
+          mv ../engulf-range-browser /tmp/wave-v88-engulf
       - run: node scripts/tests/wave-postclose-browser.cjs /tmp/wave-v88-postclose
       - run: node scripts/tests/kronos-future-browser.cjs /tmp/wave-v88-future
       - uses: actions/upload-artifact@v4

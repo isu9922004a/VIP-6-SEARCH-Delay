@@ -1,6 +1,8 @@
 /* Draw only precomputed, dated research evidence. Rendering never changes a signal. */
 (function(root,factory){const api=factory(typeof module==='object'&&module.exports?require('./research-beginner-v1.js'):root.ShitouResearchBeginner);if(typeof module==='object'&&module.exports)module.exports=api;else root.ShitouResearchChart=api;})(globalThis,function(B){
 'use strict';
+const Copy=typeof module==='object'&&module.exports?require('./report-beginner-copy-v88.js'):globalThis.ShitouReportCopyV88;
+const explain=value=>Copy?Copy.line(value):String(value??'');
 const VERSION='RESEARCH_CHART_8_2_9',W=1284,H=2778;
 const fmt=x=>Number.isFinite(x)?String(+x.toFixed(2)):'待核';
 function page(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouReleaseV50?.displayCode||'V8.8',watermark=false}={}){
@@ -15,8 +17,8 @@ function page(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouR
  const dataset={researchAudit:JSON.stringify(audit),fullBleed:'true',release:displayCode};
  function paint(ctx){
   ctx.fillStyle='#102235';ctx.fillRect(0,0,W,PAGE_H);
-  function text(value,x,y,size=42,color='#f2f7ff',max=W-128){ctx.font=`650 ${size}px "Microsoft JhengHei",sans-serif`;while(ctx.measureText(String(value)).width>max&&size>28){size--;ctx.font=`650 ${size}px "Microsoft JhengHei",sans-serif`;}ctx.fillStyle=color;ctx.fillText(String(value),x,y);}
-  function wrapped(value,x,y,width,size=40,line=55){ctx.font=`650 ${size}px "Microsoft JhengHei",sans-serif`;let row='',n=0;for(const ch of String(value)){if(row&&ctx.measureText(row+ch).width>width){text(row,x,y+n*line,size,'#bcd1e2',width);row=ch;n++;}else row+=ch;}if(row)text(row,x,y+n*line,size,'#bcd1e2',width);return y+(n+1)*line;}
+  function text(value,x,y,size=42,color='#f2f7ff',max=W-128){value=explain(value);ctx.font=`650 ${size}px "Microsoft JhengHei",sans-serif`;while(ctx.measureText(String(value)).width>max&&size>28){size--;ctx.font=`650 ${size}px "Microsoft JhengHei",sans-serif`;}ctx.fillStyle=color;ctx.fillText(String(value),x,y);}
+  function wrapped(value,x,y,width,size=40,line=55){ctx.font=`650 ${size}px "Microsoft JhengHei",sans-serif`;let row='',n=0;for(const ch of explain(value)){if(row&&ctx.measureText(row+ch).width>width){text(row,x,y+n*line,size,'#bcd1e2',width);row=ch;n++;}else row+=ch;}if(row)text(row,x,y+n*line,size,'#bcd1e2',width);return y+(n+1)*line;}
   ctx.fillStyle='#1b3c59';ctx.fillRect(40,35,W-80,225);
   text('四策略研究｜結構證據圖・白話版',68,100,46);
   text(`${a.name}（${a.code}）`,68,180,66);

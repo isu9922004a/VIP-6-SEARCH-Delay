@@ -1,5 +1,7 @@
-(function(r){'use strict';const C=r.ShitouStructureCore,S=r.ShitouStructureScanner;const W=1284,H=2778,SAFE=36,SIZE=42,LINE=60,START=560,END=2540;
-function wrap(ctx,value,width=W-SAFE*2,size=SIZE){ctx.font=`600 ${size}px -apple-system,"Microsoft JhengHei","Noto Sans TC",sans-serif`;const out=[];for(const paragraph of String(value??'').split('\n')){let line='';const tokens=paragraph.match(/[0-9]+(?:[.\-/:][0-9]+)*%?|[A-Za-z][A-Za-z0-9_.]*|[^]/gu)||[];for(const token of tokens){if(ctx.measureText(token).width>width){for(const ch of token){if(line&&ctx.measureText(line+ch).width>width){out.push(line);line=ch;}else line+=ch;}}else if(line&&ctx.measureText(line+token).width>width){out.push(line);line=token;}else line+=token;}out.push(line);}return out;}
+(function(r){'use strict';
+const Copy=typeof module==='object'&&module.exports?require('./report-beginner-copy-v88.js'):globalThis.ShitouReportCopyV88;
+const explain=value=>Copy?Copy.line(value):String(value??'');const C=r.ShitouStructureCore,S=r.ShitouStructureScanner;const W=1284,H=2778,SAFE=36,SIZE=42,LINE=60,START=560,END=2540;
+function wrap(ctx,value,width=W-SAFE*2,size=SIZE){ctx.font=`600 ${size}px -apple-system,"Microsoft JhengHei","Noto Sans TC",sans-serif`;const out=[];for(const paragraph of explain(value).split('\n')){let line='';const tokens=paragraph.match(/[0-9]+(?:[.\-/:][0-9]+)*%?|[A-Za-z][A-Za-z0-9_.]*|[^]/gu)||[];for(const token of tokens){if(ctx.measureText(token).width>width){for(const ch of token){if(line&&ctx.measureText(line+ch).width>width){out.push(line);line=ch;}else line+=ch;}}else if(line&&ctx.measureText(line+token).width>width){out.push(line);line=token;}else line+=token;}out.push(line);}return out;}
 function paint(ctx,scan,plan,index,total,title,subtitle,version,layout){ctx.textBaseline='alphabetic';const draw=(text,x,y,size=SIZE,color='#17334e',bold=600)=>{ctx.font=`${bold} ${size}px -apple-system,"Microsoft JhengHei","Noto Sans TC",sans-serif`;ctx.fillStyle=color;ctx.fillText(text,x,y);};ctx.fillStyle='#f1f5f9';ctx.fillRect(0,0,W,H);ctx.fillStyle='#123b5b';ctx.fillRect(0,0,W,layout.headerBottom);draw(title,SAFE,72,52,'#fff',800);draw(subtitle,SAFE,140,40,'#dcefff',800);draw(`行情 ${scan.date}｜${index+1}/${total} 頁｜${scan.complete?'處理與資料檢查完成':scan.pending===0&&!scan.stopped&&!scan.breaker?'掃描結束／資料有缺口':'部分結果'}`,SAFE,202,34,'#fff');version.forEach((t,k)=>draw(t,SAFE,250+k*29,23,'#dcefff'));plan.heading.forEach((t,k)=>draw(t,SAFE,layout.headingY+k*43,36,'#ffe6aa',800));plan.lines.forEach((t,k)=>draw(t,SAFE,layout.bodyStart+k*LINE));ctx.fillStyle='#123b5b';ctx.fillRect(0,2600,W,178);draw('結構評分不是勝率｜未確認型態不列確認成功',SAFE,2655,30,'#fff');draw(`快照 ${scan.id}｜A/B獨立排名｜僅盤後完成日K`,SAFE,2703,28,'#dcefff');draw('完整資料不足時僅研究觀察；隔日成交仍須確認',SAFE,2749,28,'#ffe6aa');}
 // Compact iPhone card is presentation only. Original C.lines, scan ordering and full pages are never shortened.
 function overview(scan,{mode='A',watermark=false,kind='top8'}={}){
@@ -20,7 +22,7 @@ function overview(scan,{mode='A',watermark=false,kind='top8'}={}){
  const monthly=c=>({PASS:'月線通過',NOT_PASS:'月線未通過',UNCONFIRMED:'月線待確認',UNAVAILABLE:'月線未驗證'})[c.monthlyStatus]||'月線未驗證';
  const font=(s,b=true)=>`${b?850:500} ${s}px "Microsoft JhengHei","Noto Sans TC",sans-serif`;
  function fit(value,width,max,min=max,{summary=false}={}){
-  const fullText=String(value??'');let size=max;
+  const fullText=explain(value);let size=max;
   for(;size>=min;size--){probe.font=font(size);if(probe.measureText(fullText).width<=width)return {text:fullText,fullText,size,abbreviated:false};}
   if(!summary)throw Error('卡片固定欄位超出文字安全區，請檢查字級或原始資料');
   size=min;probe.font=font(size);const suffix='…詳見完整報告';let short=fullText;
