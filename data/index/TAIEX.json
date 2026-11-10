@@ -1241,15 +1241,15 @@
       "2026-12-30",
       "2026-12-31"
     ],
-    "generatedAt": "2026-11-09T23:53:03.961Z",
+    "generatedAt": "2026-11-10T02:26:11.487Z",
     "futureSessionPolicy": "依目前公告交易日；臨時休市可能變更",
     "sourceSha256": "fb3c71ce62aa4819e58d422fa08be383161a830230f84e9a50560e019eee577c",
     "historicalSource": "https://www.twse.com.tw/exchangeReport/FMTQIK",
-    "historicalSnapshotHash": "07508fa79e4bd6fb40e86ae86502a2e651239ff8332206465edf98921f0f862e"
+    "historicalSnapshotHash": "6d37c09906aab4a110bd49c0be286258db9a185b6a043d02d3be61ee6d5ddc5c"
   },
   "sourceReceipt": {
     "url": "https://shitou-taiwanmarket-api.d318426.workers.dev/?market=TAIEX",
-    "retrievedAt": "2026-11-09T23:53:03.962Z",
+    "retrievedAt": "2026-11-10T02:26:11.487Z",
     "sha256": "0c98c382001d03c2384955c701b60ea8f55ace4221fe13bd2e54ac2495a9d5b9"
   }
 }
