@@ -8,7 +8,7 @@ const filters=[
  {key:'daytrade',label:'② 明日當沖'},
  {key:'strong',label:'③ 強勢飆股'},
  {key:'tower',label:'④ 寶塔線'},
- {key:'restaurant',label:'⑤ 餐廳量價'},
+ {key:'restaurant',label:'⑤ 🌟2560戰法'},
  {key:'structure',label:'⑥ 結構反轉'}
 ];
 let currentTab='stock',currentFilter='momentum',lastFocus=null,openMode=null,observedCode='';

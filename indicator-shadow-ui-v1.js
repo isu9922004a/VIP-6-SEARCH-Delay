@@ -2,7 +2,7 @@
 (function(root){'use strict';
 const C=root.ShitouIndicatorShadowCore;if(!C)return;
 const VERSION=root.ShitouReleaseV50?.code||C.MODEL;
-const LABELS={MAIN:'① 主升段',DAYTRADE:'② 當沖盤前',STRONG:'③ 強勢飆股',TOWER:'④ 寶塔點金',RESTAURANT:'⑤ 餐廳量價',STOCK:'個股分析'};
+const LABELS={MAIN:'① 主升段',DAYTRADE:'② 當沖盤前',STRONG:'③ 強勢飆股',TOWER:'④ 寶塔點金',RESTAURANT:'⑤ 🌟2560戰法',STOCK:'個股分析'};
 const cache=new Map();
 const el=(tag,text,className)=>{const x=document.createElement(tag);if(text!==undefined)x.textContent=text;if(className)x.className=className;return x;};
 const num=v=>v===null||v===undefined||typeof v==='boolean'||typeof v==='object'||String(v).trim()===''?null:Number.isFinite(Number(v))?Number(v):null;
@@ -17,7 +17,7 @@ function canonical(candidate,asOf){
  if(candidate?.rsiObservationSource&&candidate?.tower){const sourceDate=C.date(original.closeDate||original.dataDate);if((!candidate.tower.date&&!candidate.date)||[candidate.tower.date,candidate.date].some(d=>d&&C.date(d)!==sourceDate)||String(original.stock||original.code||'')!==code)return {...original,completed:false,canonicalError:'寶塔觀察來源代號／日期缺失或衝突'};}
  // A completed restaurant run owns its verified history; never replace it with
  // the current mutable scanner cache when rendering an earlier report.
- if(['RESTAURANT_BUGFIX_1','RESTAURANT_STRICT_6_1'].includes(candidate?.validation?.revision)){
+ if(['RESTAURANT_BUGFIX_1','RESTAURANT_STRICT_6_1','2560-STRATEGY-V1.0'].includes(candidate?.validation?.revision)){
   const v=candidate.validation;
   if(v.date!==asOf||v.code!==code||v.historyFingerprint!==C.fingerprint(original.canonicalBars))return {...original,completed:false,canonicalError:'餐廳結果與歷史快照不同'};
   return original;
@@ -45,14 +45,14 @@ function makeRow(candidate,index,kind,asOf,ranked,now){
  const report=canonical(candidate,asOf),code=String(candidate?.code||report.stock||report.code||''),e=evidence(report,asOf);
  const monthly=e.volume?.monthlyStatus||candidate.monthly?.status||candidate.selectionEvidence?.monthlyStatus||report.monthlyReviewV2?.status||'UNVERIFIED';
  const observation=C.extended.advice(e,candidate,kind,monthly);
- return {code,name:displayName(code,candidate?.name||report.name),baselineModel:candidate.model||'LEGACY_'+kind,baselineRelease:VERSION.split('-RSICTX.')[0],baselineScores:JSON.parse(JSON.stringify({score:candidate.score??null,launchScore:candidate.launchScore??null,strengthScore:candidate.strengthScore??null,rankingScore:candidate.rankingScore??null,quality:candidate.quality??null,courseSuitabilityScore:candidate.courseSuitabilityScore??null})),rsiExtended:e.rsiExtended,observation,market:report.market||null,strategy:kind,date:asOf,subtype:kind==='TOWER'?(candidate.type||'NONE'):String(candidate.setup?.key||candidate.entryFamily||candidate.mainAdvanceStage?.key||candidate.stage?.key||''),...(kind==='RESTAURANT'?{strategyEvidence:{model:candidate.model,rule:candidate.rule,status:candidate.status,event:candidate.event,features:candidate.features,levels:candidate.levels,riskCodes:candidate.riskCodes,checks:candidate.checks,validation:candidate.validation,sourceMatch:candidate.sourceMatch}}:{}),baselineRank:ranked?index+1:null,baselineScore:num(candidate.score?.final??candidate.score),baselineQuality:num(candidate.quality?.value),baselineCourseScore:num(candidate.courseSuitabilityScore),baselineGrade:candidate.grade||candidate.status||null,baselineDecision:candidate.selectionDecision?.state||candidate.actionGate?.key||null,baselineFormalRank:num(candidate.formalRank??candidate.displayRankV40),baselineEligible:candidate.eligible??candidate.formalCandidate??null,monthlyStatus:e.volume?.monthlyStatus||candidate.monthly?.status||candidate.selectionEvidence?.monthlyStatus||report.monthlyReviewV2?.status||'UNVERIFIED',strategyContext:C.strategyContext(e,kind,kind==='TOWER'?candidate.type:''),capturedAt:now,origin:'LIVE_CAPTURE',evidence:e,outcome:{status:'NOT_TRACKED',reason:'本版不追蹤後續績效'}};
+ return {klineAttack:root.ShitouKlineAttack?.evaluate(report,{asOf})||null,code,name:displayName(code,candidate?.name||report.name),baselineModel:candidate.model||'LEGACY_'+kind,baselineRelease:VERSION.split('-RSICTX.')[0],baselineScores:JSON.parse(JSON.stringify({score:candidate.score??null,launchScore:candidate.launchScore??null,strengthScore:candidate.strengthScore??null,rankingScore:candidate.rankingScore??null,quality:candidate.quality??null,courseSuitabilityScore:candidate.courseSuitabilityScore??null})),rsiExtended:e.rsiExtended,observation,market:report.market||null,strategy:kind,date:asOf,subtype:kind==='TOWER'?(candidate.type||'NONE'):String(candidate.setup?.key||candidate.entryFamily||candidate.mainAdvanceStage?.key||candidate.stage?.key||''),...(kind==='RESTAURANT'?{strategyEvidence:{model:candidate.model,rule:candidate.rule,status:candidate.status,event:candidate.event,features:candidate.features,levels:candidate.levels,riskCodes:candidate.riskCodes,checks:candidate.checks,validation:candidate.validation,sourceMatch:candidate.sourceMatch}}:{}),baselineRank:ranked?index+1:null,baselineScore:num(candidate.score?.final??candidate.score),baselineQuality:num(candidate.quality?.value),baselineCourseScore:num(candidate.courseSuitabilityScore),baselineGrade:candidate.grade||candidate.status||null,baselineDecision:candidate.selectionDecision?.state||candidate.actionGate?.key||null,baselineFormalRank:num(candidate.formalRank??candidate.displayRankV40),baselineEligible:candidate.eligible??candidate.formalCandidate??null,monthlyStatus:e.volume?.monthlyStatus||candidate.monthly?.status||candidate.selectionEvidence?.monthlyStatus||report.monthlyReviewV2?.status||'UNVERIFIED',strategyContext:C.strategyContext(e,kind,kind==='TOWER'?candidate.type:''),capturedAt:now,origin:'LIVE_CAPTURE',evidence:e,outcome:{status:'NOT_TRACKED',reason:'本版不追蹤後續績效'}};
 }
 function displayName(code,value){
  let mapped;try{const entry=root.getEmbeddedStockDirectory?.()?.byCode?.[code];mapped=typeof entry==='string'?entry:entry?.name;}catch(_){}
  const clean=v=>typeof v==='string'&&/[\u3400-\u9fff]/.test(v)&&!/[\p{Script=Latin}\u0000-\u001f<>]/u.test(v)?v:null;
  return root.ShitouRestaurantCore?.displayName(code,{name:value})||clean(mapped?.replace(/[-－]?(?:KY|DR)(?:\*)?$/i,''))||clean(value)||'股票'+code;
 }
-function rowContext(r){return [...C.contextLines(r.evidence,r.strategy,r.subtype),...(r.observation?.lines||['買賣情境：未計算（保留舊紀錄）'])];}
+function rowContext(r){return [...C.contextLines(r.evidence,r.strategy,r.subtype),...(r.observation?.lines||['買賣情境：未計算（保留舊紀錄）']),...(r.klineAttack?.lines||[])];}
 function capture(kind,scan){
  if(!scan||!LABELS[kind]||kind==='STOCK')return null;
  const asOf=C.date(scan.dataDate||scan.date||scan.marketBundleMeta?.targetTradeDate||scan.marketBundleMeta?.completedTradeDate);if(!asOf)return null;
@@ -88,7 +88,7 @@ function imagePage(run,rows,offset,page,total,prepared){
  const draw=(text,y,size=42,color='#18334d')=>{ctx.font=`700 ${size}px "Microsoft JhengHei","Noto Sans TC",sans-serif`;ctx.fillStyle=color;ctx.textBaseline='top';ctx.fillText(text,48,y);};
  const body=prepared||rows.flatMap(r=>rowImageLines(r).flatMap(t=>wrapImageText(ctx,t)));
  if(body.length>32)throw Error('觀察圖超過單頁容量，請使用完整分頁產生器');
- ctx.fillStyle='#123a5a';ctx.fillRect(0,0,1284,310);draw('動能與量價情境｜'+(LABELS[run.strategy]||run.strategy),30,46,'#fff');draw(`${run.date}｜第 ${page}／${total} 頁`,108,42,'#fff');draw(run.strategy==='RESTAURANT'?'六項全數通過｜額外風險僅提醒':'原排序保留｜強勢與新買風險分開',178,40,'#ffe7a2');wrapImageText(ctx,VERSION,1188,23).slice(0,2).forEach((line,i)=>draw(line,250+i*28,23,'#d9e8f7'));
+ ctx.fillStyle='#123a5a';ctx.fillRect(0,0,1284,310);draw('動能與量價情境｜'+(LABELS[run.strategy]||run.strategy),30,46,'#fff');draw(`${run.date}｜第 ${page}／${total} 頁`,108,42,'#fff');draw(run.strategy==='RESTAURANT'?'2560新交叉｜K線只作提醒':'原排序保留｜強勢與新買風險分開',178,40,'#ffe7a2');wrapImageText(ctx,VERSION,1188,23).slice(0,2).forEach((line,i)=>draw(line,250+i*28,23,'#d9e8f7'));
  ctx.fillStyle='#fff';ctx.fillRect(24,332,1236,2070);const top=356,step=62;body.forEach((line,i)=>draw(line,top+i*step));
  draw('量價代理不等於主力意圖；非上漲機率。',2460,38);draw('價差未扣成本／滑價；未確認實際成交。',2524,38);draw(`此頁為完整報告補充｜${rows.map(r=>r.code).join('、')}`,2600,36);
  canvas.dataset.reportText=encodeURIComponent(JSON.stringify(body));canvas.dataset.indicatorShadowAudit=JSON.stringify({model:C.MODEL,page,total,width:1284,height:2778,minBodyFont:42,bodyLineCount:body.length,codes:rows.map(r=>r.code),offset,sections:[{top:332,bottom:top+body.length*step}],noOverlap:top+body.length*step<=2402});return canvas;

@@ -7,7 +7,7 @@
 'use strict';
 const Copy=typeof module==='object'&&module.exports?require('../report-beginner-copy-v88.js'):globalThis.ShitouReportCopyV88;
 const explain=value=>Copy?Copy.line(value):String(value??'');
-const TITLE='大盤精簡分析',VERSION='V8.8',WATERMARK='石頭少爺台股分析'+VERSION+'版',W=1284,MIN_H=2778,MAX_H=8192;
+const TITLE='大盤精簡分析',VERSION='V9.0',WATERMARK='石頭少爺台股分析'+VERSION+'版',W=1284,MIN_H=2778,MAX_H=8192;
 const V=typeof module==='object'&&module.exports?require('../elliott-wave-visual-v1.js'):root.ShitouElliottVisual;
 const titleFor=()=>TITLE;
 const colors={background:'#071f32',card:'#10344f',border:'#28627d',text:'#f0f6fb',muted:'#b8d9e9',yellow:'#f7cf70',aqua:'#79e4d1',red:'#ff9a91'};
@@ -47,6 +47,7 @@ function model(snapshot,{watermarked=false}={}){
  if(fresh)add('notice','模擬收盤結果中間八成的範圍：'+num(m.interval.low)+'～'+num(m.interval.high)+'；合併近期波動後的觀察範圍 '+num(r.riskEnvelope.low)+'～'+num(r.riskEnvelope.high)+' 點。不是保證高低點。');
  if(fresh?.provenance?.inputQuality?.warning)add('footnote','模型需要成交金額，但資料來源沒有提供；目前以開盤、最高、最低、收盤價的平均乘以成交量估算，與實際成交金額可能有差異。');
  if(fresh?.provenance?.outputQuality?.warning)add('footnote','部分模擬結果的最高、最低價順序不合理，因此只列開盤與收盤結果，不提供模擬最高、最低價。');
+ if(a.klineAttack){const before=blocks.length;add('heading','K線攻防：大盤接下來看什麼？');for(const line of a.klineAttack.lines)add('body',line);for(let i=before;i<blocks.length;i++)blocks[i].kline=true;}
  add('heading','⑦ 一句話總結');add('summary',r.summary,'aqua');
  // Wave pictures have their own buttons and do not lengthen this report.
  add('footnote','資料：'+src.source+'｜行情 '+a.date+'。盤後研究；跳空須重算風險，個股停損依原持股計畫，不保證走勢。');
@@ -76,14 +77,14 @@ function page(snapshot,{document:doc=root.document,watermarked=false}={}){
    const height=lines.length*lineH+space;total+=height;
    return {...b,size:s,bold,lineH,lines,height};
   });
-  return {size,blocks,total};
+  return {size,blocks,total,baseTotal:total-blocks.filter(b=>b.kline).reduce((n,b)=>n+b.height,0)};
  };
  let layout=null;
  for(const s of [39,38,37,36,35,34,33]){
   const candidate=makeLayout(s);
-  if(candidate.total<=panelBottom-bodyTop-36){layout=candidate;break;}
+  if(candidate.baseTotal<=panelBottom-bodyTop-36){layout=candidate;break;}
  }
- if(!layout){layout=makeLayout(33);H=Math.max(MIN_H,Math.ceil(bodyTop+layout.total+180));if(H>MAX_H)throw Error('大盤精簡分析內容超過圖片安全範圍，未刪除或截斷資料。');canvas.height=H;panelBottom=H-122;}
+ if(!layout)layout=makeLayout(33);if(layout.total>panelBottom-bodyTop-36){H=Math.max(MIN_H,Math.ceil(bodyTop+layout.total+180));if(H>MAX_H)throw Error('大盤精簡分析內容超過圖片安全範圍，未刪除或截斷資料。');canvas.height=H;panelBottom=H-122;}
  const panel=(y,h)=>{ctx.fillStyle=colors.card;ctx.strokeStyle=colors.border;ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(M,y,W-2*M,h,23);ctx.fill();ctx.stroke();};
  const draw=(lines,x,y,size,color,bold,lineH=size+12)=>{
   font(size,bold);ctx.fillStyle=color;for(let i=0;i<lines.length;i++)ctx.fillText(lines[i],x,y+i*lineH);
