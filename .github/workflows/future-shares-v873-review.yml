@@ -22,6 +22,13 @@ jobs:
           run-id: 42575040043
           name: future-v873-frozen-baselines
           path: /tmp/future-v873-frozen
+      # Keep frozen 2026-11-06 model/data in sync with the frozen audit baselines.
+      # Do not substitute the continuously refreshed production 2026-11-11 catalog.
+      - uses: actions/checkout@v4
+        with:
+          ref: f5578a62e7556941dad60dd8906f93bac985cf96
+          path: .v873-frozen-data
+          persist-credentials: false
       - run: |
           npm test
           npm run test:contract
@@ -29,10 +36,12 @@ jobs:
       - name: Six real instruments, downloads, share, stale selection and model expiry
         env:
           CHROME_BIN: /usr/bin/google-chrome
+          FUTURE_TEST_DATA_ROOT: ${{ github.workspace }}/.v873-frozen-data
         run: node scripts/tests/future-shares-v873-browser.cjs /tmp/v873-review
       - name: Original image and wave entry points
         env:
           CHROME_BIN: /usr/bin/google-chrome
+          FUTURE_TEST_DATA_ROOT: ${{ github.workspace }}/.v873-frozen-data
         run: |
           node scripts/tests/elliott-browser.cjs /tmp/v873-review/wave
           node scripts/tests/kronos-future-browser.cjs /tmp/v873-review/future
