@@ -1,4 +1,4 @@
-// V9.0 presentation; historical model identifiers remain unchanged.
+// V9.1 presentation; historical model identifiers remain unchanged.
 (function(r,f){const a=f();if(typeof module==='object'&&module.exports)module.exports=a;else r.ShitouResearchReport=a;})(globalThis,function(){
 'use strict';
 const Copy=typeof module==='object'&&module.exports?require('./report-beginner-copy-v88.js'):globalThis.ShitouReportCopyV88;

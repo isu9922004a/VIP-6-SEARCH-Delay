@@ -6,14 +6,14 @@ function page({title,date,blocks,watermark=false,kind='stock',testOnly=false,inc
  const header=wrap(probe,title,CW-50,48),plans=blocks.map(b=>{const lines=[];for(const [i,t]of b.lines.entries()){const size=i===0?44:38;for(const text of wrap(probe,t,CW-56,size))lines.push({text,size,line:size+14,color:i===0?'#155c72':/K線攻防：收盤已站上/.test(t)?'#bb2740':/K線攻防：收盤已跌破/.test(t)?'#14754f':'#203c51'});}return {...b,lines,height:lines.reduce((n,l)=>n+l.line,0)+40};});
  const rawData=blocks.length===1?blocks[0].data:null,plotData=includeChart?(rawData?.state==='AVAILABLE'?rawData:rawData?.kline?.state==='AVAILABLE'?rawData.kline:null):null,chartReserve=plotData?.canonicalBars?.length&&r.ShitouElliottVisual?1100:0;
  const start=124+header.length*64,H=Math.max(2778,start+plans.reduce((n,b)=>n+b.height+18,0)+chartReserve+158);if(H>8192)throw Error('圖片內容超過容量，請分頁輸出');
- const audit={version:'V9.0',kind,title,date,width:W,height:H,testOnly,blocks:blocks.map(b=>({code:b.code,date:b.date,data:b.data,text:b.lines})),watermarked:watermark,textBoxes:[],noClipping:true,noOverlap:true};
+ const audit={version:'V9.1',kind,title,date,width:W,height:H,testOnly,blocks:blocks.map(b=>({code:b.code,date:b.date,data:b.data,text:b.lines})),watermarked:watermark,textBoxes:[],noClipping:true,noOverlap:true};
  let y=start;const cards=plans.map(p=>{const top=y;y+=p.height+18;return {...p,top};});
  function paint(c){const ctx=c.getContext('2d');ctx.fillStyle='#e9f2f7';ctx.fillRect(0,0,W,H);ctx.textBaseline='alphabetic';const boxes=[];
   const text=(s,x,y,size,color)=>{ctx.font=`600 ${size}px "Microsoft JhengHei","Noto Sans CJK TC",sans-serif`;ctx.fillStyle=color;ctx.fillText(s,x,y);const width=ctx.measureText(s).width;boxes.push({text:s,x,y,size,width,bottom:y+8});};
-  header.forEach((t,i)=>text(t,M+20,72+i*64,48,'#155c72'));text(`V9.0｜行情 ${date}｜${testOnly?'測試用資料，非正式行情':'盤後完成日K'}`,M+20,108+header.length*64,30,'#4c6678');
+  header.forEach((t,i)=>text(t,M+20,72+i*64,48,'#155c72'));text(`V9.1｜行情 ${date}｜${testOnly?'測試用資料，非正式行情':'盤後完成日K'}`,M+20,108+header.length*64,30,'#4c6678');
   for(const p of cards){ctx.fillStyle='#fff';ctx.beginPath();ctx.roundRect(M,p.top,CW,p.height,22);ctx.fill();let yy=p.top+27;for(const l of p.lines){yy+=l.size;text(l.text,M+28,yy,l.size,l.color);yy+=l.line-l.size;}}
   if(chartReserve){const chartY=cards.at(-1).top+cards.at(-1).height+22,levels=[{label:'目前收盤',price:plotData.close},{label:'前一交易日高點',price:plotData.levels.previousHigh},{label:'前一交易日低點',price:plotData.levels.previousLow}];audit.chart=r.ShitouElliottVisual.chart(ctx,{code:plotData.code,date:plotData.date,bars:plotData.canonicalBars,interpretation:{}},{x:M,y:chartY,width:CW,height:H-chartY-146,bars:plotData.canonicalBars,levels,annotate:false,priceLabels:true,indexChart:kind==='index'});}
-  text('原選股條件不變｜型態只作觀察，不是買賣通知。',M+20,H-86,30,'#45616f');text('紅漲綠跌；仍以文字判斷。原停損與部位計畫優先。',M+20,H-40,30,'#45616f');
+  text(title.includes('2560')?'2560正式條件已更新；K棒型態僅供觀察，不改入選資格。':'原選股條件不變｜型態只作觀察，不是買賣通知。',M+20,H-86,30,'#45616f');text('紅漲綠跌；仍以文字判斷。原停損與部位計畫優先。',M+20,H-40,30,'#45616f');
   audit.textBoxes=boxes;audit.noClipping=boxes.every(b=>b.x>=M&&b.x+b.width<=W-M+1&&b.y-b.size>=0&&b.bottom<=H);audit.noOverlap=cards.every((p,i)=>!i||p.top>=cards[i-1].top+cards[i-1].height);if(!audit.noClipping||!audit.noOverlap)throw Error('圖片文字超出安全範圍，停止匯出');
   if(watermark)r.ShitouReportWatermark.apply(c,kind==='index'?'market':kind);
  }
