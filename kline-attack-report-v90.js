@@ -13,7 +13,7 @@ function page({title,date,blocks,watermark=false,kind='stock',testOnly=false,inc
   header.forEach((t,i)=>text(t,M+20,72+i*64,48,'#155c72'));text(`V9.1｜行情 ${date}｜${testOnly?'測試用資料，非正式行情':'盤後完成日K'}`,M+20,108+header.length*64,30,'#4c6678');
   for(const p of cards){ctx.fillStyle='#fff';ctx.beginPath();ctx.roundRect(M,p.top,CW,p.height,22);ctx.fill();let yy=p.top+27;for(const l of p.lines){yy+=l.size;text(l.text,M+28,yy,l.size,l.color);yy+=l.line-l.size;}}
   if(chartReserve){const chartY=cards.at(-1).top+cards.at(-1).height+22,levels=[{label:'目前收盤',price:plotData.close},{label:'前一交易日高點',price:plotData.levels.previousHigh},{label:'前一交易日低點',price:plotData.levels.previousLow}];audit.chart=r.ShitouElliottVisual.chart(ctx,{code:plotData.code,date:plotData.date,bars:plotData.canonicalBars,interpretation:{}},{x:M,y:chartY,width:CW,height:H-chartY-146,bars:plotData.canonicalBars,levels,annotate:false,priceLabels:true,indexChart:kind==='index'});}
-  text('原選股條件不變｜型態只作觀察，不是買賣通知。',M+20,H-86,30,'#45616f');text('紅漲綠跌；仍以文字判斷。原停損與部位計畫優先。',M+20,H-40,30,'#45616f');
+  text(title.includes('2560')?'2560正式條件已更新；K棒型態僅供觀察，不改入選資格。':'原選股條件不變｜型態只作觀察，不是買賣通知。',M+20,H-86,30,'#45616f');text('紅漲綠跌；仍以文字判斷。原停損與部位計畫優先。',M+20,H-40,30,'#45616f');
   audit.textBoxes=boxes;audit.noClipping=boxes.every(b=>b.x>=M&&b.x+b.width<=W-M+1&&b.y-b.size>=0&&b.bottom<=H);audit.noOverlap=cards.every((p,i)=>!i||p.top>=cards[i-1].top+cards[i-1].height);if(!audit.noClipping||!audit.noOverlap)throw Error('圖片文字超出安全範圍，停止匯出');
   if(watermark)r.ShitouReportWatermark.apply(c,kind==='index'?'market':kind);
  }
