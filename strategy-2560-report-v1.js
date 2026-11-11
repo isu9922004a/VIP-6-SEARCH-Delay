@@ -12,7 +12,7 @@ function pages(scan,{limit=8,watermark=false,testOnly=false}={}){S.assertSnapsho
  (risk.unusualVolume?'異常放量；':'')+(risk.nearPriorHigh?'接近前高；':'')+(f.deviationMA5>6?'高乖離追價風險':f.deviationMA5>3?'留意追價':'乖離初步觀察')+'；風險不改PASS',
  '#9012量能規則部分還原，待確認｜無強制出場｜非勝率預測'
  ]};});
- return [R.page({title:'2560戰法｜25日均線突破｜Top '+rows.length,date:scan.date,watermark,testOnly,blocks}),...R.pages(rows,{title:'2560通過後｜K線攻防觀察',watermark,testOnly})];
+ const allPages=[];for(let i=0;i<blocks.length;i+=3)allPages.push(R.page({title:'2560戰法｜25日均線突破｜Top '+rows.length+'（第'+(Math.floor(i/3)+1)+'頁）',date:scan.date,watermark,testOnly,blocks:blocks.slice(i,i+3)}));return [...allPages,...R.pages(rows,{title:'2560通過後｜K線攻防觀察',watermark,testOnly})];
 }
 async function preview(scan,all=false,watermark=false){if(document.fonts?.ready)await document.fonts.ready;return r.strongStockShowPagesV47(pages(scan,{limit:all?'all':8,watermark}),{title:'2560戰法｜25日均線突破｜'+(all?'完整明細':'前8檔與攻防說明'),prefix:'2560_V9.1'+(watermark?'_浮水印':''),date:scan.date,kind:'restaurant',note:'依代號排列，非強弱排名；不足8檔不補滿。新增說明依原序分頁，請下載全部圖片或逐頁分享至LINE。'});}
 r.ShitouStrategy2560Report=Object.freeze({pages,preview});
