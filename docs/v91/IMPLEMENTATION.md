@@ -26,3 +26,13 @@ Fifth strategy's position/control IDs remain the same; Top8 includes only curren
 
 ## Pending evidence
 Original #9012 trailing three volume comparisons have unknown periods. Therefore the strategy reproduces only the verified sub-rule, not the complete original screenshot.
+
+## 2026-11-12 Verification checkpoint (Asia/Taipei)
+- PR #36 remains DRAFT and has not been merged into main: https://github.com/isu9922004a/VIP-6-SEARCH-Delay/pull/36
+- Direct execution of the actual V9.1 JS modules confirmed completed-close MA25 breakout from below/equality, rejection of already-above closes, 60-session insufficiency, and PASS despite declining MA25 when all three core rules hold.
+- Actual scanner execution with two synthetic qualified stocks passed snapshot recomputation; deliberate VMA5 tampering and old V9.0 model identity were both rejected.
+- Eight deterministic synthetic qualified stocks yielded three Top8 overview page descriptors (3/3/2) and eight individual K-line page descriptors under a mocked canvas text-measurement context. This is NOT browser or real LINE-share verification.
+- Fixed stock-professional-v84.js user-visible V9.0 strings in professional PNG header/footer and layout audit; the K-line fifth-filter footer now acknowledges the changed V9.1 rules.
+- Inspected 151 non-data runtime script/style/page files for obsolete V9.0 literals. The only remaining literal found was a non-rendered historical comment in research-report-v1.js; homepage index has V9.1 title and cache query.
+- GitHub Actions are currently QUEUED; no completed CI jobs or live Pages V9.1 verification. Therefore DO NOT merge/deploy or claim finished until official tests and live checks pass.
+- V9.0 remains preserved in main. Revert the feature merge, not market data or receipts, if a future V9.1 deployment fails.
