@@ -1,11 +1,11 @@
-name: Validate and deploy V9.0 2560 and K-line reports
+name: Validate and deploy V9.1 2560 and K-line reports
 on:
   workflow_dispatch:
   push:
-    branches: ['feat/v90-2560-kline', 'main']
-    paths: ['strategy-2560-*.js', 'kline-attack-*.js', 'scripts/*v90*', 'scripts/*2560*', 'scripts/tests/*v90*', 'scripts/tests/*2560*', 'version-v50.js', '.github/workflows/v90-2560-kline.yml']
+    branches: ['feat/v90-2560-kline', 'feat/v91-2560-upgrade', 'main']
+    paths: ['strategy-2560-*.js', 'kline-attack-*.js', 'scripts/*v90*', 'scripts/*2560*', 'scripts/tests/*v90*', 'scripts/tests/*2560*', 'version-v50.js', 'index.html', 'market-outlook.html', '.github/workflows/v90-2560-kline.yml']
 concurrency:
-  group: v90-2560-${{ github.ref }}
+  group: v91-2560-${{ github.ref }}
   cancel-in-progress: true
 defaults:
   run:
@@ -22,8 +22,12 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: {node-version: '24'}
-      - run: npm test | tee /tmp/v90-unit.log
-      - run: npm run test:contract | tee /tmp/v90-contract.log
+      - run: |
+          set -o pipefail
+          npm test | tee /tmp/v90-unit.log
+      - run: |
+          set -o pipefail
+          npm run test:contract | tee /tmp/v90-contract.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -64,7 +68,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     uses: ./.github/workflows/deploy-data-pages.yml
     with:
-      artifact-name: v90-2560-pages
+      artifact-name: v91-2560-pages
   live:
     needs: deploy
     runs-on: ubuntu-latest
