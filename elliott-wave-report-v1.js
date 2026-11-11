@@ -73,6 +73,7 @@ function buildModel(raw,options={}){
  if(p&&currentDirection.legDirection==='UP'&&currentDirection.recentDirection==='DOWN')waveReason='原上漲分段仍是候選；近3日已回檔，先不當成續漲。';
  if(p&&currentDirection.legDirection==='DOWN'&&currentDirection.recentDirection==='UP')waveReason='原回落分段仍是候選；近3日有反彈，是否轉強仍要確認。';
  if(p&&currentDirection.legDirection!=='UNKNOWN'&&currentDirection.recentDirection!=='FLAT'&&currentDirection.recentDirection!==currentDirection.legDirection)wavePosition='波浪位置：'+(/^\d$/.test(last.label)?(p.direction==='DOWN'?'下跌':'')+'第'+last.label+'浪':last.label+'修正浪')+'候選；眼前'+(currentDirection.recentDirection==='DOWN'?'回檔':'反彈')+'待確認';
+ if(ready&&p&&a.interpretation?.positionSummary){wavePosition='波浪位置：'+a.interpretation.positionSummary;waveReason=a.interpretation.lines.join(' ')||'只列候選分段，尚未確認浪型。';}
  const levels=m.levels.map(l=>({...l})),above=levels.filter(l=>Number.isFinite(l.price)&&l.price>m.close).sort((a,b)=>a.price-b.price)[0],below=levels.filter(l=>Number.isFinite(l.price)&&l.price<m.close).sort((a,b)=>b.price-a.price)[0],observations=[];
  if(ready&&above)observations.push(`上方先看 ${fmt(above.price)} 附近，漲回後還要看能否守住。`);
  if(ready&&below)observations.push(`回檔先看 ${fmt(below.price)} 附近；若失守，留意風險增加。`);

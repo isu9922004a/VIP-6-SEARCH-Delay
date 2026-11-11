@@ -111,6 +111,62 @@ function historicalImpulses(b,pv,p,scale){
  }
  return result;
 }
+// Compare degrees using the same observed OHLC window. Different labels alone
+// are not a contradiction: an internal move may sit inside a larger correction.
+function scaleCandidate(c,scale){
+ if(!c?.points?.length)return null;
+ return {scale:{...scale},direction:c.direction,patternType:c.patternType,headline:c.headline,
+  points:c.points.map(p=>({...p})),rules:{...c.rules},availableAt:c.availableAt};
+}
+function currentLeg(c){const p=c?.points||[],start=p.at(-2),end=p.at(-1);return start&&end?{start,end,direction:end.price>start.price?'UP':end.price<start.price?'DOWN':'FLAT'}:null;}
+function compareScaleCandidates(a,b,{asOf,lastIndex}={}){
+ const ap=a?.points||[],bp=b?.points||[],al=currentLeg(a),bl=currentLeg(b);
+ const known=p=>!!asOf&&['HIGH','LOW'].includes(p.type)&&Number.isInteger(p.index)&&Number.isFinite(p.price)&&p.pivotDate&&(!asOf||p.pivotDate<=asOf&&(!p.confirmedAt||p.confirmedAt<=asOf)&&(!p.availableAt||p.availableAt<=asOf));
+ const base={scales:[a?.scale?.id,b?.scale?.id],availableAt:asOf};
+ if(!al||!bl||![...ap,...bp].every(known))return {...base,relation:'UNRESOLVED',reason:'高低點或可得日期不足，不能判定大小波段的關係'};
+ const signature=p=>p.map(x=>[x.pivotDate,x.price,x.type]);
+ if(JSON.stringify(signature(ap))===JSON.stringify(signature(bp)))return {...base,relation:'SAME_POINTS',reason:'兩種大小使用相同的高低點'};
+ const contained=(child,parent)=>{
+  const leg=currentLeg(parent),tail=leg.end,pending=!tail.confirmedAt||tail.pointStatus==='PENDING',right=pending&&Number.isInteger(lastIndex)?lastIndex:tail.index;
+  const lo=Math.min(leg.start.price,tail.price),hi=Math.max(leg.start.price,tail.price),eps=Math.max(1e-9,hi*Number.EPSILON*32);
+  return child.points[0].index>=leg.start.index&&child.points.at(-1).index<=right&&child.points.every(p=>p.price>=lo-eps&&p.price<=hi+eps);
+ };
+ const pairs=[[a,b],[b,a]];
+ for(const[child,parent]of pairs)if(child.scale?.pivotRight<parent.scale?.pivotRight&&contained(child,parent))return {...base,relation:'NESTED',childScale:child.scale.id,parentScale:parent.scale.id,parentLeg:{start:{...currentLeg(parent).start},end:{...currentLeg(parent).end},direction:currentLeg(parent).direction},reason:'較小波段的時間與價格都在較大波段目前這一段內，可分層觀察'};
+ if(al.start.pivotDate===bl.start.pivotDate&&al.start.price===bl.start.price&&al.end.pivotDate===bl.end.pivotDate&&al.end.price===bl.end.price)return {...base,relation:'SHARED_CURRENT_LEG',reason:'目前這一段漲跌一致，較早分段不同，不因此判定方向衝突'};
+ if(ap.at(-1).index<bp[0].index||bp.at(-1).index<ap[0].index)return {...base,relation:'DIFFERENT_WINDOWS',reason:'觀察的是不同時間區段，不能直接互相比浪號'};
+ return {...base,relation:al.direction!==bl.direction?'COMPETING':'UNRESOLVED',reason:al.direction!==bl.direction?'目前方向不同，且尚未建立大小波段包含關係':'目前方向相同，但不同端點的分段關係尚未確認'};
+}
+function threeLegCorrection(c,asOf){
+ const p=c?.points||[];if(p.length!==4)return null;
+ if(!asOf||p.some((x,i)=>x.type!==(c.direction==='UP'?['LOW','HIGH','LOW','HIGH']:['HIGH','LOW','HIGH','LOW'])[i]||!x.pivotDate||x.pivotDate>asOf||x.confirmedAt&&x.confirmedAt>asOf||x.availableAt&&x.availableAt>asOf))return null;
+ const sign=c.direction==='UP'?1:-1,v=p.map(x=>x.price*sign),eps=Math.max(1e-9,...v.map(x=>Math.abs(x)*Number.EPSILON*32));
+ if(!(v[1]>v[0]+eps&&v[2]>v[0]+eps&&v[2]<v[1]-eps&&v[3]>v[1]+eps))return null;
+ // This checks observed three-leg geometry only. It does NOT certify a
+ // zigzag's internal 5-3-5, a W-X-Y combination, or a completed reversal.
+ return {namespace:'ELLIOTT_CORRECTION_RESEARCH',patternType:'THREE_LEG_CORRECTION_CANDIDATE',scope:'SIMPLE_ZIGZAG_GEOMETRY_ONLY',notExhaustive:true,state:'UNCONFIRMED',direction:c.direction,
+  points:p.map((x,i)=>({...x,label:['起點','A','B','C'][i],namespace:'ELLIOTT_CORRECTION_RESEARCH'})),availableAt:asOf,
+  geometryChecks:{alternation:'PASS',bInsideOrigin:'PASS',cBeyondA:'PASS'},subwaveComposition:'UNVERIFIED',confirmed:false,tradeAllowed:false,researchOnly:true,performanceValidated:false,affectsOriginalScore:false,affectsOriginalRanking:false,affectsOriginalEligibility:false,
+  explanation:'相同三段也可能是ABC修正；尚未核對內部分段，不能認定已完成'};
+}
+function interpretationContext(candidates,selected,relations,asOf){
+ const correction=threeLegCorrection(selected,asOf),conflicting=relations.some(r=>['COMPETING','UNRESOLVED'].includes(r.relation));
+ const nested=relations.filter(r=>r.relation==='NESTED'&&r.childScale===selected?.scale?.id),parent=nested.map(r=>candidates.find(c=>c.scale.id===r.parentScale)).filter(Boolean).sort((a,b)=>b.scale.pivotRight-a.scale.pivotRight)[0],leg=currentLeg(parent);
+ const sameDegreeAlternative=selected?.sameDegreeConflict===true;
+ const status=conflicting||sameDegreeAlternative?'COMPETING_COUNTS':nested.length?'NESTED_DEGREES':candidates.length>1?'COMPATIBLE_WINDOWS':selected?'SINGLE_CANDIDATE':'NO_VALID_COUNT';
+ const parentText=leg?leg.direction!==parent.direction?(leg.direction==='DOWN'?'較大波段回調':'較大波段反彈'):(leg.direction==='UP'?'較大波段上行':'較大波段回落'):null;
+ const positionSummary=status==='COMPETING_COUNTS'?(selected?.points.at(-1)?.confirmedAt?'同一段走勢有不同數法，先不指定第幾浪。':'候選仍在形成；有不同數法，暫不定第幾浪。'):status==='NESTED_DEGREES'?(parentText+'；'+(correction?'小波段延伸或修正未定。':'圖上只列小波段候選。')):correction?'可能是延伸，也可能是修正，第3段尚未確認。':null;
+ const lines=[];
+ if(status==='NESTED_DEGREES')lines.push('大小波段：'+parentText+'，圖上的浪號只代表較小波段候選，兩者可以同時成立。');
+ if(status==='COMPATIBLE_WINDOWS')lines.push(relations.some(r=>r.relation==='SHARED_CURRENT_LEG')?'不同大小觀察到同一段漲跌，浪號不同不等於方向衝突。':'各波段觀察期間或分段不同，分開看，不直接比較浪號。');
+ if(status==='COMPETING_COUNTS')lines.push('分段尚未一致：不能只挑其中一組浪號當成定論。');
+ if(correction)lines.push(correction.explanation+'。');
+ const limitations=['W-X-Y複合修正、對角線及其他特殊浪型尚未完整建模，不宣稱已排除。'];
+ return {version:'WAVE_HIERARCHY_1',selectionReason:'圖中沿用原有波段候選供核對，不代表已證實它比其他數法更可能',status,availableAt:asOf,selectedScale:selected?.scale||null,parentScale:parent?.scale||null,parentLeg:leg?{...leg}:null,
+  relations,candidates:candidates.map(c=>({scale:c.scale,direction:c.direction,headline:c.headline,points:c.points,rules:c.rules})),
+  correctionAlternatives:correction?[correction]:[],positionSummary,lines,limitations,
+  unsupportedPatterns:['WXY','DIAGONAL','TRUNCATION','COMPLEX_CORRECTION'],researchOnly:true,performanceValidated:false,affectsOriginalScore:false,affectsOriginalRanking:false,affectsOriginalEligibility:false};
+}
 function analyzeScales(b,options={}){
  const configs=scaleConfigs(options),results=configs.map(scale=>{const pv=S.pivots(b,scale).map(p=>pointMetadata(p,b.at(-1).date)),parameters={...PARAM,...options.parameters,...scale},a=analyzeBars(b,pv,{parameters});return {scale,a,historical:historicalImpulses(b,pv,parameters,scale)};});
  const chosen=results.find(x=>x.a.primary)||results[0],out={...chosen.a},seen=new Set(),history=[];
@@ -119,7 +175,12 @@ function analyzeScales(b,options={}){
  out.historicalCounts=history.slice(0,3);out.selectedScale=chosen.scale;
  out.scaleComparisons=results.map(({scale,a})=>({scale,state:a.state,headline:a.headline,hasCandidate:!!a.primary,candidateCount:a.counts?.length||0,failedConditions:[...new Set((a.rejected||[]).flatMap(r=>Object.entries(r.rules||{}).filter(([,v])=>v==='FAIL').map(([k])=>k)))]}));
  const other=results.find(x=>x!==chosen&&x.a.primary&&(JSON.stringify(x.a.primary.points.map(p=>[p.pivotDate,p.price,p.type]))!==JSON.stringify(out.primary?.points.map(p=>[p.pivotDate,p.price,p.type]))));
- if(other){out.scaleAlternative={scale:other.scale,...other.a.primary};out.scaleDisagreement=true;if(out.primary){out.state='DISAGREEMENT';out.clarity='大小波段有不同解讀，先觀察';}}
+ if(other)out.scaleAlternative={scale:other.scale,...other.a.primary};
+ const candidates=results.map(({scale,a})=>{const c=scaleCandidate(a.primary,scale);if(c)c.sameDegreeConflict=!!a.alternative&&a.alternative.direction!==a.primary.direction;return c;}).filter(Boolean),selected=candidates.find(c=>c.scale.id===chosen.scale.id),relations=[];
+ for(let i=0;i<candidates.length;i++)for(let j=i+1;j<candidates.length;j++)relations.push(compareScaleCandidates(candidates[i],candidates[j],{asOf:b.at(-1).date,lastIndex:b.length-1}));
+ out.interpretation=interpretationContext(candidates,selected,relations,b.at(-1).date);
+ out.scaleDisagreement=relations.some(r=>['COMPETING','UNRESOLVED'].includes(r.relation));
+ if(out.primary){if(out.scaleDisagreement||selected?.sameDegreeConflict){out.state='DISAGREEMENT';out.clarity='不同數法尚未一致，先觀察';}else{out.state='RESEARCH_ONLY';out.clarity=out.interpretation.status==='NESTED_DEGREES'?'大小波段可分層觀察，浪號仍待確認':chosen.a.clarity;}}
  const rejected=results.flatMap(({a,scale})=>(a.rejected||[]).map(r=>({...r,scale}))).sort((a,c)=>c.origin.localeCompare(a.origin)||a.scale.pivotRight-c.scale.pivotRight);
  out.diagnostics=rejected.flatMap(r=>(r.failures||[]).map(f=>({...f,origin:r.origin,scale:r.scale,availableAt:r.availableAt}))).filter((f,i,all)=>all.findIndex(z=>z.key===f.key&&z.origin===f.origin)===i).slice(0,3);
  if(!out.primary){out.rejected=rejected;if(rejected.length&&out.state!=='UNSUPPORTED_PATTERN'){out.state='RULE_VIOLATION';out.reason='已比較不同大小的波段，目前還不能合理標出1到5，先等新的價格轉折。';}out.pendingNote='最近的高低點還需要後續完成日K確認，不能先當成第1浪或反轉成功。';}
@@ -153,7 +214,7 @@ function analyzeBars(b,pv=S.pivots(b),options={}){const p={...PARAM,...options.p
  candidates.sort((a,c)=>c.points.length-a.points.length||c.points.at(-1).index-a.points.at(-1).index||a.points[0].index-c.points[0].index);
  if(!candidates.length&&unsupported.length)return {...empty('UNSUPPORTED_PATTERN','這段可能是尚未支援的修正或特殊型態，先不指定浪號。'),unsupported,rejected};
  if(!candidates.length)return {...empty(rejected.length?'RULE_VIOLATION':'WAITING_PIVOTS',rejected.length?'目前數法違反標準浪規則，先不標浪；特殊對角線與複雜修正尚未建模。':'已確認的高低點還不足；新轉折需等待右側3根完成日K。'),rejected};
- const main=candidates[0],alternative=candidates.find(c=>c.points[0].index!==main.points[0].index)||null,disagreement=!!alternative&&alternative.direction!==main.direction||main.points.length===4&&(!main.evidence.volumeIncreased||!main.evidence.macdGrowing);
+ const main=candidates[0],alternative=candidates.find(c=>c.points[0].index!==main.points[0].index)||null,disagreement=!!alternative&&alternative.direction!==main.direction;
  const fibStart=main.points.length>=6?main.points[4]:main.points[0],fibEnd=main.points.length>=6?main.points[5]:main.points[1],swing={direction:main.direction,start:fibStart,end:fibEnd};
  const retracements=[.382,.5,.618,.786].map(ratio=>({ratio,price:F.fibLevelPrice(swing,ratio),label:'波浪回吐參考'}));
  return {version:VERSION,state:disagreement?'DISAGREEMENT':'RESEARCH_ONLY',date:asOf,trend:t,headline:main.headline,clarity:disagreement?'有不同解讀，先觀察':main.clarity,primary:main,alternative,counts:candidates.slice(0,2),points:main.points,rejected,unsupported,perWaveEvidence:main.evidence.perWaveEvidence,confirmationEvidence:main.evidence.confirmation,patternType:'STANDARD_IMPULSE',correctionPattern:main.points.length>=7?'SIMPLE_ABC_CANDIDATE':null,retracements,fibNote:'這只是過去漲幅或跌幅回吐到哪裡，不代表碰到就一定止跌或反轉。',...flags};
@@ -194,5 +255,5 @@ function matchesSnapshot(input,analysis){try{
  return n.ok&&analysis?.version===VERSION&&analysis.code===code&&analysis.date===date&&analysis.inputFingerprint===U.hash([code,r.market,date,bars,r.priceAdjustment,r.dailySeriesMeta]);
 }catch(_){return false;}}
 function legacy(b,pv,computed){const a=computed||analyzeScales(b),c=a.primary,r=c?.rules,complete=c?.points.length>=6;return {version:'ELLIOTT_WAVE_STRUCTURE_RESEARCH_V1',waveCandidate:complete&&r.wave3NotShortest==='PASS'?'IMPULSE_FIVE_CANDIDATE':null,ruleValidation:r?Object.fromEntries(Object.entries(r).map(([k,v])=>[k,v==='PENDING'?null:v==='PASS'])):null,pivots:a.points,alternativeCounts:c?.points.length>=7?['ABC_CORRECTION_CANDIDATE']:[],invalidation:c?.reference.price??null,divergence:{detected:!!c?.evidence.divergence&&(c.evidence.divergence.rsi||c.evidence.divergence.macd),peaks:[],confirmedAt:c?.points[5]?.confirmedAt||null},note:a.reason||c?.plain||a.headline,multiTimeframe:'UNKNOWN',affectsOriginalRanking:false};}
-return Object.freeze({VERSION,PARAM,cleanPivots,ruleChecks,pointMetadata,bollinger,perWaveEvidence,divergenceEvidence,confirmationEvidence,trend,analyzeBars,analyzeScales,evaluate,matchesSnapshot,legacy});
+return Object.freeze({VERSION,PARAM,cleanPivots,ruleChecks,pointMetadata,bollinger,perWaveEvidence,divergenceEvidence,confirmationEvidence,trend,scaleCandidate,currentLeg,compareScaleCandidates,threeLegCorrection,interpretationContext,analyzeBars,analyzeScales,evaluate,matchesSnapshot,legacy});
 });
