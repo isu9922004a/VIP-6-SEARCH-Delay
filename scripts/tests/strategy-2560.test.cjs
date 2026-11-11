@@ -19,7 +19,7 @@ test('#9041: yesterday below MA25 and today above passes',()=>{const a=run(price
 test('#9041: yesterday equal MA25 and today above passes',()=>{const a=run(prices([...sixty,130]));assert.equal(a.features.closePrev,a.features.ma25.previous);assert.equal(check(a,'9041'),true);});
 test('#9041: yesterday already above MA25 does not pass',()=>{const a=run(prices([...Array(59).fill(100),120,130]));assert.equal(check(a,'9041'),false);assert.equal(a.eligible,false);});
 test('#9041: close equal MA25 is not a new close breakout',()=>{const a=run(prices([...sixty,100]));assert.equal(check(a,'9041'),false);});
-test('#533 MA5 > MA40 passes even when MA5 was above yesterday; no same-day golden-cross requirement',()=>{const a=run(prices([...Array(59).fill(100),90,130]));assert.equal(check(a,'533'),true);assert.equal(C.qualifies(a),true);});
+test('#533 MA5 > MA40 passes even when MA5 was above yesterday; no same-day golden-cross requirement',()=>{const a=run(fixture());assert.ok(a.features.ma5.previous>a.features.ma40.previous);assert.equal(check(a,'533'),true);assert.equal(C.qualifies(a),true);});
 test('#533 equality fails',()=>{const a=run(prices([...sixty,100]));assert.equal(a.features.ma5.today,a.features.ma40.today);assert.equal(check(a,'533'),false);});
 test('#533 below fails',()=>{const a=run(prices([...Array(56).fill(200),100,100,100,100,100]));assert.ok(a.features.ma5.today<a.features.ma40.today);assert.equal(check(a,'533'),false);});
 test('#9012 volume expansion strictly greater passes',()=>{const a=run(fixture());assert.equal(check(a,'9012'),true);});
@@ -34,7 +34,7 @@ test('any one failed gate blocks PASS; all three must pass',()=>{const pass=run(
 test('below 60 completed sessions is INSUFFICIENT_DATA and never passes',()=>{const f=fixture(Array(59).fill(100));const a=run(f);assert.equal(a.status,'INSUFFICIENT_DATA');assert.equal(a.eligible,false);});
 test('unfinished daily candle is never eligible',()=>{const f=fixture();f.report.completed=false;const a=run(f);assert.equal(a.eligible,false);assert.equal(a.status,'INSUFFICIENT_DATA');});
 test('same-day MA5/MA25 slope is not an entry gate',()=>{
- const a=run(prices([...Array(34).fill(130),...Array(25).fill(100),90,135]));
+ const a=run(prices([...Array(35).fill(100),150,...Array(20).fill(60),100,100,100,60,120]));
  assert.equal(check(a,'9041'),true);assert.equal(check(a,'9012'),true);assert.equal(check(a,'533'),true);assert.equal(a.eligible,true);
  assert.ok(a.features.ma25.today<a.features.ma25.previous);
 });
