@@ -55,7 +55,7 @@ test('risk observations are descriptive, not auto-sell or secret eligibility gat
  const a=run(fixture());assert.equal(a.exitWarning,null);assert.match(a.exitLabel,/尚未指定出場策略/);assert.ok(a.features.breakoutPct>0);assert.ok(a.features.volumeRatio>1);
  assert.ok(Number.isFinite(a.features.upperShadowShare));assert.ok(Number.isFinite(a.features.bodyShare));assert.equal(a.risk.supportObservation.guaranteed,false);
 });
-for(const [name,change,expected] of Object.entries({
+for(const [name,[change,expected]] of Object.entries({
  short:[f=>{f.report.canonicalBars.shift();f.report.dailySeries.shift();},'INSUFFICIENT_DATA'],
  calendar:[f=>delete f.report.expectedTradingDates,'INSUFFICIENT_DATA'],
  basis:[f=>f.report.priceAdjustment.verified=false,'DATA_ERROR'],
