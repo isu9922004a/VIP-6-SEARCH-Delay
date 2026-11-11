@@ -67,4 +67,20 @@ test('full-market empty result differs from incomplete empty result',async()=>{
  for(const ok of [true,false]){const f=fixture(Array(61).fill(100)),p=S.pool({map:new Map([['2330',f.options.quote]]),sectorMap:new Map([['2330',f.options.sector]]),meta:{targetTradeDate:f.date,marketCoverageReady:true},snapshotRows:1}),s=await S.scan({pool:p,fetchBatch:async()=>({type:'MOMENTUM_DEEP_SCAN',results:[{code:'2330',ok,data:ok?f.report:null,error:'未完成'}]})});
  assert.equal(s.candidates.length,0);assert.equal(s.fullMarketCertified,ok);assert.match(s.text,ok?/今日2560無符合條件的股票/:/不能代表全市場0檔/);}
 });
+const negativeCases={
+ calendar:f=>delete f.report.expectedTradingDates,
+ basis:f=>f.report.priceAdjustment.verified=false,
+ unit:f=>f.report.volumeUnit='lots',
+ wrongCode:f=>f.options.code='9999',
+ wrongDate:f=>f.options.quote.quoteDate='2020-01-01',
+ quoteMismatch:f=>f.options.quote.close+=.01,
+ unknownSector:f=>f.options.sector={},
+ wrongBar:f=>f.report.canonicalBars.at(-1).stock='9999',
+ future:f=>f.report.canonicalBars.at(-1).date='2099-01-01'
+};
+for(const [name,change] of Object.entries(negativeCases))test('V9.1 retains V9.0 data firewall: '+name,()=>{
+ const f=fixture();assert.equal(run(f).status,'PASS');change(f);
+ const a=run(f);assert.equal(a.eligible,false);
+ assert.equal(a.status,'DATA_ERROR');
+});
 test('protected five selection engines, inline engines and archived restaurant sources remain byte identical to the release baseline',()=>{const crypto=require('node:crypto'),b=require('../fixtures/v90-protected-baseline.json'),hash=x=>crypto.createHash('sha256').update(x).digest('hex');for(const[p,h]of Object.entries(b.sha256))assert.equal(hash(fs.readFileSync(p)),h,p);const html=fs.readFileSync('index.html','utf8'),inline=[...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]);assert.equal(hash(JSON.stringify(inline)),b.inlineSha256);});
