@@ -22,8 +22,12 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: {node-version: '24'}
-      - run: npm test | tee /tmp/v90-unit.log
-      - run: npm run test:contract | tee /tmp/v90-contract.log
+      - run: |
+          set -o pipefail
+          npm test | tee /tmp/v90-unit.log
+      - run: |
+          set -o pipefail
+          npm run test:contract | tee /tmp/v90-contract.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
