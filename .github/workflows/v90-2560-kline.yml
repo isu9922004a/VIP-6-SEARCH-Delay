@@ -1,8 +1,8 @@
-name: Validate and deploy V9.0 2560 and K-line reports
+name: Validate and deploy V9.1 2560 and K-line reports
 on:
   workflow_dispatch:
   push:
-    branches: ['feat/v90-2560-kline', 'main']
+    branches: ['feat/v90-2560-kline', 'feat/v91-2560-ma25-volume', 'main']
     paths: ['strategy-2560-*.js', 'kline-attack-*.js', 'scripts/*v90*', 'scripts/*2560*', 'scripts/tests/*v90*', 'scripts/tests/*2560*', 'version-v50.js', '.github/workflows/v90-2560-kline.yml']
 concurrency:
   group: v90-2560-${{ github.ref }}
