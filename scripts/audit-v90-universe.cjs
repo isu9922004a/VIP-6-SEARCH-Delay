@@ -17,7 +17,7 @@ const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypt
  }
  const indexRaw=require('../data/index/TAIEX.json');assert.equal(indexRaw.closeDate,date);const indexReport={...indexRaw,stock:'TAIEX',type:'index',expectedTradingDates:indexRaw.tradingCalendar?.verified?indexRaw.tradingCalendar.dates:null},index=K.evaluate(indexReport,{type:'index'});
  const counts={};for(const r of records)counts[r.state]=(counts[r.state]||0)+1;
- const summary={version:'V9.0',strategyVersion:C.MODEL,date,input:market.rows.length,counts,newCross:records.filter(r=>r.eligible).length,dataRestricted:records.filter(r=>r.state==='DATA').length,klineAvailable:records.filter(r=>r.klineState==='AVAILABLE').length,indexState:index.state,indexReason:index.reason||null,ranking:'CODE_ASC',otherFive:'PROTECTED_SOURCE_AND_INLINE_SHA256',performance:'NOT_VALIDATED'};
+ const summary={version:'V9.1',strategyVersion:C.MODEL,date,input:market.rows.length,counts,qualified:records.filter(r=>r.eligible).length,dataRestricted:records.filter(r=>['INSUFFICIENT_DATA','DATA_ERROR'].includes(r.state)).length,klineAvailable:records.filter(r=>r.klineState==='AVAILABLE').length,indexState:index.state,indexReason:index.reason||null,ranking:'CODE_ASC',otherFive:'PROTECTED_SOURCE_AND_INLINE_SHA256',performance:'NOT_VALIDATED'};
  assert.equal(Object.values(counts).reduce((s,n)=>s+n,0),summary.input);assert.equal(new Set(records.map(r=>r.code)).size,summary.input);
  fs.writeFileSync(path.join(out,'results.json'),JSON.stringify({summary,records},null,2));fs.writeFileSync(path.join(out,'preview-input.json'),JSON.stringify({date,selected,indexReport,index},null,2));console.log('V90_UNIVERSE_PASS '+JSON.stringify(summary));
 })().catch(e=>{console.error(e);process.exitCode=1;});

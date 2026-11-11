@@ -45,7 +45,7 @@ function render(scan){S.assertSnapshot(scan);last=scan;const host=by('Result');i
  for(const [label,value] of [['三項通過',scan.candidates.length],['其中附風險提醒',scan.riskWarnings?.length||0],['條件未符合',scan.notMatched||0],['條件待驗證',scan.unverified||0],['資料不足或異常',scan.dataUnavailable],['服務失敗',scan.failed]]){const card=el('div'),k=el('div',label),v=el('div',String(value));card.className='momentum-summary-card';k.className='k';v.className='v';card.append(k,v);grid.appendChild(card);}host.appendChild(grid);
  const reminder=el('div',`三項條件通過 ${scan.sourceVerifiedMatches} 檔；條件待驗證 ${scan.unverified||0} 檔。資料未齊時，無入選不代表全市場0檔符合。額外風險提醒不更改入選名單。`);reminder.className='strong-stock-reminder';host.appendChild(reminder);
  const append=(rows,title)=>{host.appendChild(el('h3',title));if(!rows.length){host.appendChild(el('p','本輪沒有此類股票；不補出名單。'));return;}rows.forEach((c,i)=>{const detail=el('details'),summary=el('summary',`${c.eligible?'入選 #'+(i+1):'待驗證'} 🏆${C.displayName(c.code,c)}（${c.code}）｜${c.label}｜${c.risk?.chaseLevel||'核對資料及風險'}`),p=el('p',C.lines(c).join('\n'));detail.className='strong-stock-row';p.style.whiteSpace='pre-wrap';detail.append(summary,p);const b=el('button','查詢此股');b.className='copy-btn newbie-copy-btn';b.type='button';b.onclick=()=>{const input=document.getElementById('stockInput');if(input){input.value=c.code;input.dispatchEvent(new Event('input',{bubbles:true}));if(typeof root.analyzeStock==='function')root.analyzeStock();}};detail.appendChild(b);host.appendChild(detail);});};
- append(scan.candidates,'今天三項通過｜突破風險分析');append(scan.results.filter(c=>c.status==='INSUFFICIENT_DATA'||c.status==='DATA_ERROR'),'條件資料待驗證｜不列入選名單');
+ append(scan.candidates,'三項通過｜突破風險分析');append(scan.results.filter(c=>c.status==='INSUFFICIENT_DATA'||c.status==='DATA_ERROR'),'條件資料待驗證｜不列入選名單');
  if(!scan.candidates.length)host.appendChild(el('p',scan.fullMarketCertified?'今日2560無符合條件的股票':'已核對部分沒有符合股票；還有資料或查詢未完成，不能代表全市場0檔。'));
  const detail=el('details'),summary=el('summary','完整逐檔紀錄、未入選與失敗原因'),pre=el('pre',scan.text);detail.append(summary,pre);host.appendChild(detail);
  const run=root.ShitouIndicatorShadow?.capture('RESTAURANT',scan);if(run)root.ShitouIndicatorShadow.mount(run,'restaurantResult');progress(scan.attempted,scan.planned);finishUI();
@@ -89,7 +89,7 @@ function install(){
  loadNames();
  const panel=el('section');panel.id='restaurantPanel';panel.dataset.strategy='2560';panel.className='panel restaurant-panel';panel.innerHTML=`
  <div class="strong-stock-shortcut restaurant-controls">
-  <div class="section-title">🌟 第五套｜2560戰法（獨立策略）</div>
+  <div class="section-title">2560戰法｜25日均線突破</div>
   <div class="section-subtitle">突破確認 × 量能轉強 × 均線多頭。</div>
   <div class="strong-stock-reminder">#9041：今日收盤突破MA25；#9012：VMA5>VMA60（部分還原）；#533：MA5>MA40。只核對完成日K，不要求MA5當天黃金交叉或兩條均線同升。</div>
   <div class="meta">2560尚無專屬出場策略。MA5乖離、上影及量能風險僅供觀察；金融股及ETF不適用，其他五套不變。</div>
