@@ -7,8 +7,8 @@ test('larger existing pivots recover a valid count that minor turns interrupt, p
  assert.deepEqual(a.scaleComparisons.map(x=>x.scale.pivotRight),[3,5,8]);
  for(const p of a.points.filter(x=>x.confirmedAt)){assert.equal(p.confirmedAt,r.dailySeries[p.index+5].date);assert.ok(p.confirmedAt<=r.closeDate);assert.equal(p.price,r.dailySeries[p.index][p.type==='HIGH'?'high':'low']);}
 });
-test('conflicting short and large waves are retained and explicitly described without merging their points',()=>{
- const a=E.evaluate(noisy(94));assert.equal(a.state,'DISAGREEMENT');assert.equal(a.scaleDisagreement,true);assert.equal(a.selectedScale.pivotRight,3);assert.equal(a.scaleAlternative.scale.pivotRight,5);assert.notEqual(a.primary.points.at(-1).label,a.scaleAlternative.points.at(-1).label);assert.ok(V.linesFor(a).some(s=>s.includes('大小波段的解讀不同')));
+test('different degree counts sharing the current leg remain separate without a false disagreement',()=>{
+ const a=E.evaluate(noisy(94));assert.equal(a.state,'RESEARCH_ONLY');assert.equal(a.scaleDisagreement,false);assert.ok(a.interpretation.relations.some(r=>r.relation==='SHARED_CURRENT_LEG'));assert.equal(a.selectedScale.pivotRight,3);assert.equal(a.scaleAlternative.scale.pivotRight,5);assert.notEqual(a.primary.points.at(-1).label,a.scaleAlternative.points.at(-1).label);assert.ok(V.linesFor(a).some(s=>s.includes('浪號不同不等於方向衝突')));
 });
 test('complete historical five survives later sideways prices and remains separate from the current state',()=>{
  const before=E.evaluate(F.report(99,{completeFive:true})),after=E.evaluate(F.report(145,{completeFive:true}));assert.equal(after.state,'UNCLEAR');assert.equal(after.primary,undefined);assert.deepEqual(after.points,[]);assert.equal(after.historicalCounts.length,1);assert.deepEqual(after.historicalCounts[0],before.historicalCounts[0]);
