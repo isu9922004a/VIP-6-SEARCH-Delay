@@ -78,7 +78,9 @@ jobs:
       - uses: actions/setup-node@v4
         with: {node-version: '24'}
       - run: npm ci
-      - run: fc-match -f 'Selected Chinese fallback: %{family}\\n' ':lang=zh-tw'
+      - name: Report available font fallback for live screenshots
+        run: |
+          fc-match -f 'Selected Chinese fallback: %{family}\\n' ':lang=zh-tw'
       - run: python scripts/verify-deployed-frontend.py
       - run: node scripts/audit-v90-universe.cjs /tmp/v90-universe
       - run: node scripts/tests/v90-browser.cjs /tmp/v90-live
