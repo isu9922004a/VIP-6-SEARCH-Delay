@@ -3,19 +3,19 @@
 'use strict';
 const Copy=typeof module==='object'&&module.exports?require('../report-beginner-copy-v88.js'):globalThis.ShitouReportCopyV88;
 const explain=value=>Copy?Copy.line(value):String(value??'');
-const TITLE='個股精簡分析',VERSION='V8.8',WATERMARK='石頭少爺台股分析'+VERSION+'版',TOPIC='明天可能怎麼走？該怎麼做？',W=1284,MIN_H=2778,MAX_H=8192;
+const TITLE='個股精簡分析',VERSION='V9.0',WATERMARK='石頭少爺台股分析'+VERSION+'版',TOPIC='明天可能怎麼走？該怎麼做？',W=1284,MIN_H=2778,MAX_H=8192;
 const V=typeof module==='object'&&module.exports?require('../elliott-wave-visual-v1.js'):root.ShitouElliottVisual;
 const titleFor=()=>TITLE;
 function model(a,{watermarked=false}={}){if(!a?.code||!a.date)throw Error('請先完成個股查詢，再產生精簡分析。');const section=R.view(a).actionGuide.sections.find(s=>s.number==='05'),narrative=section?.fullNarrative||section?.narrative;if(!narrative?.length)throw Error('完整個股分析模組尚未載入。');
- return {title:titleFor(watermarked),watermarked:!!watermarked,topic:TOPIC,name:a.name||a.code,code:String(a.code),date:a.date,close:a.sourceBars?.at(-1)?.close??a.quote?.close,version:VERSION,blocks:narrative.map(b=>({...b})),modelRun:section.forecast?.executionVerified===true,sourceState:section.forecast?.state||'UNAVAILABLE',structureStrength:section.structureStrength||null,reportObservations:section.reportObservations||null};
+ return {title:titleFor(watermarked),watermarked:!!watermarked,topic:TOPIC,name:a.name||a.code,code:String(a.code),date:a.date,close:a.sourceBars?.at(-1)?.close??a.quote?.close,version:VERSION,baseBlockCount:narrative.length,blocks:[...narrative.map(b=>({...b})),...(a.klineAttack?[{kind:'heading',text:'K線攻防：接下來看什麼？'},...a.klineAttack.lines.map(text=>({kind:'body',text}))]:[])],modelRun:section.forecast?.executionVerified===true,sourceState:section.forecast?.state||'UNAVAILABLE',structureStrength:section.structureStrength||null,reportObservations:section.reportObservations||null};
 }
 function page(a,{document:doc=root.document,watermarked=false}={}){const wave=null,chartHeight=wave?.bars?.length?740:0,data=model(a,{watermarked}),canvas=doc.createElement('canvas');let H=MIN_H;canvas.width=W;canvas.height=H;const ctx=canvas.getContext('2d'),M=28,CW=W-2*M,padding=32,textW=CW-padding*2,colors={text:'#f0f6fb',muted:'#b8d9e9',yellow:'#f7cf70',aqua:'#79e4d1',red:'#ff9a91'};
  const font=(size,bold)=>{ctx.font=`${bold?750:600} ${size}px "Microsoft JhengHei","Segoe UI Emoji",sans-serif`;};
  const wrap=(text,size,bold=false)=>{font(size,bold);return R.wrap(ctx,text,textW);};
- let layout;for(const body of [38,37,36,35,34,33,32]){const blocks=data.blocks.map(b=>{const size=b.kind==='headline'?body+6:b.kind==='heading'?body+4:b.kind==='subheading'?body+1:b.kind==='notice'||b.kind==='footnote'?30:body,line=size+12,bold=['headline','heading','subheading','summary'].includes(b.kind),lines=wrap(b.text,size,bold),gap=b.kind==='heading'?18:b.kind==='subheading'?12:7;return {...b,size,line,bold,lines,height:lines.length*line+gap};}),top=140,header=218,gap=14,title=64,bottom=104,bodyHeight=title+blocks.reduce((n,b)=>n+b.height,0)+20,total=top+header+gap+chartHeight+bodyHeight+bottom+42;
+ let layout;for(const body of [38,37,36,35,34,33,32]){const blocks=data.blocks.map(b=>{const size=b.kind==='headline'?body+6:b.kind==='heading'?body+4:b.kind==='subheading'?body+1:b.kind==='notice'||b.kind==='footnote'?30:body,line=size+12,bold=['headline','heading','subheading','summary'].includes(b.kind),lines=wrap(b.text,size,bold),gap=b.kind==='heading'?18:b.kind==='subheading'?12:7;return {...b,size,line,bold,lines,height:lines.length*line+gap};}),top=140,header=218,gap=14,title=64,bottom=104,bodyHeight=title+blocks.reduce((n,b)=>n+b.height,0)+20,total=top+header+gap+chartHeight+bodyHeight+bottom+42,baseTotal=total-blocks.slice(data.baseBlockCount).reduce((n,b)=>n+b.height,0);
   // Keep the existing compact layout when it fits. Longer narratives extend
   // the PNG at the minimum readable font instead of dropping text or failing.
-  if(total<=H||body===32){H=Math.max(MIN_H,Math.ceil(total));if(H>MAX_H)throw Error('完整報告超過長圖容量，請改用完整文字報告。');layout={body,blocks,top,header,gap,title,bottom,bodyHeight,extra:H-total};break;}}
+  if(baseTotal<=MIN_H||body===32){H=Math.max(MIN_H,Math.ceil(total));if(H>MAX_H)throw Error('完整報告超過長圖容量，請改用完整文字報告。');layout={body,blocks,top,header,gap,title,bottom,bodyHeight,extra:H-total};break;}}
  canvas.height=H; // Resizing resets context state; draw() reapplies each font.
  const panel=(y,h)=>{ctx.fillStyle='#10344f';ctx.beginPath();ctx.roundRect(M,y,CW,h,24);ctx.fill();ctx.strokeStyle='#28627d';ctx.lineWidth=2;ctx.stroke();};
  const draw=(lines,x,y,size,color,bold=false,line=size+12)=>{font(size,bold);ctx.fillStyle=color;lines.forEach((t,i)=>ctx.fillText(t,x,y+i*line));};

@@ -11,7 +11,7 @@ try{
   {label:'當沖',selector:'.daytrade-shortcut',tab:'filters',filter:'daytrade',fallback:'upDaytrade'},
   {label:'飆股',selector:'#strongStockShortcut',tab:'filters',filter:'strong'},
   {label:'寶塔線',selector:'#towerGoldPanel',tab:'filters',filter:'tower'},
-  {label:'餐廳',selector:'#restaurantPanel',tab:'filters',filter:'restaurant'},
+  {label:'2560',selector:'#restaurantPanel',tab:'filters',filter:'restaurant'},
   {label:'結構',selector:'#structurePanel',tab:'filters',filter:'structure'}
  ];
  const noteStates=new WeakMap(),exportStates=new WeakMap(),versionNodes=new WeakSet(),observedRoots=new WeakSet();

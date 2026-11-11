@@ -1,0 +1,91 @@
+name: Validate and deploy V9.0 2560 and K-line reports
+on:
+  workflow_dispatch:
+  push:
+    branches: ['feat/v90-2560-kline', 'main']
+    paths: ['strategy-2560-*.js', 'kline-attack-*.js', 'scripts/*v90*', 'scripts/*2560*', 'scripts/tests/*v90*', 'scripts/tests/*2560*', 'version-v50.js', '.github/workflows/v90-2560-kline.yml']
+concurrency:
+  group: v90-2560-${{ github.ref }}
+  cancel-in-progress: true
+defaults:
+  run:
+    shell: bash
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - run: npm test | tee /tmp/v90-unit.log
+      - run: npm run test:contract | tee /tmp/v90-contract.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v90-unit-tests
+          path: /tmp/v90-*.log
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      CHROME_BIN: /usr/bin/google-chrome
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - run: npm ci
+      - name: Inspect preinstalled font fallback (offline)
+        run: |
+          fc-match -f 'Selected Chinese fallback: %{family}\\n' ':lang=zh-tw'
+          fc-list :lang=zh-tw family | sed -n '1,5p'
+      - run: node scripts/audit-v90-universe.cjs /tmp/v90-universe
+      - run: node scripts/tests/v90-browser.cjs /tmp/v90-browser
+      - run: npm run test:browser -- /tmp/v90-existing-browser
+      - run: npm run test:elliott-browser -- /tmp/v90-existing-waves
+      - run: node scripts/tests/kronos-future-browser.cjs /tmp/v90-existing-future
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v90-images-and-universe
+          path: |
+            /tmp/v90-universe/results.json
+            /tmp/v90-universe/preview-input.json
+            /tmp/v90-browser
+            /tmp/v90-existing-browser
+            /tmp/v90-existing-waves
+            /tmp/v90-existing-future
+  deploy:
+    needs: [unit, browser]
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/deploy-data-pages.yml
+    with:
+      artifact-name: v90-2560-pages
+  live:
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      CHROME_BIN: /usr/bin/google-chrome
+      V90_LIVE_ORIGIN: https://isu9922004a.github.io/VIP-6-SEARCH-Delay/
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: main}
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - run: npm ci
+      - name: Report available font fallback for live screenshots
+        run: |
+          fc-match -f 'Selected Chinese fallback: %{family}\\n' ':lang=zh-tw'
+      - run: python scripts/verify-deployed-frontend.py
+      - run: node scripts/audit-v90-universe.cjs /tmp/v90-universe
+      - run: node scripts/tests/v90-browser.cjs /tmp/v90-live
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v90-production-images
+          path: /tmp/v90-live

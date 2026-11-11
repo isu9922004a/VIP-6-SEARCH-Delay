@@ -1,3 +1,4 @@
+// V9.0 presentation; historical model identifiers remain unchanged.
 (function(r,f){const a=f();if(typeof module==='object'&&module.exports)module.exports=a;else r.ShitouResearchReport=a;})(globalThis,function(){
 'use strict';
 const Copy=typeof module==='object'&&module.exports?require('./report-beginner-copy-v88.js'):globalThis.ShitouReportCopyV88;
@@ -299,6 +300,7 @@ function view(a,{includeWave=true}={}){
  const level=(key,label)=>{const item=a.priceLevels?.[key],formula=key==='researchBreakout'?'前20根完成日K最高價（不含當日）':item?.formula?.startsWith('max(')?'已守住的前日均線支撐最高值':'前20根完成日K最低價（不含當日）';return item?.verified&&Number.isFinite(item.value)?`${label} ${fmt(item.value)}；${formula}；行情 ${item.sourceDate}`:'資料不足，暫無法核驗價位';};
  const favourable=!valid?'基礎日K未通過，無法核驗有利依據':Object.entries(a.families||{}).filter(([k,v])=>v===true&&k!=='DATA_QUALITY').map(([k])=>({PRICE_STRUCTURE:'突破／結構',TREND_MA:'均線趨勢',VOLUME:'量能',MOMENTUM:'動能',FLOW:'資金',FUNDAMENTAL:'基本面'}[k])).filter(Boolean).join('、')||'尚無正向家族共振；仍可依已知價量判讀現況';
  const details=[
+  ...(a.klineAttack?.lines||[]).map((value,i)=>({title:'K線攻防說明 '+(i+1),value})),
   ...waveFields,
   ...engulfRange.fields.map(f=>({title:'吞沒／箱體｜'+f.title,value:f.value})),
   ...(a.evidenceDiagnostics?.technicalOnlyFallback?[{title:'本次查詢使用的資料',value:'完整分析服務暫不可用，已改讀經來源檢查的完成日線；四策略仍可判讀。月線資格與固定倍數暫不提供，不能當成已通過。原因：'+a.evidenceDiagnostics.technicalOnlyFallback.reason}]:[]),

@@ -1,0 +1,17 @@
+{
+  "commit": "1fe6083163cba65c075bdec1376e6fc19a8243aa",
+  "sha256": {
+    "restaurant-filter-v1.js": "692fa7641b5492ed2d191b87ccbb8b7fa2e18a16a8cd2a762e856ba39a762f99",
+    "restaurant-scanner-v1.js": "89ff739b4a4afdea5ecd4c35ef7c95e9978bd060d9f02dc28459b6fcd87812a5",
+    "restaurant-ui-v1.js": "58e7760a741aa0a96b99ac74c91c6d9cbc023c7aee6af4e05f717df8b5131690",
+    "restaurant-report-v1.js": "e5bae6bda2da5f6ae19db6274890cf4e7ba5da0ddfb6154b3f40f50b41db1d3f",
+    "strong-stock-filter-v47.js": "db41df76f2967b9ac2692cdf7bacfaa7e32f52fa105ed57a687cc0851ae176be",
+    "tower-line-core.js": "f124534ebd45f0c549ada7be311448e1cbd5650e6169b54d11d5ad2d3c157176",
+    "tower-gold-scanner.js": "5449841c79c2166390aa11a9840498de3430c8007e8637c8fb1b6197d5c8ae07",
+    "structure-reversal-core-v1.js": "cdf3dc5ab19741b0177f8b908a5d00e0a45bf1c3b43f066e0c64644af7a49d34",
+    "structure-reversal-scanner-v1.js": "22e47c9cf2281346fc5f2bfa204508e6bd9c584bed958a9fc1ea3e724820562a",
+    "scan-exclusions-rsi-v5328.js": "35e4be1709333ec803319d62115f5747dc077410ab55548534582ec4ac3cd567",
+    "market-worker.mjs": "7811eccb157d76fc5a70df5016fff8154058849a343963924e65e519e3b4eb53"
+  },
+  "inlineSha256": "89f417047f22293b28f9fcf12219525cd94616afeea699af5990af9a95a0606c"
+}

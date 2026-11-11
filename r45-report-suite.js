@@ -721,7 +721,7 @@ async function generateStock(mode='beginner',withWatermark=false){
   // assistant/evidence strips over already complete V50 canvases.
   const professional=mode==='professional',renderer=professional?window.renderStockProfessionalInfographicV51:window.renderStockInfographicV46;
   if(typeof renderer!=='function')throw new Error('個股圖片產生器不存在');
-  const source=renderer(report);if(!source)throw new Error('個股圖片畫布不存在');
+  let source=renderer(report);if(!source)throw new Error('個股圖片畫布不存在');if(window.ShitouKlineAttackReport)source=window.ShitouKlineAttackReport.appendStockCanvas(source,report);
   let result;
   if(professional||source.dataset?.unifiedReport==='true'){
     if(withWatermark&&typeof original.watermark==='function')original.watermark(source,'stock');
