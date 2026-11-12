@@ -1,0 +1,63 @@
+name: V9.2 life-line research verification
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'kline-life-03-*.js'
+      - 'research-report-v1.js'
+      - 'research-chart-v1.js'
+      - 'research-integration-v1.js'
+      - 'version-v50.js'
+      - 'index.html'
+      - 'scripts/tests/kline-life-03*'
+      - '.github/workflows/v92-kline-life03.yml'
+  push:
+    branches: ['feat/v92-kline-life03-research']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - name: Syntax and targeted life-line tests
+        run: |
+          node --check kline-life-03-core-v1.js
+          node --check kline-life-03-report-v1.js
+          node --check kline-life-03-backtest-v1.js
+          node --check research-report-v1.js
+          node --check research-integration-v1.js
+          node --check research-chart-v1.js
+          node --test scripts/tests/kline-life-03.test.cjs
+      - name: Existing full tests
+        run: |
+          npm test
+          npm run test:contract
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CHROME_BIN: /usr/bin/google-chrome
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - run: npm ci
+      - name: New iPhone-width research page and PNG
+        run: node scripts/tests/kline-life-03-browser.cjs /tmp/v92-life03
+      - name: Existing chart and selection regression
+        run: |
+          node scripts/tests/v90-browser.cjs /tmp/v92-v90
+          npm run test:browser -- /tmp/v92-existing
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v92-life03-browser-evidence
+          path: |
+            /tmp/v92-life03
+            /tmp/v92-v90
+            /tmp/v92-existing
