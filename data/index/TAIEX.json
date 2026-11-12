@@ -3,18 +3,10 @@
   "symbol": "TAIEX",
   "market": "TWSE_INDEX",
   "name": "臺灣加權股價指數",
-  "closeDate": "2026-11-11",
-  "close": 44257.15,
+  "closeDate": "2026-11-12",
+  "close": 43091.87,
   "completed": true,
   "dailySeries": [
-    {
-      "date": "2026-05-19",
-      "open": 40883.42,
-      "high": 40951.56,
-      "low": 40168.51,
-      "close": 40175.56,
-      "volume": 13603142233
-    },
     {
       "date": "2026-05-20",
       "open": 40204.16,
@@ -965,7 +957,15 @@
       "high": 44257.15,
       "low": 42708.05,
       "close": 44257.15,
-      "volume": 11514263840
+      "volume": 11518562054
+    },
+    {
+      "date": "2026-11-12",
+      "open": 44180.46,
+      "high": 44525.24,
+      "low": 42943.5,
+      "close": 43091.87,
+      "volume": 13624025071
     }
   ],
   "dailySeriesMeta": {
@@ -973,10 +973,10 @@
     "requestedBars": 120,
     "minRecommendedBars": 60,
     "returnedBars": 120,
-    "taiexOhlcRowsAvailable": 471,
-    "fmtqikVolumeRowsAvailable": 151,
-    "firstDate": "2026-05-19",
-    "lastDate": "2026-11-11",
+    "taiexOhlcRowsAvailable": 472,
+    "fmtqikVolumeRowsAvailable": 152,
+    "firstDate": "2026-05-20",
+    "lastDate": "2026-11-12",
     "ascending": true,
     "onlyCompletedBars": true,
     "readyForTrident": true,
@@ -1241,26 +1241,26 @@
       "2026-12-30",
       "2026-12-31"
     ],
-    "generatedAt": "2026-11-11T08:13:18.940Z",
+    "generatedAt": "2026-11-12T11:43:33.368Z",
     "futureSessionPolicy": "依目前公告交易日；臨時休市可能變更",
     "sourceSha256": "fb3c71ce62aa4819e58d422fa08be383161a830230f84e9a50560e019eee577c",
     "historicalSource": "https://www.twse.com.tw/exchangeReport/FMTQIK",
-    "historicalSnapshotHash": "8dd3bd85e2a0a6307849d5182ddc78ed1db35a99d53773cec96856a1ff781e17",
-    "end": "2026-11-11",
+    "historicalSnapshotHash": "07a1e800312841d54028b15f75f0a2ccc975850e66d2c424d0f8d389f4843181",
+    "end": "2026-11-12",
     "independentIndexCalendar": true
   },
   "sourceReceipt": {
     "url": "https://shitou-taiwanmarket-api.d318426.workers.dev/?market=TAIEX",
     "officialRecovery": null,
-    "retrievedAt": "2026-11-11T08:13:18.940Z",
-    "sha256": "eb76b6c7c338e863d2e4b649148cab590424d6433b925505e5fed7841513c01c",
+    "retrievedAt": "2026-11-12T11:43:33.368Z",
+    "sha256": "297e3072e007006aa314efa179709ce816c95df8155c293057a887ab1960b156",
     "officialChecks": [
       {
         "month": "2026-11",
         "url": "https://www.twse.com.tw/exchangeReport/FMTQIK?response=json&date=20261101",
-        "sha256": "6679aeca430b282f2fae10cc9204d9b5620169d9995eb74a43a378bf91730475"
+        "sha256": "24631989ee9842a51e92c32adde811bd1336463f34096353ffd1a319dbcd28e6"
       }
     ],
-    "expectedCompletedDate": "2026-11-11"
+    "expectedCompletedDate": "2026-11-12"
   }
 }
