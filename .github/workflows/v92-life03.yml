@@ -56,5 +56,6 @@ jobs:
           node-version: '24'
       - run: npm ci
       - run: node scripts/tests/kline-life03-browser.cjs
+      - run: node scripts/audit-v90-universe.cjs /tmp/v90-universe
       - run: node scripts/tests/v90-browser.cjs /tmp/v92-original-v90
       - run: npm run test:browser -- /tmp/v92-original-research
