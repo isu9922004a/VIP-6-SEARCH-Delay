@@ -106,12 +106,23 @@ fs.mkdirSync(out,{recursive:true});
  // Positive V9.2 regression: use the production 2560 three-rule contract with auditable completed synthetic bars.
  await page.evaluate(({s,f})=>{
   const core=ShitouStrategy2560,scanner=ShitouStrategy2560Scanner;
+  const snapshotDate=ShitouSelectionDataV2.getSnapshot?.()?.date;
+  // Keep unrelated old scan exports usable; align only these synthetic test bars
+  // to the existing completed snapshot instead of resetting shared state.
+  if(snapshotDate&&snapshotDate!==f.date){
+   const dates=[],d=new Date(snapshotDate+'T00:00:00Z'),n=f.report.canonicalBars.length;
+   while(dates.length<n){if(![0,6].includes(d.getUTCDay()))dates.unshift(d.toISOString().slice(0,10));d.setUTCDate(d.getUTCDate()-1);}
+   f.report.canonicalBars.forEach((bar,i)=>bar.date=dates[i]);
+   f.report.dailySeries.forEach((bar,i)=>bar.date=dates[i]);
+   f.report.expectedTradingDates=dates;f.report.closeDate=snapshotDate;
+   f.date=snapshotDate;f.options.asOf=snapshotDate;
+   Object.assign(f.options.quote,f.report.canonicalBars.at(-1),{quoteDate:snapshotDate});
+  }
   const c=core.evaluate(f.report,f.options);
   if(!core.qualifies(c))throw Error('2560 synthetic test fixture did not pass the actual three rules');
   const restaurant=scanner.finish({...s.restaurant,model:core.MODEL,date:f.date,dataDate:f.date,
    sessionOffset:0,requestedMode:'100',marketCoverageReady:false,marketSnapshotFingerprint:null,
    results:[c],planned:1,attempted:1,parsed:1,universe:1,deferred:0,excluded:[],issues:[],stopped:false});
-  ShitouSelectionDataV2.reset(); // Detached synthetic export must not borrow an unrelated earlier-date production snapshot.
   ShitouRestaurantUI.render(scanner.snapshot(restaurant));
   const structure={...s.structure,results:{A:[s.structurePositive],B:[s.structurePrewatch]},planned:1,attempted:1};
   ShitouStructureUI.render(ShitouStructureScanner.snapshot(structure));
