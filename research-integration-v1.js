@@ -69,7 +69,17 @@ function researchCard(a,number,prefix='研究',expanded=false){
   if(guideIndex===0){value.textContent='';const parts=item.value.split('\n');value.append(el('strong',parts.shift()),document.createTextNode('\n'),el('span',parts.join('\n')));}
   row.append(key,value);return row;
  }
- body.append(guide);if(root.ShitouEngulfRangeReport)body.append(root.ShitouEngulfRangeReport.mount(document,a));if(root.ShitouElliottVisual)body.append(root.ShitouElliottVisual.mount(document,a));
+ body.append(guide);
+ const life=root.ShitouKlineLife03Report?.inspect(a);
+ if(life){
+  const lf=root.ShitouKlineLife03Report.fields(life),panel=el('section');
+  panel.className='research-guide-evidence research-life03-card';
+  panel.dataset.model='V9.2-KLINE-LIFE03';
+  panel.append(el('h4','0～3號K生命線｜隔日強弱研究'),field(lf.summary));
+  for(const item of lf.details.slice(0,5))panel.append(field(item));
+  body.append(panel);
+ }
+ if(root.ShitouEngulfRangeReport)body.append(root.ShitouEngulfRangeReport.mount(document,a));if(root.ShitouElliottVisual)body.append(root.ShitouElliottVisual.mount(document,a));
  const evidence=el('details');evidence.className='research-guide-evidence';evidence.append(el('summary','查看完整研究與資料驗證'));
  for(const item of report.details)evidence.append(field(item));body.append(evidence);
  if(a.openingPlan){
@@ -204,7 +214,7 @@ function exportData(type='json'){
  if(activeKind==='STOCK_QUERY'){
   if(!latestStockQuery)return null;
   const {analysis:a,metrics:m}=latestStockQuery;
-  const data={version:root.ShitouReleaseV50.code,mode:'SINGLE_STOCK_RESEARCH',analysis:a,report:R.view(a),metrics:m,formalRank:null,performance:'NOT_VALIDATED'};
+  const data={version:root.ShitouReleaseV50.code,mode:'SINGLE_STOCK_RESEARCH',analysis:a,report:R.view(a),life03:root.ShitouKlineLife03?.evaluate(a)||null,metrics:m,formalRank:null,performance:'NOT_VALIDATED'};
   if(type==='json')save(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),`石頭少爺_${root.ShitouReleaseV50.displayCode}_${a.code}_個股研究.json`);
   else if(type==='csv'){const p=a.foundation?.alertPlan,esc=x=>'"'+String(x??'').replaceAll('"','""')+'"';const rows=[['code','date','priceAbove','priceBelow','dayGainPercent','dayLossPercent','status'],[a.code,a.date,p?.priceAbove?.input,p?.priceBelow?.input,p?.dayGainPercentInput,p?.dayLossPercentInput,'MANUAL_ONLY']];save(new Blob(['\uFEFF'+rows.map(r=>r.map(esc).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'}),`石頭少爺_${root.ShitouReleaseV50.displayCode}_${a.code}_到價提醒.csv`);}
   else save(new Blob([`個股專屬研究｜${a.name}（${a.code}）\n行情 ${m.marketDate}｜收盤 ${stockFmt(m.close)}｜日RSI5 ${stockFmt(m.rsi5)}｜日MA20 ${stockFmt(m.ma20)}\n${R.text(a)}\n僅當次個股查詢，不參與原榜排名。`],{type:'text/plain;charset=utf-8'}),`石頭少爺_${root.ShitouReleaseV50.displayCode}_${a.code}_個股研究.txt`);
