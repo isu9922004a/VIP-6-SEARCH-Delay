@@ -8,8 +8,8 @@ const check=(c,key)=>c.checks.find(x=>x.key===key)?.pass;
 function volume(f,change){for(let i=0;i<f.report.canonicalBars.length;i++)f.report.canonicalBars[i].volume=change(i,f.report.canonicalBars.length);return refresh(f);}
 test('V9.1 three rules use independent SMA and volume means and keep 2560 name',()=>{
  const f=fixture(),a=run(f),b=f.report.canonicalBars;
- assert.equal(C.MODEL,'2560-STRATEGY-V2.0');assert.equal(C.RULE.minBars,60);assert.equal(C.RULE.exit,null);assert.equal(C.RULE.volumeRule9012Complete,false);
- assert.equal(a.status,'PASS');assert.equal(C.qualifies(a),true);assert.deepEqual(a.checks.map(c=>c.key),['9041','9012','533']);assert.equal(a.volumeRuleComplete,false);
+ assert.equal(C.MODEL,'2560-STRATEGY-V2.1');assert.equal(C.RULE.minBars,60);assert.equal(C.RULE.exit,null);assert.equal(C.RULE.volumeRule9012Complete,true);
+ assert.equal(a.status,'PASS');assert.equal(C.qualifies(a),true);assert.deepEqual(a.checks.map(c=>c.key),['9041','9012','533']);assert.equal(a.volumeRuleComplete,true);
  for(const n of [5,25,40]){assert.equal(a.features['ma'+n].today,b.slice(-n).reduce((s,x)=>s+x.close,0)/n);assert.equal(a.features['ma'+n].previous,b.slice(-n-1,-1).reduce((s,x)=>s+x.close,0)/n);}
  for(const n of [5,60])assert.equal(a.features['vma'+n],b.slice(-n).reduce((s,x)=>s+x.volume,0)/n);
  assert.equal(a.features.breakoutPct,(a.features.close-a.features.ma25.today)/a.features.ma25.today*100);
@@ -38,7 +38,7 @@ test('same-day MA5/MA25 slope is not an entry gate',()=>{
  assert.equal(check(a,'9041'),true);assert.equal(check(a,'9012'),true);assert.equal(check(a,'533'),true);assert.equal(a.eligible,true);
  assert.ok(a.features.ma25.today<a.features.ma25.previous);
 });
-test('risk indications and unusual volume do not become pass/fail gates',()=>{const a=run(fixture());assert.equal(a.status,'PASS');assert.equal(a.risk.unusualVolume,false);assert.ok(a.risk.supportObservation.every(x=>Number.isFinite(x)));assert.ok(a.warnings.some(x=>x.includes('部分還原')));});
+test('risk indications and unusual volume do not become pass/fail gates',()=>{const a=run(fixture());assert.equal(a.status,'PASS');assert.equal(a.risk.unusualVolume,false);assert.ok(a.risk.supportObservation.every(x=>Number.isFinite(x)));assert.ok(a.warnings.some(x=>x.includes('無參數均量已依指定忽略')));});
 for(const[name,change]of Object.entries({
  calendar:f=>delete f.report.expectedTradingDates,basis:f=>f.report.priceAdjustment.verified=false,
  unit:f=>f.report.volumeUnit='lots',wrongCode:f=>f.options.code='9999',
@@ -59,3 +59,39 @@ test('zero-qualified complete market differs from incomplete and never invents e
  assert.equal(s.candidates.length,0);assert.equal(s.fullMarketCertified,ok);assert.match(s.text,ok?/今日2560無符合條件的股票/:/不能代表全市場0檔/);
  }});
 test('other five and archived restaurant engines remain byte-identical to baseline',()=>{const crypto=require('node:crypto'),b=require('../fixtures/v90-protected-baseline.json'),hash=x=>crypto.createHash('sha256').update(x).digest('hex');for(const[p,h]of Object.entries(b.sha256))assert.equal(hash(fs.readFileSync(p)),h,p);const html=fs.readFileSync('index.html','utf8'),inline=[...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]);assert.equal(hash(JSON.stringify(inline)),b.inlineSha256);});
+
+
+test('2026-11-11 historical comparison never reports the previous-day signals as today PASS',()=>{
+ const ids=['6756','2221','3701','2607','6201','5209','6240','6170','6234','6150'];
+ for(const code of ids){
+  const report=JSON.parse(fs.readFileSync('data/research/2026-11-11/'+code+'.json','utf8'));
+  const today=report.canonicalBars.at(-1),quote={...today,code,market:report.market,quoteDate:today.date,securityType:'COMMON',industryName:'電子工業'};
+  const result=C.evaluate(report,{asOf:'2026-11-11',quote,sector:{industryName:'電子工業',industryCode:'24',source:'TEST_ONLY'},code});
+  assert.equal(result.status,'FAIL',code+' '+result.reasons.join('；'));
+  assert.equal(result.previousSignal?.eligible,true,code);
+  assert.equal(result.previousSignal.date,'2026-11-10',code);
+  assert.equal(result.previousSignal.notCurrentSignal,true,code);
+  assert.equal(result.eligible,false,code);
+ }
+});
+test('2026-11-11 stock min-history cases remain INSUFFICIENT_DATA, not FAIL',()=>{
+ for(const code of ['6590','7767','3164','1472']){
+  const report=JSON.parse(fs.readFileSync('data/research/2026-11-11/'+code+'.json','utf8'));
+  assert.ok(report.canonicalBars.length<60,code);
+  const today=report.canonicalBars.at(-1),quote={...today,code,market:report.market,quoteDate:today.date,securityType:'COMMON',industryName:'電子工業'};
+  const result=C.evaluate(report,{asOf:'2026-11-11',quote,sector:{industryName:'電子工業',industryCode:'24',source:'TEST_ONLY'},code});
+  assert.equal(result.status,'INSUFFICIENT_DATA',code);
+ }
+});
+test('historical results display date and never enter current PASS or Top8',async()=>{
+ const code='6756',report=JSON.parse(fs.readFileSync('data/research/2026-11-11/'+code+'.json','utf8')),last=report.canonicalBars.at(-1);
+ const quote={...last,code,market:report.market,quoteDate:last.date,securityType:'COMMON',industryName:'電子工業'};
+ const plan=S.pool({map:new Map([[code,quote]]),sectorMap:new Map([[code,{industryName:'電子工業',industryCode:'24',source:'TEST_ONLY'}]]),meta:{targetTradeDate:last.date,marketCoverageReady:true},snapshotRows:1});
+ const snapshot=await S.scan({pool:plan,fetchBatch:async()=>({type:'MOMENTUM_DEEP_SCAN',results:[{code,ok:true,data:report}]})});
+ assert.equal(snapshot.candidates.length,0);
+ assert.equal(snapshot.previousSignals.length,1);
+ assert.equal(snapshot.previousSignals[0].signalDate,'2026-11-10');
+ assert.equal(snapshot.previousSignals[0].status,'HISTORICAL_ONLY');
+ assert.match(snapshot.text,/歷史對照（非當日入選）/);
+ S.assertSnapshot(snapshot);
+});
