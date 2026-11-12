@@ -9,6 +9,7 @@ const Z=globalThis.ShitouResearchZhTW||(typeof require==='function'?require('./r
 const Structure=typeof module==='object'&&module.exports?require('./structure-context-v1.js'):globalThis.ShitouStructureContext;
 const Opening=typeof module==='object'&&module.exports?require('./research-opening-plan-v1.js'):globalThis.ShitouOpeningPlan;
 const Action=typeof module==='object'&&module.exports?require('./research-action-guide-v1.js'):globalThis.ShitouResearchActionGuide;
+const LifeReport=typeof module==='object'&&module.exports?require('./kline-life-03-report-v1.js'):globalThis.ShitouKlineLife03Report;
 const chinese=value=>Z?Z.humanize(value):String(value??'—');
 const fmt=v=>typeof v==='number'&&Number.isFinite(v)?v.toFixed(2):'—';
 const STAGES={BREAKOUT_LAUNCH:'突破發動',HEALTHY_PULLBACK:'健康回踩',MOMENTUM_CONTINUATION:'強勢延續',FLOW_CONFIRMATION:'資金確認',OVEREXTENDED:'短線過熱',BREAKOUT_FAILURE:'結構失敗',INSUFFICIENT_DATA:'資料不足',OBSERVATION:'觀察中',DISABLED:'已關閉'};
@@ -286,8 +287,10 @@ function view(a,{includeWave=true}={}){
  const waveView=globalThis.ShitouElliottVisual,waveFields=includeWave&&waveView?.enabled()?waveView.linesFor(waveView.result(a)).map(value=>({title:'艾略特波浪｜輔助觀察',value})):[];
  const rawEngulfRange=Structure.confirmationView(a.engulfRangeResearch||a.unifiedResearch?.structureContext?.confirmationResearch||a.foundation?.engulfRangeResearch,a),engulfRange=Copy?{...rawEngulfRange,wordingVersion:Copy.VERSION,fields:rawEngulfRange.fields.map(Copy.field)}:rawEngulfRange;
  const d=a.foundation?.dualScanContext,p=a.foundation?.alertPlan,t=technicalOutlook(a),f=a.features,valid=a.validation?.technicalModelAvailable===true,study=a.indicatorStudy;
+ const life=LifeReport?.inspect(a),lifeFields=life?LifeReport.fields(life):null;
  const technicalSummary=[
   {title:'研究重點',value:glanceEvidence(a)},
+  ...(lifeFields?[lifeFields.summary]:[]),
   {title:'關鍵價位',value:priceSummary(a)},
   {title:'風險',value:glanceRisk(a)},
   {title:'研究A/B',value:glanceDual(a)},
@@ -301,6 +304,7 @@ function view(a,{includeWave=true}={}){
  const favourable=!valid?'基礎日K未通過，無法核驗有利依據':Object.entries(a.families||{}).filter(([k,v])=>v===true&&k!=='DATA_QUALITY').map(([k])=>({PRICE_STRUCTURE:'突破／結構',TREND_MA:'均線趨勢',VOLUME:'量能',MOMENTUM:'動能',FLOW:'資金',FUNDAMENTAL:'基本面'}[k])).filter(Boolean).join('、')||'尚無正向家族共振；仍可依已知價量判讀現況';
  const details=[
   ...(a.klineAttack?.lines||[]).map((value,i)=>({title:'K線攻防說明 '+(i+1),value})),
+  ...(lifeFields?.details||[]),
   ...waveFields,
   ...engulfRange.fields.map(f=>({title:'吞沒／箱體｜'+f.title,value:f.value})),
   ...(a.evidenceDiagnostics?.technicalOnlyFallback?[{title:'本次查詢使用的資料',value:'完整分析服務暫不可用，已改讀經來源檢查的完成日線；四策略仍可判讀。月線資格與固定倍數暫不提供，不能當成已通過。原因：'+a.evidenceDiagnostics.technicalOnlyFallback.reason}]:[]),
@@ -365,7 +369,8 @@ function pages(a,{document:doc=globalThis.document,displayCode=globalThis.Shitou
  const ctx=doc.createElement('canvas').getContext('2d');
  if(!ctx)throw Error('Canvas 2D unavailable');
  // Summary first, followed by complete research; no field is silently filtered out.
- const report=view(a,{includeWave:false});if(!detail&&(iphoneFullScreen||globalThis.ShitouIPhoneSummary)){if(!globalThis.ShitouIPhoneSummary)throw Error('iPhone滿版輸出模組尚未載入');return globalThis.ShitouIPhoneSummary.pages(a,report,{doc,displayCode,wrap,watermark,stockMode});}if(!detail)return Action.pages(a,report,{doc,displayCode,watermark,stockMode,wrap,roundRectPath});
+ const report=view(a,{includeWave:false}),life=LifeReport?.inspect(a),lifePage=life&&life.state!=='INSUFFICIENT_DATA'?LifeReport.page(life,{document:doc,displayCode,watermark}):null;
+ if(!detail&&(iphoneFullScreen||globalThis.ShitouIPhoneSummary)){if(!globalThis.ShitouIPhoneSummary)throw Error('iPhone滿版輸出模組尚未載入');return [...globalThis.ShitouIPhoneSummary.pages(a,report,{doc,displayCode,wrap,watermark,stockMode}),...(lifePage?[lifePage]:[])];}if(!detail)return [...Action.pages(a,report,{doc,displayCode,watermark,stockMode,wrap,roundRectPath}),...(lifePage?[lifePage]:[])];
  const strings=lines(a),fields=[...report.summary.map(f=>({...f,group:'SUMMARY'})),...(detail?report.details.map(f=>({...f,group:'DETAIL'})):[])];
  function measuredWrap(value,font,width){
   if(String(value)==='')return [''];
@@ -430,7 +435,7 @@ function pages(a,{document:doc=globalThis.document,displayCode=globalThis.Shitou
   x.fillText(stockMode?'單股查詢不列入濾網排名':'原榜、原分數與原資格維持不變',M,2671);
   x.fillText('資料不足須核驗；價格提醒非買進訊號',M,2732);
  }
- return plans.map((plan,index)=>{
+ return [...plans.map((plan,index)=>{
   const bodyBottom=plan.length?Math.max(...plan.map(x=>x.y+x.box.size)):0;
   const dataset={researchAudit:JSON.stringify({code:a.code,date:a.date,sourceSnapshotId:a.sourceSnapshotId,originalB:a.originalB,alertPlan:a.foundation?.alertPlan,width:W,height:H,index:index+1,total:plans.length,minFont:FIELD_FONT,bodyBottom,noClipping:bodyBottom<=MAX_BOTTOM,mode:stockMode?'SINGLE_STOCK':'FILTER_RESEARCH',schemaVersion:report.schemaVersion,stage:report.stage,fields:plan.map(x=>({title:x.box.title,value:x.box.body.join('\n')})),section:plan[0]?.box.group||'SUMMARY',summary:strings}),release:a.version,fullBleed:'true'};
   const render=({top=0,height=H,scale=1}={})=>{
@@ -442,7 +447,7 @@ function pages(a,{document:doc=globalThis.document,displayCode=globalThis.Shitou
    const c=render();
    c.toBlob(b=>{c.width=c.height=1;callback(b);},type);
   }};
- });
+ }),...(lifePage?[lifePage]:[])];
 }
 function candlePage(a,options={}){const chart=typeof module==='object'&&module.exports?require('./research-chart-v1.js'):globalThis.ShitouResearchChart;return chart?.page(a,options)||null;}
 return Object.freeze({guideContext,entryGuide,GUIDE_NOTE,breakoutSummary,scenarioSummary,provenanceSummary,fmt,STAGES,stageLabel,technicalOutlook,modelSummary,view,lines,text,wrap,pages,candlePage,STATES});
