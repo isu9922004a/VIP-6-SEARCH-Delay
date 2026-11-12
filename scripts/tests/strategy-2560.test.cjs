@@ -6,10 +6,33 @@ const prices=(arr)=>fixture(arr);
 const sixty=Array(60).fill(100);
 const check=(c,key)=>c.checks.find(x=>x.key===key)?.pass;
 function volume(f,change){for(let i=0;i<f.report.canonicalBars.length;i++)f.report.canonicalBars[i].volume=change(i,f.report.canonicalBars.length);return refresh(f);}
+test('official prior-session comparison is explicitly dated and does not reinterpret latest new breakout',()=>{
+ const f=fixture([...Array(59).fill(100),90,130,135]);
+ const latest=C.evaluate(f.report,f.options),prior=C.evaluate(f.report,{...f.options,sessionOffset:1});
+ assert.equal(check(latest,'9041'),false);
+ assert.equal(latest.status,'FAIL');
+ assert.equal(check(prior,'9041'),true);
+ assert.equal(C.qualifies(prior),true);
+ assert.equal(prior.sessionOffset,1);
+ assert.equal(prior.signalDate,f.report.canonicalBars.at(-2).date);
+ assert.equal(prior.date,f.date);
+ assert.equal(prior.validation.sessionOffset,1);
+ assert.equal(prior.validation.signalDate,prior.signalDate);
+ assert.equal(prior.report.canonicalBars.at(-1).date,f.date);
+ assert.equal(C.evaluate(f.report,{...f.options,sessionOffset:2}).status,'DATA_ERROR');
+});
+test('previous-session scanner snapshot is independently revalidated and rejects tampering',async()=>{
+ const f=fixture([...Array(59).fill(100),90,130,135]);
+ const p=S.pool({map:new Map([['2330',f.options.quote]]),sectorMap:new Map([['2330',f.options.sector]]),meta:{targetTradeDate:f.date,marketCoverageReady:true},snapshotRows:1});
+ const s=await S.scan({pool:p,sessionOffset:1,fetchBatch:async()=>({type:'MOMENTUM_DEEP_SCAN',results:[{code:'2330',ok:true,data:f.report}]})});
+ assert.equal(s.sessionOffset,1);assert.equal(s.candidates.length,1);assert.equal(s.candidates[0].signalDate,f.report.canonicalBars.at(-2).date);
+ S.assertSnapshot(s);
+ const changed=structuredClone(s);changed.sessionOffset=0;assert.throws(()=>S.assertSnapshot(changed));
+});
 test('V9.1 three rules use independent SMA and volume means and keep 2560 name',()=>{
  const f=fixture(),a=run(f),b=f.report.canonicalBars;
- assert.equal(C.MODEL,'2560-STRATEGY-V2.0');assert.equal(C.RULE.minBars,60);assert.equal(C.RULE.exit,null);assert.equal(C.RULE.volumeRule9012Complete,false);
- assert.equal(a.status,'PASS');assert.equal(C.qualifies(a),true);assert.deepEqual(a.checks.map(c=>c.key),['9041','9012','533']);assert.equal(a.volumeRuleComplete,false);
+ assert.equal(C.MODEL,'2560-STRATEGY-V2.1');assert.equal(C.RULE.minBars,60);assert.equal(C.RULE.exit,null);assert.equal(C.RULE.volumeRule9012Complete,true);
+ assert.equal(a.status,'PASS');assert.equal(C.qualifies(a),true);assert.deepEqual(a.checks.map(c=>c.key),['9041','9012','533']);assert.equal(a.volumeRuleComplete,true);
  for(const n of [5,25,40]){assert.equal(a.features['ma'+n].today,b.slice(-n).reduce((s,x)=>s+x.close,0)/n);assert.equal(a.features['ma'+n].previous,b.slice(-n-1,-1).reduce((s,x)=>s+x.close,0)/n);}
  for(const n of [5,60])assert.equal(a.features['vma'+n],b.slice(-n).reduce((s,x)=>s+x.volume,0)/n);
  assert.equal(a.features.breakoutPct,(a.features.close-a.features.ma25.today)/a.features.ma25.today*100);
@@ -38,7 +61,7 @@ test('same-day MA5/MA25 slope is not an entry gate',()=>{
  assert.equal(check(a,'9041'),true);assert.equal(check(a,'9012'),true);assert.equal(check(a,'533'),true);assert.equal(a.eligible,true);
  assert.ok(a.features.ma25.today<a.features.ma25.previous);
 });
-test('risk indications and unusual volume do not become pass/fail gates',()=>{const a=run(fixture());assert.equal(a.status,'PASS');assert.equal(a.risk.unusualVolume,false);assert.ok(a.risk.supportObservation.every(x=>Number.isFinite(x)));assert.ok(a.warnings.some(x=>x.includes('部分還原')));});
+test('risk indications and unusual volume do not become pass/fail gates',()=>{const a=run(fixture());assert.equal(a.status,'PASS');assert.equal(a.risk.unusualVolume,false);assert.ok(a.risk.supportObservation.every(x=>Number.isFinite(x)));assert.ok(a.warnings.some(x=>x.includes('無參數均量')));});
 for(const[name,change]of Object.entries({
  calendar:f=>delete f.report.expectedTradingDates,basis:f=>f.report.priceAdjustment.verified=false,
  unit:f=>f.report.volumeUnit='lots',wrongCode:f=>f.options.code='9999',
