@@ -2,8 +2,8 @@
 (function(r,f){const N=typeof module==='object'&&module.exports,a=f(N?require('./kline-attack-v90.js'):r.ShitouKlineAttack,N?require('./restaurant-filter-v1.js'):r.ShitouRestaurantCore,N?require('./research-common-v1.js'):r.ShitouResearchCommon,N?require('./strategy-2560-config-v90.js'):r.ShitouFifthStrategyConfig);if(N)module.exports=a;else r.ShitouStrategy2560=a;})(globalThis,function(K,Old,U,Config){
 'use strict';
 const MODEL=Config.strategyVersion,REVISION=MODEL;
-const RULE=Object.freeze({version:MODEL,minBars:60,averages:[5,25,40],volumeAverages:[5,60],method:'SMA_PRICE_AND_VOLUME',newCloseBreakout:true,volumeRule9012Complete:false,ranking:Config.ranking,universe:'LEGACY_FIFTH_COMMON_STOCKS_EX_FINANCIAL_ETF',exit:null,exitAffectsEntry:false});
-const LABELS=Object.freeze({PASS:'三條核心條件通過（#9012部分還原）',FAIL:'核心條件未全部符合',INSUFFICIENT_DATA:'必要歷史或盤後資料不足',DATA_ERROR:'行情或來源資料異常',EXCLUDED:'不在本策略範圍'});
+const RULE=Object.freeze({version:MODEL,minBars:60,averages:[5,25,40],volumeAverages:[5,60],method:'SMA_PRICE_AND_VOLUME',newCloseBreakout:true,volumeRule9012Complete:true,ranking:Config.ranking,universe:'LEGACY_FIFTH_COMMON_STOCKS_EX_FINANCIAL_ETF',exit:null,exitAffectsEntry:false});
+const LABELS=Object.freeze({PASS:'三條2560核心條件通過',FAIL:'核心條件未全部符合',INSUFFICIENT_DATA:'必要歷史或盤後資料不足',DATA_ERROR:'行情或來源資料異常',EXCLUDED:'不在本策略範圍'});
 const CHECK_KEYS=['9041','9012','533'];
 function universe(code,q={},sector={}){if(!Old.ordinary(String(code),q))return {ok:false,state:'EXCLUDED',reason:'本策略只看上市櫃普通股，ETF及其他商品不套用'};
  const industry=String(sector.industryName||sector.industry||q.industryName||q.industry||''),ic=String(sector.industryCode||q.industryCode||'').padStart(2,'0');
@@ -13,7 +13,7 @@ function universe(code,q={},sector={}){if(!Old.ordinary(String(code),q))return {
 }
 function evaluate(report,options={}){
  const code=String(report?.stock||report?.code||''),date=options.asOf||report?.marketDate||report?.closeDate||report?.dataDate,naming=Old.nameInfo(code,report);
- const base={model:MODEL,revision:REVISION,code,name:naming.name,nameSource:naming.source,nameFallback:naming.fallback,date,rule:RULE,eligible:false,score:null,sourceMatch:false,reasons:[],warnings:[],riskCodes:[],checks:[],exitWarning:null,exitLabel:'V9.1的2560沒有指定出場或自動交易規則',volumeRuleComplete:false,volumeRuleNote:'#9012量能規則部分還原，待確認其他日均量週期'};
+ const base={model:MODEL,revision:REVISION,code,name:naming.name,nameSource:naming.source,nameFallback:naming.fallback,date,rule:RULE,eligible:false,score:null,sourceMatch:false,reasons:[],warnings:[],riskCodes:[],checks:[],exitWarning:null,exitLabel:'V9.1的2560沒有指定出場或自動交易規則',volumeRuleComplete:true,volumeRuleNote:'#9012僅比較VMA5與VMA60；其他三個無參數均量已依指定忽略'};
  const unavailable=(reason,status='INSUFFICIENT_DATA')=>K.freeze({...base,status,label:LABELS[status],reasons:[reason],sourceMatch:null});
  const q=options.quote;if(!q)return unavailable('缺少同一天的市場快照');
  const u=universe(code,q,options.sector);if(!u.ok)return u.state==='EXCLUDED'?K.freeze({...base,status:'EXCLUDED',label:LABELS.EXCLUDED,reasons:[u.reason],universe:u}):unavailable(u.reason);
@@ -24,7 +24,7 @@ function evaluate(report,options={}){
  const prices=[ma5.today,ma5.previous,ma25.today,ma25.previous,ma40.today,ma40.previous,last.close,prev.close];
  if(!prices.every(x=>Number.isFinite(x)&&x>0)||![vma5,vma60,last.volume].every(x=>Number.isFinite(x)&&x>0))return unavailable('均線、收盤價或成交量無法計算','DATA_ERROR');
  const rule9041=prev.close<=ma25.previous&&last.close>ma25.today,volumeRule9012=vma5>vma60,rule533=ma5.today>ma40.today;
- const checks=[{key:'9041',pass:rule9041,label:'#9041 今日收盤新突破MA25（昨日未站上）'},{key:'9012',pass:volumeRule9012,label:'#9012 VMA5 > VMA60（僅已確認的量能子規則）',partial:true},{key:'533',pass:rule533,label:'#533 MA5 > MA40（不要求今天才交叉）'}];
+ const checks=[{key:'9041',pass:rule9041,label:'#9041 今日收盤新突破MA25（昨日未站上）'},{key:'9012',pass:volumeRule9012,label:'#9012 VMA5 > VMA60'},{key:'533',pass:rule533,label:'#533 MA5 > MA40（不要求今天才交叉）'}];
  const breakoutPct=(last.close-ma25.today)/ma25.today*100,deviationMA5=(last.close-ma5.today)/ma5.today*100,volumeRatio=vma5/vma60,latestVolumeRatio=last.volume/vma60;
  const highLow=last.high-last.low,upperShadowRatio=highLow>0?(last.high-Math.max(last.open,last.close))/highLow:null,bodyRatio=highLow>0?Math.abs(last.close-last.open)/highLow:null;
  const priorHigh=Math.max(...bars.slice(-21,-1).map(b=>b.high)),nearPriorHigh=priorHigh>0&&last.close>=priorHigh*0.97,unusualVolume=latestVolumeRatio>=2;
@@ -35,9 +35,12 @@ function evaluate(report,options={}){
  const supportObservation=[ma5.today,ma25.today].filter(x=>x<=last.close).sort((a,b)=>b-a);
  const features={ma5,ma25,ma40,close:last.close,closePrev:prev.close,vma5,vma60,latestVolume:last.volume,breakoutPct,deviationMA5,volumeRatio};
  const risk={upperShadowRatio,bodyRatio,priorHigh,nearPriorHigh,unusualVolume,latestVolumeRatio,supportObservation,warningBasis:'乖離3%／6%、影線40%、單日量2倍、前高3%均為提示門檻，尚未回測；均線不是保證成交或停損價格'};
+ const previousSignal=at>=60?(()=>{const twoAgo=bars[at-2],previousMA25=U.ma(bars,25,at-2),previousVMA5=bars.slice(at-5,at).reduce((s,b)=>s+b.volume,0)/5,previousVMA60=bars.slice(at-60,at).reduce((s,b)=>s+b.volume,0)/60;
+ const historicalChecks=[{key:'9041',pass:twoAgo.close<=previousMA25&&prev.close>ma25.previous},{key:'9012',pass:previousVMA5>previousVMA60},{key:'533',pass:ma5.previous>ma40.previous}];
+ return {date:prev.date,sourceDate:v.asOf,eligible:historicalChecks.every(c=>c.pass),status:'HISTORICAL_ONLY',checks:historicalChecks,remainsAboveMA25:last.close>ma25.today,previousMA25,previousVMA5,previousVMA60,notCurrentSignal:true};})():{date:prev.date,sourceDate:v.asOf,eligible:null,status:'INSUFFICIENT_HISTORY',reason:'前一交易日回溯需要61根完成日K；不影響今日60根日K的正式判斷',notCurrentSignal:true};
  const eligible=checks.every(c=>c.pass),status=eligible?'PASS':'FAIL',canonicalBars=JSON.parse(JSON.stringify(bars)),source={...JSON.parse(JSON.stringify(report)),canonicalBars,dailySeries:canonicalBars},kline=K.evaluate(source,{asOf:v.asOf,code,type:'stock'});
  const validation={revision:REVISION,code,date:v.asOf,market:report.market,historyFingerprint:v.historyFingerprint,checksFingerprint:Old.fingerprint(checks),quote:JSON.parse(JSON.stringify(q)),basis:v.basis,volumeUnit:v.volumeUnit,sourceFingerprint:report.observationBasis?.fingerprint||report.dailyBasisV2?.fingerprint||null};validation.id=Old.fingerprint(validation);
- return K.freeze({...base,date:v.asOf,status,label:LABELS[status],eligible,sourceMatch:eligible,sourceCheckState:'VERIFIED',universe:u,features,checks,warnings,risk,riskCodes:warnings.slice(1),report:source,kline,validation,indicator:{calendarVerified:true,basisVerified:true},reasons:checks.filter(c=>!c.pass).map(c=>c.label+'：尚未符合')});
+ return K.freeze({...base,date:v.asOf,status,label:LABELS[status],eligible,sourceMatch:eligible,sourceCheckState:'VERIFIED',universe:u,features,checks,previousSignal,warnings,risk,riskCodes:warnings.slice(1),report:source,kline,validation,indicator:{calendarVerified:true,basisVerified:true},reasons:checks.filter(c=>!c.pass).map(c=>c.label+'：尚未符合')});
 }
 function qualifies(c){return c?.model===MODEL&&c.revision===REVISION&&c.eligible===true&&c.status==='PASS'&&c.checks?.length===3&&CHECK_KEYS.every(k=>c.checks.filter(x=>x.key===k&&x.pass===true).length===1);}
 function lines(c){const f=c.features,p=K.fmt;return ['🌟2560戰法｜25日均線突破｜'+c.name+'（'+c.code+'）｜'+c.date,c.label,...(f?[
@@ -49,7 +52,7 @@ function lines(c){const f=c.features,p=K.fmt;return ['🌟2560戰法｜25日均�
  'MA5乖離 '+p(f.deviationMA5)+'%；突破K棒上影比例 '+(c.risk?.upperShadowRatio===null?'無法計算':p(c.risk.upperShadowRatio*100)+'%')+'；實體比例 '+(c.risk?.bodyRatio===null?'無法計算':p(c.risk.bodyRatio*100)+'%'),
  '前20日高 '+p(c.risk.priorHigh)+'元；均線支撐觀察 '+(c.risk.supportObservation.map(x=>p(x)+'元').join('、')||'目前無下方觀察均線'),
  ...c.warnings,
- '結果：'+c.status+'；#9012部分規則待確認，無自動出場設定'
+ '結果：'+c.status+'；#9012只比較5/60日均量；無自動出場設定'
  ]:c.reasons),...(c.kline?.lines||[]),'盤後完成日K；風險提醒不改入選資格；代號排序不是強弱或勝率排名。'];}
 return Object.freeze({MODEL,REVISION,RULE,LABELS,CHECK_KEYS,evaluate,universe,qualifies,lines,compare:(a,b)=>a.code.localeCompare(b.code),fingerprint:Old.fingerprint,number:Old.number,nameInfo:Old.nameInfo,displayName:Old.displayName,setNameDirectory:Old.setNameDirectory,ordinary:Old.ordinary,price:Old.price,windowSize:()=>1});
 });
