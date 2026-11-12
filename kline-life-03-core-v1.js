@@ -107,7 +107,7 @@ function evaluate(input,options={}){
  const events=detect(bars,p).map(e=>trace(e,bars)),recent=events.filter(e=>bars.length-1-e.k0Index<=p.maxEventAge);
  const trans=recent.filter(e=>e.lastTransition?.transitionDate===v.date);
  const latest=(trans.length?trans:recent).at(-1)||null;
- const opposing=recent.some(e=>e.side==='BULL')&&recent.some(e=>e.side==='BEAR');
+ const opposing=!!latest&&recent.some(e=>e!==latest&&e.side!==latest.side&&e.k0Date===latest.k0Date);
  const ev=latest&&{...latest,k0Index:latest.k0Index,k1Index:latest.k1Index,k2Index:latest.k2Index,k3Index:latest.k3Index};
  const info=ev?evidence(bars,ev):{confirmationEvidence:[],contradictions:[],riskWarnings:[],indicators:{}};
  let state='NEUTRAL';
