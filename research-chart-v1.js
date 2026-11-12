@@ -10,9 +10,11 @@ function page(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouR
  const u=a?.unifiedResearch,n=a?.nContinuation,d=u?.state==='RESEARCH_ONLY'?u.chart:n?.state==='RESEARCH_ONLY'?n.chart:null;if(!d?.bars?.length)return null;
  const bars=d.bars.slice(-80),start=bars[0].index,end=bars.at(-1).index,patterns=d.patterns.filter(x=>x.type==='DOUBLE_BOTTOM'?x.points.some(v=>v.index>=start):x.endIndex>=start).slice(0,2);
  const guide=B.chartContext(a,d);
+ const life=globalThis.ShitouKlineLife03?.evaluate(a)||null,lifeAnchor=life?.event||null;
  const shown=[{title:guide.levels[0].title,price:d.trigger,color:'#f6cf65',solid:false},{title:guide.levels[1].title,price:d.invalidation,color:'#ff858f',solid:true},{title:guide.levels[2].title,price:d.defenseReference,color:'#8dc9c2',solid:false},{title:guide.levels[3].title,price:d.nextResistance?.price,color:'#d6aeff',solid:false}];
  const nq=n?.pattern,nOverlay=nq?{id:nq.id,stage:nq.stage,knownAt:nq.knownAt,points:['A','B','C'].map(key=>({key,...nq[key],visible:nq[key].index>=start})),projection:{...nq.projection}}:null;
  const audit={code:a.code,date:a.date,sourceSnapshotId:a.sourceSnapshotId,schemaVersion:u?.schemaVersion||n?.version||VERSION,chartVersion:VERSION,section:'STRUCTURE_CHART',width:W,height:PAGE_H,noClipping:true,barCount:bars.length,firstDate:bars[0].date,lastDate:bars.at(-1).date,priceBasis:d.priceBasis,volumeStatus:d.volume.status,entryDirection:a.entryDirection||null,nContinuation:nOverlay,beginnerGuide:guide,
+  life03:lifeAnchor?{k0Date:lifeAnchor.k0Date,k1Date:lifeAnchor.k1Date,k2Date:lifeAnchor.k2Date,k3Date:lifeAnchor.k3Date,price:lifeAnchor.lifeLinePrice,type:lifeAnchor.lifeLineType,signalDate:lifeAnchor.signalDate,state:life.state}:null,
   levels:shown.map(x=>({title:x.title,price:x.price??null})),patterns:patterns.map(x=>({type:x.type,status:x.status,formedAt:x.formedAt,confirmedAt:x.confirmedAt})),fields:shown.map(x=>({title:x.title,value:fmt(x.price)})),note:'虛線為參考／形成中；無已確認進場情境則不畫失效線；所有型態為未驗證績效的研究'};
  const dataset={researchAudit:JSON.stringify(audit),fullBleed:'true',release:displayCode};
  function paint(ctx){
@@ -43,6 +45,17 @@ function page(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouR
    nOverlay.points.forEach((v,i)=>i?ctx.lineTo(xp(v.index),yp(v.price)):ctx.moveTo(xp(v.index),yp(v.price)));ctx.stroke();
    for(const v of nOverlay.points.filter(x=>x.visible)){ctx.fillStyle=color;ctx.beginPath();ctx.arc(xp(v.index),yp(v.price),7,0,Math.PI*2);ctx.fill();text(`${v.key}${({A:"起漲",B:"前高",C:"回低"})[v.key]} ${fmt(v.price)}`,Math.max(x0+8,Math.min(xp(v.index)+10,W-320)),Math.max(y0+35,Math.min(yp(v.price)-14,y0+ph-16)),28,color,280);}
    const target=nq.projection.price;ctx.setLineDash([12,9]);ctx.strokeStyle='#80d8c7';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x0,yp(target));ctx.lineTo(x0+pw,yp(target));ctx.stroke();
+  }
+  if(lifeAnchor&&lifeAnchor.lifeLinePrice>=min&&lifeAnchor.lifeLinePrice<=max){
+    ctx.save();ctx.setLineDash([10,7]);ctx.strokeStyle='#ffe08b';ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(x0,yp(lifeAnchor.lifeLinePrice));ctx.lineTo(x0+pw,yp(lifeAnchor.lifeLinePrice));ctx.stroke();
+    ctx.setLineDash([]);ctx.fillStyle='#ffe08b';
+    const anchors=[['K0',lifeAnchor.k0Date],['K1',lifeAnchor.k1Date],['K2',lifeAnchor.k2Date],['K3',lifeAnchor.k3Date]];
+    anchors.forEach(([key,date],i)=>{const bar=bars.find(b=>b.date===date);if(!bar)return;const px=xp(bar.index),tagY=y0+22+i*41;
+      ctx.font='700 29px "Microsoft JhengHei",sans-serif';
+      ctx.fillText(key,Math.max(x0+3,Math.min(px-18,x0+pw-50)),tagY);
+    });
+    ctx.restore();
   }
   ctx.setLineDash([]);ctx.restore();
   if(wave)audit.elliottWave=V.overlay(ctx,wave,{bars,x:x0,y:y0,width:pw,height:ph,min,max,upperY:y0-40,lowerY:y0+ph+5});
