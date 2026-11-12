@@ -1,0 +1,60 @@
+name: V9.2 0-3K life-line research verification
+on:
+  push:
+    branches: ['feat/v92-kline-life03-research', 'main']
+    paths:
+      - 'kline-life-03-*.js'
+      - 'research-report-v1.js'
+      - 'research-integration-v1.js'
+      - 'research-chart-v1.js'
+      - 'version-v50.js'
+      - 'index.html'
+      - 'scripts/tests/kline-life-03.test.cjs'
+      - 'scripts/tests/kline-life03-browser.cjs'
+      - '.github/workflows/v92-life03.yml'
+  pull_request:
+    paths:
+      - 'kline-life-03-*.js'
+      - 'research-report-v1.js'
+      - 'research-integration-v1.js'
+      - 'research-chart-v1.js'
+      - 'version-v50.js'
+      - 'index.html'
+      - 'scripts/tests/kline-life-03.test.cjs'
+      - 'scripts/tests/kline-life03-browser.cjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v92-life03-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+      - name: Life-line deterministic test suite
+        run: node --test scripts/tests/kline-life-03.test.cjs
+      - name: Original full regression suite
+        run: npm test
+      - name: Worker and research data contract regression
+        run: npm run test:contract
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CHROME_BIN: /usr/bin/google-chrome
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: node scripts/tests/kline-life03-browser.cjs
+      - run: node scripts/tests/v90-browser.cjs /tmp/v92-original-v90
+      - run: npm run test:browser -- /tmp/v92-original-research
