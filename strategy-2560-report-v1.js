@@ -10,7 +10,7 @@ function pages(scan,{limit=8,watermark=false,testOnly=false}={}){S.assertSnapsho
  'VMA5 '+p(f.vma5)+'股｜VMA60 '+p(f.vma60)+'股｜擴張 '+p(f.volumeRatio)+'倍',
  '最新量 '+p(f.latestVolume)+'股｜上影 '+(risk.upperShadowRatio===null?'無法計算':p(risk.upperShadowRatio*100)+'%')+'｜實體 '+(risk.bodyRatio===null?'無法計算':p(risk.bodyRatio*100)+'%'),
  (risk.unusualVolume?'異常放量；':'')+(risk.nearPriorHigh?'接近前高；':'')+(f.deviationMA5>6?'高乖離追價風險':f.deviationMA5>3?'留意追價':'乖離初步觀察')+'；風險不改PASS',
- '#9012量能規則部分還原，待確認｜無強制出場｜非勝率預測'
+ '#9012僅比較VMA5>VMA60｜無強制出場｜非勝率預測'
  ]};});
  const allPages=[];for(let i=0;i<blocks.length;i+=3)allPages.push(R.page({title:'2560戰法｜25日均線突破｜Top '+rows.length+'（第'+(Math.floor(i/3)+1)+'頁）',date:scan.date,watermark,testOnly,blocks:blocks.slice(i,i+3)}));return [...allPages,...R.pages(rows,{title:'2560通過後｜K線攻防觀察',watermark,testOnly})];
 }
