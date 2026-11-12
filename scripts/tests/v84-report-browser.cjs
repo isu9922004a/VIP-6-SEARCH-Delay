@@ -79,7 +79,12 @@ fs.mkdirSync(out,{recursive:true});
  await page.evaluate(s=>{
   lastMomentumScanDataV3762=s.main;lastDayTradeScanDataV1=s.daytrade;
   STRONG_STOCK_TEST_API_V47.setTestScan(s.strong);ShitouTowerIntegration.setTestScan(s.tower);
-  document.querySelectorAll('#strongStockResult .watermark-image-btn').forEach((b,i)=>b.id='testStrongWatermark'+i);ShitouRestaurantUI.render(ShitouRestaurantScanner.snapshot(s.restaurant));ShitouStructureUI.render(ShitouStructureScanner.snapshot(s.structure));
+  document.querySelectorAll('#strongStockResult .watermark-image-btn').forEach((b,i)=>b.id='testStrongWatermark'+i);
+  // Archived 6-gate restaurant fixtures cannot masquerade as the signed V9.1 2560 model.
+  const core=ShitouStrategy2560,scanner=ShitouStrategy2560Scanner;
+  const empty=scanner.finish({...s.restaurant,model:core.MODEL,date:s.restaurant.date||'2026-10-22',dataDate:s.restaurant.date||'2026-10-22',results:[],candidates:[],planned:0,attempted:0,parsed:0,universe:0,deferred:0,excluded:[],issues:[],sessionOffset:0,requestedMode:'100',marketCoverageReady:false,stopped:false});
+  ShitouRestaurantUI.render(scanner.snapshot(empty));
+  ShitouStructureUI.render(ShitouStructureScanner.snapshot(s.structure));
  },scans);
  for(const [filter,ids] of [
   ['momentum',['generateMomentumImageButton','generateMomentumWatermarkImageButton','downloadMomentumAllCandidatesImageButton','downloadMomentumAllCandidatesImageWatermarkButton']],
@@ -98,14 +103,20 @@ fs.mkdirSync(out,{recursive:true});
   await page.evaluate(filter=>ShitouWorkspaceV831.select('filters',filter),filter);
   for(const id of filter==='restaurant'?['restaurantImage','restaurantAllImages']:['structureImage','structurePrewatchImage']){assert.equal(await page.locator('#'+id).isEnabled(),false);checks.push({button:id,status:'PASS_EMPTY_GUARD'});}
  }
- // Positive fixtures use source-backed synthetic receipts for all six restaurant gates.
+ // Positive V9.2 regression: use the production 2560 three-rule contract with auditable completed synthetic bars.
  await page.evaluate(({s,f})=>{
-  const c=ShitouRestaurantCore.evaluate(f.report,f.options),restaurant={...s.restaurant,date:f.date,dataDate:f.date,results:[c],candidates:[c],planned:1,attempted:1};
-  ShitouRestaurantUI.render(ShitouRestaurantScanner.snapshot(ShitouRestaurantScanner.finish(restaurant)));
+  const core=ShitouStrategy2560,scanner=ShitouStrategy2560Scanner;
+  const c=core.evaluate(f.report,f.options);
+  if(!core.qualifies(c))throw Error('2560 synthetic test fixture did not pass the actual three rules');
+  const restaurant=scanner.finish({...s.restaurant,model:core.MODEL,date:f.date,dataDate:f.date,
+   sessionOffset:0,requestedMode:'100',marketCoverageReady:false,marketSnapshotFingerprint:null,
+   results:[c],planned:1,attempted:1,parsed:1,universe:1,deferred:0,excluded:[],issues:[],stopped:false});
+  ShitouSelectionDataV2.reset(); // Detached synthetic export must not borrow an unrelated earlier-date production snapshot.
+  ShitouRestaurantUI.render(scanner.snapshot(restaurant));
   const structure={...s.structure,results:{A:[s.structurePositive],B:[s.structurePrewatch]},planned:1,attempted:1};
   ShitouStructureUI.render(ShitouStructureScanner.snapshot(structure));
   lastMarketReportData=s.market;
- },{s:scans,f:require('../restaurant-strict-fixture.cjs').fixture({code:'9999'})});
+ },{s:scans,f:require('../strategy-2560-fixture.cjs').fixture(undefined,'9999')});
  for(const [filter,id] of [['restaurant','restaurantImage'],['restaurant','restaurantAllImages'],['structure','structureImage'],['structure','structureAllImages'],['structureB','structurePrewatchImage'],['market','generateMarketImageButton'],['market','generateMarketWatermarkImageButton']]){
   await page.evaluate(filter=>{ShitouWorkspaceV831.select(filter==='market'?'market':'filters',filter==='structureB'?'structure':filter);if(filter==='structureB'){document.querySelector('#structureMode').value='B';document.querySelector('#structureMode').dispatchEvent(new Event('change'));}if(filter==='market')document.getElementById('marketResult').style.display='block';},filter);
   await revealExport(id);await page.locator('#'+id).click();await page.waitForFunction(()=>document.querySelector('#imagePreviewModal')?.classList.contains('show')&&document.querySelector('#imageDownloadLink')?.href.startsWith('blob:'),{},{timeout:30000});
