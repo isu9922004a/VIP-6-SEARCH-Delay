@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches: ['main', 'feat/future-kronos-v872']
-    paths: ['kronos/future.py', 'kronos/future_cache.py', 'kronos-future-core-v1.js', 'scripts/kronos-future-automation.cjs', 'scripts/kronos-future-update-status.cjs', 'scripts/retry-transient.cjs', '.github/workflows/kronos-future.yml']
+    paths: ['kronos/future.py', 'kronos/future_cache.py', 'kronos-future-core-v1.js', 'scripts/kronos-future-automation.cjs', 'scripts/update-kronos-sources.cjs', 'scripts/tests/kronos-calendar-source.test.cjs', 'scripts/kronos-future-update-status.cjs', 'scripts/retry-transient.cjs', '.github/workflows/kronos-future.yml']
   schedule:
     - cron: '57 7-23 * * 1-5'
     - cron: '57 23 * * 0-4'
