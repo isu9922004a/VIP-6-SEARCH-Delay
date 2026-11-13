@@ -1,7 +1,7 @@
 /* Presentation geometry only. No market or research calculations. */
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.ShitouChartLayout921=api;})(globalThis,function(){
 'use strict';
-const font=(ctx,size=34,weight=650)=>{ctx.font=`${weight} ${size}px "Microsoft JhengHei","Noto Sans TC",sans-serif`;};
+const font=(ctx,size=34,weight=650)=>{ctx.font=`${weight} ${size}px "Microsoft JhengHei","Noto Sans CJK TC","Noto Sans TC",sans-serif`;};
 function wrap(ctx,value,width,size=34){font(ctx,size);const rows=[];for(const segment of String(value??'尚未確認').split('\n')){let row='';for(const ch of segment){if(row&&ctx.measureText(row+ch).width>width){rows.push(row);row=ch;}else row+=ch;}rows.push(row||' ');}return rows;}
 function blocks(ctx,items,{top=0,width=1140,size=34}={}){let y=top;return items.map(item=>{const title=wrap(ctx,item.title,width,38),body=wrap(ctx,item.value,width,size),height=title.length*52+body.length*48+44,b={...item,titleRows:title,bodyRows:body,top:y,height};y+=height+24;return b;});}
 function paintBlocks(ctx,items,{x=72,width=1140,size=34}={}){for(const b of items){ctx.fillStyle='#23445a';ctx.fillRect(x,b.top,width,2);let y=b.top+20;ctx.fillStyle='#92ded4';font(ctx,38,750);for(const row of b.titleRows){ctx.fillText(row,x,y);y+=52;}font(ctx,size);ctx.fillStyle='#e7f0f6';for(const row of b.bodyRows){ctx.fillText(row,x,y);y+=48;}}}

@@ -60,7 +60,9 @@ function researchCard(a,number,prefix='研究',expanded=false){
  glance.className='research-card-glance';
  const dateLine=el('span','完成行情 '+(a.date||'尚未核驗'));dateLine.className='research-card-date';
  summary.append(heading,dateLine,stage,glance);
- const immediate=[...(a.risks||[]),...(a.dataQuality?.missing||[])];
+ const life=root.ShitouKlineLife03Report?.inspect(a);
+ const lifeRisks=[...(life?.contradictions||[]),...(life?.riskWarnings||[])];
+ const immediate=[...(a.risks||[]),...(lifeRisks.length?['生命線研究：'+lifeRisks.join('；')]:[]),...(a.dataQuality?.missing||[])];
  if(immediate.length){const risk=el('span',immediate.join('；'));risk.className='research-card-risk';summary.append(risk);}
  details.append(summary);
  const body=el('div');body.className='research-card-body';
@@ -74,7 +76,6 @@ function researchCard(a,number,prefix='研究',expanded=false){
   row.append(key,value);return row;
  }
  body.append(guide);
- const life=root.ShitouKlineLife03Report?.inspect(a);
  if(life){
   const lf=root.ShitouKlineLife03Report.fields(life),panel=el('section');
   panel.className='research-guide-evidence research-life03-card';

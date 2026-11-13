@@ -30,6 +30,7 @@ assert.ok(result.outputs.find(r=>r.label==='TEST-long').height>result.outputs.fi
 await page.evaluate(raw=>{globalThis.shitouGetLastReportV82=()=>raw;ShitouResearchIntegration.captureStockQuery(raw);ShitouResearchIntegration.mountStock(raw);document.getElementById('result').style.display='block';ShitouWorkspaceV831.openReport('four');document.querySelectorAll('#researchStock details').forEach(d=>d.open=true);},raw);
 // Rendered card retains all detail fields; risks remain visible before opening details.
 const card=page.locator('#researchStock');assert.match(await card.textContent(),/4939/);assert.match(await card.textContent(),/2026-11-13/);assert.match(await card.textContent(),/50.20/);assert.match(await card.textContent(),/ATR|波動/);
+await card.locator('.research-stock-card').evaluate(e=>e.open=false);assert.match(await card.locator('.research-card-summary').innerText(),/生命線研究：.*MA20.*ATR/);assert.ok(await card.locator('.research-card-risk').isVisible());await card.locator('.research-stock-card').evaluate(e=>e.open=true);
 const bounds=await card.evaluate(e=>({scroll:e.scrollWidth,width:e.clientWidth}));assert.ok(bounds.scroll<=bounds.width+1);
 await card.screenshot({path:path.join(out,'iphone-research-card.png')});
 await page.evaluate(()=>{Object.defineProperty(navigator,'canShare',{configurable:true,value:()=>true});Object.defineProperty(navigator,'share',{configurable:true,value:async({files})=>{globalThis.__shared=files.map(f=>({name:f.name,size:f.size,type:f.type}));}});});
