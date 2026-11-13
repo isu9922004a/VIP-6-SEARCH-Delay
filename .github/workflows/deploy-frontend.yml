@@ -15,6 +15,9 @@ on:
       - 'scripts/tests/kline-life-03*'
       - 'scripts/tests/research-context-r16-browser.cjs'
       - 'scripts/tests/v84-live-smoke.cjs'
+      # Only the successfully published and versioned real forecast catalog
+      # should trigger post-recovery frontend/live verification.
+      - 'data/kronos-future/manifest.json'
       - '.github/workflows/deploy-frontend.yml'
   workflow_dispatch:
 permissions:
