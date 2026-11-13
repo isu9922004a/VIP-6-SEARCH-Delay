@@ -1,0 +1,28 @@
+name: Recover verified current-year market calendar and Kronos source
+on:
+  push:
+    branches: ['main']
+    paths:
+      - 'scripts/update-kronos-sources.cjs'
+      - 'scripts/tests/calendar-year-rollover.test.cjs'
+      - '.github/workflows/v92-kronos-calendar-recovery.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  calendar-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --check scripts/update-kronos-sources.cjs
+      - run: node --test scripts/tests/calendar-year-rollover.test.cjs
+  recover:
+    needs: calendar-test
+    uses: ./.github/workflows/kronos-future.yml
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
