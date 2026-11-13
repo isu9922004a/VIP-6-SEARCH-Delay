@@ -14,6 +14,6 @@ function pages(scan,{limit=8,watermark=false,testOnly=false}={}){S.assertSnapsho
  ]};});
  const allPages=[];for(let i=0;i<blocks.length;i+=3)allPages.push(R.page({title:'2560戰法｜25日均線突破｜'+(scan.sessionOffset?'前日對照｜':'')+'Top '+rows.length+'（第'+(Math.floor(i/3)+1)+'頁）',date:scan.date,watermark,testOnly,blocks:blocks.slice(i,i+3)}));return [...allPages,...R.pages(rows,{title:'2560通過後｜K線攻防觀察',watermark,testOnly})];
 }
-async function preview(scan,all=false,watermark=false){if(document.fonts?.ready)await document.fonts.ready;return r.strongStockShowPagesV47(pages(scan,{limit:all?'all':8,watermark}),{title:'2560戰法｜25日均線突破｜'+(scan.sessionOffset?'前日對照｜':'')+(all?'完整明細':'前8檔與攻防說明'),prefix:'2560_V9.1'+(scan.sessionOffset?'_前日對照':'')+(watermark?'_浮水印':''),date:scan.date,kind:'restaurant',note:'依代號排列，非強弱排名；不足8檔不補滿。新增說明依原序分頁，請下載全部圖片或逐頁分享至LINE。'});}
+async function preview(scan,all=false,watermark=false){if(document.fonts?.ready)await document.fonts.ready;return r.strongStockShowPagesV47(pages(scan,{limit:all?'all':8,watermark}),{title:'2560戰法｜25日均線突破｜'+(scan.sessionOffset?'前日對照｜':'')+(all?'完整明細':'前8檔與攻防說明'),prefix:'2560_'+(r.ShitouReleaseV50?.displayCode||'V9.2.1')+(scan.sessionOffset?'_前日對照':'')+(watermark?'_浮水印':''),date:scan.date,kind:'restaurant',note:'依代號排列，非強弱排名；不足8檔不補滿。新增說明依原序分頁，請下載全部圖片或逐頁分享至LINE。'});}
 r.ShitouStrategy2560Report=Object.freeze({pages,preview});
 })(globalThis);
