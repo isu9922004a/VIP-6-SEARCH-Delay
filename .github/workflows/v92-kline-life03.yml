@@ -10,6 +10,7 @@ on:
       - 'version-v50.js'
       - 'index.html'
       - 'scripts/tests/kline-life-03*'
+      - 'scripts/tests/market-comfort-browser.cjs'
       - '.github/workflows/v92-kline-life03.yml'
   push:
     branches: ['feat/v92-kline-life03-research']
@@ -49,6 +50,8 @@ jobs:
       - run: npm ci
       - name: New iPhone-width research page and PNG
         run: node scripts/tests/kline-life-03-browser.cjs /tmp/v92-life03
+      - name: Verify current V9.2 market report PNG filename and mobile share
+        run: node scripts/tests/market-comfort-browser.cjs /tmp/v92-market-comfort
       - name: Existing chart and selection regression
         run: |
           node scripts/audit-v90-universe.cjs /tmp/v90-universe
@@ -62,3 +65,4 @@ jobs:
             /tmp/v92-life03
             /tmp/v92-v90
             /tmp/v92-existing
+            /tmp/v92-market-comfort
