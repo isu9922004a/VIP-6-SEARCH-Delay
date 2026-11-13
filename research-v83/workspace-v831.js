@@ -11,7 +11,7 @@ const filters=[
  {key:'restaurant',label:'⑤ 🌟2560戰法'},
  {key:'structure',label:'⑥ 結構反轉'}
 ];
-let currentTab='stock',currentFilter='momentum',lastFocus=null,openMode=null,observedCode='';
+let currentTab='stock',currentFilter='momentum',lastFocus=null,openMode=null,observedCode='',lifePreviewBusy=false,lifePreviewToken=0,lifePreviewError='';
 let tabs=[],filterButtons=[];
 function setHidden(elm,flag){if(elm&&elm.hidden!==!!flag)elm.hidden=!!flag;}
 function completeStock(){
@@ -52,6 +52,8 @@ function renderSummary(){
  const card=$('workspaceStockSummary');if(!card)return;
  const report=completeStock(),a=researchStock();
  positionStockActions(report);
+ const life=$('workspaceLifeReportButton');
+ if(life){const ready=!!(a&&root.ShitouKlineLife03Report&&root.ShitouResearchIntegration?.preview);life.disabled=!ready||lifePreviewBusy;life.dataset.code=ready?String(a.code):'';life.dataset.date=ready?String(a.date):'';life.title=ready?(a.name||a.code)+'｜'+a.date+'｜直接看生命線圖片':'先完成個股查詢，再看這檔股票的生命線圖片';}
  if(!report){setHidden(card,true);observedCode='';return;}
  setHidden(card,false);
  const code=String(report.code||report.stock);
@@ -64,6 +66,7 @@ function renderSummary(){
  $('workspaceFourReportButton').textContent=a?.limitedHistory?'查看已核驗行情觀察':'查看四策略研究報告';
  $('workspaceFourReportButton').title=hasResearch?'直接查看已產生的四策略研究，不重新計算':'研究報告尚未就緒，先查看原始技術報告';
  $('workspaceStockHelp').textContent=a?.limitedHistory?'已備妥核驗行情與可計算的短期數據；完整策略與交易價位仍有資料限制。':hasResearch?'研究報告已備妥。按鈕只開啟既有內容，不會重新查詢或計算。':'已保留原始個股技術報告；四策略研究尚未完成載入。';
+ if(lifePreviewError)$('workspaceStockHelp').textContent=lifePreviewError;
  const nextCode=code+'|'+report.closeDate,newResult=observedCode!==nextCode;observedCode=nextCode;
  if(newResult&&currentTab==='stock'&&!openMode)$('stockReportActionsPanel')?.scrollIntoView({block:'start',behavior:root.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches?'auto':'smooth'});
 }
@@ -144,6 +147,10 @@ function build(){
   const title=exportPanel.querySelector('.section-title');if(title)title.textContent='個股圖片報告與複製';
   const context=el('p','workspace-stock-actions-identity');context.id='workspaceStockActionsIdentity';if(title)title.after(context);else exportPanel.prepend(context);
   const commands=exportPanel.querySelector(':scope > .copy-actions'),grid=commands?.querySelector('.stock-image-generator-grid');if(grid)commands.prepend(grid);
+  // One shared button follows the existing export panel between the front screen and report.
+  const life=el('button','copy-btn image-btn workspace-life-front','查看生命線研究圖片');life.id='workspaceLifeReportButton';life.type='button';life.disabled=true;
+  life.addEventListener('click',async()=>{const a=researchStock();if(!a||lifePreviewBusy){renderSummary();return;}const token=++lifePreviewToken;lifePreviewBusy=true;lifePreviewError='';renderSummary();try{await root.ShitouResearchIntegration.preview([a],{stockMode:true,lifeOnly:true});}catch(error){if(token===lifePreviewToken)lifePreviewError='圖片還沒完成：'+error.message+'，請再試一次。';}finally{if(token===lifePreviewToken)lifePreviewBusy=false;renderSummary();}});
+  (commands||exportPanel).prepend(life);
   const note=exportPanel.querySelector(':scope > .hint');if(note){const notes=el('details','workspace-export-notes'),summary=el('summary',null,'價位與資料使用說明');notes.append(summary,note);exportPanel.append(notes);}
   positionStockActions();
  }
@@ -157,7 +164,7 @@ function build(){
   new MutationObserver(()=>renderSummary()).observe(result,{attributes:true,attributeFilter:['style'],childList:true});
  }
  const search=$('searchButton'),input=$('stockInput');
- function onSearchStart(){closeReport();select('stock');setHidden(card,true);setHidden($('stockReportActionsPanel'),true);observedCode='';}
+ function onSearchStart(){lifePreviewToken++;lifePreviewBusy=false;lifePreviewError='';if($('workspaceLifeReportButton'))$('workspaceLifeReportButton').disabled=true;closeReport();select('stock');setHidden(card,true);setHidden($('stockReportActionsPanel'),true);observedCode='';}
  search?.addEventListener('click',onSearchStart,true);
  if(search)new MutationObserver(()=>renderSummary()).observe(search,{attributes:true,attributeFilter:['disabled']});
  input?.addEventListener('keydown',e=>{if(e.key==='Enter')onSearchStart();},true);
