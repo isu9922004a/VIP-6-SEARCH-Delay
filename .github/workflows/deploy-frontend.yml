@@ -11,6 +11,8 @@ on:
       - 'research-integration-v1.js'
       - 'research-report-v1.js'
       - 'research-chart-v1.js'
+      - 'research-chart-layout-v921.js'
+      - 'research-ui-v921.css'
       - 'stock-professional-v84.js'
       - 'scripts/tests/kline-life-03*'
       - 'scripts/tests/research-context-r16-browser.cjs'
@@ -68,6 +70,7 @@ jobs:
           node scripts/tests/market-date-browser.cjs /tmp/v864-browser/market-date
           node scripts/tests/structure-v863-browser.cjs /tmp/v864-browser
           node scripts/tests/market-v862-browser.cjs /tmp/v864-browser
+          node scripts/tests/research-v921-browser.cjs /tmp/v864-browser/v921
           node scripts/tests/market-comfort-browser.cjs /tmp/v864-browser
       - name: Check structure observations across the published stock universe
         run: node scripts/audit-structure-strength.cjs
@@ -104,6 +107,7 @@ jobs:
           RESEARCH_BROWSER_ORIGIN: https://isu9922004a.github.io/VIP-6-SEARCH-Delay/
         run: |
           python3 scripts/verify-deployed-frontend.py
+          node scripts/tests/research-v921-browser.cjs /tmp/v864-browser/v921-live
           node scripts/tests/kronos-future-live-browser.cjs /tmp/v864-browser/future-live
           npm run test:engulf-range-browser
           npm run test:elliott-browser -- /tmp/v864-browser/elliott

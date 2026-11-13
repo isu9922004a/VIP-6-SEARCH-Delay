@@ -27,7 +27,7 @@ function stockQueryIntro(stock){
  const box=el('div');box.className='research-stock-intro';
  const heading=el('h4',`${stock.analysis.name}（${stock.analysis.code}）｜個股專屬研究`);
  const row=el('div');row.className='research-stock-metrics';
- for(const [name,value] of [['收盤價',stockFmt(stock.metrics.close)],['日RSI5',stockFmt(stock.metrics.rsi5)],['日MA20',stockFmt(stock.metrics.ma20)]]){
+ for(const [name,value] of [['收盤價（元）',stockFmt(stock.metrics.close)],['RSI5（0～100）',stockFmt(stock.metrics.rsi5)],['MA20（元）',stockFmt(stock.metrics.ma20)]]){
   const cell=el('div');cell.className='research-stock-metric';cell.append(el('span',name),el('strong',value));row.append(cell);
  }
  const meta=el('p',`行情 ${stock.metrics.marketDate}｜${stock.analysis?.limitedHistory?'官方行情已核驗，僅供觀察':stock.metrics.verifiedDailyResearch?'完成日K研究':'研究資料尚未完整'}｜非原濾網排名`);
@@ -58,7 +58,11 @@ function researchCard(a,number,prefix='研究',expanded=false){
  const report=R.view(a);
  const glance=el('span',report.summary[0]?.value.split('\n')[0]||R.stageLabel(a));
  glance.className='research-card-glance';
- summary.append(heading,stage,glance);details.append(summary);
+ const dateLine=el('span','完成行情 '+(a.date||'尚未核驗'));dateLine.className='research-card-date';
+ summary.append(heading,dateLine,stage,glance);
+ const immediate=[...(a.risks||[]),...(a.dataQuality?.missing||[])];
+ if(immediate.length){const risk=el('span',immediate.join('；'));risk.className='research-card-risk';summary.append(risk);}
+ details.append(summary);
  const body=el('div');body.className='research-card-body';
  details.dataset.reportSchema=report.schemaVersion;
  const guide=root.ShitouResearchActionGuide.mount(document,report.actionGuide);
@@ -79,8 +83,9 @@ function researchCard(a,number,prefix='研究',expanded=false){
   // .research-card-field contract used by the settled research report.
   const lifeField=item=>{const node=field(item);node.className='research-life03-field';
    node.style.display='grid';node.style.gap='4px';node.style.padding='7px 0';return node;};
-  panel.append(el('h4','0～3號K生命線｜隔日強弱研究'),lifeField(lf.summary));
-  for(const item of lf.details.slice(0,5))panel.append(lifeField(item));
+  panel.append(el('h4','生命線研究'),lifeField(lf.summary),lifeField(lf.details[7]));
+  const more=el('details');more.className='research-life03-details';more.append(el('summary','確認條件、事件與完整資料'));
+  for(const item of lf.details.filter((_,i)=>i!==7))more.append(lifeField(item));panel.append(more);
   body.append(panel);
  }
  if(root.ShitouEngulfRangeReport)body.append(root.ShitouEngulfRangeReport.mount(document,a));if(root.ShitouElliottVisual)body.append(root.ShitouElliottVisual.mount(document,a));
@@ -235,7 +240,7 @@ async function copy(value,button){try{await navigator.clipboard.writeText(String
 function alertControls(a){const plan=a.foundation.alertPlan,box=el('div');box.className='research-alerts';for(const [label,value] of [['價格高於',plan.priceAbove.input],['價格低於',plan.priceBelow.input],['單日漲幅超過',plan.dayGainPercentInput],['單日跌幅超過',plan.dayLossPercentInput]]){const button=el('button',label+'：'+(value===null?'尚無有效價位':label.startsWith('價格')?R.fmt(value):String(value)));button.type='button';button.disabled=value===null;button.onclick=()=>copy(label.startsWith("價格")?R.fmt(value):value,button);box.appendChild(button);}const all=el('button','複製四欄'),link=el('a','開啟 DRAX');all.type='button';all.onclick=()=>copy([`股票 ${a.code}｜${a.date}`,`價格高於 ${R.fmt(plan.priceAbove.input)}`,`價格低於 ${R.fmt(plan.priceBelow.input)}`,`單日漲幅超過 ${plan.dayGainPercentInput??'未知'}`,`單日跌幅超過 ${plan.dayLossPercentInput??'未知'}`,'平台語意待確認；待手動設定'].join('\n'),all);link.href='https://drax.tw/';link.target='_blank';link.rel='noopener noreferrer';box.append(all,link);return box;}
 async function preview(analyses,{stockMode=false,detail=false,chartOnly=false,lifeOnly=false,watermark=false}={}){if(!analyses.length)return;const token=++previewSerial,query=stockQuerySerial;root.ShitouImageShareV1?.clear();await Promise.all(analyses.map(a=>root.ShitouKronosData?.ensure(a)));if(document.fonts?.ready)await document.fonts.ready;if(token!==previewSerial||query!==stockQuerySerial)return null;
  const pages=analyses.flatMap(a=>{const metrics=stockMode&&latestStockQuery?.analysis===a?latestStockQuery.metrics:null;
- if(lifeOnly){const life=root.ShitouKlineLife03Report?.inspect(a);const page=life&&root.ShitouKlineLife03Report.page(life,{document,displayCode:root.ShitouReleaseV50.displayCode,watermark});return page?[page]:[];}
+ if(lifeOnly){const life=root.ShitouKlineLife03Report?.inspect(a);const page=life&&root.ShitouKlineLife03Report.page(life,{document,displayCode:root.ShitouReleaseV50.displayCode,watermark,bars:a.sourceBars});return page?[page]:[];}
  if(chartOnly){const c=R.candlePage(a,{displayCode:root.ShitouReleaseV50.displayCode,watermark});return c?[c]:[];}
  return R.pages(a,{displayCode:root.ShitouReleaseV50.displayCode,stockMetrics:metrics,stockMode,detail,watermark});});
  return root.strongStockShowPagesV47(pages,{title:lifeOnly?'0～3號K生命線｜隔日強弱研究':chartOnly?'四策略研究｜結構證據圖':'四策略研究｜白話行動指南',prefix:root.ShitouReleaseV50.displayCode+(stockMode?'_個股研究':'_研究')+(lifeOnly?'_生命線圖':chartOnly?'_結構圖':''),date:analyses[0].date,kind:'v8-research',note:stockMode?'個股研究不列入濾網排名｜非買進訊號':'精簡摘要僅供研究觀察；原榜資格與排序保留。'});}

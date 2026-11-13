@@ -1,4 +1,4 @@
-// V9.2 presentation; historical model identifiers remain unchanged.
+// V9.2.1 presentation; historical model identifiers remain unchanged.
 (function(r,f){const a=f();if(typeof module==='object'&&module.exports)module.exports=a;else r.ShitouResearchReport=a;})(globalThis,function(){
 'use strict';
 const Copy=typeof module==='object'&&module.exports?require('./report-beginner-copy-v88.js'):globalThis.ShitouReportCopyV88;
@@ -369,7 +369,7 @@ function pages(a,{document:doc=globalThis.document,displayCode=globalThis.Shitou
  const ctx=doc.createElement('canvas').getContext('2d');
  if(!ctx)throw Error('Canvas 2D unavailable');
  // Summary first, followed by complete research; no field is silently filtered out.
- const report=view(a,{includeWave:false}),life=LifeReport?.inspect(a),lifePage=includeLife03&&life&&life.state!=='INSUFFICIENT_DATA'?LifeReport.page(life,{document:doc,displayCode,watermark}):null;
+ const report=view(a,{includeWave:false}),life=LifeReport?.inspect(a),lifePage=includeLife03&&life&&life.state!=='INSUFFICIENT_DATA'?LifeReport.page(life,{document:doc,displayCode,watermark,bars:a.sourceBars}):null;
  if(!detail&&(iphoneFullScreen||globalThis.ShitouIPhoneSummary)){if(!globalThis.ShitouIPhoneSummary)throw Error('iPhone滿版輸出模組尚未載入');return [...globalThis.ShitouIPhoneSummary.pages(a,report,{doc,displayCode,wrap,watermark,stockMode}),...(lifePage?[lifePage]:[])];}if(!detail)return [...Action.pages(a,report,{doc,displayCode,watermark,stockMode,wrap,roundRectPath}),...(lifePage?[lifePage]:[])];
  const strings=lines(a),fields=[...report.summary.map(f=>({...f,group:'SUMMARY'})),...(detail?report.details.map(f=>({...f,group:'DETAIL'})):[])];
  function measuredWrap(value,font,width){

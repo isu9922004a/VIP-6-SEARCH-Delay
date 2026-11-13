@@ -16,7 +16,7 @@ test('both entry points load one shared copy module without changing existing sc
  for(const file of ['index.html','market-outlook.html']){
   const after=fs.readFileSync(path.join(root,file),'utf8');
   const scripts=[...after.matchAll(/<script[^>]+src="([^"?]+)/g)].map(m=>m[1]);
-  assert.deepEqual(scripts.filter(s=>!['./kline-life-03-core-v1.js','./kline-life-03-report-v1.js'].includes(s)).filter(s=>!s.includes('report-beginner-copy-v88')&&!/\/(?:kline-attack(?:-report)?-v90|strategy-2560(?:-config-v90|-v1|-scanner-v1|-report-v1|-ui-v1))\.js$/.test(s)).filter((s,i,all)=>!(file==='market-outlook.html'&&['./price-action-context-v1.js','./selection-evidence-v1.js','./rsi-extended-v1.js','./indicator-shadow-v1.js'].includes(s))),baseline[file].scripts);
+  assert.deepEqual(scripts.filter(s=>!['./research-chart-layout-v921.js','./kline-life-03-core-v1.js','./kline-life-03-report-v1.js'].includes(s)).filter(s=>!s.includes('report-beginner-copy-v88')&&!/\/(?:kline-attack(?:-report)?-v90|strategy-2560(?:-config-v90|-v1|-scanner-v1|-report-v1|-ui-v1))\.js$/.test(s)).filter((s,i,all)=>!(file==='market-outlook.html'&&['./price-action-context-v1.js','./selection-evidence-v1.js','./rsi-extended-v1.js','./indicator-shadow-v1.js'].includes(s))),baseline[file].scripts);
   assert.equal(scripts.filter(s=>s.includes('report-beginner-copy-v88')).length,1);
   const bindings=[...after.matchAll(/<button\b[^>]*>/g)].map(m=>m[0]).join('\n');assert.equal(crypto.createHash('sha256').update(bindings).digest('hex'),baseline[file].buttonBindingsSha256);
  }
