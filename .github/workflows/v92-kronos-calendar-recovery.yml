@@ -5,6 +5,9 @@ on:
     paths:
       - 'scripts/update-kronos-sources.cjs'
       - 'scripts/tests/calendar-year-rollover.test.cjs'
+      # A correction to the live browser contract must be rechecked against
+      # the original real-model pipeline and its published artifacts.
+      - 'scripts/tests/kronos-future-live-browser.cjs'
       - '.github/workflows/v92-kronos-calendar-recovery.yml'
   workflow_dispatch:
 permissions:
