@@ -59,3 +59,7 @@ jobs:
       - run: node scripts/audit-v90-universe.cjs /tmp/v90-universe
       - run: node scripts/tests/v90-browser.cjs /tmp/v92-original-v90
       - run: npm run test:browser -- /tmp/v92-original-research
+      - name: Verify R16 canonical fields remain unique beside new life-line card
+        run: |
+          node scripts/tests/research-context-r16-browser.cjs /tmp/v92-r16
+          RESEARCH_FALLBACK=1 node scripts/tests/research-context-r16-browser.cjs /tmp/v92-r16-fallback
