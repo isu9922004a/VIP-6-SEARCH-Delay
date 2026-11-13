@@ -18,6 +18,7 @@ on:
       # Only the successfully published and versioned real forecast catalog
       # should trigger post-recovery frontend/live verification.
       - 'data/kronos-future/manifest.json'
+      - 'scripts/tests/kronos-future-live-browser.cjs'
       - '.github/workflows/deploy-frontend.yml'
   workflow_dispatch:
 permissions:
