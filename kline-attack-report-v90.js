@@ -6,7 +6,7 @@ function page({title,date,blocks,watermark=false,kind='stock',testOnly=false,inc
  const header=wrap(probe,title,CW-50,48),plans=blocks.map(b=>{const lines=[];for(const [i,t]of b.lines.entries()){const size=i===0?44:38;for(const text of wrap(probe,t,CW-56,size))lines.push({text,size,line:size+14,color:i===0?'#155c72':/K線攻防：收盤已站上/.test(t)?'#bb2740':/K線攻防：收盤已跌破/.test(t)?'#14754f':'#203c51'});}return {...b,lines,height:lines.reduce((n,l)=>n+l.line,0)+40};});
  const rawData=blocks.length===1?blocks[0].data:null,plotData=includeChart?(rawData?.state==='AVAILABLE'?rawData:rawData?.kline?.state==='AVAILABLE'?rawData.kline:null):null,chartReserve=plotData?.canonicalBars?.length&&r.ShitouElliottVisual?1100:0;
  const start=124+header.length*64,H=Math.max(2778,start+plans.reduce((n,b)=>n+b.height+18,0)+chartReserve+158);if(H>8192)throw Error('圖片內容超過容量，請分頁輸出');
- const release=r.ShitouReleaseV50?.displayCode||'V9.2.1';
+ const release=r.ShitouReleaseV50?.displayCode||'V9.3';
  const audit={version:release,kind,title,date,width:W,height:H,testOnly,blocks:blocks.map(b=>({code:b.code,date:b.date,data:b.data,text:b.lines})),watermarked:watermark,textBoxes:[],noClipping:true,noOverlap:true};
  let y=start;const cards=plans.map(p=>{const top=y;y+=p.height+18;return {...p,top};});
  function paint(c){const ctx=c.getContext('2d');ctx.fillStyle='#e9f2f7';ctx.fillRect(0,0,W,H);ctx.textBaseline='alphabetic';const boxes=[];

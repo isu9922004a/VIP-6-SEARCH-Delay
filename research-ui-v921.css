@@ -6,7 +6,8 @@ body .research-card-code,body .research-card-date{font-size:15px;color:var(--up-
 body .research-card-stage{font-size:19px;font-weight:750;justify-self:start}
 body .research-card-glance{font-size:17px;line-height:1.65;white-space:pre-line}
 body .research-card-risk{font-size:16px;line-height:1.65;white-space:pre-line;border-left:3px solid #d19e49;padding:6px 12px;color:var(--up-ink,#f3e1b8)}
-body .research-card-risk::before{content:'風險與資料限制：';font-weight:750}
+body .research-card-risk::before{content:'先注意：';font-weight:750}
+body #stockReportActionsPanel .workspace-life-front{width:100%;min-height:52px;font-size:18px;grid-column:1 / -1;margin:0 0 10px}
 body .research-life03-card{padding:18px!important;background:transparent!important;box-shadow:none!important}
 body .research-life03-card h4{margin:0 0 12px;font-size:22px}
 body .research-life03-field{white-space:pre-line;line-height:1.7;font-size:17px;overflow-wrap:anywhere}

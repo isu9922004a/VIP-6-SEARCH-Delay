@@ -1,4 +1,4 @@
-name: V9.2.1 readable research regression
+name: V9.3 beginner research and front-button regression
 on:
   pull_request:
     branches: [main]
@@ -34,7 +34,7 @@ jobs:
           node --check research-chart-v1.js
           node --check kline-life-03-report-v1.js
           node --check research-integration-v1.js
-          node --test scripts/tests/research-v921.test.cjs
+          node --test scripts/tests/research-v921.test.cjs scripts/tests/research-v93-plain.test.cjs
       - name: Actual Canvas geometry, long content and iPhone preview/export
         env:
           CHROME_BIN: /usr/bin/google-chrome

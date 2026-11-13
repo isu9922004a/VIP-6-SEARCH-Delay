@@ -3,7 +3,7 @@
 'use strict';
 const Copy=typeof module==='object'&&module.exports?require('../report-beginner-copy-v88.js'):globalThis.ShitouReportCopyV88;
 const explain=value=>Copy?Copy.line(value):String(value??'');
-const TITLE='個股精簡分析',VERSION='V9.2.1',WATERMARK='石頭少爺台股分析'+VERSION+'版',TOPIC='明天可能怎麼走？該怎麼做？',W=1284,MIN_H=2778,MAX_H=8192;
+const TITLE='個股精簡分析',VERSION='V9.3',WATERMARK='石頭少爺台股分析'+VERSION+'版',TOPIC='明天可能怎麼走？該怎麼做？',W=1284,MIN_H=2778,MAX_H=8192;
 const V=typeof module==='object'&&module.exports?require('../elliott-wave-visual-v1.js'):root.ShitouElliottVisual;
 const titleFor=()=>TITLE;
 function model(a,{watermarked=false}={}){if(!a?.code||!a.date)throw Error('請先完成個股查詢，再產生精簡分析。');const section=R.view(a).actionGuide.sections.find(s=>s.number==='05'),narrative=section?.fullNarrative||section?.narrative;if(!narrative?.length)throw Error('完整個股分析模組尚未載入。');
