@@ -27,8 +27,8 @@ test('annual-source rollover rejects conflicting session chronology and known ma
  assert.throws(()=>calendar(rolled,sourceDay,closures,{...saved,dates:saved.dates.filter(d=>d<=sourceDay)}),/no verified next session/);
 });
 test('only the immediate next-year official schedule is eligible for cached-year fallback',()=>{
- const 2028=rolled.map(x=>({...x,Date:'117'+x.Date.slice(3)}));
- assert.throws(()=>calendar(2028,sourceDay,closures,saved),/Calendar year does not match source date/);
+ const twoYearsAhead=rolled.map(x=>({...x,Date:'117'+x.Date.slice(3)}));
+ assert.throws(()=>calendar(twoYearsAhead,sourceDay,closures,saved),/Calendar year does not match source date/);
  const mixed=[...rolled.slice(0,11),{Date:'1151211'}];
  assert.throws(()=>calendar(mixed,sourceDay,closures,saved),/Calendar year does not match source date/);
 });
