@@ -43,7 +43,7 @@ function page(x,{document:doc=globalThis.document,displayCode=globalThis.ShitouR
  const geometry=Layout.eventLayout(x.event,bars,{min,max});
  const omissions=geometry.events.filter(e=>e.status!=='VISIBLE').map(e=>e.key+' '+(e.date||'日期未提供')+'｜'+(e.status==='OUT_OF_RANGE'?'日期在這張圖以外，沒有硬畫在圖內':'缺少當天的K棒，無法標在圖上'));
  const hasChart=bars.length>0,top=hasChart?1760:600;
- const items=[{title:'現在怎麼看？哪些地方要小心？',value:say([Layout.lifeState(x.state,x.label),...(x.contradictions||[]),...(x.riskWarnings||[])].join('；'))},
+ const items=[{title:'現在怎麼看？哪些地方要小心？',value:say([Layout.lifeState(x.state,x.label),...(x.contradictions||[]),...(x.riskWarnings||[])].join('；'))+'\n20日平均價（MA20）｜'+money(x.indicators?.ma20)},
   {title:'下一個交易日，收盤要看什麼？',value:say([x.scenario?.bullish,x.scenario?.bearish,x.scenario?.neutral].filter(Boolean).join('\n')||x.reason||'目前還沒有可用的確認條件')},
   {title:'盤中漲過或跌破，先別急著下結論',value:say([x.scenario?.falseBreak,x.scenario?.falseBreakdown].filter(Boolean).join('\n')||'目前沒有可用的訊號，先等資料完整')},
   {title:'這條線是怎麼來的？',value:[x.event?['K3','K2','K1','K0'].map(k=>k+' '+(x.event[k.toLowerCase()+'Date']||'日期未提供')).join('｜'):'目前還沒有可用的訊號','K3是最早那根K棒，K0是訊號成立當天。','生命線成立 '+(x.event?.signalDate||'尚未成立'),'目前這條線：'+Layout.eventState(x.currentState,Layout.lifeState(x.state,x.label)),...omissions,'圖表 '+(hasChart?bars[0].date+'～'+bars.at(-1).date+'；'+bars.length+'根日K':'缺少同一天的日K，無法對照')].join('\n')},
