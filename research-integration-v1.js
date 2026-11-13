@@ -75,8 +75,12 @@ function researchCard(a,number,prefix='研究',expanded=false){
   const lf=root.ShitouKlineLife03Report.fields(life),panel=el('section');
   panel.className='research-guide-evidence research-life03-card';
   panel.dataset.model='V9.2-KLINE-LIFE03';
-  panel.append(el('h4','0～3號K生命線｜隔日強弱研究'),field(lf.summary));
-  for(const item of lf.details.slice(0,5))panel.append(field(item));
+  // Life-line fields are a separate study, not part of the legacy
+  // .research-card-field contract used by the settled research report.
+  const lifeField=item=>{const node=field(item);node.className='research-life03-field';
+   node.style.display='grid';node.style.gap='4px';node.style.padding='7px 0';return node;};
+  panel.append(el('h4','0～3號K生命線｜隔日強弱研究'),lifeField(lf.summary));
+  for(const item of lf.details.slice(0,5))panel.append(lifeField(item));
   body.append(panel);
  }
  if(root.ShitouEngulfRangeReport)body.append(root.ShitouEngulfRangeReport.mount(document,a));if(root.ShitouElliottVisual)body.append(root.ShitouElliottVisual.mount(document,a));
