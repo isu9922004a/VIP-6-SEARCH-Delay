@@ -39,7 +39,7 @@ try{const page=await browser.newPage({viewport:{width:428,height:926},isMobile:t
  }
  for(const id of ['generateStockProfessionalImageButton','generateStockProfessionalWatermarkImageButton']){
   await page.locator('#'+id).click();await page.waitForFunction(()=>document.querySelector('#imagePreviewModal')?.classList.contains('show')&&document.querySelector('#imageDownloadLink')?.href.startsWith('blob:'),{},{timeout:45000});
-  const [download]=await Promise.all([page.waitForEvent('download'),page.locator('#imageDownloadLink').click()]);const file=path.join(out,id+'.png');await download.saveAs(file);const bytes=fs.readFileSync(file);assert.equal(bytes.readUInt32BE(16),1284);assert.equal(bytes.readUInt32BE(20),2778);checks.push({button:id,bytes:bytes.length});await page.evaluate(()=>closeInfographicPreviewV3328());console.log('PASS live report',id);
+  const [download]=await Promise.all([page.waitForEvent('download'),page.locator('#imageDownloadLink').click()]);const file=path.join(out,id+'.png');await download.saveAs(file);const bytes=fs.readFileSync(file);assert.equal(bytes.readUInt32BE(16),1284);assert.ok(bytes.readUInt32BE(20)>=2778,'V9.2 auto-height PNG must contain all report cards');checks.push({button:id,bytes:bytes.length,width:bytes.readUInt32BE(16),height:bytes.readUInt32BE(20)});await page.evaluate(()=>closeInfographicPreviewV3328());console.log('PASS live report',id);
  }
  // Independent live follow-up: a second actual stock must use the same professional template.
  await page.evaluate(()=>ShitouWorkspaceV831.closeReport());
@@ -53,7 +53,7 @@ try{const page=await browser.newPage({viewport:{width:428,height:926},isMobile:t
  assert.equal(evergreen.code,'2603',JSON.stringify({code:evergreen.code,date:evergreen.date,trend:evergreen.trend}));
  assert.equal(evergreen.trend?.verified,true,'Evergreen completed-day moving average must be verified');
  assert.ok(!/階段待確認/.test(evergreen.trend?.label||''),'Evergreen trend must not hide behind an ABC stage placeholder');
- assert.deepEqual(evergreen.audit,{width:1284,height:2778,noOverlap:true});
+ assert.equal(evergreen.audit.width,1284);assert.ok(evergreen.audit.height>=2778,'2603 report must expand to fit content');assert.equal(evergreen.audit.noOverlap,true);
  if(evergreen.date==='2026-10-30'&&Math.abs(evergreen.close-271.5)<.01){
   assert.equal(evergreen.shortTrend?.label,'放量續強','2603 strong volume and 5MA trend must both be recognized');
   assert.equal(evergreen.caution?.active,true,'2603 hot RSI must retain a chase-risk warning');
@@ -62,7 +62,7 @@ try{const page=await browser.newPage({viewport:{width:428,height:926},isMobile:t
   assert.ok(/空手先等/.test(evergreen.caution.detail),'caution should discourage chasing without a verified entry');
  }
 
- const png=Buffer.from(evergreen.png.split(',')[1],'base64');assert.equal(png.subarray(1,4).toString(),'PNG');
+ const png=Buffer.from(evergreen.png.split(',')[1],'base64');assert.equal(png.subarray(1,4).toString(),'PNG');assert.equal(png.readUInt32BE(16),evergreen.audit.width);assert.equal(png.readUInt32BE(20),evergreen.audit.height,'2603 encoded PNG must preserve the full audited canvas height');
  fs.writeFileSync(path.join(out,'2603-professional.png'),png);
  assert.equal(evergreen.audit.noOverlap,true);
  checks.push({code:evergreen.code,date:evergreen.date,trend:evergreen.trend.label,short:evergreen.shortTrend?.label,caution:evergreen.caution,pngBytes:png.length});console.log('PASS live stock 2603 trend and PNG',evergreen.trend.label,evergreen.shortTrend?.label);
@@ -83,8 +83,8 @@ try{const page=await browser.newPage({viewport:{width:428,height:926},isMobile:t
   assert.equal(weifeng.short.label,'急跌轉弱','6756 -9.43% and below MA5 must not be presented as short-term bullish');
   assert.ok(Math.abs(weifeng.short.ma5-126.6)<.15,'MA5 must match the actual daily bars');
  }
- assert.deepEqual(weifeng.audit,{width:1284,height:2778,noOverlap:true});
- const wfPng=Buffer.from(weifeng.png.split(',')[1],'base64');assert.equal(wfPng.subarray(1,4).toString(),'PNG');
+ assert.equal(weifeng.audit.width,1284);assert.ok(weifeng.audit.height>=2778,'6756 report must expand to fit content');assert.equal(weifeng.audit.noOverlap,true);
+ const wfPng=Buffer.from(weifeng.png.split(',')[1],'base64');assert.equal(wfPng.subarray(1,4).toString(),'PNG');assert.equal(wfPng.readUInt32BE(16),weifeng.audit.width);assert.equal(wfPng.readUInt32BE(20),weifeng.audit.height,'6756 encoded PNG must preserve the full audited canvas height');
  fs.writeFileSync(path.join(out,'6756-professional.png'),wfPng);
  checks.push({code:'6756',date:weifeng.date,close:weifeng.close,medium:weifeng.medium.label,short:weifeng.short.label,ma5:weifeng.short.ma5,pngBytes:wfPng.length});
  console.log('PASS live stock 6756 dual trend',weifeng.medium.label,weifeng.short.label);
