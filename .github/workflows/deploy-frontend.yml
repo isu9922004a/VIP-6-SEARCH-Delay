@@ -4,6 +4,11 @@ on:
     branches: ['main']
     paths:
       - 'version-v50.js'
+      - 'index.html'
+      - 'research-integration-v1.js'
+      - 'research-report-v1.js'
+      - 'kline-life-03-core-v1.js'
+      - 'kline-life-03-report-v1.js'
       - '.github/workflows/deploy-frontend.yml'
   workflow_dispatch:
 permissions:
