@@ -20,13 +20,13 @@ try{
   const inp=[[10,12,9,11],[11,13,10,12],[12,14,11,13],[12,13,10.5,12.5]];
   const bars=inp.map((b,i)=>({date:'2026-11-'+String(2+i).padStart(2,'0'),open:b[0],high:b[1],low:b[2],close:b[3],volume:1000000}));
   const a={code:'2330',name:'測試股票',date:bars.at(-1).date,sourceBars:bars,validation:{technicalModelAvailable:true}};
-  const study=ShitouKlineLife03.evaluate(a),lifePage=ShitouKlineLife03Report.page(study,{document,displayCode:'V9.2'});
+  const study=ShitouKlineLife03.evaluate(a),lifePage=ShitouKlineLife03Report.page(study,{document,bars:a.sourceBars,displayCode:'V9.2.1'});
   const canvas=lifePage.renderExportRegion(),audit=JSON.parse(canvas.dataset.life03Audit);
   return {study:{state:study.state,line:study.line,code:study.code,date:study.date},audit,width:canvas.width,height:canvas.height,png:canvas.toDataURL('image/png'),display:ShitouReleaseV50?.displayCode||null,header:document.title};
  });
- assert.equal(result.display,'V9.2');assert.equal(result.study.state,'STRONG');assert.equal(result.study.line,9);
+ assert.equal(result.display,'V9.2.1');assert.equal(result.study.state,'STRONG');assert.equal(result.study.line,9);
  assert.equal(result.width,1284);assert.ok(result.height>=2778);assert.equal(result.audit.noClipping,true);
- assert.equal(result.audit.k3Date,'2026-11-02');assert.ok(result.header.includes('V9.2'));
+ assert.equal(result.audit.k3Date,'2026-11-02');assert.ok(result.header.includes('V9.2.1'));
  const buf=Buffer.from(result.png.split(',')[1],'base64');assert.equal(buf.readUInt32BE(16),1284);assert.equal(buf.readUInt32BE(20),result.height);
  fs.writeFileSync(path.join(dir,'v92-life03.png'),buf);
  fs.writeFileSync(path.join(dir,'results.json'),JSON.stringify({display:result.display,audit:result.audit,pageErrors:jsErrors},null,2));
