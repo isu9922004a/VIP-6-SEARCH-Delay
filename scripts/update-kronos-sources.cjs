@@ -9,7 +9,7 @@ const HOLIDAY_SOURCE='https://openapi.twse.com.tw/v1/holidaySchedule/holidaySche
 // future-year schedule as a current-year schedule.
 function calendar(records,asOf,extras=[],previous=null){
  if(!Array.isArray(records)||records.length<10)throw Error('Official annual calendar unavailable');
- if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(asOf)||!Number.isFinite(Date.parse(asOf+'T00:00:00Z')))throw Error('Invalid source date');
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(asOf)||!Number.isFinite(Date.parse(asOf+'T00:00:00Z')))throw Error('Invalid source date');
  const year=asOf.slice(0,4),dates=records.map(r=>date(r.Date??r.date));
  if(!dates.every(d=>d.startsWith(year))){
   const nextYear=String(Number(year)+1),prior=previous||{};
@@ -20,10 +20,10 @@ function calendar(records,asOf,extras=[],previous=null){
      !Number.isFinite(Date.parse(prior.generatedAt||''))||
      Date.parse(prior.generatedAt)>Date.parse(asOf+'T23:59:59Z'))
     throw Error('Verified current-year calendar unavailable after next-year rollover');
-  if(prior.dates.some((d,i)=>!/^\\d{4}-\\d{2}-\\d{2}$/.test(d)||!d.startsWith(year)||
+  if(prior.dates.some((d,i)=>!/^\d{4}-\d{2}-\d{2}$/.test(d)||!d.startsWith(year)||
      !Number.isFinite(Date.parse(d+'T00:00:00Z'))||(i>0&&prior.dates[i-1]>=d)))
     throw Error('Cached current-year calendar failed chronological validation');
-  const closed=new Set(extras.filter(x=>String(x.date||'').replace(/\\D/g,'').startsWith(year)).map(x=>date(x.date)));
+  const closed=new Set(extras.filter(x=>String(x.date||'').replace(/\D/g,'').startsWith(year)).map(x=>date(x.date)));
   if(prior.dates.some(d=>closed.has(d)))throw Error('Cached calendar conflicts with verified closures');
   if(!prior.dates.some(d=>d>asOf))throw Error('Cached calendar has no verified next session');
   return {...prior,dates:[...prior.dates],annualSourceStatus:'VERIFIED_SAME_YEAR_CACHE',
