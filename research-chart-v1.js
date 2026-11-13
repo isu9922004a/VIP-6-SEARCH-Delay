@@ -12,6 +12,7 @@ function page(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouR
  const bars=d.bars.slice(-80),start=bars[0].index,end=bars.at(-1).index,patterns=d.patterns.filter(x=>x.type==='DOUBLE_BOTTOM'?x.points.some(v=>v.index>=start):x.endIndex>=start).slice(0,2);
  const guide=B.chartContext(a,d);
  const shown=[{title:'突破觀察',price:d.trigger,color:'#f6cf65',solid:false},{title:'失效條件',price:d.invalidation,color:'#ff858f',solid:true},{title:'下跌觀察',price:d.defenseReference,color:'#8dc9c2',solid:false},{title:'最近壓力',price:d.nextResistance?.price,color:'#d6aeff',solid:false}];
+ const patternLevels=patterns.flatMap((p,i)=>p.type==='DOUBLE_BOTTOM'&&Number.isFinite(p.neckline)&&p.neckline>0?[{id:'P'+(i+1),title:'雙底頸線',price:p.neckline,color:p.status==='CONFIRMED'?'#71efd1':'#f0bf71'}]:[]);
  const nq=n?.pattern,nOverlay=nq?{id:nq.id,stage:nq.stage,knownAt:nq.knownAt,points:['A','B','C'].map(key=>({key,...nq[key],visible:nq[key].index>=start})),projection:{...nq.projection}}:null;
  const audit={code:a.code,date:a.date,sourceSnapshotId:a.sourceSnapshotId,schemaVersion:u?.schemaVersion||n?.version||VERSION,chartVersion:VERSION,section:'STRUCTURE_CHART',width:W,height:PAGE_H,noClipping:true,barCount:bars.length,firstDate:bars[0].date,lastDate:bars.at(-1).date,priceBasis:d.priceBasis,volumeStatus:d.volume.status,entryDirection:a.entryDirection||null,nContinuation:nOverlay,beginnerGuide:guide,
   life03:null,
@@ -20,6 +21,7 @@ function page(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouR
  const body=Layout.blocks(measurement,[
   {title:'重要價位｜新台幣元',value:shown.map((v,i)=>`${i+1} ${v.title}｜${Number.isFinite(v.price)&&v.price>0?v.price.toFixed(2)+' 元':'尚未確認'}\n${guide.levels[i].explanation}`).join('\n')},
   {title:'目前結構',value:guide.stage+'。\n'+guide.points},
+  ...(patterns.length?[{title:'其他結構證據',value:patterns.map((p,i)=>'P'+(i+1)+' '+(p.type==='DOUBLE_BOTTOM'?'雙底頸線｜'+fmt(p.neckline)+' 元':'收斂型態邊界')+'｜'+(p.status==='CONFIRMED'?'已確認':'研究狀態 '+p.status)+'｜成立 '+(p.formedAt||'尚未確認')).join('\n')}]:[]),
   {title:'下一步確認',value:[a.entryDirection?.reason,...(a.entryDirection?.signals||[]).map(s=>s.explanation)].filter(Boolean).join('\n')||'須等待完成日K收盤與正式研究條件確認。'},
   {title:'風險與限制',value:[...(a.risks||[]),guide.projection,guide.volume.caution].join('\n')},
   {title:'資料稽核',value:`完成行情 ${a.date}｜${d.basisVerified?'價格口徑已核驗':'價格口徑尚未確認'}｜${d.volume.status==='CONFLICT'?'交易量來源不一致':d.volume.usable?'日K交易量已核驗':'交易量尚未核驗'}\n${guide.volume.ratio}\nA/B/C 為結構研究；生命線研究請查看獨立圖片。模型預測與歷史行情分開判讀；研究績效未驗證。`}
@@ -37,7 +39,7 @@ function page(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouR
   text(a.entryDirection?.state==='RESEARCH_ONLY'?a.entryDirection.direction.label+'｜'+a.entryDirection.label:'先看現在能否評估，再看哪些價位要留意',68,320,39,'#ffdc8c');
   for(const [i,[label,color]] of [['5日均價 MA5','#f6cf65'],['20日均價 MA20','#65c5f2'],['60日均價 MA60','#c1a0ff']].entries())text(label,68+i*395,389,36,color);
   const x0=160,y0=435,pw=1010,ph=800,vy=1335,vh=220,dx=pw/bars.length;
-  const raw=[...bars.flatMap(x=>[x.low,x.high,x.ma5,x.ma20,x.ma60]),...shown.filter(x=>x.price>0).map(x=>x.price)].filter(Number.isFinite),rawMin=Math.min(...raw),rawMax=Math.max(...raw),pad=Math.max((rawMax-rawMin)*.08,rawMax*.01),min=rawMin-pad,max=rawMax+pad;
+  const raw=[...bars.flatMap(x=>[x.low,x.high,x.ma5,x.ma20,x.ma60]),...[...shown,...patternLevels].filter(x=>x.price>0).map(x=>x.price)].filter(Number.isFinite),rawMin=Math.min(...raw),rawMax=Math.max(...raw),pad=Math.max((rawMax-rawMin)*.08,rawMax*.01),min=rawMin-pad,max=rawMax+pad;
   const xp=index=>x0+(index-start+.5)*dx,yp=price=>y0+ph-(price-min)/(max-min)*ph;
   const maxV=Math.max(...bars.map(x=>x.volume)),vp=v=>vy+vh-v/maxV*vh;
   ctx.lineWidth=1;for(let i=0;i<=5;i++){const y=y0+ph*i/5;ctx.strokeStyle='#2d485c';ctx.beginPath();ctx.moveTo(x0,y);ctx.lineTo(x0+pw,y);ctx.stroke();text(fmt(max-(max-min)*i/5),10,y+12,28,'#a8c6db',72);}
@@ -65,7 +67,7 @@ function page(a,{document:doc=globalThis.document,displayCode=globalThis.ShitouR
   wrapped(guide.volume.ratio,68,1610,W-136,34,43);
   wrapped(guide.volume.caution,68,1664,W-136,32,42);
   // Numbered outside markers connect each line to the full-name/price legend below.
-  const tags=Layout.spread(shown.map((v,i)=>({...v,id:i+1,y:yp(v.price)-20,height:42})).filter(v=>Number.isFinite(v.price)&&v.price>0),{min:y0,max:y0+ph,dimension:'y',extent:'height',gap:10});audit.levelLabels=tags;
+  const tags=Layout.spread([...shown.map((v,i)=>({...v,id:i+1})),...patternLevels].map(v=>({...v,y:yp(v.price)-20,height:42})).filter(v=>Number.isFinite(v.price)&&v.price>0),{min:y0,max:y0+ph,dimension:'y',extent:'height',gap:10});audit.levelLabels=tags;
   for(const t of tags){ctx.strokeStyle=t.color;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(136,t.y+21);ctx.lineTo(x0,yp(t.price));ctx.stroke();ctx.fillStyle='#102235';ctx.fillRect(94,t.y,42,42);text(t.id,98,t.y+34,34,t.color,42);}
   ctx.textBaseline='top';Layout.paintBlocks(ctx,body);ctx.textBaseline='alphabetic';
   text(`${displayCode}｜完成行情 ${a.date}｜紅：收≥開；綠：收<開`,68,totalHeight-70,32,'#9cb8cc');
