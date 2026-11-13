@@ -75,8 +75,18 @@ function researchCard(a,number,prefix='研究',expanded=false){
   const lf=root.ShitouKlineLife03Report.fields(life),panel=el('section');
   panel.className='research-guide-evidence research-life03-card';
   panel.dataset.model='V9.2-KLINE-LIFE03';
-  panel.append(el('h4','0～3號K生命線｜隔日強弱研究'),field(lf.summary));
-  for(const item of lf.details.slice(0,5))panel.append(field(item));
+  // Life-line fields are an independent presentation, not duplicates of the
+  // unified report's .research-card-field rows. Legacy exports and DOM audits
+  // count exactly the shared summary/details, so keep that contract intact.
+  const lifeField=item=>{
+   const row=el('div'),key=el('strong',item.title),value=el('p',item.value);
+   row.className='research-life03-field';
+   row.style.cssText='padding:8px 0;overflow-wrap:anywhere';
+   value.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;margin:4px 0';
+   row.append(key,value);return row;
+  };
+  panel.append(el('h4','0～3號K生命線｜隔日強弱研究'),lifeField(lf.summary));
+  for(const item of lf.details.slice(0,5))panel.append(lifeField(item));
   body.append(panel);
  }
  if(root.ShitouEngulfRangeReport)body.append(root.ShitouEngulfRangeReport.mount(document,a));if(root.ShitouElliottVisual)body.append(root.ShitouElliottVisual.mount(document,a));
