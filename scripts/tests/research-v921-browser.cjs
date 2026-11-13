@@ -28,6 +28,8 @@ for(const r of result.outputs){assert.equal(r.width,1284);assert.ok(r.height>=27
  delete r.png;
 }
 assert.ok(result.outputs.find(r=>r.label==='TEST-long').height>result.outputs.find(r=>r.label==='4939-life').height);
+assert.ok(result.outputs.find(r=>r.label==='4939-life').text.some(t=>t.text.includes('20日平均價（MA20）｜'+result.life.indicators.ma20.toFixed(2)+' 元')));
+assert.ok(result.outputs.find(r=>r.label==='TEST-insufficient').text.some(t=>t.text.includes('20日平均價（MA20）｜價格還沒核對')));
 await page.evaluate(raw=>{globalThis.shitouGetLastReportV82=()=>raw;document.getElementById('stockInput').value=raw.stock;ShitouResearchIntegration.captureStockQuery(raw);ShitouResearchIntegration.mountStock(raw);document.getElementById('result').style.display='block';ShitouWorkspaceV831.renderSummary();ShitouWorkspaceV831.openReport('four');document.querySelectorAll('#researchStock details').forEach(d=>d.open=true);},raw);
 // Rendered card retains all detail fields; risks remain visible before opening details.
 const card=page.locator('#researchStock');assert.match(await card.textContent(),/4939/);assert.match(await card.textContent(),/2026-11-13/);assert.match(await card.textContent(),/50.20/);assert.match(await card.textContent(),/ATR|波動/);
