@@ -39,7 +39,11 @@ try{const page=await browser.newPage({viewport:{width:428,height:926},isMobile:t
  }
  for(const id of ['generateStockProfessionalImageButton','generateStockProfessionalWatermarkImageButton']){
   await page.locator('#'+id).click();await page.waitForFunction(()=>document.querySelector('#imagePreviewModal')?.classList.contains('show')&&document.querySelector('#imageDownloadLink')?.href.startsWith('blob:'),{},{timeout:45000});
-  const [download]=await Promise.all([page.waitForEvent('download'),page.locator('#imageDownloadLink').click()]);const file=path.join(out,id+'.png');await download.saveAs(file);const bytes=fs.readFileSync(file);assert.equal(bytes.readUInt32BE(16),1284);assert.equal(bytes.readUInt32BE(20),2778);checks.push({button:id,bytes:bytes.length});await page.evaluate(()=>closeInfographicPreviewV3328());console.log('PASS live report',id);
+  const [download]=await Promise.all([page.waitForEvent('download'),page.locator('#imageDownloadLink').click()]);const file=path.join(out,id+'.png');await download.saveAs(file);const bytes=fs.readFileSync(file);assert.equal(bytes.readUInt32BE(16),1284);const pngHeight=bytes.readUInt32BE(20);
+  // V9.2 adds a life-line study to the full report. Content must grow rather
+  // than be clipped to the older fixed 2778px height (standalone V84 stays 2778).
+  assert.ok(pngHeight>=2778&&pngHeight<=16384,'report PNG must grow safely with verified content: '+pngHeight);
+  checks.push({button:id,bytes:bytes.length,width:1284,height:pngHeight});await page.evaluate(()=>closeInfographicPreviewV3328());console.log('PASS live report',id);
  }
  // Independent live follow-up: a second actual stock must use the same professional template.
  await page.evaluate(()=>ShitouWorkspaceV831.closeReport());

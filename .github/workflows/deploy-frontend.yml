@@ -2,8 +2,19 @@ name: Deploy verified frontend release
 on:
   push:
     branches: ['main']
+    # Release verification must also run for V9.2 implementation changes,
+    # not only for changes to the visible release label.
     paths:
       - 'version-v50.js'
+      - 'index.html'
+      - 'kline-life-03-*.js'
+      - 'research-integration-v1.js'
+      - 'research-report-v1.js'
+      - 'research-chart-v1.js'
+      - 'stock-professional-v84.js'
+      - 'scripts/tests/kline-life-03*'
+      - 'scripts/tests/research-context-r16-browser.cjs'
+      - 'scripts/tests/v84-live-smoke.cjs'
       - '.github/workflows/deploy-frontend.yml'
   workflow_dispatch:
 permissions:
