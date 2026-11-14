@@ -2,17 +2,16 @@
 (function(root){'use strict';
 const doc=root.document;if(!doc)return;
 const by=id=>doc.getElementById(id);
-// The standalone market page has no stock preview shell. Install one only there.
+// Create the standalone shell only while this report is open; other reports keep their own DOM and APIs.
 function standalonePreview(){
  if(typeof root.showInfographicPreviewV3328==='function')return;
  const modal=doc.createElement('div');modal.id='imagePreviewModal';modal.className='market-life-preview';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-hidden','true');modal.setAttribute('aria-labelledby','imagePreviewTitle');
  modal.innerHTML='<div class="image-modal-card"><div class="image-modal-head"><strong id="imagePreviewTitle"></strong><button type="button" id="marketLifeClose">關閉</button></div><div class="image-modal-actions"><a id="imageDownloadLink" download>下載目前頁 PNG</a><button type="button" id="imageShareButton" disabled>分享目前頁圖片</button></div><p id="imagePreviewNote" role="status"></p><img id="imagePreviewImg" alt="大盤生命線研究報告目前頁"></div>';
  doc.body.append(modal);let url=null,epoch=0,previousFocus=null;
- root.closeInfographicPreviewV3328=function(){epoch++;root.ShitouImageShareV1?.clear();root.ShitouLifeViewer94?.reset();if(url)URL.revokeObjectURL(url);url=null;by('imagePreviewImg').removeAttribute('src');by('imageDownloadLink').removeAttribute('href');modal.classList.remove('show');modal.setAttribute('aria-hidden','true');doc.body.style.overflow='';previousFocus?.focus();};
+ root.closeInfographicPreviewV3328=function close(){epoch++;root.ShitouImageShareV1?.clear();root.ShitouLifeViewer94?.reset();if(url)URL.revokeObjectURL(url);url=null;modal.classList.remove('show');modal.setAttribute('aria-hidden','true');doc.body.style.overflow='';doc.removeEventListener('keydown',keyboard);modal.remove();if(root.closeInfographicPreviewV3328===close){delete root.closeInfographicPreviewV3328;delete root.showInfographicPreviewV3328;}previousFocus?.focus();};
  root.showInfographicPreviewV3328=async function(page,filename,title){const token=++epoch,ready=root.ShitouImageShareV1.prepare(page,{filename}),blob=await new Promise((resolve,reject)=>page.toBlob(b=>b?resolve(b):reject(Error('PNG 編碼失敗'))));if(token!==epoch)return false;if(url)URL.revokeObjectURL(url);url=URL.createObjectURL(blob);by('imagePreviewImg').src=url;by('imageDownloadLink').href=url;by('imageDownloadLink').download=filename;by('imagePreviewTitle').textContent=title;const opening=!modal.classList.contains('show');if(opening)previousFocus=doc.activeElement;modal.classList.add('show');modal.setAttribute('aria-hidden','false');doc.body.style.overflow='hidden';if(opening)by('marketLifeClose').focus();await ready;return token===epoch;};
- by('marketLifeClose').addEventListener('click',root.closeInfographicPreviewV3328);by('imageShareButton').addEventListener('click',()=>root.ShitouImageShareV1.shareCurrent());doc.addEventListener('keydown',e=>{if(!modal.classList.contains('show'))return;if(e.key==='Escape')root.closeInfographicPreviewV3328();if(e.key==='Tab'){const focusable=[...modal.querySelectorAll('button:not(:disabled),a[href],summary')].filter(e=>e.getClientRects().length),first=focusable[0],last=focusable.at(-1);if(e.shiftKey&&doc.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&doc.activeElement===last){e.preventDefault();first?.focus();}}});
+ by('marketLifeClose').addEventListener('click',root.closeInfographicPreviewV3328);by('imageShareButton').addEventListener('click',()=>root.ShitouImageShareV1.shareCurrent());const keyboard=e=>{if(!modal.classList.contains('show'))return;if(e.key==='Escape')root.closeInfographicPreviewV3328();if(e.key==='Tab'){const focusable=[...modal.querySelectorAll('button:not(:disabled),a[href],summary')].filter(e=>e.getClientRects().length),first=focusable[0],last=focusable.at(-1);if(e.shiftKey&&doc.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&doc.activeElement===last){e.preventDefault();first?.focus();}}};doc.addEventListener('keydown',keyboard);
 }
-standalonePreview();
 function install(){
  if(by('marketLifeReportButton'))return;
  const host=by('marketAnalyzeButton')?.parentElement||doc.querySelector('.controls');if(!host)return;
@@ -28,13 +27,13 @@ function install(){
    const signal=AbortSignal.any([controller.signal,AbortSignal.timeout(20000)]),response=await fetch(new URL('./data/index/TAIEX.json',doc.baseURI),{cache:'no-store',signal});if(!response.ok)throw Error('行情讀取失敗（HTTP '+response.status+'）');const source=await response.json();if(token!==revision)return;
    const study=root.ShitouMarketLife96.evaluate(source);if(!study.sourceVerified)throw Error(study.reason||'大盤資料尚未核對');if(!study.validatedBars?.length)throw Error(study.reason||'完成日 K 不足，暫無法建立報告');
    await doc.fonts.ready;if(token!==revision)return;const pages=root.ShitouMarketLife96.pages(study);if(!pages.length)throw Error('圖片畫布無法使用');history=source;
-   const shown=await root.ShitouLifeViewer94.show(pages);if(token!==revision)return;if(!shown)throw Error('圖片預覽未完成，請重試');note.textContent='加權指數｜'+study.dataAsOf+'｜'+pages.length+' 頁；'+(study.sourceVolumeAudit?.uncertain?'成交股數待核對，暫不作量能確認。':'量能為集中市場成交股數。');
+   standalonePreview();const shown=await root.ShitouLifeViewer94.show(pages);if(token!==revision)return;if(!shown)throw Error('圖片預覽未完成，請重試');note.textContent='加權指數｜'+study.dataAsOf+'｜'+pages.length+' 頁；'+(study.sourceVolumeAudit?.uncertain?'成交股數待核對，暫不作量能確認。':'量能為集中市場成交股數。');
   }catch(e){if(token!==revision)return;if(ownPreview())root.closeInfographicPreviewV3328();history=null;note.textContent='無法建立大盤生命線報告：'+(e.name==='TimeoutError'?'行情連線逾時，請重試。':e.message);}
   finally{if(token===revision){pending=false;controller=null;button.disabled=false;button.removeAttribute('aria-busy');button.textContent='大盤生命線研究報告';}}
  });
  for(const id of ['marketAnalyzeButton','market-refresh','market-type'])by(id)?.addEventListener(id==='market-type'?'change':'click',()=>invalidate('行情重新載入，請重新產生大盤生命線報告。'),true);
  new MutationObserver(()=>{if(doc.body.dataset.workspaceV831!=='market')invalidate();}).observe(doc.body,{attributes:true,attributeFilter:['data-workspace-v831']});
- new MutationObserver(()=>{if(pending&&by('imagePreviewModal')?.classList.contains('show')&&!ownPreview())invalidate('已切換其他報告；需要時請重新產生大盤生命線報告。');}).observe(by('imagePreviewModal'),{attributes:true,attributeFilter:['class']});
+ if(by('imagePreviewModal'))new MutationObserver(()=>{if(pending&&by('imagePreviewModal')?.classList.contains('show')&&!ownPreview())invalidate('已切換其他報告；需要時請重新產生大盤生命線報告。');}).observe(by('imagePreviewModal'),{attributes:true,attributeFilter:['class']});
  // A report left open across the next official close must be regenerated before export.
  doc.addEventListener('click',e=>{if(!history||!ownPreview()||!e.target.closest('#imageDownloadLink,#imageShareButton,#lineShareSave,#life94Zip,#life94Prev,#life94Next'))return;const valid=root.ShitouMarketLife96.validate(history);if(!valid.ok){e.preventDefault();e.stopImmediatePropagation();invalidate(valid.reason+' 請重新產生報告。');}},true);
 }
