@@ -28,16 +28,17 @@ function researchStock(){
 }
 function riskDescription(a,report){
  if(a?.limitedHistory?.verified)return '官方行情已核驗｜短期觀察：'+a.limitedHistory.explanation;
- if(!a)return '報告已完成，但四策略研究尚未備妥；請查看原始技術明細，風險條件仍須核對。';
+ if(!a)return '研究資料尚未齊全，風險條件仍待核對。';
  const terms=[];
  const stage=root.ShitouResearchReport?.stageLabel?.(a);
  if(stage)terms.push('趨勢：'+stage);
  const entry=String(a.entryDirection?.entry||'');
  if(entry==='DATA'||a.state==='INSUFFICIENT_DATA')terms.push('資料不足：不能視為買進訊號');
  else if(entry==='AVOID'||['BREAKOUT_FAILURE','OVEREXTENDED'].includes(a.state))terms.push('風險偏高：先觀望並檢查失效條件');
+ else terms.push('仍需留意價格波動，關鍵價位要等收盤確認');
  const date=String(report.closeDate||'');
  if(date&&a.date!==date)terms.push('行情日期待核對');
- if(!terms.length)terms.push('已備妥研究報告；關鍵價位仍需收盤確認，不能碰到價位就當買點。');
+ if(!terms.length)terms.push('關鍵價位仍需收盤確認，不能碰到價位就當買點。');
  return terms.join('｜');
 }
 // Reparent the original actions, keeping button IDs, handlers and export state.
@@ -45,12 +46,14 @@ function positionStockActions(report=completeStock()){
  const panel=$('stockReportActionsPanel'),slot=$('workspaceStockActionsSlot'),result=$('result');if(!panel||!slot||!result)return;
  if(openMode){if(panel.parentElement!==result||result.firstElementChild!==panel)result.prepend(panel);}
  else if(panel.parentElement!==slot)slot.append(panel);
- setHidden(panel,!report||currentTab!=='stock');
- const context=$('workspaceStockActionsIdentity');if(context&&report){const value=(report.name||'股票')+'（'+String(report.code||report.stock)+'）｜行情 '+report.closeDate;if(context.textContent!==value)context.textContent=value;}
+ setHidden(panel,!report||currentTab!=='stock'||!openMode);
+ const context=$('workspaceStockActionsIdentity');if(context&&report){const value=(report.name||'股票')+'（'+String(report.code||report.stock)+'）｜行情 '+report.closeDate+(lifePreviewError?'｜'+lifePreviewError:'');if(context.textContent!==value)context.textContent=value;}
 }
 function renderSummary(){
  const card=$('workspaceStockSummary');if(!card)return;
  const report=completeStock(),a=researchStock();
+ const identity=report?String(report.code||report.stock)+'|'+report.closeDate:'';
+ if(identity&&observedCode&&identity!==observedCode){lifePreviewToken++;lifePreviewBusy=false;lifePreviewError='';closeReport();}
  positionStockActions(report);
  const life=$('workspaceLifeReportButton');
  if(life){const ready=!!(a&&root.ShitouKlineLife03Report&&root.ShitouResearchIntegration?.preview);life.disabled=!ready||lifePreviewBusy;life.dataset.code=ready?String(a.code):'';life.dataset.date=ready?String(a.date):'';life.title=ready?(a.name||a.code)+'｜'+a.date+'｜直接看生命線圖片':'先完成個股查詢，再看這檔股票的生命線圖片';}
@@ -59,16 +62,13 @@ function renderSummary(){
  const code=String(report.code||report.stock);
  const name=String(report.name||'股票'+code);
  $('workspaceStockName').textContent=name+'（'+code+'）';
- $('workspaceStockDate').textContent='行情基準：'+String(report.closeDate)+'｜收盤 '+(Number.isFinite(Number(report.close))?Number(report.close)+' 元':'待核對');
- $('workspaceStockRisk').textContent=riskDescription(a,report);
- const hasResearch=!!(a&&$('researchStock')?.querySelector('.research-stock-card'));
- $('workspaceFourReportButton').disabled=!hasResearch;
- $('workspaceFourReportButton').textContent=a?.limitedHistory?'查看已核驗行情觀察':'查看四策略研究報告';
- $('workspaceFourReportButton').title=hasResearch?'直接查看已產生的四策略研究，不重新計算':'研究報告尚未就緒，先查看原始技術報告';
- $('workspaceStockHelp').textContent=a?.limitedHistory?'已備妥核驗行情與可計算的短期數據；完整策略與交易價位仍有資料限制。':hasResearch?'研究報告已備妥。按鈕只開啟既有內容，不會重新查詢或計算。':'已保留原始個股技術報告；四策略研究尚未完成載入。';
- if(lifePreviewError)$('workspaceStockHelp').textContent=lifePreviewError;
+ $('workspaceStockDate').textContent='行情基準：'+String(report.closeDate)+'｜收盤 '+(report.close!=null&&Number.isFinite(Number(report.close))&&Number(report.close)>0?Number(report.close)+' 元':'待核對');
+ $('workspaceStockRisk').textContent=riskDescription(a,report)+(lifePreviewError?'｜'+lifePreviewError:'');
+ $('workspaceFourReportButton').disabled=false;
+ $('workspaceFourReportButton').textContent='查看個股研究';
+ $('workspaceFourReportButton').title='';
  const nextCode=code+'|'+report.closeDate,newResult=observedCode!==nextCode;observedCode=nextCode;
- if(newResult&&currentTab==='stock'&&!openMode)$('stockReportActionsPanel')?.scrollIntoView({block:'start',behavior:root.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches?'auto':'smooth'});
+ if(newResult&&currentTab==='stock'&&!openMode)card.scrollIntoView({block:'start',behavior:root.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches?'auto':'smooth'});
 }
 function closeReport(){
  if(!openMode)return;
@@ -86,9 +86,10 @@ function openReport(mode){
  const result=$('result');if(!result)return;
  closeReport();lastFocus=doc.activeElement;openMode=mode;positionStockActions(r);
  result.classList.add('workspace-stock-open');result.classList.toggle('workspace-four-only',mode==='four');
- result.setAttribute('role','dialog');result.setAttribute('aria-modal','true');result.setAttribute('aria-label',mode==='four'?'四策略研究完整報告':'個股完整技術報告');
+ result.setAttribute('role','dialog');result.setAttribute('aria-modal','true');result.setAttribute('aria-label',mode==='four'?'個股研究':'完整技術依據');
  setHidden($('workspaceReportBackdrop'),false);setHidden($('workspaceReportToolbar'),false);
- $('workspaceReportCaption').textContent=mode==='four'?'四策略研究｜完整報告':'個股完整技術明細';
+ $('workspaceReportCaption').textContent=mode==='four'?'個股研究':'完整技術依據';
+ setHidden($('workspaceFullReportButton'),mode==='full');
  doc.body.classList.add('workspace-report-locked');
  result.scrollTop=0;$('workspaceReportClose')?.focus({preventScroll:true});
 }
@@ -137,18 +138,18 @@ function build(){
  const stockName=el('div','workspace-stock-name');stockName.id='workspaceStockName';
  const date=el('div','workspace-stock-date');date.id='workspaceStockDate';
  const risk=el('div','workspace-stock-risk');risk.id='workspaceStockRisk';risk.setAttribute('role','status');
- const actions=el('div','workspace-stock-actions'),four=el('button',null,'查看四策略研究報告'),full=el('button','workspace-secondary','查看完整個股技術明細');
+ const actions=el('div','workspace-stock-actions'),four=el('button',null,'查看個股研究'),full=el('button','workspace-secondary','查看完整技術依據');
  four.id='workspaceFourReportButton';full.id='workspaceFullReportButton';
- four.type=full.type='button';four.addEventListener('click',()=>openReport('four'));full.addEventListener('click',()=>openReport('full'));
- actions.append(four,full);const help=el('p','workspace-stock-help');help.id='workspaceStockHelp';
- card.append(stockName,date,risk,actions,help);
+ four.type=full.type='button';four.addEventListener('click',()=>openReport(researchStock()?'four':'full'));full.addEventListener('click',()=>openReport('full'));
+ actions.append(four);
+ card.append(stockName,date,risk,actions);
  const actionSlot=el('div');actionSlot.id='workspaceStockActionsSlot';first.after(actionSlot);actionSlot.after(card);
  const exportPanel=$('stockReportActionsPanel');if(exportPanel){
   const title=exportPanel.querySelector('.section-title');if(title)title.textContent='個股圖片報告與複製';
   const context=el('p','workspace-stock-actions-identity');context.id='workspaceStockActionsIdentity';if(title)title.after(context);else exportPanel.prepend(context);
   const commands=exportPanel.querySelector(':scope > .copy-actions'),grid=commands?.querySelector('.stock-image-generator-grid');if(grid)commands.prepend(grid);
   // One shared button follows the existing export panel between the front screen and report.
-  const life=el('button','copy-btn image-btn workspace-life-front','查看生命線研究圖片');life.id='workspaceLifeReportButton';life.type='button';life.disabled=true;
+  const life=el('button','copy-btn image-btn workspace-life-front','查看生命線圖片');life.id='workspaceLifeReportButton';life.type='button';life.disabled=true;
   life.addEventListener('click',async()=>{const a=researchStock();if(!a||lifePreviewBusy){renderSummary();return;}const token=++lifePreviewToken;lifePreviewBusy=true;lifePreviewError='';renderSummary();try{await root.ShitouResearchIntegration.preview([a],{stockMode:true,lifeOnly:true});}catch(error){if(token===lifePreviewToken)lifePreviewError='圖片還沒完成：'+error.message+'，請再試一次。';}finally{if(token===lifePreviewToken)lifePreviewBusy=false;renderSummary();}});
   (commands||exportPanel).prepend(life);
   const note=exportPanel.querySelector(':scope > .hint');if(note){const notes=el('details','workspace-export-notes'),summary=el('summary',null,'價位與資料使用說明');notes.append(summary,note);exportPanel.append(notes);}
@@ -156,7 +157,7 @@ function build(){
  }
 
  const backdrop=el('div');backdrop.id='workspaceReportBackdrop';backdrop.hidden=true;backdrop.addEventListener('click',closeReport);
- const toolbar=el('div');toolbar.id='workspaceReportToolbar';toolbar.hidden=true;const caption=el('span',null,'報告');caption.id='workspaceReportCaption';const close=el('button',null,'✕ 關閉報告');close.id='workspaceReportClose';close.type='button';close.addEventListener('click',closeReport);toolbar.append(caption,close);
+ const toolbar=el('div');toolbar.id='workspaceReportToolbar';toolbar.hidden=true;const caption=el('span',null,'報告');caption.id='workspaceReportCaption';const close=el('button',null,'返回結果');close.id='workspaceReportClose';close.type='button';close.addEventListener('click',closeReport);toolbar.append(caption,full,close);
  doc.body.append(backdrop,toolbar);
  doc.addEventListener('keydown',e=>{if(e.key==='Escape'&&openMode){e.stopPropagation();closeReport();}});
  const result=$('result');

@@ -270,7 +270,7 @@
     if(typeof document==='undefined')return;
     document.title=RELEASE;document.documentElement.dataset.releaseVersion=RELEASE;document.documentElement.dataset.v50DataTiming='POST_CLOSE_ONLY';document.documentElement.dataset.v50Research='SHADOW_ONLY';
     document.querySelectorAll('.version-pill,footer strong').forEach(element=>{element.textContent=RELEASE+(element.classList?.contains('version-pill')?'｜盤後完成日K｜研究層不改正式核心':'');});
-    const banner=document.querySelector('.r45-candidate-banner');if(banner)banner.textContent='📚 V50 盤後資料專用：收盤確認優先；趨勢、昨日高低點與波段回撤使用白話顯示，研究層不改正式 Gate、分數、排名或停損。';
+    const banner=document.querySelector('.r45-candidate-banner');if(banner)banner.textContent='盤後研究｜請用完成日 K 的收盤確認，盤中價格不算確認。';
   }
 
   function mountCard(input,id,title,targetIds,options={}){

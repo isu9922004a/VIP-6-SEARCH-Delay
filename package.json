@@ -14,7 +14,9 @@
     "test": "node scripts/run-all-tests.cjs",
     "test:multi-stock-browser": "node scripts/tests/research-multi-stock-browser.cjs",
     "test:contract": "node --test scripts/tests/worker-contract-r9.test.cjs scripts/tests/deep-scan-fix.test.cjs",
-    "build:worker-contract": "node scripts/build-worker-contract.cjs"
+    "build:worker-contract": "node scripts/build-worker-contract.cjs",
+    "test:ui:v95": "node scripts/tests/v95-ui-browser.cjs",
+    "test:selection:v95": "node scripts/tests/v95-scan-browser.cjs"
   },
   "devDependencies": {
     "playwright-core": "1.56.1"
