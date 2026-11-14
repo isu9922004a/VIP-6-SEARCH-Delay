@@ -28,7 +28,7 @@ function build(study,display,{document:doc=globalThis.document,watermark=false}=
   }
  }
  function metrics(items,height=144){ensure(height+18);const gap=18,width=(CW-gap*(items.length-1))/items.length;items.forEach((item,i)=>{const x=M+i*(width+gap);current.ops.push({kind:'box',x,y,width,height,color:C.card});text(item[0],x+20,y+16,width-40,30,C.muted);text(item[1],x+20,y+63,width-40,item[3]||46,item[2]||C.gold,750);});y+=height+18;}
- function chart(rows,title,history,height=636){ensure(height+18);const top=y,plot={x:M+160,y:top+174,width:CW-320,height:height-(history?360:400)};
+ function chart(rows,title,history,height=636){history=history&&!!e;ensure(height+18);const top=y,plot={x:M+160,y:top+174,width:CW-320,height:height-(history?360:400)};
   const values=rows.flatMap(b=>[b.low,b.high]);const means={};for(const n of [5,10])means[n]=rows.map(b=>{const i=bars.indexOf(b);return i>=n-1?bars.slice(i-n+1,i+1).reduce((a,b)=>a+b.close,0)/n:null;});
   if(history&&e)values.push(e.lifeLinePrice);if(!history)values.push(...Object.values(means).flat().filter(Number.isFinite));
   const lo=values.length?Math.min(...values):0,hi=values.length?Math.max(...values):1,pad=Math.max((hi-lo)*.12,Math.abs(hi)*.01,.01),min=lo-pad,max=hi+pad;
@@ -44,7 +44,7 @@ function build(study,display,{document:doc=globalThis.document,watermark=false}=
  card(role,e?money(e.lifeLinePrice)+(e.referenceOnly?'｜已列歷史參考，隔日不再等待突破這個舊價位。':'｜'+f.title):'目前沒有可確認的生命線關卡。',{color:e?.referenceOnly?C.history:C.gold});
  const i3=bars.findIndex(b=>b.date===e?.k3Date),i0=bars.findIndex(b=>b.date===e?.k0Date),ib=bars.findIndex(b=>b.date===(e?.firstBreakoutDate||e?.firstBreakdownDate));
  const history=e?bars.slice(Math.max(0,i3-2),Math.min(bars.length,Math.max(i0+4,ib+4))):bars.slice(-10);
- chart(history,'圖 A｜歷史生命線怎麼形成？',true,760);
+ chart(history,e?'圖 A｜歷史生命線怎麼形成？':'圖 A｜尚無生命線，先看已收盤行情',true,760);
  card('現在怎麼看？',(t.state==='STRONG'?'股價目前偏強，但不代表現在追買就安全。':t.state==='WEAK'?'股價目前偏弱，需要觀察能不能重新站回重要位置。':t.state==='NEUTRAL'?'近期方向還不一致，先等收盤證據。':'目前資料不足，先不確認方向。')+'\n'+(study.chaseRisk?.reasons||[]).join('；')+(study.sourceVolumeAudit?.uncertain?'\n成交量待核對，暫不作量能確認。':''));
  const sc=study.scenario||{};
  card('下一個交易日要看什麼？','繼續走強｜'+(sc.bullish||f.details[3].value)+'\n開始轉弱｜'+(sc.bearish||f.details[4].value)+'\n方向不明｜先看完成日 K 的收盤，不只憑盤中穿越下結論。');
