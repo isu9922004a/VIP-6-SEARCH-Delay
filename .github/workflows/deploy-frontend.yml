@@ -77,6 +77,7 @@ jobs:
           node scripts/tests/structure-v863-browser.cjs /tmp/v864-browser
           node scripts/tests/market-v862-browser.cjs /tmp/v864-browser
           node scripts/tests/research-v921-browser.cjs /tmp/v864-browser/v921
+          node scripts/tests/life-v94-mobile-browser.cjs /tmp/v864-browser/v94
           node scripts/tests/market-comfort-browser.cjs /tmp/v864-browser
       - name: Check structure observations across the published stock universe
         run: node scripts/audit-structure-strength.cjs
@@ -118,6 +119,7 @@ jobs:
         run: |
           python3 scripts/verify-deployed-frontend.py
           node scripts/tests/research-v921-browser.cjs /tmp/v864-browser/v921-live
+          node scripts/tests/life-v94-mobile-browser.cjs /tmp/v864-browser/v94-live
           node scripts/tests/kronos-future-live-browser.cjs /tmp/v864-browser/future-live
           npm run test:engulf-range-browser
           npm run test:elliott-browser -- /tmp/v864-browser/elliott

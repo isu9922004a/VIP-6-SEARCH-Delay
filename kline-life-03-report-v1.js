@@ -75,5 +75,6 @@ function page(x,{document:doc=globalThis.document,displayCode=globalThis.ShitouR
  }
  return {width:W,height:H,dataset:{life03Audit:JSON.stringify(audit),release:displayCode,shareAsSingleImage:'true'},renderExportRegion:paint,toBlob(callback,type='image/png'){const c=paint();c.toBlob(blob=>{c.width=c.height=1;callback(blob);},type);}};
 }
-return Object.freeze({VERSION,inspect,fields,lines,page,teaching});
+function pages(x,options={}){const renderer=typeof module==='object'&&module.exports?require('./kline-life-03-pages-v94.js'):globalThis.ShitouLifePages94;return renderer.build(x,{fields:fields(x),teaching:teaching()},options);}
+return Object.freeze({VERSION,inspect,fields,lines,page,pages,teaching});
 });
