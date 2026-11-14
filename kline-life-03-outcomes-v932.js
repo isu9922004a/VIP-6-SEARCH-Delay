@@ -7,7 +7,7 @@ function study(inputs,{testStart,testEnd}={}){
  for(const input of inputs){const valid=Core.validate(input);if(!valid.ok){rejected.push({code:input.code||input.stock,reason:valid.reason});continue;}
  const bars=valid.bars;
  // Detection only uses bars up to each observation date; future bars are used solely as labeled outcomes.
- for(let i=4;i<bars.length;i++){
+ for(let i=3;i<bars.length;i++){
   const date=bars[i].date;if(date<testStart||date>testEnd)continue;
   const past=Core.evaluate(input,{asOf:date});
   for(const event of past.events){

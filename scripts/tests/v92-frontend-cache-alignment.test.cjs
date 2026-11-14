@@ -17,3 +17,9 @@ test('V9.2 current market/report scripts use canonical cache identity, not detac
  }
  assert.ok(html.indexOf('market-report-comfort-v864.js?')<html.indexOf('market-report-refresh-v864.js?'));
 });
+
+test('independent market entry displays the same release and cache identity',()=>{
+ const market=fs.readFileSync(path.resolve(__dirname,'../../market-outlook.html'),'utf8');
+ assert.ok(market.includes('<span class="tag">'+release.displayCode+' · 獨立指數研究</span>'));
+ for(const name of ['version-v50.js','research-v83/market-simple-report.js'])assert.ok(market.includes(name+'?v='+release.cacheVersion));
+});

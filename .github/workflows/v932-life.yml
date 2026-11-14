@@ -2,7 +2,7 @@ name: V9.3.2 life-line regression
 on:
   pull_request:
     branches: [main]
-    paths: ['kline-life-03-*', 'scripts/tests/life-v932*', 'scripts/fixtures/v932*', '.github/workflows/v932-life.yml']
+    paths: ['kline-life-03-*', 'market-outlook.html', 'version-v50.js', 'scripts/tests/life-v932*', 'scripts/fixtures/v932*', 'research-life-source-audit-v932.js', 'scripts/audit-life-v932-universe.cjs', 'scripts/life-official-quotes-v932.cjs', 'scripts/build-life-source-audit-v932.cjs', '.github/workflows/v932-life.yml']
   push:
     branches: [fix/v932-life-line-state]
   workflow_dispatch:
@@ -23,8 +23,35 @@ jobs:
         env:
           CHROME_BIN: /usr/bin/google-chrome
         run: node scripts/tests/life-v932-browser.cjs /tmp/v932-evidence
+      - name: Independent market entry matches release and recovers its model
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+        run: node scripts/tests/market-v862-browser.cjs /tmp/v932-evidence/market
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: v932-life-png-evidence
           path: /tmp/v932-evidence
+  full-universe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CHROME_BIN: /usr/bin/google-chrome
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - run: npm ci
+      - name: Verify every stock against official data and independent closing-path oracle
+        run: node scripts/audit-life-v932-universe.cjs /tmp/v932-all-stocks
+      - name: Encode and inspect actual PNG for every stock, including incomplete data
+        run: node scripts/tests/life-v932-universe-browser.cjs /tmp/v932-all-stocks
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v932-complete-stock-universe
+          path: |
+            /tmp/v932-all-stocks/core-universe.json
+            /tmp/v932-all-stocks/core-universe.csv
+            /tmp/v932-all-stocks/png-universe-*.json
+            /tmp/v932-all-stocks/*.png

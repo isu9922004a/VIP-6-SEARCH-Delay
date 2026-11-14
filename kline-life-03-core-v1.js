@@ -5,6 +5,7 @@
   if(node)module.exports=api;else root.ShitouKlineLife03=api;
 })(globalThis,function(U){
 'use strict';
+const SOURCE_AUDIT=typeof module==='object'&&module.exports?require('./research-life-source-audit-v932.js'):globalThis.ShitouLifeSourceAudit932;
 const VERSION='KLINE_LIFE_03_V1',MODEL='V9.2-KLINE-LIFE03';
 const DEFAULT=Object.freeze({minBars:4,maxEventAge:20,maxEvents:100,trendBars:3,strictExtremes:true,requireComplete:true,holdBars:2,retestTolerancePct:0.5});
 const LIFECYCLE_STATES=Object.freeze(['RESISTANCE_WATCH','BREAKOUT_INITIAL','BREAKOUT_HELD','BREAKOUT_FAILED','SUPPORT_WATCH','SUPPORT_BROKEN','SUPPORT_RECLAIMED','RETEST_HELD','HISTORICAL_REFERENCE','INSUFFICIENT_DATA']);
@@ -155,6 +156,8 @@ function evaluate(input,options={}){
  if(['STRONG','WEAK'].includes(state)&&info.contradictions.length)state='NEUTRAL';
  const close=bars.at(-1).close,line=ev?.lifeLinePrice||null;
  const currentTrend=currentEvidence(bars);
+ const sourceVolumeAudit=!options.asOf&&input?.sourceVolumeAudit?.date===v.date?input.sourceVolumeAudit:null;
+ if(sourceVolumeAudit?.uncertain){info.indicators.volumeRatio=null;currentTrend.currentTrend.volumeRatio=null;info.confirmationEvidence=info.confirmationEvidence.filter(v=>!v.startsWith('當日量為'));info.riskWarnings.push('同日官方日報出現不同的成交股數，成交量仍待核對，暫不以量能確認強弱。');}
  const scenario=ev?observe(ev,bars,currentTrend.currentTrend):null;
  if(opposing){info.riskWarnings.push('附近同時有支撐與壓力，不能只依單一生命線判斷。');scenario.summary='附近生命線的支撐與壓力互相衝突，先觀察近期高低點與收盤，不先確認轉強或轉弱。';}
  return freeze({...empty,code:v.code,name:v.name,date:v.date,state,label:LABELS[state],
@@ -162,14 +165,18 @@ function evaluate(input,options={}){
    event:ev,events:events.slice(-p.maxEvents),close,line,distancePct:line?pct(close,line):null,
    previousState:ev?.lastTransition?.previousState||null,currentState:ev?.status||null,
    transitionDate:ev?.lastTransition?.transitionDate||null,transitionReason:ev?.lastTransition?.transitionReason||null,
-   ...info,...currentTrend,validatedBars:bars.map(b=>({...b})),dataSource:input?.dataSource||input?.priceAdjustment?.source||null,priceAdjustment:input?.priceAdjustment||null,dataCompleteness:input?.dataQuality||{complete:true,missing:[]},scenario,lifecycleState:ev?.lifecycleState||"INSUFFICIENT_DATA",currentRole:ev?.currentRole||null,referenceOnly:ev?.referenceOnly??null,opposing,dataAsOf:v.date,performanceValidated:false,historyBarCount:bars.length,validatedAsOf:v.date});
+   ...info,...currentTrend,validatedBars:bars.map(b=>({...b})),sourceVolumeAudit,sourcePublishedAt:input?.sourcePublishedAt||null,dataSource:input?.dataSource||input?.priceAdjustment?.source||null,priceAdjustment:input?.priceAdjustment||null,dataCompleteness:input?.dataQuality||{complete:true,missing:[]},scenario,lifecycleState:ev?.lifecycleState||"INSUFFICIENT_DATA",currentRole:ev?.currentRole||null,referenceOnly:ev?.referenceOnly??null,opposing,dataAsOf:v.date,performanceValidated:false,historyBarCount:bars.length,validatedAsOf:v.date});
 }
 function withSource(analysis,raw){
  if(analysis?.validation?.technicalModelAvailable!==true)return analysis;
  const rows=raw?.canonicalBars||raw?.dailySeries,selected=analysis.reportBars||analysis.sourceBars;
  const match=String(raw?.stock||raw?.code||'')===String(analysis.code)&&String(raw?.closeDate||raw?.marketDate||'')===analysis.date&&Array.isArray(rows)&&Array.isArray(selected)&&selected.every(b=>{const r=rows.find(r=>r.date===b.date);return r&&['date','open','high','low','close','volume'].every(k=>r[k]===b[k]);});
  if(!match)return freeze({...analysis,sourceBindingError:true});
- return freeze({...analysis,priceAdjustment:raw.priceAdjustment?{...raw.priceAdjustment}:null,expectedTradingDates:raw.expectedTradingDates?.slice(),suspended:raw.suspended,corporateActionUnresolved:raw.corporateActionUnresolved,priceAdjustmentConsistent:raw.priceAdjustmentConsistent});
+ const record=SOURCE_AUDIT?.date===analysis.date?SOURCE_AUDIT.records?.[analysis.code]:null;
+ const uncertain=!!record&&record.historyFingerprint===raw.dataContract?.normalizedHistoryFingerprint&&record.archiveLastVolume===rows.at(-1)?.volume;
+ const sourceVolumeAudit=uncertain?{...record,uncertain:true,archivePublishedAt:SOURCE_AUDIT.archivePublishedAt,latestRetrievedAt:SOURCE_AUDIT.markets[record.market].retrievedAt}:null;
+ const sourcePublishedAt=SOURCE_AUDIT?.date===analysis.date&&!!raw.officialArchiveEvidence?.sourceDays?.at(-1)?.sourceSha256&&raw.officialArchiveEvidence.sourceDays.at(-1).sourceSha256===SOURCE_AUDIT.markets?.[raw.market]?.archiveSourceSha256?SOURCE_AUDIT.archivePublishedAt:null;
+ return freeze({...analysis,sourceVolumeAudit,sourcePublishedAt,priceAdjustment:raw.priceAdjustment?{...raw.priceAdjustment}:null,expectedTradingDates:raw.expectedTradingDates?.slice(),suspended:raw.suspended,corporateActionUnresolved:raw.corporateActionUnresolved,priceAdjustmentConsistent:raw.priceAdjustmentConsistent});
 }
 function currentEvidence(bars){
  const z=bars.at(-1),mean=n=>bars.length>=n?bars.slice(-n).reduce((s,b)=>s+b.close,0)/n:null;
@@ -184,10 +191,10 @@ function currentEvidence(bars){
  return {currentTrend:{state:bias,label:LABELS[bias],dataAsOf:z.date,ma5,ma10,ma20,deviation5,deviation20,rsi5,rsi14,atr14,volumeRatio,recentHigh:high||null,recentLow:low||null,swingHigh:swingHigh.at(-1)||null,swingLow:swingLow.at(-1)||null,recentBarCount:recent.length},chaseRisk:{level:risk.length?'ELEVATED':'UNDETERMINED',reasons:risk.length?risk:['目前未觸發急漲提醒，仍不代表追價安全']}};
 }
 function observe(e,bars,structure=currentEvidence(bars).currentTrend){
- const p=e.lifeLinePrice,s=e.lifecycleState;
+ const p=e.lifeLinePrice,s=e.lifecycleState,repeated=e.confirmedAt&&e.firstBreakoutDate&&e.confirmedAt!==e.firstBreakoutDate;
  const descriptions={RESISTANCE_WATCH:'股價還沒正式站上 '+p+' 元，接下來觀察收盤能不能突破。',BREAKOUT_INITIAL:'股價已經收盤站上 '+p+' 元，接下來觀察能不能繼續守住。',BREAKOUT_HELD:'股價已連續收盤站在 '+p+' 元上方，接下來要看近期高低點和成交量。',RETEST_HELD:'股價回頭測試 '+p+' 元附近後仍守住，仍要留意近期走勢。',BREAKOUT_FAILED:'股價之前曾突破 '+p+' 元，但現在又跌回關卡，代表原本的突破已經失守。',SUPPORT_WATCH:'股價尚未收盤跌破 '+p+' 元支撐，繼續觀察能不能守住。',SUPPORT_BROKEN:'股價收盤跌破 '+p+' 元支撐，需要觀察能不能重新站回。',SUPPORT_RECLAIMED:'股價已經重新站回 '+p+' 元上方，但還需要其他證據確認是否真的轉強。'};
  const summary=e.referenceOnly?'這條 '+p+' 元生命線現在主要作為以前的重要價位參考。'+(e.firstBreakoutDate?'股價曾於 '+e.firstBreakoutDate+' 首次收盤突破。':''):(descriptions[s]||'目前資料不足，暫時無法確認這條生命線的最新狀態。');
- const bullish=e.referenceOnly||['BREAKOUT_HELD','RETEST_HELD'].includes(s)?'觀察收盤能否站上近期高點 '+structure.recentHigh+' 元，並配合成交量；不能只看以前的生命線。':s==='RESISTANCE_WATCH'||s==='BREAKOUT_FAILED'?'觀察完成日 K 收盤能否高於 '+p+' 元；盤中漲過不算確認。':s==='BREAKOUT_INITIAL'?'已首次突破，觀察下一完成日 K 收盤能否繼續高於 '+p+' 元。':'觀察收盤能否守住 '+p+' 元，再配合近期高點與成交量。';
+ const bullish=e.referenceOnly||['BREAKOUT_HELD','RETEST_HELD'].includes(s)?'觀察收盤能否站上近期高點 '+structure.recentHigh+' 元，並配合成交量；不能只看以前的生命線。':s==='RESISTANCE_WATCH'||s==='BREAKOUT_FAILED'?'觀察完成日 K 收盤能否高於 '+p+' 元；盤中漲過不算確認。':s==='BREAKOUT_INITIAL'?(repeated?'本次已再次突破，':'已首次突破，')+'觀察下一完成日 K 收盤能否繼續高於 '+p+' 元。':'觀察收盤能否守住 '+p+' 元，再配合近期高點與成交量。';
  return {summary,bullish,bearish:e.referenceOnly?'觀察近期低點 '+structure.recentLow+' 元與短期平均價是否失守。':['SUPPORT_WATCH','SUPPORT_RECLAIMED'].includes(s)?'若完成日 K 收盤低於 '+p+' 元，才算支撐失守；相等不算跌破。':s==='SUPPORT_BROKEN'?'若收盤仍無法高於 '+p+' 元，支撐尚未重新站回。':'若收盤回到 '+p+' 元或以下，突破便未繼續守住。',neutral:'等於關卡不算突破或收復；支撐收盤相等不算跌破，突破後相等則算失守。',falseBreak:'盤中漲過但收盤未站上，不算正式突破。',falseBreakdown:'盤中跌破但收盤站回，不算正式跌破。',confirmed:e.events.filter(x=>x.confirmedAt).map(x=>({kind:x.kind,date:x.date,price:x.price})),pending:s==='BREAKOUT_INITIAL'?['後續連續收盤是否守住']:['近期高低點與成交量是否配合']};
 }
 return Object.freeze({VERSION,MODEL,DEFAULT,LABELS,STATES,LIFECYCLE_STATES,validate,detect,trace,evaluate,withSource,currentEvidence,observe});

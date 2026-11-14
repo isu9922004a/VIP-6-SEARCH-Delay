@@ -70,3 +70,12 @@ test('source binding carries actual adjustment and calendar, rejects another sto
 test('a completed K0 already beyond its line confirms immediately without waiting for another first breakout',()=>{
  const up=trace([...bear.slice(0,3),[23,24,23,24]]),down=trace([...bull.slice(0,3),[8,10,7,8]]);assert.equal(up.lifecycleState,'BREAKOUT_INITIAL');assert.equal(up.firstBreakoutDate,up.signalDate);assert.equal(down.lifecycleState,'SUPPORT_BROKEN');assert.equal(down.firstBreakdownDate,down.signalDate);
 });
+test('a dated official volume revision is declared without rewriting source bars or selection analysis',()=>{
+ const raw=require('../../data/research/2026-11-13/2330.json'),before=JSON.stringify(raw),a=F.evaluate(raw),analysisBefore=JSON.stringify(a),s=C.evaluate(C.withSource(a,raw));assert.equal(s.sourceVolumeAudit.uncertain,true);assert.equal(s.sourceVolumeAudit.latestOfficialVolume,30973127);assert.equal(s.currentTrend.volumeRatio,null);assert.equal(s.indicators.volumeRatio,null);assert.ok(!s.confirmationEvidence.some(v=>v.startsWith('當日量為')));assert.match(R.lines(s).join('\n'),/成交量來源版本有差異/);assert.equal(JSON.stringify(raw),before);assert.equal(JSON.stringify(a),analysisBefore);assert.equal(s.affectsEligibility,false);assert.equal(s.affectsRanking,false);const past=C.evaluate(C.withSource(a,raw),{asOf:a.date});assert.equal(past.sourceVolumeAudit,null);assert.notEqual(past.currentTrend.volumeRatio,null);
+});
+test('independent outcomes include an immediately confirmed completed K0 crossing',()=>{
+ const input=make([...bear.slice(0,3),[23,24,23,24],[24,26,23,25]]),out=require('../../kline-life-03-outcomes-v932').study([input],{testStart:input.sourceBars[0].date,testEnd:input.date});assert.ok(out.records.some(r=>r.date===input.sourceBars[3].date&&r.trigger==='BREAKOUT_CONFIRMED'&&r.outcomes[1].state==='COMPLETED'));assert.equal(out.performanceValidated,false);
+});
+test('repeated breakout copy preserves the first confirmation and names the new cycle correctly',()=>{
+ const a=C.evaluate(make([...bear,[21,24,20,23],[23,25,22,22],[22,24,21,23]])),confirmed=R.fields(a).details[2].value;assert.equal(a.lifecycleState,'BREAKOUT_INITIAL');assert.match(a.scenario.bullish,/再次突破/);assert.equal((confirmed.match(/首次收盤突破/g)||[]).length,1);assert.equal((confirmed.match(/再次收盤突破/g)||[]).length,1);
+});
