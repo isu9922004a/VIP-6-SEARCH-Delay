@@ -1,0 +1,30 @@
+name: V9.3.2 life-line regression
+on:
+  pull_request:
+    branches: [main]
+    paths: ['kline-life-03-*', 'scripts/tests/life-v932*', 'scripts/fixtures/v932*', '.github/workflows/v932-life.yml']
+  push:
+    branches: [fix/v932-life-line-state]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - run: npm ci
+      - run: npm test
+      - run: npm run test:contract
+      - name: Desktop and Chromium iPhone simulation PNG cases
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+        run: node scripts/tests/life-v932-browser.cjs /tmp/v932-evidence
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v932-life-png-evidence
+          path: /tmp/v932-evidence

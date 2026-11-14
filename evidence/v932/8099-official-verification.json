@@ -1,0 +1,94 @@
+{
+  "basis": {
+    "verified": true,
+    "basis": "UNADJUSTED_OFFICIAL_OHLC",
+    "source": "交易所指定日未還原成交價格",
+    "corporateActionsVerified": false
+  },
+  "results": [
+    {
+      "date": "2026-10-16",
+      "url": "https://www.tpex.org.tw/www/zh-tw/afterTrading/dailyQuotes?date=2026/10/16&type=EW&response=json",
+      "sha256": "c7b0bc4328286dea71197f67b6d90011a7ed7bed138fca15af6c7aa3bc234c97",
+      "archiveSha256": "c7b0bc4328286dea71197f67b6d90011a7ed7bed138fca15af6c7aa3bc234c97",
+      "values": {
+        "close": 66.7,
+        "open": 65.2,
+        "high": 70.9,
+        "low": 65.2,
+        "volume": 749102.0
+      },
+      "matchesArchive": true
+    },
+    {
+      "date": "2026-10-19",
+      "url": "https://www.tpex.org.tw/www/zh-tw/afterTrading/dailyQuotes?date=2026/10/19&type=EW&response=json",
+      "sha256": "2a85eb38e960014cbc47ebb2be4b8b8da25c802f2cf8119840583d7df5184461",
+      "archiveSha256": "2a85eb38e960014cbc47ebb2be4b8b8da25c802f2cf8119840583d7df5184461",
+      "values": {
+        "close": 66.0,
+        "open": 67.0,
+        "high": 67.6,
+        "low": 65.1,
+        "volume": 175573.0
+      },
+      "matchesArchive": true
+    },
+    {
+      "date": "2026-10-20",
+      "url": "https://www.tpex.org.tw/www/zh-tw/afterTrading/dailyQuotes?date=2026/10/20&type=EW&response=json",
+      "sha256": "e1b525081b66a43eb510ae46f13c8adbd8f7491bbf5c7f0dbe7d17805b0ae526",
+      "archiveSha256": "e1b525081b66a43eb510ae46f13c8adbd8f7491bbf5c7f0dbe7d17805b0ae526",
+      "values": {
+        "close": 64.0,
+        "open": 66.0,
+        "high": 66.1,
+        "low": 64.0,
+        "volume": 154260.0
+      },
+      "matchesArchive": true
+    },
+    {
+      "date": "2026-10-21",
+      "url": "https://www.tpex.org.tw/www/zh-tw/afterTrading/dailyQuotes?date=2026/10/21&type=EW&response=json",
+      "sha256": "e00654236aa5076a1c0dfce650552556f85bedafc789efcdc57889babff3ae89",
+      "archiveSha256": "e00654236aa5076a1c0dfce650552556f85bedafc789efcdc57889babff3ae89",
+      "values": {
+        "close": 70.4,
+        "open": 70.4,
+        "high": 70.4,
+        "low": 70.4,
+        "volume": 312514.0
+      },
+      "matchesArchive": true
+    },
+    {
+      "date": "2026-10-22",
+      "url": "https://www.tpex.org.tw/www/zh-tw/afterTrading/dailyQuotes?date=2026/10/22&type=EW&response=json",
+      "sha256": "968961200b6563ca6d0aaa53d4378ee122a8a38c7d01a3689e3f871aa1a4a825",
+      "archiveSha256": "968961200b6563ca6d0aaa53d4378ee122a8a38c7d01a3689e3f871aa1a4a825",
+      "values": {
+        "close": 77.4,
+        "open": 77.4,
+        "high": 77.4,
+        "low": 77.4,
+        "volume": 473868.0
+      },
+      "matchesArchive": true
+    },
+    {
+      "date": "2026-11-13",
+      "url": "https://www.tpex.org.tw/www/zh-tw/afterTrading/dailyQuotes?date=2026/11/13&type=EW&response=json",
+      "sha256": "1d3dcf9de0b34d5f6098d15e712e88551ccc45c48a0d1b62e9e89244fb78af34",
+      "archiveSha256": "74693e0b31379d2fa96d1e290961ca278a5889a8a3f1601be5195ea2b7f8238c",
+      "values": {
+        "close": 182.0,
+        "open": 180.0,
+        "high": 182.0,
+        "low": 171.5,
+        "volume": 3439728.0
+      },
+      "matchesArchive": true
+    }
+  ]
+}

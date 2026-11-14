@@ -62,7 +62,7 @@ function researchCard(a,number,prefix='研究',expanded=false){
  const dateLine=el('span','已收盤行情 '+(a.date||'日期還沒核對'));dateLine.className='research-card-date';
  summary.append(heading,dateLine,stage,glance);
  const life=root.ShitouKlineLife03Report?.inspect(a);
- const lifeRisks=[...(life?.contradictions||[]),...(life?.riskWarnings||[])];
+ const lifeRisks=[...(life?.contradictions||[]),...(life?.riskWarnings||[]),...(life?.chaseRisk?.reasons||[])];
  const immediate=[...(a.risks||[]),...(lifeRisks.length?['生命線研究：'+lifeRisks.join('；')]:[]),...(a.dataQuality?.missing||[])];
  if(immediate.length){const risk=el('span',plain(immediate.join('；')));risk.className='research-card-risk';summary.append(risk);}
  details.append(summary);
@@ -87,6 +87,7 @@ function researchCard(a,number,prefix='研究',expanded=false){
    node.style.display='grid';node.style.gap='4px';node.style.padding='7px 0';return node;};
   panel.append(el('h4','生命線研究'),lifeField(lf.summary),lifeField(lf.details[7]));
   const more=el('details');more.className='research-life03-details';more.append(el('summary','看確認條件、訊號日期與資料來源'));
+  for(const item of lf.teaching||[])more.append(lifeField(item));
   for(const item of lf.details.filter((_,i)=>i!==7))more.append(lifeField(item));panel.append(more);
   body.append(panel);
  }
@@ -175,7 +176,7 @@ async function prepareStockQueryUncached(input){
   return {...raw,quoteEvidence:D.quoteEvidence?.(code,date)||raw.quoteEvidence,researchAcquisitionError:reason,researchInputErrors:[...new Set([...(raw.researchInputErrors||[]),reason])]};
  }
 }
-function forReport(input){const r=source(input),key=U.hash([root.ShitouUnifiedAnalysis.VERSION,r,flags]);if(!cache.has(key)){if(cache.size>=512)cache.delete(cache.keys().next().value);const result=C.evaluate(r,{flags});cache.set(key,result);if(result.unifiedResearch?.code)try{root.ShitouResearchHistory?.append(localStorage,result.unifiedResearch);}catch(e){console.warn('歷史研究快照未保存：'+e.message);}}return cache.get(key);}
+function forReport(input){const r=source(input),key=U.hash([root.ShitouUnifiedAnalysis.VERSION,r,flags]);if(!cache.has(key)){if(cache.size>=512)cache.delete(cache.keys().next().value);const evaluated=C.evaluate(r,{flags}),result=root.ShitouKlineLife03?.withSource(evaluated,r)||evaluated;cache.set(key,result);if(result.unifiedResearch?.code)try{root.ShitouResearchHistory?.append(localStorage,result.unifiedResearch);}catch(e){console.warn('歷史研究快照未保存：'+e.message);}}return cache.get(key);}
 function capture({snapshot,items,results}){if(!snapshot?.identity)return;bind(snapshot);for(const item of items){const code=String(item.code),matches=results.filter(x=>String(x.code||x.data?.stock||x.data?.code||'')===code),x=matches.length===1?matches[0]:null;let a;if(x?.ok&&x.data){sourceRecords.set(code,structuredClone(x.data));a=safely(()=>forReport(x.data));}else sourceRecords.delete(code);if(!a)a=C.evaluate({stock:code,name:item.name||code,closeDate:date,completed:false});records.set(code,a);}revision++;schedule();}
 function baseline(kind,scan,rows){
  if(!scan||!Array.isArray(rows))return;const d=U.T.date(scan.dataDate||scan.date||scan.marketBundleMeta?.targetTradeDate||scan.marketBundleMeta?.completedTradeDate);if(!d||date&&d!==date)return;
