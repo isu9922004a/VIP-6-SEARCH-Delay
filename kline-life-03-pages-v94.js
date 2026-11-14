@@ -8,7 +8,7 @@ const stateName={BREAKOUT_CONFIRMED:'收盤突破',BREAKOUT_INITIAL:'剛收盤�
 function build(study,display,{document:doc=globalThis.document,watermark=false}={}){
  if(!doc?.createElement)return [];study=JSON.parse(JSON.stringify(study));const probe=doc.createElement('canvas'),q=probe.getContext('2d');if(!q)return [];
  // Only the core's validated snapshot is allowed to enter a chart.
- const bars=(study.validatedBars||[]).filter(b=>b.date<=(study.dataAsOf||study.date)),e=study.event,t=study.currentTrend||{},f=display.fields;
+ const bars=(study.validatedBars||[]).filter(b=>b.date<=(study.dataAsOf||study.date)),e=study.event,t=study.currentTrend||{},f=display.fields,view=f.overview;
  const model=JSON.parse(JSON.stringify({release:'V9.4',analysisVersion:study.version,analysisModel:study.model,code:study.code,name:study.name,date:study.dataAsOf||study.date,close:study.close??null,lifecycleState:study.lifecycleState,currentRole:study.currentRole,referenceOnly:!!study.referenceOnly,line:e?.lifeLinePrice??null,trend:t,chaseRisk:study.chaseRisk||null,scenario:study.scenario||null,sourceVolumeAudit:study.sourceVolumeAudit||null,historyBarCount:study.historyBarCount||0,fields:f}));
  const pages=[];let current,y;
  const wrap=(value,width,size)=>L.wrap(q,String(value??'資料不足'),width,size);
@@ -28,27 +28,29 @@ function build(study,display,{document:doc=globalThis.document,watermark=false}=
   }
  }
  function metrics(items,height=144){ensure(height+18);const gap=18,width=(CW-gap*(items.length-1))/items.length;items.forEach((item,i)=>{const x=M+i*(width+gap);current.ops.push({kind:'box',x,y,width,height,color:C.card});text(item[0],x+20,y+16,width-40,30,C.muted);text(item[1],x+20,y+63,width-40,item[3]||46,item[2]||C.gold,750);});y+=height+18;}
- function chart(rows,title,history,height=636){history=history&&!!e;ensure(height+18);const top=y,plot={x:M+160,y:top+174,width:CW-320,height:height-(history?360:400)};
+ function priceCard(title,price,note,color){const head=wrap(title,CW-40,38).length*50,noteRows=wrap(note,CW-40,32),height=16+head+8+64+8+noteRows.length*44+20;ensure(height+18);current.ops.push({kind:'box',x:M,y,width:CW,height,color:C.card});text(title,M+20,y+16,CW-40,38,C.mint,750);text(money(price),M+20,y+16+head+8,CW-40,52,color,750);text(note,M+20,y+16+head+80,CW-40,32);y+=height+18;}
+ function chart(rows,title,history,height=636){history=history&&!!e;ensure(height+18);const top=y,plot={x:M+150,y:top+174,width:CW-390,height:height-(history?360:400)};
   const values=rows.flatMap(b=>[b.low,b.high]);const means={};for(const n of [5,10])means[n]=rows.map(b=>{const i=bars.indexOf(b);return i>=n-1?bars.slice(i-n+1,i+1).reduce((a,b)=>a+b.close,0)/n:null;});
   if(history&&e)values.push(e.lifeLinePrice);if(!history)values.push(...Object.values(means).flat().filter(Number.isFinite));
   const lo=values.length?Math.min(...values):0,hi=values.length?Math.max(...values):1,pad=Math.max((hi-lo)*.12,Math.abs(hi)*.01,.01),min=lo-pad,max=hi+pad;
-  const c={kind:'chart',rows,history,top,height,plot,min,max,means,title,event:history?e:null,volumeUncertain:!!study.sourceVolumeAudit?.uncertain};current.ops.push(c);current.charts.push({title,min,max,barDates:rows.map(b=>b.date),plot});y+=height+18;
+  const c={kind:'chart',rows,history,top,height,plot,min,max,means,title,event:history?e:null,volumeUncertain:!!study.sourceVolumeAudit?.uncertain};c.annotations=chartAnnotations(q,c,study);current.ops.push(c);current.charts.push({title,min,max,barDates:rows.map(b=>b.date),plot,annotations:c.annotations});y+=height+18;
  }
  // Page 1: independently useful current analysis. Detailed provenance belongs on the technical page.
  start('第 1 頁／個股分析',true);
  const trend={STRONG:'目前偏強',WEAK:'目前偏弱',NEUTRAL:'盤整／待確認'}[t.state]||'資料不足';
  const risk=study.chaseRisk?.level==='ELEVATED'?'追價風險較高':study.chaseRisk?.level==='INSUFFICIENT_DATA'||!Number.isFinite(t.atr14)?'資料不足，無法評估':'追價風險仍需留意';
  metrics([['目前股價方向',trend,C.mint,48],['追價風險',risk,C.risk,40]],160);
- metrics([['近期高點（非保證壓力）',money(t.recentHigh)],['近期低點（非保證支撐）',money(t.recentLow)]],142);
- const role=e?(e.referenceOnly?'以前的重要參考價':e.currentRole==='SUPPORT'?'目前下方支撐':e.currentRole==='RESISTANCE'?'目前上方壓力':'目前角色待確認'):'生命線尚未成立';
- card(role,e?money(e.lifeLinePrice)+(e.referenceOnly?'｜已列歷史參考，隔日不再等待突破這個舊價位。':'｜'+f.title):'目前沒有可確認的生命線關卡。',{color:e?.referenceOnly?C.history:C.gold});
+ metrics([[view.recentBarCount?'近'+view.recentBarCount+'個交易日高點':'近期高點｜資料不足',money(t.recentHigh)],[view.recentBarCount?'近'+view.recentBarCount+'個交易日低點':'近期低點｜資料不足',money(t.recentLow)]],142);
+ const role=e?(e.referenceOnly?'歷史生命線｜以前的重要價位':e.currentRole==='SUPPORT'?'目前下方支撐':'目前上方壓力'):'生命線尚未成立';
+ if(e)priceCard(role,e.lifeLinePrice,'取 '+e.k3Date+' K3'+view.sourcePoint+'；'+e.k0Date+' 收盤後成立。\n'+(e.referenceOnly?(e.firstBreakoutDate?'過去已收盤突破；現在以近期高低點、平均價為主。':'這是以前形成的價位，現在優先看近期高低點與平均價。'):f.title+'；是否守住，要看完成日 K 的收盤。'),e.referenceOnly?C.history:e.currentRole==='SUPPORT'?C.mint:C.gold);
+ else card(role,'目前沒有可確認的生命線關卡；近期高低點仍只是觀察價格。');
  const i3=bars.findIndex(b=>b.date===e?.k3Date),i0=bars.findIndex(b=>b.date===e?.k0Date),ib=bars.findIndex(b=>b.date===(e?.firstBreakoutDate||e?.firstBreakdownDate));
- const history=e?bars.slice(Math.max(0,i3-2),Math.min(bars.length,Math.max(i0+4,ib+4))):bars.slice(-10);
+ const history=e?bars.slice(Math.max(0,i3-2)):bars.slice(-10);
  chart(history,e?'圖 A｜歷史生命線怎麼形成？':'圖 A｜尚無生命線，先看已收盤行情',true,760);
- card('現在怎麼看？',(t.state==='STRONG'?'股價目前偏強，但不代表現在追買就安全。':t.state==='WEAK'?'股價目前偏弱，需要觀察能不能重新站回重要位置。':t.state==='NEUTRAL'?'近期方向還不一致，先等收盤證據。':'目前資料不足，先不確認方向。')+'\n'+(study.chaseRisk?.reasons||[]).join('；')+(study.sourceVolumeAudit?.uncertain?'\n成交量待核對，暫不作量能確認。':''));
+ card('現在怎麼看？',[view.trendSummary,view.riskReasons.length?view.riskReasons.join('；')+'。':null,study.sourceVolumeAudit?.uncertain?'成交量待核對，暫不作量能確認。':null].filter(Boolean).join('\n'));
  const sc=study.scenario||{};
- card('下一個交易日要看什麼？','繼續走強｜'+(sc.bullish||f.details[3].value)+'\n開始轉弱｜'+(sc.bearish||f.details[4].value)+'\n方向不明｜先看完成日 K 的收盤，不只憑盤中穿越下結論。');
- card('以前發生的事｜與今天分開看',e?e.signalDate+'：形成 '+money(e.lifeLinePrice)+' 生命線。\n'+(e.firstBreakoutDate?e.firstBreakoutDate+'：首次收盤突破。':e.firstBreakdownDate?e.firstBreakdownDate+'：首次收盤跌破。':'尚無首次收盤突破或跌破。')+' '+(e.referenceOnly?'現在主要作為歷史參考。':f.title+'。'):'尚無成立事件，資料不足時不補造日期或價位。');
+ card('下一個交易日要看什麼？','如果繼續上漲｜'+(sc.bullish||f.details[3].value)+'\n如果開始回跌｜'+(sc.bearish||f.details[4].value)+'\n如果上下整理｜先看當天收盤，盤中短暫穿越不算正式突破或跌破。');
+ card('已確認的歷史紀錄',e?e.signalDate+'：形成 '+money(e.lifeLinePrice)+' 生命線。\n'+(e.firstBreakoutDate?e.firstBreakoutDate+'：首次收盤突破。':e.firstBreakdownDate?e.firstBreakdownDate+'：首次收盤跌破。':'尚無首次收盤突破或跌破。')+' '+(e.referenceOnly?'現在主要作為歷史參考。':f.title+'。'):'尚無成立事件，資料不足時不補造日期或價位。');
  // Page 2 is genuine teaching, distinct from the actual historical quotation chart.
  start('策略說明｜什麼是生命線？');
  card('先認識生命線',display.teaching[0].value);
@@ -85,17 +87,65 @@ function build(study,display,{document:doc=globalThis.document,watermark=false}=
  });probe.width=probe.height=1;return descriptors;
 }
 function label(c,value,x,y,size=28,color=C.text){L.font(c,size);c.fillStyle=color;c.fillText(value,x,y);}
-function paintChart(c,o,study,bars){const {rows,plot:p,min,max,top,history}=o,dx=p.width/(rows.length||1),xp=i=>p.x+(i+.5)*dx,yp=v=>p.y+p.height-(v-min)/(max-min)*p.height;label(c,o.title,M,top,38,C.mint);
+// Presentation geometry only. Price and event evidence always come from the core snapshot.
+function chartAnnotations(q,o,study){
+ const {rows,plot:p,min,max,history,event:e}=o,yp=value=>p.y+p.height-(value-min)/(max-min)*p.height,dx=p.width/(rows.length||1),xp=i=>p.x+(i+.5)*dx;
+ if(!rows.length)return {line:null,latest:null,firstCross:null,source:null,tags:[]};
+ const active=history?e:study.event&&!study.event.referenceOnly?study.event:null;
+ const line=active&&active.lifeLinePrice>=min&&active.lifeLinePrice<=max?{kind:'LIFE_LINE',price:active.lifeLinePrice,referenceOnly:!!active.referenceOnly,role:active.currentRole,label:active.referenceOnly?'歷史生命線':active.currentRole==='SUPPORT'?'下方支撐':'上方壓力',color:active.referenceOnly?C.history:active.currentRole==='SUPPORT'?C.mint:C.gold,anchorY:yp(active.lifeLinePrice)}:null;
+ const latestIndex=rows.findIndex(b=>b.date===(study.dataAsOf||study.date));
+ const latest=latestIndex>=0?{kind:'LATEST_CLOSE',label:'最新收盤',price:rows[latestIndex].close,date:rows[latestIndex].date,color:C.text,x:xp(latestIndex),anchorY:yp(rows[latestIndex].close)}:null;
+ const firstDate=e?.firstBreakoutDate||e?.firstBreakdownDate,firstIndex=rows.findIndex(b=>b.date===firstDate),sourceIndex=rows.findIndex(b=>b.date===e?.k3Date);
+ const firstCross=history&&e&&firstIndex>=0?{kind:e.firstBreakoutDate?'BREAKOUT':'BREAKDOWN',date:firstDate,price:rows[firstIndex].close,x:xp(firstIndex),y:yp(rows[firstIndex].close),markerY:yp(e.firstBreakoutDate?rows[firstIndex].high:rows[firstIndex].low),color:e.firstBreakoutDate?C.gold:C.risk}:null;
+ const source=history&&e&&sourceIndex>=0?{date:e.k3Date,price:e.lifeLinePrice,point:e.side==='BULL'?'最低價':'最高價',x:xp(sourceIndex),y:yp(e.lifeLinePrice)}:null;
+ const tags=L.spread([line,latest].filter(Boolean).map(item=>{L.font(q,38);const width=Math.max(176,Math.min(W-M-(p.x+p.width+18),q.measureText(number(item.price)).width+28));return {...item,x:p.x+p.width+18,y:item.anchorY-44,width,height:88};}),{min:p.y,max:p.y+p.height,gap:12,dimension:'y',extent:'height'});
+ return {line,latest,firstCross,source,tags};
+}
+function paintLifeLine(c,line,p){if(!line)return;c.strokeStyle=line.color;c.lineWidth=5;c.setLineDash([16,9]);c.beginPath();c.moveTo(p.x,line.anchorY);c.lineTo(p.x+p.width,line.anchorY);c.stroke();c.setLineDash([]);c.lineWidth=1;}
+function paintPriceTag(c,tag,p){
+ c.strokeStyle=tag.color;c.lineWidth=2;c.beginPath();c.moveTo(p.x+p.width,tag.anchorY);c.lineTo(tag.x-8,tag.y+tag.height/2);c.lineTo(tag.x,tag.y+tag.height/2);c.stroke();
+ c.fillStyle=tag.color;c.beginPath();c.roundRect(tag.x,tag.y,tag.width,tag.height,10);c.fill();
+ label(c,tag.label,tag.x+12,tag.y+5,26,C.bg);label(c,number(tag.price),tag.x+12,tag.y+39,38,C.bg);
+}
+function paintChart(c,o,study,bars){
+ const {rows,plot:p,min,max,top,history}=o,dx=p.width/(rows.length||1),xp=i=>p.x+(i+.5)*dx,yp=v=>p.y+p.height-(v-min)/(max-min)*p.height,a=o.annotations;
+ label(c,o.title,M,top,38,C.mint);
  if(!rows.length){label(c,'完成日 K 資料不足，暫不繪製價格。',M,top+75,32);return;}
- if(history&&o.event){const e=o.event;['K3','K2','K1','K0'].forEach((key,j)=>{const date=e[key.toLowerCase()+'Date'],i=rows.findIndex(b=>b.date===date),x=M+j*(CW/4);label(c,key,x+8,top+58,30,C.gold);label(c,date||'日期未提供',x+8,top+99,28);if(i>=0){c.strokeStyle=C.history;c.beginPath();c.moveTo(x+95,top+137);c.lineTo(xp(i),yp(rows[i].high));c.stroke();}});}else label(c,history?'尚無已成立的 K0 生命線':'黃：5日平均價；青：10日平均價',M,top+65,30,C.muted);
- for(let i=0;i<=4;i++){const yy=p.y+p.height*i/4,v=max-(max-min)*i/4;c.strokeStyle=C.grid;c.lineWidth=1;c.beginPath();c.moveTo(p.x,yy);c.lineTo(p.x+p.width,yy);c.stroke();const s=number(v);L.font(c,26);c.fillStyle=C.muted;c.fillText(s,p.x-12-c.measureText(s).width,yy-13);c.fillText(s,p.x+p.width+12,yy-13);}
+ if(history&&o.event){
+  const e=o.event;
+  ['K3','K2','K1','K0'].forEach((key,j)=>{const date=e[key.toLowerCase()+'Date'],i=rows.findIndex(b=>b.date===date),x=M+j*(CW/4);
+   label(c,key,x+8,top+58,30,C.gold);label(c,date||'日期未提供',x+8,top+99,28);
+   if(i>=0){c.strokeStyle=C.history;c.lineWidth=1;c.beginPath();c.moveTo(x+95,top+137);c.lineTo(xp(i),key==='K3'?yp(e.lifeLinePrice):yp(rows[i].high));c.stroke();}
+  });
+ }else{
+  label(c,'黃：5日平均價；青：10日平均價',M,top+65,30,C.muted);
+  const active=study.event&&!study.event.referenceOnly?study.event:null;
+  label(c,active?(active.currentRole==='SUPPORT'?'目前下方支撐 ':'目前上方壓力 ')+money(active.lifeLinePrice)+(a.line?'':'（在本圖範圍外）'):'近期高低點是觀察價格，不保證守得住。',M,top+108,28,active?C.gold:C.muted);
+ }
+ for(let i=0;i<=4;i++){
+  const yy=p.y+p.height*i/4,v=max-(max-min)*i/4;c.strokeStyle=C.grid;c.lineWidth=1;c.beginPath();c.moveTo(p.x,yy);c.lineTo(p.x+p.width,yy);c.stroke();
+  const s=number(v);L.font(c,26);c.fillStyle=C.muted;c.fillText(s,p.x-12-c.measureText(s).width,yy-13);
+  // The other axis remains visible when a dedicated price tag replaces a duplicate tick.
+  if(!a.tags.some(t=>yy+18>t.y&&yy-18<t.y+t.height))c.fillText(s,p.x+p.width+12,yy-13);
+ }
  rows.forEach((b,i)=>{c.fillStyle=c.strokeStyle=b.close>=b.open?C.up:C.down;c.lineWidth=3;c.beginPath();c.moveTo(xp(i),yp(b.high));c.lineTo(xp(i),yp(b.low));c.stroke();c.fillRect(xp(i)-dx*.27,Math.min(yp(b.open),yp(b.close)),Math.max(2,dx*.54),Math.max(3,Math.abs(yp(b.open)-yp(b.close))));});
- if(history&&o.event){const line=o.event.lifeLinePrice;c.strokeStyle=C.history;c.setLineDash([10,7]);c.beginPath();c.moveTo(p.x,yp(line));c.lineTo(p.x+p.width,yp(line));c.stroke();c.setLineDash([]);label(c,'原始生命線 '+money(line)+(o.event.referenceOnly?'｜歷史參考':''),M,top+o.height-130,30,C.history);const first=o.event.firstBreakoutDate||o.event.firstBreakdownDate;label(c,first?(o.event.firstBreakoutDate?'首次突破 ':'首次跌破 ')+first:'尚無首次收盤穿越',M,top+o.height-88,28,C.gold);const j=rows.findIndex(b=>b.date===first);if(j>=0){c.fillStyle=C.gold;c.beginPath();c.arc(xp(j),yp(rows[j].close),7,0,Math.PI*2);c.fill();}}
- else {const active=study.event&&!study.event.referenceOnly?study.event:null;if(active){label(c,(active.currentRole==='SUPPORT'?'目前下方支撐 ':'目前上方壓力 ')+money(active.lifeLinePrice)+(active.lifeLinePrice<min||active.lifeLinePrice>max?'（在本圖範圍外）':''),M,top+108,28,C.gold);if(active.lifeLinePrice>=min&&active.lifeLinePrice<=max){c.strokeStyle=C.gold;c.setLineDash([10,7]);c.beginPath();c.moveTo(p.x,yp(active.lifeLinePrice));c.lineTo(p.x+p.width,yp(active.lifeLinePrice));c.stroke();c.setLineDash([]);}}else label(c,'目前觀察：近期高低點與平均價',M,top+108,28,C.muted);for(const [n,color]of [[5,C.gold],[10,C.mint]]){c.strokeStyle=color;c.lineWidth=3;c.beginPath();let started=false;o.means[n].forEach((v,i)=>{if(v===null)return;if(!started)c.moveTo(xp(i),yp(v));else c.lineTo(xp(i),yp(v));started=true;});c.stroke();}const maxVol=Math.max(1,...rows.map(b=>b.volume||0));rows.forEach((b,i)=>{const h=(b.volume||0)/maxVol*50;c.fillStyle=b.close>=b.open?C.up:C.down;c.fillRect(xp(i)-dx*.25,top+o.height-110-h,dx*.5,h);});label(c,o.volumeUncertain?'封存成交量待核對，暫不作量能確認':'下方：成交量（股數）',M,top+o.height-88,26,C.muted);}
+ if(history)paintLifeLine(c,a.line,p);
+ if(history&&o.event){
+  if(a.source){const s=a.source;c.fillStyle=C.bg;c.strokeStyle=a.line?.color||C.history;c.lineWidth=3;c.beginPath();c.moveTo(s.x,s.y-9);c.lineTo(s.x+9,s.y);c.lineTo(s.x,s.y+9);c.lineTo(s.x-9,s.y);c.closePath();c.fill();c.stroke();}
+  if(a.firstCross){const f=a.firstCross,d=f.kind==='BREAKOUT'?-1:1;c.fillStyle=f.color;c.beginPath();c.moveTo(f.x,f.markerY+d*24);c.lineTo(f.x-10,f.markerY+d*6);c.lineTo(f.x+10,f.markerY+d*6);c.closePath();c.fill();}
+  label(c,'虛線：'+(o.event.referenceOnly?'歷史生命線':'生命線')+' '+money(o.event.lifeLinePrice)+'｜取 K3 '+(a.source?.point||'原始價位'),M,top+o.height-130,30,a.line?.color||C.history);
+  label(c,a.firstCross?(a.firstCross.kind==='BREAKOUT'?'▲ 首次收盤突破 ':'▼ 首次收盤跌破 ')+a.firstCross.date+'｜當天收盤 '+money(a.firstCross.price):'尚無首次收盤突破或跌破',M,top+o.height-88,28,a.firstCross?.color||C.muted);
+ }else{
+  for(const [n,color]of [[5,C.gold],[10,C.mint]]){c.strokeStyle=color;c.lineWidth=3;c.beginPath();let started=false;o.means[n].forEach((v,i)=>{if(v===null)return;if(!started)c.moveTo(xp(i),yp(v));else c.lineTo(xp(i),yp(v));started=true;});c.stroke();}
+  paintLifeLine(c,a.line,p);
+  const maxVol=Math.max(1,...rows.map(b=>b.volume||0));rows.forEach((b,i)=>{const h=(b.volume||0)/maxVol*50;c.fillStyle=b.close>=b.open?C.up:C.down;c.fillRect(xp(i)-dx*.25,top+o.height-110-h,dx*.5,h);});
+  label(c,o.volumeUncertain?'封存成交量待核對，暫不作量能確認':'下方：成交量（股數）',M,top+o.height-88,26,C.muted);
+ }
+ if(a.latest){c.fillStyle=C.bg;c.strokeStyle=C.text;c.lineWidth=3;c.beginPath();c.arc(a.latest.x,a.latest.anchorY,6,0,Math.PI*2);c.fill();c.stroke();}
+ for(const tag of a.tags)paintPriceTag(c,tag,p);
  label(c,rows[0].date,p.x,p.y+p.height+14,26,C.muted);L.font(c,26);const last=rows.at(-1).date;label(c,last,p.x+p.width-c.measureText(last).width,p.y+p.height+14,26,C.muted);
- // Latest close is identified without forcing its price into the historical chart's scale.
- label(c,'最新收盤 '+money(study.close)+'｜'+(study.date||'日期未提供'),M,top+o.height-44,26,C.gold);
+ label(c,'本圖截至 '+rows.at(-1).date+'｜最新收盤 '+money(study.close)+(history?'；近期細節見圖 B':''),M,top+o.height-44,26,C.gold);
 }
 function paintSchematic(c,o){label(c,'示意教學｜不是實際行情',M,o.top,30,C.muted);const panels=[{title:'盤中越過壓力，收盤掉回',x:M,close:130,high:45,low:170,color:C.down},{title:'盤中跌破支撐，收盤站回',x:M+CW/2+20,close:75,high:40,low:175,color:C.up}];for(const p of panels){label(c,p.title,p.x,o.top+46,28);c.strokeStyle=C.gold;c.setLineDash([8,6]);c.beginPath();c.moveTo(p.x,o.top+120);c.lineTo(p.x+500,o.top+120);c.stroke();c.setLineDash([]);c.strokeStyle=c.fillStyle=p.color;c.lineWidth=4;c.beginPath();c.moveTo(p.x+220,o.top+p.high+40);c.lineTo(p.x+220,o.top+p.low+40);c.stroke();c.fillRect(p.x+204,o.top+p.close+40,32,30);label(c,p.close>100?'未確認突破':'未確認跌破',p.x,o.top+214,28,C.mint);}}
-return Object.freeze({VERSION,width:W,height:H,build,number,money});
+return Object.freeze({VERSION,width:W,height:H,build,number,money,chartAnnotations});
 });

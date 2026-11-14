@@ -11,10 +11,21 @@ function missingText(items){const translations={'BULL_PULLBACK_RECLAIM_V1:B9':'�
 function inspect(a){const study=Core.evaluate(a);return {...study,name:study.name||a?.name||'',code:study.code||a?.code||''};}
 function teaching(){return [
  {title:'新手教學｜生命線怎麼看？',value:'生命線是從過去 K 線找出的重要參考價，幫助觀察突破或跌破；不是保證漲跌的價格。每根日 K 記錄一天的開盤、最高、最低與收盤。'},
- {title:'① 生命線從哪來｜四根完成日 K',value:'K3：四根中最早的一根，提供生命線價位。\nK2：比較 K3，高點升高或低點降低。\nK1：延續 K2，同方向再升高或降低。\nK0：高點不再升高，或低點不再降低，當天收盤後才確認。\n高點一路升高的組合：取 K3 最低價當支撐。\n低點一路降低的組合：取 K3 最高價當壓力。\n如果高點一路升高、低點也一路降低，這組不成立。四根都是相鄰的有效交易日 K，遇缺漏不能自行補齊。'},
+ {title:'① 生命線從哪來｜四根完成日 K',value:'K3：四根中最早的一根，提供生命線價位。\nK2：比較 K3，高點升高或低點降低。\nK1：延續 K2，同方向再升高或降低。\nK0：高點不再升高，或低點不再降低，當天收盤後才確認。\n高點一路升高的組合：取 K3 最低價當支撐。\n低點一路降低的組合：取 K3 最高價當壓力。\n如果高點一路升高、低點也一路降低，這組不成立。四根都是相鄰的有效交易日 K，遇缺漏不能自行補齊。\n生命線取 K3 的價位，不是直接拿 K0 的收盤價。'},
  {title:'② 用收盤確認｜盤中碰到不算',value:'收盤 ＞ 壓力：正式突破。\n連續 '+Core.DEFAULT.holdBars+' 根完成日 K 收盤 ＞ 同一關卡：持續站穩。\n收盤 ＜ 支撐：正式跌破。\n跌破後，收盤重新 ＞ 支撐：重新站回。\n相等不算突破或重新站回；支撐相等不算跌破。突破後收盤回到關卡或以下，則算突破失守。'},
  {title:'③ 現在還能不能參考？',value:'突破失敗：曾收盤突破，後來收盤又回到關卡或以下。\n回測守住：已站穩後，前一根低點離開關卡；後一根最低價回到關卡上下 '+Core.DEFAULT.retestTolerancePct+'% 內，且收盤仍高於關卡。不是所有站穩都算回測。\n歷史參考價：事件較久，或已離現價超過近期平均波動的三倍，且近十根 K 未碰到；不當成今天主要關卡。\n偏強也可能漲得太急。接下來要看近期高低點、平均價和成交量，不能只憑突破追價。'}
 ];}
+function overview(x){
+ const e=x.event,t=x.currentTrend||{},source=(x.validatedBars||[]).find(b=>b.date===e?.k3Date),k0=(x.validatedBars||[]).find(b=>b.date===e?.k0Date);
+ const sourcePoint=e?(e.side==='BULL'?'最低價':'最高價'):null;
+ const firstDate=e?.firstBreakoutDate||e?.firstBreakdownDate||null,firstBar=(x.validatedBars||[]).find(b=>b.date===firstDate);
+ const simplify=value=>({
+  '最近5日漲得急，追高後可能回落':'最近5個交易日上漲較快',
+  '股價離5日平均價超過兩倍近期平均波動，追價風險較高':'股價離最近5天平均價較遠，回跌風險較大',
+  '目前未觸發急漲提醒，仍不代表追價安全':'目前沒有急漲提醒，仍要留意回跌風險。'
+ }[value]||Layout.plain(value));
+ return {trendSummary:({STRONG:'股價近期偏強，但追高買進仍可能遇到回跌。',WEAK:'股價近期偏弱，先看收盤能不能重新站回重要價位。',NEUTRAL:'股價還在上下整理，目前沒有一致的方向。'})[t.state]||'完成日 K 或平均價資料不足，暫時無法判斷方向。',riskReasons:(x.chaseRisk?.reasons||[]).map(v=>simplify(v).replace(/[。；]+$/,'')),technicalRiskReasons:[...(x.chaseRisk?.reasons||[])],sourcePoint,sourceDate:source?.date??null,sourcePrice:e?.lifeLinePrice??null,k0Date:e?.k0Date??null,k0Close:k0?.close??null,firstCrossDate:firstDate,firstCrossClose:firstBar?.close??null,recentBarCount:t.recentBarCount??Math.min(10,x.validatedBars?.length||0)};
+}
 function fields(x){
  const e=x.event,t=x.currentTrend||{},dates=e?['K3','K2','K1','K0'].map(k=>k+' '+(e[k.toLowerCase()+'Date']||'日期未提供')).join('｜'):'目前還沒有可成立生命線的K0訊號';
  const title=e?(e.referenceOnly?names.HISTORICAL_REFERENCE:names[e.lifecycleState]):x.state==='INSUFFICIENT_DATA'?names.INSUFFICIENT_DATA:'尚未出現符合規則的生命線';
@@ -30,7 +41,7 @@ function fields(x){
  {title:'現在偏強還是偏弱？',value:(t.state==='STRONG'?'收盤高於5日平均價，5日平均價又高於20日平均價，近期價格偏強。':t.state==='WEAK'?'收盤低於5日平均價，5日平均價又低於20日平均價，近期價格偏弱。':t.state==='NEUTRAL'?'收盤與短中期平均價的位置沒有一致方向，暫列上下整理、繼續觀察。':'平均價資料不足，暫時無法確認目前方向。')+'\n目前'+(t.label||'資料不足')+'；收盤 '+money(x.close)+'。\n5日平均價（MA5）'+money(t.ma5)+'；10日 '+money(t.ma10)+'；20日平均價（MA20）'+money(t.ma20)+'。\n股價與5日平均價距離 '+fmt(t.deviation5)+'%；與20日距離 '+fmt(t.deviation20)+'%。\n上漲下跌力道（RSI，越高表示近期上漲較急）：5日 '+fmt(t.rsi5)+'；14日 '+fmt(t.rsi14)+'。\n'+(x.sourceVolumeAudit?.uncertain?'成交量來源版本有差異，暫不判讀是否放量。':'成交量為前5日平均的 '+fmt(t.volumeRatio)+' 倍；放量本身不保證繼續上漲。')},
  {title:'追價與波動風險',value:[...(x.chaseRisk?.reasons||[]),...x.riskWarnings.map(Layout.plain)].join('\n')+'\n近期平均每日波動金額（ATR14）'+money(t.atr14)+'。股價起伏較大（ATR）時，不能保證在指定價成交。'+(x.sourceVolumeAudit?.uncertain?'\n成交股數差異於 '+localTime(x.sourceVolumeAudit.latestRetrievedAt)+'（台北時間）核對，量能暫不確認。':'')},
  {title:'資料來源與注意事項',value:'行情 '+(x.dataAsOf||x.date||'尚未核對')+'；使用 '+(x.historyBarCount||0)+' 根完成日 K。'+(x.sourcePublishedAt?'\n研究套件產製時間 '+localTime(x.sourcePublishedAt)+'（台北時間）。':'')+'\n價格與成交量來源：'+(x.dataSource==='Verified official exchange daily archive'?'交易所官方逐日行情（成交量以股數計）':x.dataSource||'尚未提供')+'；價格口徑：'+(x.priceAdjustment?.basis==='UNADJUSTED_OFFICIAL_OHLC'?'交易所未還原成交價格':x.priceAdjustment?.basis||'這份分析未附口徑明細，須查原始行情')+(x.priceAdjustment?.corporateActionsVerified===false?'；除權息事件尚未完整核對':'')+'。\n研究版本 V9.3.2；'+(x.state==='INSUFFICIENT_DATA'?'資料不足':'已通過輸入檢查，部分長期指標可能不足')+'；其他缺項：'+missingText(x.dataCompleteness?.missing)+'。\n獲利表現還沒驗證；本報告提供技術研究參考，未來仍可能上漲或下跌，不能保證獲利。'}
- ];return {summary,details,teaching:teaching(),statusCode:e?.lifecycleState||'INSUFFICIENT_DATA',title,importantPrices:{line:e?.referenceOnly?null:e?.lifeLinePrice??null,high:t.recentHigh??null,low:t.recentLow??null}};
+ ];return {summary,details,teaching:teaching(),statusCode:e?.lifecycleState||'INSUFFICIENT_DATA',title,overview:overview(x),importantPrices:{line:e?.referenceOnly?null:e?.lifeLinePrice??null,high:t.recentHigh??null,low:t.recentLow??null}};
 }
 function lines(x){const v=fields(x);return [v.summary,...v.teaching,...v.details].map(f=>'【'+f.title+'】'+f.value);}
 function page(x,{document:doc=globalThis.document,displayCode=globalThis.ShitouReleaseV50?.displayCode||'V9.3.2',watermark=false,bars:source=[]}={}){
@@ -76,5 +87,5 @@ function page(x,{document:doc=globalThis.document,displayCode=globalThis.ShitouR
  return {width:W,height:H,dataset:{life03Audit:JSON.stringify(audit),release:displayCode,shareAsSingleImage:'true'},renderExportRegion:paint,toBlob(callback,type='image/png'){const c=paint();c.toBlob(blob=>{c.width=c.height=1;callback(blob);},type);}};
 }
 function pages(x,options={}){const renderer=typeof module==='object'&&module.exports?require('./kline-life-03-pages-v94.js'):globalThis.ShitouLifePages94;return renderer.build(x,{fields:fields(x),teaching:teaching()},options);}
-return Object.freeze({VERSION,inspect,fields,lines,page,pages,teaching});
+return Object.freeze({VERSION,inspect,fields,lines,page,pages,teaching,overview});
 });
