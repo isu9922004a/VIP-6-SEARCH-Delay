@@ -1,3 +1,4 @@
+/* V9.5 interface release; research model versions and calculations unchanged. */
 // V9.4 presentation; V9.3.2 life-line core and historical model identifiers remain unchanged.
 (function(r,f){const a=f();if(typeof module==='object'&&module.exports)module.exports=a;else r.ShitouResearchReport=a;})(globalThis,function(){
 'use strict';

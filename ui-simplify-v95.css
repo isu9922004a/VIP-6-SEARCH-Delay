@@ -1,0 +1,23 @@
+/* Entry layout only. Research workbench structure and analysis/report canvases stay intact. */
+body.workspace-v831 button,body.workspace-v831 summary,body.workspace-v831 select{min-height:44px}
+body.workspace-v831 button{touch-action:manipulation}
+#workspaceV831 .workspace-v831-filter{min-height:44px}
+body.workspace-v831 [aria-busy="true"]{cursor:progress}
+#workspaceStockSummary .workspace-stock-actions{display:block}
+#workspaceStockSummary .workspace-stock-actions button{width:100%}
+#workspaceReportToolbar{box-sizing:border-box;gap:8px}
+#workspaceReportToolbar button{min-height:44px;white-space:normal}
+#workspaceStockActionsSlot:has(> [hidden]){display:none}
+#workspaceStockSummary,#workspaceSearchPanel,#restaurantPanel,#structurePanel,#towerGoldPanel{min-width:0;overflow-wrap:anywhere}
+main.container>.help-fold{margin:24px 0;color:var(--muted,#64748b)}
+@media(max-width:600px){
+ #workspaceReportCaption{display:none}
+ #workspaceReportToolbar{display:flex;min-height:58px;padding:6px}
+ #workspaceReportToolbar button{flex:1;min-width:0;padding:7px 9px}
+ body.workspace-v831[data-workspace-v831="stock"] #result.workspace-stock-open{inset:68px 2px 2px!important}
+ #workspaceSearchPanel .search-row{grid-template-columns:minmax(0,1fr)}
+ #workspaceSearchPanel .search-row input,#workspaceSearchPanel .search-row button{width:100%;min-width:0;box-sizing:border-box}
+ .filter-actions,.strong-stock-actions,.momentum-actions{flex-wrap:wrap}
+ #workspaceSearchPanel,#workspaceStockSummary,#restaurantPanel,#structurePanel,#towerGoldPanel{max-width:100%;box-sizing:border-box}
+ #workspaceStockSummary .workspace-stock-actions{display:grid;grid-template-columns:minmax(0,1fr)}
+}

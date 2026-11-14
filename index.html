@@ -9,12 +9,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <link rel="stylesheet" href="./tower-design.css?v=V8.7.2">
 
-<title>石頭少爺 V9.4｜四策略研究</title>
+<title>石頭少爺 V9.5｜策略選股</title>
 <script src="./scan-exclusions-rsi-v5328.js?v=V8.7.2"></script>
 <script src="./stock-query-runtime-v826.js?v=V8.7.2"></script>
 <script src="./report-watermark-v84.js?v=V8.7.2"></script>
 <link rel="stylesheet" href="./frontend-v84.css?v=V8.7.2">
-<script src="./version-v50.js?v=V9.4"></script>
+<script src="./version-v50.js?v=V9.5"></script>
 <script src="./report-beginner-copy-v88.js?v=V8.8-COPY1"></script>
 
 <style>
@@ -1184,6 +1184,7 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
 <link rel="stylesheet" href="./filter-unified-mobile-v1.css?v=V8.7.2">
 <link rel="stylesheet" href="./research-v83/workspace-v831.css?v=V8.7.2-ACTIONSFIRST1">
 <link rel="stylesheet" href="./ui-polish-v1.css?v=V8.8-MARKETTOP1">
+<link rel="stylesheet" href="./ui-simplify-v95.css?v=V9.5-UI1">
 </head>
 
 <body class="ui-polish-v1">
@@ -1192,10 +1193,9 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
 
   <div class="container">
 
-    <h1><span class="ui-brand-mark">🪨</span> 石頭少爺 Agent <span class="ui-release-short">V9.4</span></h1>
+    <h1><span class="ui-brand-mark">🪨</span> 石頭少爺 Agent <span class="ui-release-short">V9.5</span></h1>
     <nav aria-label="策略捷徑" class="ui-inline-1"><a id="towerGoldShortcut" href="#towerGoldPanel" class="ui-inline-2" title="寶塔線 A／B 全量掃描">④ 寶塔線點金術（A／B 全量掃描）</a></nav>
 
-    <p>盤後個股判讀＋大盤／產業／個股強弱＋三盤量價波段＋主升段／當沖風險確認</p>
 
     <span class="version-pill">石頭少爺 Agent V50｜R5.3.2.8.1-TOWER-SHADOW.5.1-DATEGATE.1-REVIEW.2-OBSERVE.2-RESTAURANT.2-RSICTX.1-TOP8.1-SNAPFIX.1-NOPARALLEL.1-BUGFIX.1-FULLBLEED.1-IPHONECARD.1-MOBILE-LINE.1-HEALTH.3-STRUCTURE.1-UNIFIEDUI.1-DATASYNC.1-CLOSE.1｜RSI多週期暨餐廳前八強單張總覽版｜盤後資料｜強勢飆股新版主軸</span>
 
@@ -1227,7 +1227,7 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
       <button id="stockSimpleAnalysisWatermarkButton" class="mini-btn" type="button" title="產生含石頭少爺台股分析標題的浮水印版個股報告">浮水印版Ai模擬明日走勢圖片報告</button>
     </div>
 
-    <details class="help-fold"><summary>股票名稱與資料來源說明</summary><div class="hint">可輸入股票代號或繁體中文股票名稱，例如「8039」「台虹」「4939」「亞電」。已內建 1,963 檔上市／上櫃股票代碼與名稱索引，中文名稱可直接快速解析；TWSE／TPEx 官方名稱清單仍會在背景載入校正。</div></details>
+
 
     <div class="market-shortcut">
       <div class="section-title ui-inline-3">📈 台股大盤加權指數</div>
@@ -2001,6 +2001,7 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
 
   </section>
 
+    <details class="help-fold"><summary>股票名稱與資料來源說明</summary><div class="hint">可輸入股票代號或繁體中文股票名稱，例如「8039」「台虹」「4939」「亞電」。已內建上市／上櫃股票代碼與名稱索引，中文名稱可直接快速解析；TWSE／TPEx 官方名稱清單仍會在背景載入校正。</div></details>
 </main>
 
 <div id="imagePreviewModal" class="image-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="imagePreviewTitle">
@@ -35034,7 +35035,7 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 </script>
 
 <script src="./report-layout-v563.js?v=V8.7.2"></script>
-<script src="./shitou-v50-ui.js?v=V8.7.2"></script>
+<script src="./shitou-v50-ui.js?v=V9.5-UI1"></script>
 
 <script src="./teacher-three-pan-ui.js?v=V8.7.2"></script>
 <script src="./data/market/scan-exclusions.js?v=V8.7.2"></script>
@@ -35070,7 +35071,7 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 <script src="./structure-reversal-backtest-v1.js?v=V8.7.2"></script>
 <script src="./structure-reversal-report-v1.js?v=V9.4-LIFE94-2"></script>
 <script src="./structure-reversal-ui-v1.js?v=V8.7.2"></script>
-<script src="./filter-unified-mobile-v1.js?v=V9.4-LIFE94-2"></script>
+<script src="./filter-unified-mobile-v1.js?v=V9.5-UI1"></script>
 <script>
 // BPREWATCH.1: separate B-mode stop-falling observation from formally confirmed reversals.
 (function(){const v=window.ShitouReleaseV50;if(!v)return;
@@ -35117,15 +35118,15 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 <script src="./research-v83/forecast-engine.js?v=V8.7.2-NETWORKRECOVERY1"></script>
 <script src="./research-v83/kronos-data.js?v=V8.7.2-NETWORKRECOVERY1"></script>
 <script src="./research-action-guide-v1.js?v=V8.7.2-ENGULFRANGE2"></script>
-<script src="./research-report-v1.js?v=V9.4"></script>
+<script src="./research-report-v1.js?v=V9.5"></script>
 <script src="./engulf-range-report-v1.js?v=V8.8-COPY1"></script>
 <script src="./drax-price-reminder-v1.js?v=V8.7.2"></script>
 <script src="./research-integration-v1.js?v=V9.4-LIFE94-2"></script>
-<script src="./research-v83/stock-simple-report.js?v=V9.4-LIFE94-2"></script>
+<script src="./research-v83/stock-simple-report.js?v=V9.5-UI1"></script>
 <script src="./stock-audit-alert-v82.js?v=V8.7.2"></script>
 <script src="./release-compact-v1.js?v=V8.7.2"></script>
 <link rel="stylesheet" href="./ui-polish-v85.css?v=V8.7.2">
-<script src="./ui-polish-v85.js?v=V9.4-LIFE94-2" defer></script>
+<script src="./ui-polish-v85.js?v=V9.5-UI1" defer></script>
 
 <script src="./kline-attack-v90.js?v=V9.4-LIFE94-2"></script>
 <script src="./kline-attack-report-v90.js?v=V9.4-LIFE94-2"></script>
@@ -35142,12 +35143,12 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 
 <script src="./market-research-v1.js?v=V8.7.2-ENGULFRANGE1"></script>
 <script src="./research-market-integration-r13.js?v=V8.7.2"></script>
-<script src="./research-v83/workspace-v831.js?v=V9.4-LIFE94-2"></script>
+<script src="./research-v83/workspace-v831.js?v=V9.5-UI1"></script>
 
 
 <script src="./research-v83/market-freshness.js?v=V8.8-POSTCLOSE1"></script>
-<script src="./market-report-comfort-v864.js?v=V9.4-LIFE94-2"></script>
-<script src="./market-report-refresh-v864.js?v=V9.4-LIFE94-2"></script>
+<script src="./market-report-comfort-v864.js?v=V9.5-UI1"></script>
+<script src="./market-report-refresh-v864.js?v=V9.5-UI1"></script>
 <script src="./stock-professional-v84.js?v=V9.4-LIFE94-2"></script>
 
 
@@ -35155,3 +35156,4 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 <script src="./kronos-future-share-config-v873.js?v=V8.8-SHARES1"></script>
 <script src="./kronos-future-shares-v873.js?v=V8.8-SHARES1"></script>
 <script src="./kronos-future-report-v1.js?v=V8.8-COPY1"></script>
+<script src="./ui-simplify-v95.js?v=V9.5-UI1" defer></script>

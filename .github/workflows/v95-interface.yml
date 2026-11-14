@@ -1,0 +1,39 @@
+name: V9.5 interface regression
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - index.html
+      - market-outlook.html
+      - '*ui*.js'
+      - ui-simplify-v95.css
+      - version-v50.js
+      - research-v83/workspace-v831.js
+      - scripts/tests/v95-*
+      - scripts/fixtures/v95-interface-baseline.json
+      - .github/workflows/v95-interface.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  interface:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CHROME_BIN: /usr/bin/google-chrome
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - run: npm ci
+      - run: npm test
+      - run: npm run test:contract
+      - run: npm run research:validate
+      - run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Click six strategies, scans, research, PNG download and absence states at mobile and desktop widths
+        run: node scripts/tests/v95-ui-browser.cjs /tmp/v95-ui
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v95-ui-regression
+          path: /tmp/v95-ui
