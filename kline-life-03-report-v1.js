@@ -17,16 +17,16 @@ function teaching(){return [
 ];}
 function fields(x){
  const e=x.event,t=x.currentTrend||{},dates=e?['K3','K2','K1','K0'].map(k=>k+' '+(e[k.toLowerCase()+'Date']||'日期未提供')).join('｜'):'目前還沒有可成立生命線的K0訊號';
- const title=e?(e.referenceOnly?names.HISTORICAL_REFERENCE:names[e.lifecycleState]):names.INSUFFICIENT_DATA;
+ const title=e?(e.referenceOnly?names.HISTORICAL_REFERENCE:names[e.lifecycleState]):x.state==='INSUFFICIENT_DATA'?names.INSUFFICIENT_DATA:'尚未出現符合規則的生命線';
  const anchor=e?(e.referenceOnly?'以前的重要參考價':e.currentRole==='SUPPORT'?(e.side==='BULL'?'下方支撐（K3低點）':'下方支撐（原壓力已突破）'):'上方壓力')+' '+money(e.lifeLinePrice):'生命線尚未成立';
  const summary={title:'先用一句話告訴我結論',value:(x.scenario?.summary||x.reason||names.INSUFFICIENT_DATA)+' '+anchor};
  const details=[
- {title:'這條生命線從哪來？',value:dates+'\n'+anchor+'。原始型態：'+(e?(e.side==='BULL'?'高點逐根升高，K0停止創高':'低點逐根降低，K0停止創低'):'資料不足')+'\n首次突破：'+(e?.firstBreakoutDate||'尚無確認')+'；首次跌破：'+(e?.firstBreakdownDate||'尚無確認')+'\n目前：'+title},
+ {title:'這條生命線從哪來？',value:dates+'\n'+anchor+'。原始型態：'+(e?(e.side==='BULL'?'高點逐根升高，K0停止創高':'低點逐根降低，K0停止創低'):x.state==='INSUFFICIENT_DATA'?'資料不足':'尚未形成')+'\n首次突破：'+(e?.firstBreakoutDate||'尚無確認')+'；首次跌破：'+(e?.firstBreakdownDate||'尚無確認')+'\n目前：'+title},
  {title:'收盤離這條線多遠？',value:'收盤 '+money(x.close)+'；距原始生命線 '+fmt(x.distancePct)+'%。這是價格距離，不是報酬預測。'+'\n歷史生命線：'+(x.events||[]).map(e=>e.signalDate+' '+money(e.lifeLinePrice)).join('；')},
  {title:'已確認',value:(x.scenario?.confirmed||[]).map(v=>v.date+' '+(v.kind==='BREAKOUT_CONFIRMED'?(v.date===e?.firstBreakoutDate?'首次收盤突破':'再次收盤突破'):names[v.kind]||v.kind)+' '+money(v.price)).join('\n')||'尚無收盤確認事件'},
- {title:'如果繼續走強',value:x.scenario?.bullish||'資料不足，先不產生價格條件。'},
- {title:'如果開始轉弱',value:x.scenario?.bearish||'資料不足，先不產生價格條件。'},
- {title:'還沒確認',value:(x.scenario?.pending||['資料是否完整']).join('；')+'\n'+(x.scenario?.neutral||'需取得完成日 K 才能判讀。')},
+ {title:'如果繼續走強',value:x.scenario?.bullish||(x.state==='INSUFFICIENT_DATA'?'資料不足，先不產生價格條件。':'尚無可用生命線，先觀察最近高點 '+money(t.recentHigh)+' 與成交量是否配合。')},
+ {title:'如果開始轉弱',value:x.scenario?.bearish||(x.state==='INSUFFICIENT_DATA'?'資料不足，先不產生價格條件。':'先觀察最近低點 '+money(t.recentLow)+' 與短期平均價，不能補造生命線支撐。')},
+ {title:'還沒確認',value:(x.scenario?.pending||(x.state==='INSUFFICIENT_DATA'?['等待資料補齊並核對完成日 K']:['等待新的完成日 K 形成符合規則的 K0'])).join('；')+'\n'+(x.scenario?.neutral||(x.state==='INSUFFICIENT_DATA'?'需取得足夠的完成日 K 才能判讀。':'目前沒有可用生命線，不能補造突破價位。'))},
  {title:'現在偏強還是偏弱？',value:(t.state==='STRONG'?'收盤高於5日平均價，5日平均價又高於20日平均價，近期價格偏強。':t.state==='WEAK'?'收盤低於5日平均價，5日平均價又低於20日平均價，近期價格偏弱。':t.state==='NEUTRAL'?'收盤與短中期平均價的位置沒有一致方向，暫列上下整理、繼續觀察。':'平均價資料不足，暫時無法確認目前方向。')+'\n目前'+(t.label||'資料不足')+'；收盤 '+money(x.close)+'。\n5日平均價（MA5）'+money(t.ma5)+'；10日 '+money(t.ma10)+'；20日平均價（MA20）'+money(t.ma20)+'。\n股價與5日平均價距離 '+fmt(t.deviation5)+'%；與20日距離 '+fmt(t.deviation20)+'%。\n上漲下跌力道（RSI，越高表示近期上漲較急）：5日 '+fmt(t.rsi5)+'；14日 '+fmt(t.rsi14)+'。\n'+(x.sourceVolumeAudit?.uncertain?'成交量來源版本有差異，暫不判讀是否放量。':'成交量為前5日平均的 '+fmt(t.volumeRatio)+' 倍；放量本身不保證繼續上漲。')},
  {title:'追價與波動風險',value:[...(x.chaseRisk?.reasons||[]),...x.riskWarnings.map(Layout.plain)].join('\n')+'\n近期平均每日波動金額（ATR14）'+money(t.atr14)+'。股價起伏較大（ATR）時，不能保證在指定價成交。'+(x.sourceVolumeAudit?.uncertain?'\n成交股數差異於 '+localTime(x.sourceVolumeAudit.latestRetrievedAt)+'（台北時間）核對，量能暫不確認。':'')},
  {title:'資料來源與注意事項',value:'行情 '+(x.dataAsOf||x.date||'尚未核對')+'；使用 '+(x.historyBarCount||0)+' 根完成日 K。'+(x.sourcePublishedAt?'\n研究套件產製時間 '+localTime(x.sourcePublishedAt)+'（台北時間）。':'')+'\n價格與成交量來源：'+(x.dataSource==='Verified official exchange daily archive'?'交易所官方逐日行情（成交量以股數計）':x.dataSource||'尚未提供')+'；價格口徑：'+(x.priceAdjustment?.basis==='UNADJUSTED_OFFICIAL_OHLC'?'交易所未還原成交價格':x.priceAdjustment?.basis||'這份分析未附口徑明細，須查原始行情')+(x.priceAdjustment?.corporateActionsVerified===false?'；除權息事件尚未完整核對':'')+'。\n研究版本 V9.3.2；'+(x.state==='INSUFFICIENT_DATA'?'資料不足':'已通過輸入檢查，部分長期指標可能不足')+'；其他缺項：'+missingText(x.dataCompleteness?.missing)+'。\n獲利表現還沒驗證；本報告提供技術研究參考，未來仍可能上漲或下跌，不能保證獲利。'}

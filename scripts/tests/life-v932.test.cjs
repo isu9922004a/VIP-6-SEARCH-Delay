@@ -79,3 +79,6 @@ test('independent outcomes include an immediately confirmed completed K0 crossin
 test('repeated breakout copy preserves the first confirmation and names the new cycle correctly',()=>{
  const a=C.evaluate(make([...bear,[21,24,20,23],[23,25,22,22],[22,24,21,23]])),confirmed=R.fields(a).details[2].value;assert.equal(a.lifecycleState,'BREAKOUT_INITIAL');assert.match(a.scenario.bullish,/再次突破/);assert.equal((confirmed.match(/首次收盤突破/g)||[]).length,1);assert.equal((confirmed.match(/再次收盤突破/g)||[]).length,1);
 });
+test('a valid price window without K0 is described as no pattern, separately from insufficient data',()=>{
+ const a=C.evaluate(make(Array.from({length:25},()=>[10,11,9,10]))),f=R.fields(a);assert.equal(a.state,'NEUTRAL');assert.equal(a.event,null);assert.match(f.title,/尚未出現/);assert.match(f.details[5].value,/形成符合規則的 K0/);assert.doesNotMatch(f.details[3].value+f.details[4].value+f.details[5].value,/資料不足|資料是否完整/);
+});
