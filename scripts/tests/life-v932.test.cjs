@@ -59,3 +59,7 @@ test('held confirmation cannot duplicate the original backtest breakout trigger'
  const initial=C.evaluate(make([...bear,[21,24,20,23]])),held=C.evaluate(make([...bear,[21,24,20,23],[23,25,23,24]])),later=trace([...bear,[21,24,20,23],[23,25,23,24],[24,26,23,25]]);
  assert.equal(initial.state,'TURNING_STRONG');assert.notEqual(held.state,'TURNING_STRONG');assert.equal(held.lifecycleState,'BREAKOUT_HELD');assert.equal(later.latestConfirmationDate,later.dataAsOf);
 });
+test('validated long window preserves events older than the 20-bar presentation and refuses mismatched windows',()=>{
+ const full=make([...bear,...Array.from({length:50},()=>[23,25,23,24])]),input={...full,sourceBars:full.sourceBars.slice(-20),reportBars:full.sourceBars};const a=C.evaluate(input);assert.equal(a.historyBarCount,54);assert.ok(a.events.length>0);assert.equal(a.event.eventAgeBars,50);assert.equal(a.referenceOnly,true);assert.equal(a.event.lifecycleState,'BREAKOUT_HELD');
+ const bad={...input,reportBars:input.reportBars.map(b=>({...b}))};bad.reportBars.at(-1).close=23.9;assert.equal(C.evaluate(bad).state,'INSUFFICIENT_DATA');assert.equal(Object.isFrozen(input.reportBars),false);
+});

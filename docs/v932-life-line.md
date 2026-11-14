@@ -4,6 +4,8 @@
 
 ## 修正原因與資料契約
 
+原分析 sourceBars 只有20根；改用相同來源的 reportBars 較長窗口前，逐根核對近期20根的日期與開高低收量一致。不同步就拒絕判讀，PNG 直接使用核心 validatedBars，避免兩種窗口混用。
+
 原核心已記錄首次突破，但 scenario 只依原始 side 產生，導致已突破後仍等待首次突破。原 state 也把歷史型態當作當下強弱，且無連續站穩狀態。
 
 保留 VERSION、MODEL、eventId、原 status 及原偵測公式，以維持介面與事件識別。新增 lifecycleState、currentRole、referenceOnly、originalEvent、firstBreakoutDate、firstBreakdownDate、latestConfirmationDate、lastTransitionDate、eventAgeBars、distanceFromCurrentPricePct、statusReason、dataAsOf。各次再次突破有獨立 trace eventId，原事件 ID 保留。
@@ -28,7 +30,7 @@ K3～K0 是連續四根完成日 K：K3→K2→K1 嚴格高點遞增且非低點
 - K2 10/19：最低 65.10；K1 10/20：最低 64.00。
 - K0 10/21：最低 70.40，確認低點不再降低；原始壓力 70.90。
 - 10/22 收盤 77.40：首次突破。下一根完成交易日 10/27 繼續站上，標記站穩。
-- 11/13 收盤 182.00，原線只供歷史參考。MA5 155.10、MA10 147.65、MA20 113.925；5日乖離約 17.34%，RSI5 約 88.38、RSI14 約 88.88、ATR14 約 11.17。近期偏強，追價風險較高。
+- 11/13 收盤 182.00，原線只供歷史參考。MA5 155.10、MA10 147.65、MA20 113.925；5日乖離約 17.34%，RSI5 約 88.43、RSI14 約 87.27、ATR14 約 9.93（61根已驗證歷史窗口）。近期偏強，追價風險較高。
 - 下一交易日觀察近十根高低點、平均價及成交量，不再要求首次突破 70.90。
 
 口徑為交易所未還原成交價格。corporateActionsVerified=false，不能宣稱完整除權息事件已核驗；不把不同口徑串接。原分析若未攜帶口徑明細，報告直接標明，不能補造。

@@ -21,6 +21,11 @@ function validate(input,asOf){
  if(analysis){
   if(report.validation?.technicalModelAvailable!==true)return {ok:false,reason:'研究日K尚未取得完整來源認證'};
   rows=report.sourceBars;datum=report.date;
+  if(Array.isArray(report.reportBars)&&report.reportBars.length>=rows.length){
+   const tail=report.reportBars.slice(-rows.length);
+   if(!rows.every((b,i)=>['date','open','high','low','close','volume'].every(k=>b[k]===tail[i]?.[k])))return {ok:false,reason:'歷史窗口與近期行情不同步'};
+   rows=report.reportBars;
+  }
  }else{
   if(report.completed!==true||report.isComplete===false||report.suspended===true)return {ok:false,reason:'尚未確認盤後完成日K'};
   if(report.priceAdjustment?.verified!==true||!report.priceAdjustment.basis)return {ok:false,reason:'除權息價格口徑尚未核驗'};
@@ -155,7 +160,7 @@ function evaluate(input,options={}){
    event:ev,events:events.slice(-p.maxEvents),close,line,distancePct:line?pct(close,line):null,
    previousState:ev?.lastTransition?.previousState||null,currentState:ev?.status||null,
    transitionDate:ev?.lastTransition?.transitionDate||null,transitionReason:ev?.lastTransition?.transitionReason||null,
-   ...info,...currentTrend,dataSource:input?.dataSource||input?.priceAdjustment?.source||null,priceAdjustment:input?.priceAdjustment||null,dataCompleteness:input?.dataQuality||{complete:true,missing:[]},scenario,lifecycleState:ev?.lifecycleState||"INSUFFICIENT_DATA",currentRole:ev?.currentRole||null,referenceOnly:ev?.referenceOnly??null,opposing,dataAsOf:v.date,performanceValidated:false,historyBarCount:bars.length,validatedAsOf:v.date});
+   ...info,...currentTrend,validatedBars:bars.map(b=>({...b})),dataSource:input?.dataSource||input?.priceAdjustment?.source||null,priceAdjustment:input?.priceAdjustment||null,dataCompleteness:input?.dataQuality||{complete:true,missing:[]},scenario,lifecycleState:ev?.lifecycleState||"INSUFFICIENT_DATA",currentRole:ev?.currentRole||null,referenceOnly:ev?.referenceOnly??null,opposing,dataAsOf:v.date,performanceValidated:false,historyBarCount:bars.length,validatedAsOf:v.date});
 }
 function currentEvidence(bars){
  const z=bars.at(-1),mean=n=>bars.length>=n?bars.slice(-n).reduce((s,b)=>s+b.close,0)/n:null;

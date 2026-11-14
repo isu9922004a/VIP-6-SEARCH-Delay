@@ -4,7 +4,7 @@
 const VERSION='KLINE_LIFE_03_REPORT_V1';
 const Layout=typeof module==='object'&&module.exports?require('./research-chart-layout-v921.js'):globalThis.ShitouChartLayout921;
 const fmt=x=>typeof x==='number'&&Number.isFinite(x)?x.toFixed(2):'資料不足';
-const money=x=>fmt(x)+' 元';
+const money=x=>typeof x==='number'&&Number.isFinite(x)?fmt(x)+' 元':'資料不足';
 const names={RESISTANCE_WATCH:'還沒突破上方壓力',BREAKOUT_INITIAL:'首次收盤突破',BREAKOUT_HELD:'突破後持續站穩',BREAKOUT_CONFIRMED:'首次收盤突破',BREAKOUT_FAILED:'突破後又跌回來',SUPPORT_WATCH:'下方支撐仍在觀察',SUPPORT_BROKEN:'跌破重要支撐',SUPPORT_RECLAIMED:'跌破後重新站回',RETEST_HELD:'回頭測試後仍守住',HISTORICAL_REFERENCE:'以前的重要參考價',INSUFFICIENT_DATA:'資料不足，無法確認'};
 function inspect(a){const study=Core.evaluate(a);return {...study,name:study.name||a?.name||'',code:study.code||a?.code||''};}
 function teaching(){return [
@@ -27,14 +27,14 @@ function fields(x){
  {title:'還沒確認',value:(x.scenario?.pending||['資料是否完整']).join('；')+'\n'+(x.scenario?.neutral||'需取得完成日 K 才能判讀。')},
  {title:'現在偏強還是偏弱？',value:'目前'+(t.label||'資料不足')+'；收盤 '+money(x.close)+'。\n5日平均價（MA5）'+money(t.ma5)+'；10日 '+money(t.ma10)+'；20日平均價（MA20）'+money(t.ma20)+'。\n股價與5日平均價距離 '+fmt(t.deviation5)+'%；與20日距離 '+fmt(t.deviation20)+'%。\n上漲下跌力道（RSI，越高表示近期上漲較急）：5日 '+fmt(t.rsi5)+'；14日 '+fmt(t.rsi14)+'。\n成交量為前5日平均的 '+fmt(t.volumeRatio)+' 倍；放量本身不保證繼續上漲。'},
  {title:'追價與波動風險',value:[...(x.chaseRisk?.reasons||[]),...x.riskWarnings.map(Layout.plain)].join('\n')+'\n近期平均每日波動金額（ATR14）'+money(t.atr14)+'。股價起伏較大（ATR）時，不能保證在指定價成交。'},
- {title:'資料來源與注意事項',value:'行情 '+(x.dataAsOf||x.date||'尚未核對')+'；使用 '+(x.historyBarCount||0)+' 根完成日 K。\n價格與成交量來源：'+(x.dataSource||'尚未提供')+'；價格口徑：'+(x.priceAdjustment?.basis||'這份分析未附口徑明細，須查原始行情')+'。\n研究版本 V9.3.2；'+(x.state==='INSUFFICIENT_DATA'?'資料不足':'已通過輸入檢查，部分長期指標可能不足')+'；其他缺項：'+((x.dataCompleteness?.missing||[]).join('；')||'未列出')+'。\n獲利表現還沒驗證；本報告提供技術研究參考，未來仍可能上漲或下跌，不能保證獲利。'}
+ {title:'資料來源與注意事項',value:'行情 '+(x.dataAsOf||x.date||'尚未核對')+'；使用 '+(x.historyBarCount||0)+' 根完成日 K。\n價格與成交量來源：'+(x.dataSource==='Verified official exchange daily archive'?'交易所官方逐日行情（成交量以股數計）':x.dataSource||'尚未提供')+'；價格口徑：'+(x.priceAdjustment?.basis||'這份分析未附口徑明細，須查原始行情')+'。\n研究版本 V9.3.2；'+(x.state==='INSUFFICIENT_DATA'?'資料不足':'已通過輸入檢查，部分長期指標可能不足')+'；其他缺項：'+((x.dataCompleteness?.missing||[]).join('；')||'未列出')+'。\n獲利表現還沒驗證；本報告提供技術研究參考，未來仍可能上漲或下跌，不能保證獲利。'}
  ];return {summary,details,teaching:teaching(),statusCode:e?.lifecycleState||'INSUFFICIENT_DATA',title,importantPrices:{line:e?.referenceOnly?null:e?.lifeLinePrice??null,high:t.recentHigh??null,low:t.recentLow??null}};
 }
 function lines(x){const v=fields(x);return [v.summary,...v.teaching,...v.details].map(f=>'【'+f.title+'】'+f.value);}
 function page(x,{document:doc=globalThis.document,displayCode=globalThis.ShitouReleaseV50?.displayCode||'V9.3.2',watermark=false,bars:source=[]}={}){
  if(!doc?.createElement)return null;
  const W=1284,M=72,WIDTH=W-2*M,probe=doc.createElement('canvas').getContext('2d');if(!probe)return null;
- const v=fields(x),bars=Array.isArray(source)&&source.at(-1)?.date===x.date?source.filter(b=>b.date<=x.date):[];
+ const v=fields(x);source=x.validatedBars||source;const bars=Array.isArray(source)&&source.at(-1)?.date===x.date?source.filter(b=>b.date<=x.date):[];
  const historical=x.event?bars.slice(Math.max(0,bars.findIndex(b=>b.date===x.event.k3Date)-3)):bars.slice(-30),recent=bars.slice(-10);
  let top=430;const sections=[];
  const cards=items=>{const blocks=Layout.blocks(probe,items,{top,width:WIDTH,size:38});sections.push({kind:'cards',blocks});top=blocks.at(-1).top+blocks.at(-1).height+36;};
@@ -62,8 +62,9 @@ function page(x,{document:doc=globalThis.document,displayCode=globalThis.ShitouR
    for(let i=0;i<=4;i++){const yy=p.y+i*p.height/4;q.strokeStyle='#29495d';q.lineWidth=1;q.beginPath();q.moveTo(p.x,yy);q.lineTo(p.x+p.width,yy);q.stroke();Layout.font(q,30);q.fillStyle='#b8d2e3';q.fillText(fmt(max-(max-min)*i/4),8,yy-15);}
    const maxVol=Math.max(...rows.map(b=>b.volume));
    rows.forEach((b,i)=>{const xx=xp(i);q.strokeStyle=q.fillStyle=b.close>=b.open?'#ff8b95':'#6adbb4';q.lineWidth=3;q.beginPath();q.moveTo(xx,yp(b.high));q.lineTo(xx,yp(b.low));q.stroke();q.fillRect(xx-g.dx*.26,Math.min(yp(b.open),yp(b.close)),Math.max(2,g.dx*.52),Math.max(3,Math.abs(yp(b.open)-yp(b.close))));q.fillRect(xx-g.dx*.26,s.top+980-b.volume/maxVol*70,Math.max(2,g.dx*.52),b.volume/maxVol*70);});
-   if(s.history&&x.event){q.strokeStyle='#ffdc8c';q.setLineDash([12,8]);q.beginPath();q.moveTo(p.x,yp(x.line));q.lineTo(p.x+p.width,yp(x.line));q.stroke();q.setLineDash([]);text('原始生命線 '+money(x.line)+'｜首次突破 '+(x.event.firstBreakoutDate||'尚無'),s.top+870,34);g.labels.forEach(e=>{q.strokeStyle='#b8d2e3';q.beginPath();q.moveTo(e.x+e.width/2,e.y+e.height);q.lineTo(e.anchorX,e.anchorY);q.stroke();q.fillStyle='#163b52';q.fillRect(e.x,e.y,e.width,e.height);text(e.key,e.y+5,38,'#ffdc8c',e.x+12);Layout.font(q,30);q.fillStyle='#eef6ff';q.fillText(e.date,e.x+12,e.y+52);});
-   }else{const trend=x.currentTrend||{};for(const [n,color] of [[5,'#ffdc8c'],[10,'#92ded4']]){q.strokeStyle=color;q.lineWidth=3;q.beginPath();let started=false;rows.forEach((b,i)=>{const j=bars.indexOf(b);if(j<n-1)return;const value=bars.slice(j-n+1,j+1).reduce((a,b)=>a+b.close,0)/n;if(!started){q.moveTo(xp(i),yp(value));started=true;}else q.lineTo(xp(i),yp(value));});q.stroke();}text('近十根高點 '+money(trend.recentHigh)+'｜低點 '+money(trend.recentLow),s.top+870,34);}
+   if(s.history&&x.event){const firstDate=x.event.firstBreakoutDate||x.event.firstBreakdownDate,firstIndex=rows.findIndex(b=>b.date===firstDate);if(firstIndex>=0){text((x.event.firstBreakoutDate?'首次突破 ':'首次跌破 ')+firstDate,s.top+205,32,'#ffdc8c');q.fillStyle='#ffdc8c';q.beginPath();q.arc(xp(firstIndex),yp(rows[firstIndex].close),8,0,Math.PI*2);q.fill();}
+   q.strokeStyle='#ffdc8c';q.setLineDash([12,8]);q.beginPath();q.moveTo(p.x,yp(x.line));q.lineTo(p.x+p.width,yp(x.line));q.stroke();q.setLineDash([]);text('原始生命線 '+money(x.line)+'｜首次突破 '+(x.event.firstBreakoutDate||'尚無'),s.top+870,34);g.labels.forEach(e=>{q.strokeStyle='#b8d2e3';q.beginPath();q.moveTo(e.x+e.width/2,e.y+e.height);q.lineTo(e.anchorX,e.anchorY);q.stroke();q.fillStyle='#163b52';q.fillRect(e.x,e.y,e.width,e.height);text(e.key,e.y+5,38,'#ffdc8c',e.x+12);Layout.font(q,30);q.fillStyle='#eef6ff';q.fillText(e.date,e.x+12,e.y+52);});
+   }else{text('黃線：5日平均價；青線：10日平均價',s.top+100,34,'#b8d2e3');const trend=x.currentTrend||{};for(const [n,color] of [[5,'#ffdc8c'],[10,'#92ded4']]){q.strokeStyle=color;q.lineWidth=3;q.beginPath();let started=false;rows.forEach((b,i)=>{const j=bars.indexOf(b);if(j<n-1)return;const value=bars.slice(j-n+1,j+1).reduce((a,b)=>a+b.close,0)/n;if(!started){q.moveTo(xp(i),yp(value));started=true;}else q.lineTo(xp(i),yp(value));});q.stroke();}text('近十根高點 '+money(trend.recentHigh)+'｜低點 '+money(trend.recentLow),s.top+870,34);}
    Layout.font(q,30);q.fillStyle='#b8d2e3';q.fillText(rows[0].date,p.x,s.top+1010);q.fillText(rows.at(-1).date,p.x+p.width-200,s.top+1010);text('紅：收盤高於或等於開盤；綠：收盤低於開盤｜下方為成交量',s.top+1045,30);
   }
   text('研究參考，不能保證獲利｜'+displayCode,H-95,34,'#b8d2e3');if(watermark&&globalThis.ShitouReportWatermark?.paint)globalThis.ShitouReportWatermark.paint(q,{width:W,height:H,type:'all'});
