@@ -55,3 +55,7 @@ test('V9.3 pattern detection, immutable event IDs and raw anchors remain exactly
 test('nearby opposing roles are detected across different K0 dates and disclose conflict',()=>{
  const {sourceBars}=require('../fixtures/v932-conflicting-levels.json'),a=C.evaluate({code:'9999',date:sourceBars.at(-1).date,sourceBars,validation:{technicalModelAvailable:true}});assert.equal(a.opposing,true);assert.equal(a.state,'NEUTRAL');assert.match(a.scenario.summary,/互相衝突/);assert.match(a.reason,/衝突/);
 });
+test('held confirmation cannot duplicate the original backtest breakout trigger',()=>{
+ const initial=C.evaluate(make([...bear,[21,24,20,23]])),held=C.evaluate(make([...bear,[21,24,20,23],[23,25,23,24]])),later=trace([...bear,[21,24,20,23],[23,25,23,24],[24,26,23,25]]);
+ assert.equal(initial.state,'TURNING_STRONG');assert.notEqual(held.state,'TURNING_STRONG');assert.equal(held.lifecycleState,'BREAKOUT_HELD');assert.equal(later.latestConfirmationDate,later.dataAsOf);
+});

@@ -72,6 +72,7 @@ function trace(seed,bars,params={}){
    if(b.high>price&&!above)note('BREAKOUT_ATTEMPT');
    if(above){
     streak++;
+    if(streak>=p.holdBars)x.latestConfirmationDate=b.date;
     if(streak===1){cycle++;move('BREAKOUT_INITIAL',b,i,'BREAKOUT_CONFIRMED');x.confirmedAt=b.date;x.firstBreakoutDate??=b.date;}
     else if(streak===p.holdBars)move('BREAKOUT_HELD',b,i);
     // A later bar must actually return near the line from above; standing above is not a retest.
@@ -140,7 +141,7 @@ function evaluate(input,options={}){
  let state='NEUTRAL';
  if(ev&&!opposing){
   if(ev.lastTransition?.transitionDate===v.date&&ev.status==='SUPPORT_BROKEN')state='TURNING_WEAK';
-  else if(ev.lastTransition?.transitionDate===v.date&&ev.status==='BREAKOUT_CONFIRMED')state='TURNING_STRONG';
+  else if(ev.lastTransition?.transitionDate===v.date&&ev.lastTransition.transitionReason==='BREAKOUT_CONFIRMED')state='TURNING_STRONG';
   else if(ev.side==='BULL'&&ev.status==='BULL_SUPPORT_WATCH'&&bars.at(-1).close>=ev.lifeLinePrice)state='STRONG';
   else if(ev.side==='BEAR'&&ev.status==='BEAR_RESISTANCE_WATCH'&&bars.at(-1).close<=ev.lifeLinePrice)state='WEAK';
  }
