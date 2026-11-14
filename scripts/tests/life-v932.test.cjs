@@ -63,3 +63,7 @@ test('validated long window preserves events older than the 20-bar presentation 
  const full=make([...bear,...Array.from({length:50},()=>[23,25,23,24])]),input={...full,sourceBars:full.sourceBars.slice(-20),reportBars:full.sourceBars};const a=C.evaluate(input);assert.equal(a.historyBarCount,54);assert.ok(a.events.length>0);assert.equal(a.event.eventAgeBars,50);assert.equal(a.referenceOnly,true);assert.equal(a.event.lifecycleState,'BREAKOUT_HELD');
  const bad={...input,reportBars:input.reportBars.map(b=>({...b}))};bad.reportBars.at(-1).close=23.9;assert.equal(C.evaluate(bad).state,'INSUFFICIENT_DATA');assert.equal(Object.isFrozen(input.reportBars),false);
 });
+test('source binding carries actual adjustment and calendar, rejects another stock and translates missing evidence',()=>{
+ const raw=require('../../data/research/2026-11-13/8099.json'),a=F.evaluate(raw),bound=C.withSource(a,raw),result=C.evaluate(bound);assert.equal(bound.priceAdjustment.basis,'UNADJUSTED_OFFICIAL_OHLC');assert.equal(result.priceAdjustment.basis,'UNADJUSTED_OFFICIAL_OHLC');assert.equal(C.evaluate(C.withSource(a,{...raw,stock:'2330'})).state,'INSUFFICIENT_DATA');
+ const text=R.lines(result).join('\n');assert.match(text,/交易所未還原成交價格/);assert.match(text,/除權息事件尚未完整核對/);assert.doesNotMatch(text,/BULL_PULLBACK_|MOMENTUM_CONTINUATION_|FLOW_FUNDAMENTAL_|UNADJUSTED_/);
+});

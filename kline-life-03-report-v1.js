@@ -6,6 +6,7 @@ const Layout=typeof module==='object'&&module.exports?require('./research-chart-
 const fmt=x=>typeof x==='number'&&Number.isFinite(x)?x.toFixed(2):'資料不足';
 const money=x=>typeof x==='number'&&Number.isFinite(x)?fmt(x)+' 元':'資料不足';
 const names={RESISTANCE_WATCH:'還沒突破上方壓力',BREAKOUT_INITIAL:'首次收盤突破',BREAKOUT_HELD:'突破後持續站穩',BREAKOUT_CONFIRMED:'首次收盤突破',BREAKOUT_FAILED:'突破後又跌回來',SUPPORT_WATCH:'下方支撐仍在觀察',SUPPORT_BROKEN:'跌破重要支撐',SUPPORT_RECLAIMED:'跌破後重新站回',RETEST_HELD:'回頭測試後仍守住',HISTORICAL_REFERENCE:'以前的重要參考價',INSUFFICIENT_DATA:'資料不足，無法確認'};
+function missingText(items){const translations={'BULL_PULLBACK_RECLAIM_V1:B9':'回檔研究的衝刺條件尚未驗證','MOMENTUM_CONTINUATION_V1:C6':'短線延續研究的均線條件尚未驗證','FLOW_FUNDAMENTAL_CONFIRM_V1:D3':'已公布營收證據未完整','FLOW_FUNDAMENTAL_CONFIRM_V1:D4':'主力買盤證據未完整','FLOW_FUNDAMENTAL_CONFIRM_V1:D5':'分公司買賣差額證據未完整'};return [...new Set((items||[]).map(v=>translations[v]||(/[A-Z_]+_V\d+:/.test(v)?'部分研究條件缺少可核對資料，完整代碼見技術資料':v)))].join('；')||'未列出';}
 function inspect(a){const study=Core.evaluate(a);return {...study,name:study.name||a?.name||'',code:study.code||a?.code||''};}
 function teaching(){return [
  {title:'新手教學｜生命線怎麼看？',value:'生命線是從過去 K 線找出的重要參考價，幫助觀察突破或跌破；不是保證漲跌的價格。每根日 K 記錄一天的開盤、最高、最低與收盤。'},
@@ -27,7 +28,7 @@ function fields(x){
  {title:'還沒確認',value:(x.scenario?.pending||['資料是否完整']).join('；')+'\n'+(x.scenario?.neutral||'需取得完成日 K 才能判讀。')},
  {title:'現在偏強還是偏弱？',value:'目前'+(t.label||'資料不足')+'；收盤 '+money(x.close)+'。\n5日平均價（MA5）'+money(t.ma5)+'；10日 '+money(t.ma10)+'；20日平均價（MA20）'+money(t.ma20)+'。\n股價與5日平均價距離 '+fmt(t.deviation5)+'%；與20日距離 '+fmt(t.deviation20)+'%。\n上漲下跌力道（RSI，越高表示近期上漲較急）：5日 '+fmt(t.rsi5)+'；14日 '+fmt(t.rsi14)+'。\n成交量為前5日平均的 '+fmt(t.volumeRatio)+' 倍；放量本身不保證繼續上漲。'},
  {title:'追價與波動風險',value:[...(x.chaseRisk?.reasons||[]),...x.riskWarnings.map(Layout.plain)].join('\n')+'\n近期平均每日波動金額（ATR14）'+money(t.atr14)+'。股價起伏較大（ATR）時，不能保證在指定價成交。'},
- {title:'資料來源與注意事項',value:'行情 '+(x.dataAsOf||x.date||'尚未核對')+'；使用 '+(x.historyBarCount||0)+' 根完成日 K。\n價格與成交量來源：'+(x.dataSource==='Verified official exchange daily archive'?'交易所官方逐日行情（成交量以股數計）':x.dataSource||'尚未提供')+'；價格口徑：'+(x.priceAdjustment?.basis||'這份分析未附口徑明細，須查原始行情')+'。\n研究版本 V9.3.2；'+(x.state==='INSUFFICIENT_DATA'?'資料不足':'已通過輸入檢查，部分長期指標可能不足')+'；其他缺項：'+((x.dataCompleteness?.missing||[]).join('；')||'未列出')+'。\n獲利表現還沒驗證；本報告提供技術研究參考，未來仍可能上漲或下跌，不能保證獲利。'}
+ {title:'資料來源與注意事項',value:'行情 '+(x.dataAsOf||x.date||'尚未核對')+'；使用 '+(x.historyBarCount||0)+' 根完成日 K。\n價格與成交量來源：'+(x.dataSource==='Verified official exchange daily archive'?'交易所官方逐日行情（成交量以股數計）':x.dataSource||'尚未提供')+'；價格口徑：'+(x.priceAdjustment?.basis==='UNADJUSTED_OFFICIAL_OHLC'?'交易所未還原成交價格':x.priceAdjustment?.basis||'這份分析未附口徑明細，須查原始行情')+(x.priceAdjustment?.corporateActionsVerified===false?'；除權息事件尚未完整核對':'')+'。\n研究版本 V9.3.2；'+(x.state==='INSUFFICIENT_DATA'?'資料不足':'已通過輸入檢查，部分長期指標可能不足')+'；其他缺項：'+missingText(x.dataCompleteness?.missing)+'。\n獲利表現還沒驗證；本報告提供技術研究參考，未來仍可能上漲或下跌，不能保證獲利。'}
  ];return {summary,details,teaching:teaching(),statusCode:e?.lifecycleState||'INSUFFICIENT_DATA',title,importantPrices:{line:e?.referenceOnly?null:e?.lifeLinePrice??null,high:t.recentHigh??null,low:t.recentLow??null}};
 }
 function lines(x){const v=fields(x);return [v.summary,...v.teaching,...v.details].map(f=>'【'+f.title+'】'+f.value);}
