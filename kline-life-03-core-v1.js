@@ -168,8 +168,8 @@ function withSource(analysis,raw){
  if(analysis?.validation?.technicalModelAvailable!==true)return analysis;
  const rows=raw?.canonicalBars||raw?.dailySeries,selected=analysis.reportBars||analysis.sourceBars;
  const match=String(raw?.stock||raw?.code||'')===String(analysis.code)&&String(raw?.closeDate||raw?.marketDate||'')===analysis.date&&Array.isArray(rows)&&Array.isArray(selected)&&selected.every(b=>{const r=rows.find(r=>r.date===b.date);return r&&['date','open','high','low','close','volume'].every(k=>r[k]===b[k]);});
- if(!match)return {...analysis,sourceBindingError:true};
- return {...analysis,priceAdjustment:raw.priceAdjustment?{...raw.priceAdjustment}:null,expectedTradingDates:raw.expectedTradingDates?.slice(),suspended:raw.suspended,corporateActionUnresolved:raw.corporateActionUnresolved,priceAdjustmentConsistent:raw.priceAdjustmentConsistent};
+ if(!match)return freeze({...analysis,sourceBindingError:true});
+ return freeze({...analysis,priceAdjustment:raw.priceAdjustment?{...raw.priceAdjustment}:null,expectedTradingDates:raw.expectedTradingDates?.slice(),suspended:raw.suspended,corporateActionUnresolved:raw.corporateActionUnresolved,priceAdjustmentConsistent:raw.priceAdjustmentConsistent});
 }
 function currentEvidence(bars){
  const z=bars.at(-1),mean=n=>bars.length>=n?bars.slice(-n).reduce((s,b)=>s+b.close,0)/n:null;
