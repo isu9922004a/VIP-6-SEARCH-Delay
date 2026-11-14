@@ -71,7 +71,8 @@ function trace(seed,bars,params={}){
   x.events.push(event);x.latestConfirmationDate=b.date;
   if(previous!==next)x.lastTransition={previousState:previous,currentState:next,transitionDate:b.date,transitionReason:kind};
  };
- for(let i=x.k0Index+1;i<bars.length;i++){
+ // At the completed K0 close both the pattern and its price evidence are known.
+ for(let i=x.k0Index;i<bars.length;i++){
   const b=bars[i],above=b.close>price,below=b.close<price;
   const note=kind=>x.events.push({kind,date:b.date,confirmedAt:null,price,barIndex:i});
   if(x.side==='BEAR'){

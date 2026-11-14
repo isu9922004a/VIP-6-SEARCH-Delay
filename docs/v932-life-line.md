@@ -10,7 +10,7 @@
 
 保留 VERSION、MODEL、eventId、原 status 及原偵測公式，以維持介面與事件識別。新增 lifecycleState、currentRole、referenceOnly、originalEvent、firstBreakoutDate、firstBreakdownDate、latestConfirmationDate、lastTransitionDate、eventAgeBars、distanceFromCurrentPricePct、statusReason、dataAsOf。各次再次突破有獨立 trace eventId，原事件 ID 保留。
 
-收盤嚴格大於才突破、收復；嚴格小於才跌破支撐。突破後相等算失守，原支撐相等不算跌破。兩根連續完成日 K 才站穩。回測必須在站穩之後另有回到關卡上下 0.5% 內的低點，前一根低點須離開容差區，收盤必須仍高於關卡。
+自K0完成收盤即檢查價位；若當天已突破或跌破，即記錄當天，不再重複等待首次確認。收盤嚴格大於才突破、收復；嚴格小於才跌破支撐。突破後相等算失守，原支撐相等不算跌破。兩根連續完成日 K 才站穩。回測必須在站穩之後另有回到關卡上下 0.5% 內的低點，前一根低點須離開容差區，收盤必須仍高於關卡。
 
 生命線角色與歷史進展分開：即使 referenceOnly，BREAKOUT_HELD 歷史仍保留。事件與最近轉換都超過 20 根，或距現價超過三倍 ATR14 且近十根未碰到，作歷史參考。選取有效關卡時比較現價距離、事件年齡與當日結構轉換；相近相反角色視為衝突。未使用固定百分比作通用失效判斷。
 

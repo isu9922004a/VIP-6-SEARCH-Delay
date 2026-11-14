@@ -67,3 +67,6 @@ test('source binding carries actual adjustment and calendar, rejects another sto
  const raw=require('../../data/research/2026-11-13/8099.json'),a=F.evaluate(raw),bound=C.withSource(a,raw),result=C.evaluate(bound);assert.equal(bound.priceAdjustment.basis,'UNADJUSTED_OFFICIAL_OHLC');assert.equal(result.priceAdjustment.basis,'UNADJUSTED_OFFICIAL_OHLC');assert.equal(C.evaluate(C.withSource(a,{...raw,stock:'2330'})).state,'INSUFFICIENT_DATA');
  const text=R.lines(result).join('\n');assert.match(text,/交易所未還原成交價格/);assert.match(text,/除權息事件尚未完整核對/);assert.doesNotMatch(text,/BULL_PULLBACK_|MOMENTUM_CONTINUATION_|FLOW_FUNDAMENTAL_|UNADJUSTED_/);
 });
+test('a completed K0 already beyond its line confirms immediately without waiting for another first breakout',()=>{
+ const up=trace([...bear.slice(0,3),[23,24,23,24]]),down=trace([...bull.slice(0,3),[8,10,7,8]]);assert.equal(up.lifecycleState,'BREAKOUT_INITIAL');assert.equal(up.firstBreakoutDate,up.signalDate);assert.equal(down.lifecycleState,'SUPPORT_BROKEN');assert.equal(down.firstBreakdownDate,down.signalDate);
+});
