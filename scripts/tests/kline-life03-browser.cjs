@@ -16,11 +16,11 @@ const root=path.resolve(__dirname,'../..');
   const result=await page.evaluate(()=>{
    const days=['2026-11-02','2026-11-03','2026-11-04','2026-11-05'],raw=[[10,12,9,11],[11,13,10,12],[12,14,11,13],[12,13,10.5,12.5]];
    const a={code:'2330',name:'測試個股',date:days.at(-1),validation:{technicalModelAvailable:true},sourceBars:raw.map((x,i)=>({date:days[i],open:x[0],high:x[1],low:x[2],close:x[3],volume:1000000}))};
-   const life=ShitouKlineLife03.evaluate(a),card=ShitouKlineLife03Report.fields(life),page=ShitouKlineLife03Report.page(life,{document,bars:a.sourceBars,displayCode:'V9.3'});
+   const life=ShitouKlineLife03.evaluate(a),card=ShitouKlineLife03Report.fields(life),page=ShitouKlineLife03Report.page(life,{document,bars:a.sourceBars,displayCode:'V9.3.2'});
    const c=page.renderExportRegion(),data=c.toDataURL('image/png'),audit=JSON.parse(c.dataset.life03Audit);
    return {version:ShitouReleaseV50.displayCode,model:life.model,lifePrice:life.line,status:life.state,card:card.summary.value,width:c.width,height:c.height,audit,png:data.slice(0,30)};
   });
-  assert.equal(result.version,'V9.3');assert.equal(result.model,'V9.2-KLINE-LIFE03');assert.equal(result.lifePrice,9);assert.equal(result.status,'STRONG');
+  assert.equal(result.version,'V9.3.2');assert.equal(result.model,'V9.2-KLINE-LIFE03');assert.equal(result.lifePrice,9);assert.equal(result.status,'STRONG');
   assert.equal(result.width,1284);assert.ok(result.height>=2778);assert.equal(result.audit.noClipping,true);assert.match(result.png,/^data:image\/png;base64,/);
   console.log(JSON.stringify({browser:true,result,nonCriticalPageErrors:errors.slice(0,3)}));
  }finally{await browser?.close();await new Promise(r=>server.close(r));}

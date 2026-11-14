@@ -3,12 +3,12 @@ const {test}=require('node:test'),assert=require('node:assert/strict'),fs=requir
 const L=require('../../research-chart-layout-v921.js'),C=require('../../four-models-research-v1.js'),Core=require('../../kline-life-03-core-v1.js'),R=require('../../kline-life-03-report-v1.js'),B=require('../fixtures/v921-protected-baseline.json');
 const sha=s=>crypto.createHash('sha256').update(s).digest('hex');
 test('protected calculators and five existing scanners remain identical to the release baseline',()=>{
- for(const [name,expected]of Object.entries(B.sources))assert.equal(sha(fs.readFileSync(name,'utf8').replaceAll('\r\n','\n')),expected,name);
+ for(const [name,oldExpected]of Object.entries(B.sources)){const expected=name==='kline-life-03-core-v1.js'?require('../fixtures/v932-life-baseline.json').coreSha256:oldExpected;assert.equal(sha(fs.readFileSync(name,'utf8').replaceAll('\r\n','\n')),expected,name);}
  const html=fs.readFileSync('index.html','utf8').replaceAll('\r\n','\n'),inline=[...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]);assert.equal(sha(JSON.stringify(inline)),B.inlineSha256);
 });
-test('verified 4939 snapshot, all research values, life events and rankings match the original evaluation',()=>{
+test('verified 4939 snapshot, all research values, rankings match the original evaluation; revised life events match the V9.3.2 regression baseline',()=>{
  const bytes=fs.readFileSync('data/research/2026-11-13/4939.json');assert.equal(sha(bytes),B.inputSha256);
- const a=C.evaluate(JSON.parse(bytes),{generatedAt:B.generatedAt});assert.equal(sha(JSON.stringify(a)),B.analysisSha256);assert.equal(sha(JSON.stringify(Core.evaluate(a))),B.lifeSha256);
+ const a=C.evaluate(JSON.parse(bytes),{generatedAt:B.generatedAt});assert.equal(sha(JSON.stringify(a)),B.analysisSha256);assert.equal(sha(JSON.stringify(Core.evaluate(a))),require('../fixtures/v932-life-baseline.json').lifeSha256);
  assert.equal(a.date,'2026-11-13');assert.equal(a.sourceBars.at(-1).close,61.9);
 });
 const bars=Array.from({length:84},(_,i)=>({date:new Date(Date.UTC(2026,0,1+i)).toISOString().slice(0,10),low:10,high:12,close:11,open:10.5})),event={side:'BULL',k3Date:bars[1].date,k2Date:bars[5].date,k1Date:bars[81].date,k0Date:bars[83].date};
@@ -25,5 +25,5 @@ test('partial and missing life-line data preserve missing states without invente
 });
 test('ABC renderer cannot evaluate life-line signals; life-line renderer cannot read ABC targets',()=>{
  const chart=fs.readFileSync('research-chart-v1.js','utf8'),life=fs.readFileSync('kline-life-03-report-v1.js','utf8');assert.doesNotMatch(chart,/ShitouKlineLife03|lifeAnchor/);assert.doesNotMatch(life,/nContinuation|unifiedResearch|projection\.price/);
- const html=fs.readFileSync('index.html','utf8');assert.ok(html.indexOf('research-chart-layout-v921.js?')<html.indexOf('kline-life-03-report-v1.js?'));assert.ok(html.includes('research-ui-v921.css?v=V9.3-PLAIN-FRONT1'));
+ const html=fs.readFileSync('index.html','utf8');assert.ok(html.indexOf('research-chart-layout-v921.js?')<html.indexOf('kline-life-03-report-v1.js?'));assert.ok(html.includes('research-ui-v921.css?v=V9.3.2-LIFE03-1'));
 });
