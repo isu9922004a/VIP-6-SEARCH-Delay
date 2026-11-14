@@ -7,7 +7,9 @@ on:
     paths:
       - 'version-v50.js'
       - 'index.html'
+      - 'market-outlook.html'
       - 'kline-life-03-*.js'
+      - 'research-life-source-audit-v932.js'
       - 'research-integration-v1.js'
       - 'research-report-v1.js'
       - 'research-chart-v1.js'
