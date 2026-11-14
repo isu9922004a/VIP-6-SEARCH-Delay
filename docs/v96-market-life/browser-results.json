@@ -1,0 +1,80 @@
+{
+  "status": "PASS",
+  "site": "https://v96-market.test/",
+  "checks": [
+    {
+      "stockDefaultPNGs": [
+        {
+          "stock": "8099",
+          "pages": 6,
+          "byteIdentical": true
+        },
+        {
+          "stock": "8039",
+          "pages": 8,
+          "byteIdentical": true
+        },
+        {
+          "stock": "2330",
+          "pages": 7,
+          "byteIdentical": true
+        }
+      ]
+    },
+    {
+      "entry": "index.html",
+      "width": 428,
+      "pages": 16,
+      "dimensions": "1284x2778",
+      "buttonClick": true,
+      "sourceVerified": true,
+      "singlePageDownload": true,
+      "physicalIPhone": false,
+      "realLINEApp": false
+    },
+    {
+      "entry": "market-outlook.html",
+      "width": 428,
+      "pages": 16,
+      "dimensions": "1284x2778",
+      "buttonClick": true,
+      "sourceVerified": true,
+      "singlePageDownload": true,
+      "physicalIPhone": false,
+      "realLINEApp": false
+    },
+    {
+      "entry": "index.html",
+      "width": 390,
+      "pages": 16,
+      "dimensions": "1284x2778",
+      "buttonClick": true,
+      "sourceVerified": true,
+      "singlePageDownload": true,
+      "physicalIPhone": false,
+      "realLINEApp": false
+    },
+    {
+      "entry": "market-outlook.html",
+      "width": 360,
+      "pages": 16,
+      "dimensions": "1284x2778",
+      "buttonClick": true,
+      "sourceVerified": true,
+      "singlePageDownload": true,
+      "physicalIPhone": false,
+      "realLINEApp": false
+    },
+    {
+      "entry": "index.html",
+      "width": 1440,
+      "pages": 16,
+      "dimensions": "1284x2778",
+      "buttonClick": true,
+      "sourceVerified": true,
+      "singlePageDownload": true,
+      "physicalIPhone": false,
+      "realLINEApp": false
+    }
+  ]
+}
