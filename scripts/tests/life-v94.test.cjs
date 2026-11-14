@@ -13,3 +13,28 @@ test('overflow adds independently titled pages and retains every evidence row wi
 test('current and historical charts use separate scales even when historical line moves far away',()=>{const x={...real,event:{...real.event,lifeLinePrice:0.001}},a=pages(real).map(audit).flatMap(x=>x.charts),b=pages(x).map(audit).flatMap(x=>x.charts);assert.equal(a[1].min,b[1].min);assert.equal(a[1].max,b[1].max);assert.equal(a[1].barDates.length,10);});
 test('teaching includes exact core exclusions, strict equality rules, two completed closes and independent retest',()=>{const a=pages(real).map(audit),s=a.filter(x=>x.title.includes('策略')).flatMap(x=>x.text.map(t=>t.value)).join('\n');for(const part of ['高點也一路降低','四根都是相鄰','相等不算突破','支撐相等不算跌破','0.5%','不是所有站穩都算回測'])assert.ok(s.includes(part)||part==='高點也一路降低'&&s.includes('高點一路升高、低點也一路降低'));assert.ok(s.includes('連續 2 根完成日 K'));});
 test('ZIP headers carry UTF-8 names, correct CRC and uncompressed independent file payloads',async()=>{const entries=[{name:'第1頁_分析.png',bytes:new Uint8Array([137,80,78,71,1,2,3])},{name:'第2頁_策略.png',bytes:new Uint8Array([137,80,78,71,4,5])}],bytes=new Uint8Array(await V.zip(entries).arrayBuffer()),v=new DataView(bytes.buffer);let offset=0;for(const e of entries){assert.equal(v.getUint32(offset,true),0x04034b50);assert.equal(v.getUint16(offset+6,true),0x0800);assert.equal(v.getUint32(offset+14,true),V.crc32(e.bytes));const len=v.getUint16(offset+26,true);assert.equal(new TextDecoder().decode(bytes.slice(offset+30,offset+30+len)),e.name);assert.deepEqual(bytes.slice(offset+30+len,offset+30+len+e.bytes.length),e.bytes);offset+=30+len+e.bytes.length;}assert.equal(v.getUint32(offset,true),0x02014b50);assert.equal(v.getUint16(bytes.length-12,true),2);});
+test('life-line price tags use the exact K3 source, independent K0 close and first confirmed crossing close',()=>{
+ const ps=pages(real),a=audit(ps[0]),chart=a.charts[0],v=R.fields(real).overview;
+ assert.equal(v.sourceDate,'2026-10-16');assert.equal(v.sourcePoint,'最高價');assert.equal(v.sourcePrice,70.9);assert.equal(v.k0Close,70.4);
+ assert.equal(chart.annotations.source.price,real.validatedBars.find(b=>b.date===real.event.k3Date).high);
+ assert.equal(chart.annotations.line.price,70.9);assert.equal(chart.annotations.line.label,'歷史生命線');
+ assert.equal(chart.annotations.firstCross.date,'2026-10-22');assert.equal(chart.annotations.firstCross.price,77.4);
+ assert.equal(chart.annotations.latest.price,182);assert.equal(chart.barDates.at(-1),real.date);
+ assert.deepEqual(chart.barDates,real.validatedBars.slice(real.validatedBars.findIndex(b=>b.date===chart.barDates[0])).map(b=>b.date));
+ const t=chart.annotations.tags.find(t=>t.kind==='LIFE_LINE'),p=chart.plot;
+ assert.equal(t.anchorY,p.y+p.height-(70.9-chart.min)/(chart.max-chart.min)*p.height);assert.equal(t.color,'#AFC2D5');
+});
+test('equal or very close tag prices never overlap and keep their actual price anchors',()=>{
+ const q=document.createElement('canvas').getContext('2d'),rows=[{date:'2026-11-13',open:50,high:51,low:49,close:50}],plot={x:214,y:200,width:766,height:400};
+ for(const price of [50,50.001,49.999,1,99]){
+  const model={date:'2026-11-13',event:{lifeLinePrice:price,currentRole:'SUPPORT',referenceOnly:false}},a=P.chartAnnotations(q,{rows,plot,min:0,max:100,history:false},model);
+  assert.equal(a.tags.length,2);const ts=[...a.tags].sort((a,b)=>a.y-b.y);assert.ok(ts[0].y+ts[0].height+12<=ts[1].y+.001);
+  for(const t of ts){assert.equal(t.anchorY,plot.y+plot.height-(t.price/100)*plot.height);assert.ok(t.y>=plot.y&&t.y+t.height<=plot.y+plot.height);assert.ok(t.x>=plot.x+plot.width);assert.ok(t.x+t.width<=1284-64);}
+ }
+});
+test('historical references never appear as active lines in the recent chart',()=>{
+ const a=pages(real).map(audit).flatMap(a=>a.charts);assert.equal(a[1].annotations.line,null);assert.equal(a[1].annotations.tags.filter(t=>t.kind==='LIFE_LINE').length,0);assert.equal(a[1].annotations.latest.date,real.date);
+});
+test('beginner risk explanations retain the original technical evidence without changing risk or trend',()=>{
+ const v=R.fields(real).overview;assert.deepEqual(v.technicalRiskReasons,real.chaseRisk.reasons);assert.ok(v.riskReasons.join('').includes('平均價較遠'));assert.doesNotMatch(v.riskReasons.join(''),/兩倍近期平均波動/);assert.ok(text(pages(real)).includes(real.chaseRisk.reasons[1]));assert.equal(real.currentTrend.state,'STRONG');assert.equal(real.chaseRisk.level,'ELEVATED');
+});
