@@ -25,5 +25,5 @@ test('partial and missing life-line data preserve missing states without invente
 });
 test('ABC renderer cannot evaluate life-line signals; life-line renderer cannot read ABC targets',()=>{
  const chart=fs.readFileSync('research-chart-v1.js','utf8'),life=fs.readFileSync('kline-life-03-report-v1.js','utf8');assert.doesNotMatch(chart,/ShitouKlineLife03|lifeAnchor/);assert.doesNotMatch(life,/nContinuation|unifiedResearch|projection\.price/);
- const html=fs.readFileSync('index.html','utf8');assert.ok(html.indexOf('research-chart-layout-v921.js?')<html.indexOf('kline-life-03-report-v1.js?'));assert.ok(html.includes('research-ui-v921.css?v=V9.3.2-LIFE03-2'));
+ const html=fs.readFileSync('index.html','utf8');assert.ok(html.indexOf('research-chart-layout-v921.js?')<html.indexOf('kline-life-03-report-v1.js?'));assert.ok(html.includes('research-ui-v921.css?v=V9.4-LIFE94-1'));
 });

@@ -24,9 +24,9 @@ try{
   const canvas=lifePage.renderExportRegion(),audit=JSON.parse(canvas.dataset.life03Audit);
   return {study:{state:study.state,line:study.line,code:study.code,date:study.date},audit,width:canvas.width,height:canvas.height,png:canvas.toDataURL('image/png'),display:ShitouReleaseV50?.displayCode||null,header:document.title};
  });
- assert.equal(result.display,'V9.3.2');assert.equal(result.study.state,'STRONG');assert.equal(result.study.line,9);
+ assert.equal(result.display,'V9.4');assert.equal(result.study.state,'STRONG');assert.equal(result.study.line,9);
  assert.equal(result.width,1284);assert.ok(result.height>=2778);assert.equal(result.audit.noClipping,true);
- assert.equal(result.audit.k3Date,'2026-11-02');assert.ok(result.header.includes('V9.3.2'));
+ assert.equal(result.audit.k3Date,'2026-11-02');assert.ok(result.header.includes('V9.4'));
  const buf=Buffer.from(result.png.split(',')[1],'base64');assert.equal(buf.readUInt32BE(16),1284);assert.equal(buf.readUInt32BE(20),result.height);
  fs.writeFileSync(path.join(dir,'v92-life03.png'),buf);
  fs.writeFileSync(path.join(dir,'results.json'),JSON.stringify({display:result.display,audit:result.audit,pageErrors:jsErrors},null,2));

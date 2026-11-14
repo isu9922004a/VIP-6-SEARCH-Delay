@@ -22,7 +22,7 @@ function fields(x){
  const summary={title:'先用一句話告訴我結論',value:(x.scenario?.summary||x.reason||names.INSUFFICIENT_DATA)+' '+anchor};
  const details=[
  {title:'這條生命線從哪來？',value:dates+'\n'+anchor+'。原始型態：'+(e?(e.side==='BULL'?'高點逐根升高，K0停止創高':'低點逐根降低，K0停止創低'):x.state==='INSUFFICIENT_DATA'?'資料不足':'尚未形成')+'\n首次突破：'+(e?.firstBreakoutDate||'尚無確認')+'；首次跌破：'+(e?.firstBreakdownDate||'尚無確認')+'\n目前：'+title},
- {title:'收盤離這條線多遠？',value:'收盤 '+money(x.close)+'；距原始生命線 '+fmt(x.distancePct)+'%。這是價格距離，不是報酬預測。'+'\n歷史生命線：'+(x.events||[]).map(e=>e.signalDate+' '+money(e.lifeLinePrice)).join('；')},
+ {title:'收盤離這條線多遠？',value:'收盤 '+money(x.close)+'；價格距離 '+(typeof x.distancePct==='number'&&x.distancePct>0?'+':'')+fmt(x.distancePct)+'%。這是價格距離，不是報酬預測。'+'\n歷史生命線：'+(x.events||[]).map(e=>e.signalDate+' '+money(e.lifeLinePrice)).join('；')},
  {title:'已確認',value:(x.scenario?.confirmed||[]).map(v=>v.date+' '+(v.kind==='BREAKOUT_CONFIRMED'?(v.date===e?.firstBreakoutDate?'首次收盤突破':'再次收盤突破'):names[v.kind]||v.kind)+' '+money(v.price)).join('\n')||'尚無收盤確認事件'},
  {title:'如果繼續走強',value:x.scenario?.bullish||(x.state==='INSUFFICIENT_DATA'?'資料不足，先不產生價格條件。':'尚無可用生命線，先觀察最近高點 '+money(t.recentHigh)+' 與成交量是否配合。')},
  {title:'如果開始轉弱',value:x.scenario?.bearish||(x.state==='INSUFFICIENT_DATA'?'資料不足，先不產生價格條件。':'先觀察最近低點 '+money(t.recentLow)+' 與短期平均價，不能補造生命線支撐。')},
@@ -75,5 +75,6 @@ function page(x,{document:doc=globalThis.document,displayCode=globalThis.ShitouR
  }
  return {width:W,height:H,dataset:{life03Audit:JSON.stringify(audit),release:displayCode,shareAsSingleImage:'true'},renderExportRegion:paint,toBlob(callback,type='image/png'){const c=paint();c.toBlob(blob=>{c.width=c.height=1;callback(blob);},type);}};
 }
-return Object.freeze({VERSION,inspect,fields,lines,page,teaching});
+function pages(x,options={}){const renderer=typeof module==='object'&&module.exports?require('./kline-life-03-pages-v94.js'):globalThis.ShitouLifePages94;return renderer.build(x,{fields:fields(x),teaching:teaching()},options);}
+return Object.freeze({VERSION,inspect,fields,lines,page,pages,teaching});
 });

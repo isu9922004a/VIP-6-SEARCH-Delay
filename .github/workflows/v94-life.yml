@@ -1,0 +1,71 @@
+name: V9.4 independent life-line pages
+on:
+  pull_request:
+    branches: [main]
+    paths: ['kline-life-03-*', 'research-integration-v1.js', 'index.html', 'version-v50.js', 'scripts/tests/life-v94*', '.github/workflows/v94-life.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CHROME_BIN: /usr/bin/google-chrome
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - run: npm ci
+      - run: npm test
+      - run: npm run test:contract
+      - run: npm run research:validate
+      - run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Actual desktop and iPhone simulation downloads, ZIP, sharing, cancellation and stale queries
+        run: node scripts/tests/life-v94-mobile-browser.cjs /tmp/v94-mobile
+      - name: Existing life-line PNG APIs and independent market entry remain compatible
+        run: |
+          node scripts/tests/life-v932-browser.cjs /tmp/v94-legacy
+          node scripts/tests/kline-life03-browser.cjs
+          node scripts/tests/kline-life-03-browser.cjs
+          node scripts/tests/research-v921-browser.cjs /tmp/v94-existing
+          node scripts/tests/market-v862-browser.cjs /tmp/v94-market
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v94-mobile-and-compatibility
+          path: |
+            /tmp/v94-mobile
+            /tmp/v94-existing
+            /tmp/v94-market
+            /tmp/v94-legacy
+  every-stock:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    env:
+      CHROME_BIN: /usr/bin/google-chrome
+      LIFE_SHARDS: '4'
+      LIFE_SHARD: '${{ matrix.shard }}'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - run: npm ci
+      - run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Entire official stock universe, closing-path oracle and point-in-time replay
+        run: node scripts/audit-life-v932-universe.cjs /tmp/v94-universe
+      - name: Encode every independent V9.4 PNG, including insufficient data; measure actual text and compare core facts
+        run: node scripts/tests/life-v94-universe-browser.cjs /tmp/v94-universe
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v94-all-stocks-${{ matrix.shard }}
+          path: |
+            /tmp/v94-universe/core-universe.json
+            /tmp/v94-universe/core-universe.csv
+            /tmp/v94-universe/v94-png-universe-*.json
+            /tmp/v94-universe/*.png
