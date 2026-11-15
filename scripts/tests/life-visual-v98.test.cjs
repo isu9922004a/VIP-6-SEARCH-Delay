@@ -11,7 +11,7 @@ test('V9.8 has exactly two independent 1284x2778 canvases and trophy, no portrai
  assert.equal(JSON.stringify(study),before);
 });
 test('true close, life source, MA and volume must not be copied from visual mock-up',()=>{
- const a=inspect(study)[0],m=a.model;assert.equal(m.close,106.5);assert.equal(m.line,102.5);assert.equal(m.range.high,129);assert.equal(m.range.low,94.1);assert.equal(m.ma[5],102.12);assert.equal(m.ma[10],105.36);assert.ok(Math.abs(m.ma[20]-106.165)<1e-9);assert.ok(Math.abs(m.ma[60]-74.43916666666668)<1e-8);
+ const a=inspect(study)[0],m=a.model;assert.equal(m.close,106.5);assert.equal(m.line,102.5);assert.equal(m.range.high,129);assert.equal(m.range.low,94.1);assert.ok(Math.abs(m.ma[5]-102.12)<1e-8);assert.ok(Math.abs(m.ma[10]-105.36)<1e-8);assert.ok(Math.abs(m.ma[20]-106.165)<1e-9);assert.ok(Math.abs(m.ma[60]-74.43916666666668)<1e-8);
  assert.equal(m.volume.last,3020013);assert.ok(Math.abs(m.volume.ratio-0.5030077401565141)<1e-8);assert.equal(m.chartBarDates.length,30);
  assert.deepEqual(m.markers.map(x=>x.label),['K3','K2','K1','K0']);assert.deepEqual(m.markers.map(x=>x.date),['2026-11-03','2026-11-04','2026-11-05','2026-11-06']);
 });
