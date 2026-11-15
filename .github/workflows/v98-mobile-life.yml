@@ -1,0 +1,35 @@
+name: V9.8 iPhone life-line report acceptance
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'life-line-visual-v98.js'
+      - 'kline-life-03-report-v1.js'
+      - 'research-integration-v1.js'
+      - 'version-v50.js'
+      - 'index.html'
+      - 'scripts/tests/life-visual-v98*'
+      - '.github/workflows/v98-mobile-life.yml'
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  visual-mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env: {CHROME_BIN: /usr/bin/google-chrome}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - run: npm ci
+      - run: npm test
+      - run: npm run test:contract
+      - run: npm run research:validate
+      - run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Render 2-page report, real 6925 / 8099 / 2330 and iPhone preview
+        run: node scripts/tests/life-visual-v98-browser.cjs /tmp/v98-browser
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v98-mobile-lifeline-png
+          path: /tmp/v98-browser
