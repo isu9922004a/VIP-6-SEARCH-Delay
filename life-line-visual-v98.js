@@ -38,7 +38,26 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
   }
   function round(x,y,w,h,r=16,color=C.card,stroke=C.line,lw=2){ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fillStyle=color;ctx.fill();if(stroke){ctx.lineWidth=lw;ctx.strokeStyle=stroke;ctx.stroke();}}
   function hr(x1,y1,x2,y2,color=C.line,width=2,dash=[]){ctx.strokeStyle=color;ctx.lineWidth=width;ctx.setLineDash(dash);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.setLineDash([]);}
-  function trophy(){round(22,14,90,93,18,'#11190F',null);fit('🏆',28,23,78,71,C.gold,800,65);}
+  function trophy(){
+   round(22,14,90,93,18,'#0C2637','#AD8D4E',1.5);
+   ctx.save();ctx.translate(67,22);
+   // Draw an actual vector trophy: color-emoji fonts are not available on all CI browsers.
+   const metallic=ctx.createLinearGradient(-24,0,25,0);
+   metallic.addColorStop(0,'#B87711');metallic.addColorStop(.26,'#FFE07A');metallic.addColorStop(.6,'#FFBE32');metallic.addColorStop(1,'#9E6410');
+   ctx.fillStyle=metallic;ctx.strokeStyle='#FFE29B';ctx.lineWidth=3;
+   for(const direction of [-1,1]){
+    ctx.beginPath();ctx.moveTo(direction*22,14);
+    ctx.bezierCurveTo(direction*43,6,direction*44,36,direction*30,46);
+    ctx.bezierCurveTo(direction*25,49,direction*19,48,direction*15,41);
+    ctx.lineWidth=4;ctx.stroke();
+   }
+   ctx.beginPath();ctx.moveTo(-24,8);ctx.lineTo(24,8);ctx.lineTo(22,29);
+   ctx.bezierCurveTo(21,48,11,56,2,59);ctx.lineTo(-2,59);
+   ctx.bezierCurveTo(-11,56,-21,48,-22,29);ctx.closePath();ctx.fill();ctx.lineWidth=2;ctx.stroke();
+   ctx.fillStyle='#FFE36B';ctx.fillRect(-5,57,10,16);
+   ctx.fillStyle=metallic;ctx.fillRect(-20,72,40,7);ctx.fillRect(-27,79,54,7);
+   ctx.restore();
+  }
   function header(sub){
    trophy();fit('石頭少爺 '+RELEASE+'｜',128,15,365,54,C.ink,820,43);fit('生命線研究',494,14,350,55,C.gold,800,46);
    fit(sub,129,82,790,30,C.muted,640,25);
@@ -57,7 +76,7 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
    fit(icon,x+15,302,52,40,color,720,34);
    fit(label,x+68,303,w-82,34,C.ink,730,29);
    fit(status,x+22,361,w-45,47,color,810,33);
-   paragraph(note,x+22,428,w-40,29,C.ink,2,1.12,580);
+   paragraph(note,x+22,415,w-40,26,C.ink,2,1.1,580);
   }
   function page1(){
    header('第 1 / 2 頁｜個股分析（趨勢・關鍵價位・隔日觀察）');
@@ -87,17 +106,17 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
     ['上方壓力',m.resistance[0]?'確認壓力 '+num(m.resistance[0].price)+'；近10日高 '+num(ranges.high)+'，突破須收盤確認。':'尚無確認壓力；近10日高 '+num(ranges.high)+' 只供觀察。',C.orange,'◇'],
     ['成交量',m.volume.verified?'當日 '+mkVol(m.volume.last)+'；量比 '+num(m.volume.ratio)+'，仍須確認量價配合。':'成交量來源待核對，不能據此判斷放量。',C.gold,'▥']
    ];
-   rows.forEach((r,i)=>{const y=1801+i*95;round(30,y,594,88,10,C.card2,'#739DB6',1);fit(r[3],40,y+23,48,38,r[2],800,32);fit(r[0],94,y+22,185,33,r[2],800,28);hr(280,y+5,280,y+81,'#7196AE',1);paragraph(r[1],294,y+13,314,27,C.ink,2,1.14,600);});
+   rows.forEach((r,i)=>{const y=1801+i*95;round(30,y,594,88,10,C.card2,'#739DB6',1);fit(r[3],40,y+23,48,38,r[2],800,32);fit(r[0],94,y+22,185,33,r[2],800,28);hr(280,y+5,280,y+81,'#7196AE',1);paragraph(r[1],294,y+5,314,24,C.ink,3,1.07,590);});
    round(649,1727,621,472,18,C.card,C.line,2);
    title(665,1742,'◎ 下一個交易日觀察重點',C.ink,575);
    const scenColors=[C.green,C.gold,C.risk],scenBG=['#0B3932','#483611','#4B1B30'],labels=['↗','～','↘'];
-   scenario.slice(0,3).forEach((s,i)=>{const y=1801+i*129;round(666,y,584,121,16,scenBG[i],C.line,1.5);round(680,y+22,68,68,34,scenColors[i],null);fit(labels[i],696,y+28,50,47,'#081F2E',850,35);fit('情境 '+['A','B','C'][i]+'｜'+s.title,764,y+9,473,31,scenColors[i],780,25);paragraph(s.text,765,y+52,458,27,C.ink,2,1.16,610);});
+   scenario.slice(0,3).forEach((s,i)=>{const y=1801+i*129;round(666,y,584,121,16,scenBG[i],C.line,1.5);round(680,y+22,68,68,34,scenColors[i],null);fit(labels[i],696,y+28,50,47,'#081F2E',850,35);fit('情境 '+['A','B','C'][i]+'｜'+s.title,764,y+9,473,31,scenColors[i],780,25);paragraph(s.text,765,y+43,458,24,C.ink,3,1.04,590);});
    round(14,2213,773,429,18,C.card,C.line,2);title(33,2226,'▦ 已確認的歷史紀錄（生命線事件）',C.ink,735);
    hr(61,2299,750,2299,'#87D3FF',4);
-   const hs=fours.map((v,i)=>({date:v.date,label:v.label,price:v.bar?(i===0?'高 '+num(v.bar.high):i===3?'收 '+num(v.bar.close):'高 '+num(v.bar.high)):'未確認',color:i===3?C.mint:C.gold}));
-   const makeHistorical=(dt,lab,kind,col)=>({date:dt,label:lab,price:dt&&barOn(dt)?'收 '+num(barOn(dt).close):'未確認',color:col});
+   const hs=fours.map((v,i)=>({date:v.date,label:v.label,price:v.bar?(i===3?num(v.bar.close):num(v.bar.high)):'未確認',color:i===3?C.mint:C.gold}));
+   const makeHistorical=(dt,lab,kind,col)=>({date:dt,label:lab,price:dt&&barOn(dt)?num(barOn(dt).close):'未確認',color:col});
    hs.push(makeHistorical(lastBreak,'跌破','broken',C.risk));hs.push(makeHistorical(finalReclaim?.date,'站回','reclaim',C.green));
-   hs.slice(0,6).forEach((e,i)=>{const x=24+i*126;round(x,2315,119,238,15,'#09243A',e.color,1.3);round(x+49,2287,18,18,9,e.color,null);fit(date(e.date),x+7,2338,106,27,C.ink,730,23);fit(e.label,x+12,2390,98,40,e.color,810,31);paragraph(e.price,x+8,2454,105,27,C.ink,2,1.2,740);});
+   hs.slice(0,6).forEach((e,i)=>{const x=24+i*126;round(x,2315,119,238,15,'#09243A',e.color,1.3);round(x+49,2287,18,18,9,e.color,null);fit(date(e.date),x+7,2338,106,27,C.ink,730,23);fit(e.label,x+12,2390,98,40,e.color,810,31);fit(i<3?'最高價':'收盤價',x+8,2449,107,22,C.muted,600,20);fit(e.price,x+8,2489,105,29,C.ink,780,24);});
    fit('K3 原始生命線 '+num(line)+' 元；歷史事件均以完成日收盤確認。',32,2580,735,25,C.muted,620,23);
    round(800,2213,470,429,18,'#292619',C.gold,2.5);
    title(814,2227,'☼ 目前綜合觀察',C.ink,439);
@@ -105,7 +124,7 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
    const trend='目前為「'+m.trend.label+'」，'+short(m.trend.explanation)+'。';
    const condition=m.resistance[0]?'後續觀察是否以收盤突破確認壓力 '+num(m.resistance[0].price)+' 元，並同時注意量能。':'尚無有效確認壓力，先看均線與量能是否配合。';
    paragraph(summary+' '+trend+' '+condition,821,2294,425,31,C.ink,8,1.26,630);
-   footer('第 1 / 2 頁　下一頁：生命線教學（K3～K0） ▷');
+   footer('第 1 / 2 頁　下一頁：生命線教學 ▷');
   }
   function drawChart(){
    const x=14,y=650,w=W-28,h=1061;round(x,y,w,h,18,'#05192B',C.line,2);
