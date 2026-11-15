@@ -1,0 +1,176 @@
+{
+  "status": "PASS",
+  "checks": [
+    "fourth strategy is a new scanner entry; legacy shadow API retained",
+    "zero candidates and insufficient data are visibly different",
+    "stop, duplicate-click guard, partial scope and recovery",
+    "actual full-market scan: 1965 stocks; 233 newborn; 3 ranked",
+    "all 233 newborn stocks: 1165 page plans match exact event, prices and dates; long content flows to independently titled pages",
+    "six strategy switches at 428/390/360/1440, readable single column, touch targets and no horizontal overflow",
+    "independently rendered 5 full-resolution PNG pages, matching stock/date/price, measured text fits",
+    "single-image share with active user gesture, cancellation and download fallback (API simulation; no real LINE app)",
+    "ZIP contains every independent page",
+    "stock switch, return and reload clear prior snapshot/exports"
+  ],
+  "scan": {
+    "date": "2026-11-13",
+    "counts": {
+      "total": 1965,
+      "parsed": 1965,
+      "excluded": 1018,
+      "industryQualified": 953,
+      "deepScanned": 1965,
+      "successful": 1885,
+      "insufficient": 97,
+      "serviceFailed": 0,
+      "unfinished": 0,
+      "newborn": 233,
+      "A": 0,
+      "B": 3,
+      "C": 230,
+      "formal": 3,
+      "top8": 3
+    },
+    "completed": true,
+    "top8": [
+      {
+        "code": "6176",
+        "score": 63.82,
+        "grade": "B",
+        "distancePct": 2.7989821883
+      },
+      {
+        "code": "6214",
+        "score": 60.86,
+        "grade": "B",
+        "distancePct": 2.5787965616
+      },
+      {
+        "code": "4585",
+        "score": 54.61,
+        "grade": "B",
+        "distancePct": 3.640776699
+      }
+    ],
+    "snapshotId": "2026-11-13|5e8d7223b3a00f47e11ebbdd10ccca367444a7670704481d39f64e3514964116"
+  },
+  "errors": [],
+  "physicalIPhone": false,
+  "realLINEApp": false,
+  "live": false,
+  "baselineSha": "4d73f6552e7432fa5691b473de8a27eb4ddd8b0c",
+  "tests": {
+    "npmTestPassed": 1083,
+    "failed": 0,
+    "skipped": 0,
+    "contractPassed": 50,
+    "newEngineUnitPassed": 62
+  },
+  "fiveStrategies": {
+    "baselineMain": "4d73f6552e7432fa5691b473de8a27eb4ddd8b0c",
+    "snapshot": "2026-11-13",
+    "marketSha256": "e8208cb5617cac682fc4908ca0cc850531f49c5f97f27b944162fb84c1907a40",
+    "exactMatch": true,
+    "strategies": [
+      "momentum",
+      "daytrade",
+      "strong",
+      "restaurant",
+      "structure"
+    ]
+  },
+  "backtest": {
+    "status": "BLOCKED_MISSING_POINT_IN_TIME_HISTORY",
+    "availableSessions": 120,
+    "newbornEvents": 20922,
+    "pointInTimeBlocked": 20922,
+    "completeSamples": 0,
+    "performanceValidated": false,
+    "summary": [
+      {
+        "group": "PURE_K0",
+        "horizon": 1,
+        "samples": 0,
+        "meanNetPct": null,
+        "positiveFraction": null
+      },
+      {
+        "group": "PURE_K0",
+        "horizon": 3,
+        "samples": 0,
+        "meanNetPct": null,
+        "positiveFraction": null
+      },
+      {
+        "group": "PURE_K0",
+        "horizon": 5,
+        "samples": 0,
+        "meanNetPct": null,
+        "positiveFraction": null
+      },
+      {
+        "group": "K0_DISTANCE",
+        "horizon": 1,
+        "samples": 0,
+        "meanNetPct": null,
+        "positiveFraction": null
+      },
+      {
+        "group": "K0_DISTANCE",
+        "horizon": 3,
+        "samples": 0,
+        "meanNetPct": null,
+        "positiveFraction": null
+      },
+      {
+        "group": "K0_DISTANCE",
+        "horizon": 5,
+        "samples": 0,
+        "meanNetPct": null,
+        "positiveFraction": null
+      },
+      {
+        "group": "K0_VOLUME",
+        "horizon": 1,
+        "samples": 0,
+        "meanNetPct": null,
+        "positiveFraction": null
+      },
+      {
+        "group": "K0_VOLUME",
+        "horizon": 3,
+        "samples": 0,
+        "meanNetPct": null,
+        "positiveFraction": null
+      },
+      {
+        "group": "K0_VOLUME",
+        "horizon": 5,
+        "samples": 0,
+        "meanNetPct": null,
+        "positiveFraction": null
+      },
+      {
+        "group": "K0_FULL_SCORE",
+        "horizon": 1,
+        "samples": 0,
+        "meanNetPct": null,
+        "positiveFraction": null
+      },
+      {
+        "group": "K0_FULL_SCORE",
+        "horizon": 3,
+        "samples": 0,
+        "meanNetPct": null,
+        "positiveFraction": null
+      },
+      {
+        "group": "K0_FULL_SCORE",
+        "horizon": 5,
+        "samples": 0,
+        "meanNetPct": null,
+        "positiveFraction": null
+      }
+    ]
+  }
+}

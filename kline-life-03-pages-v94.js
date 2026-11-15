@@ -36,6 +36,35 @@ function build(study,display,{document:doc=globalThis.document,watermark=false,p
   const lo=values.length?Math.min(...values):0,hi=values.length?Math.max(...values):1,pad=Math.max((hi-lo)*.12,Math.abs(hi)*.01,.01),min=lo-pad,max=hi+pad;
   const c={kind:'chart',rows,history,top,height,plot,min,max,means,title,event:history?e:null,volumeUncertain:!!study.sourceVolumeAudit?.uncertain};c.annotations=chartAnnotations(q,c,study);current.ops.push(c);current.charts.push({title,min,max,barDates:rows.map(b=>b.date),plot,annotations:c.annotations});y+=height+18;
  }
+ // The fourth strategy opts into its own page plan. Default V9.4 stock/market plans stay intact.
+ if(presentation?.costFilter){
+  const r=presentation.costFilter.record,details=presentation.costFilter.fields;
+  Object.assign(model,{strategy:r.strategy,eventId:r.eventId,distancePct:r.distancePct,score:r.score,grade:r.grade,formalCandidate:r.formalCandidate,snapshotId:r.proof?.snapshotId||null});
+  start('第 1 頁／今天為什麼入選',true);
+  metrics([['今天的生命線',money(r.lifeLinePrice),C.mint],['價格距離',number(r.distancePct)+'%',C.gold]],160);
+  metrics([['研究等級與分數',r.grade+'級・'+number(r.score),C.mint,44],['追價風險',r.riskLabel,C.risk,36]],160);
+  card(details[0].title,details[0].value);card(details[2].title,details[2].value);
+  card('現在怎麼看？',view.trendSummary+'\n'+details[6].value);
+  card('明天先注意','隔日若比前收高出3%以上，先留意追價風險。短線觀察價 '+money(r.k0Low)+'；原始生命線 '+money(r.lifeLinePrice)+'。兩者不代表安全買價。');
+  card(details[1].title,details[1].value);
+  start('第 2 頁／四根 K 棒怎麼形成？');
+  chart(bars.slice(Math.max(0,bars.length-8)),'圖 A｜今天剛完成的多方 K0',true,830);
+  card(display.teaching[1].title,display.teaching[1].value);
+  card('今天是哪四根？',details[8].value);
+  card('突破與跌破看收盤',display.teaching[2].value);
+  start('第 3 頁／明天可以觀察什麼？');
+  card('情境 A｜可繼續觀察',r.scenarios.A);
+  card('情境 B｜追價風險偏高',r.scenarios.B,{color:C.risk});
+  card('情境 C｜先不進場',r.scenarios.C,{color:C.risk});
+  priceCard('短線失效觀察價｜K0最低',r.k0Low,'用來觀察短線是否開始轉弱，不是保證停損成交價。',C.gold);
+  priceCard('原始生命線｜K3最低',r.lifeLinePrice,'收盤低於這條線，不能列入正式多方候選；仍須保留原始事件。',C.mint);
+  card('先看下一個收盤','盤中短暫穿越不等於正式突破或跌破。這份報告沒有隔日盤中行情，也不會自動下單。\n目前門檻只是研究設定；股價在生命線上方仍可能下跌。');
+  start('第 4 頁／完整技術證據與來源');
+  chart(bars.slice(-10),'圖 B｜最近股價、平均價與成交量',false,730);
+  card('研究與圖表根數','研究 '+bars.length+' 根完成日 K；圖 A '+Math.min(8,bars.length)+' 根；圖 B '+Math.min(10,bars.length)+' 根。兩張圖各自使用價格座標。');
+  for(const index of [5,4,6,9,7])card(details[index].title,details[index].value);
+  card('回頭測試與歷史參考',display.teaching[3].value);
+ }else{
  // Page 1: independently useful current analysis. Detailed provenance belongs on the technical page.
  start('第 1 頁／'+(presentation?.firstPageTitle||'個股分析'),true);
  const trend={STRONG:'目前偏強',WEAK:'目前偏弱',NEUTRAL:'盤整／待確認'}[t.state]||'資料不足';
@@ -75,6 +104,7 @@ function build(study,display,{document:doc=globalThis.document,watermark=false,p
  const previous=bars.slice(-6,-1),baseline=previous.length===5?previous.reduce((sum,b)=>sum+(b.volume||0),0)/5:null;
  card('成交量原始證據',study.sourceVolumeAudit?.uncertain?'成交量待核對，暫不作量能確認。\n封存 '+(study.sourceVolumeAudit.archiveLastVolume??'未提供')+' 股；核對來源 '+(study.sourceVolumeAudit.latestOfficialVolume??'未提供')+' 股。':'當日成交量 '+(bars.at(-1)?.volume??'資料不足')+' 股；前5根完成日 K 平均 '+(baseline===null?'資料不足':number(baseline)+' 股')+'。\n量能倍數依核心資料；放量本身不保證繼續上漲。');
  card('分析模型與研究限制','呈現版本 V9.4；判讀沿用 V9.3.2 核心。\n模型 '+(study.model||'尚未提供')+'；原始版本 '+(study.version||'尚未提供')+'。\n資料時間 '+(model.date||'尚未核對')+'；獲利表現尚未驗證。\n僅供研究；不影響選股資格、評分、排名，也不自動交易。');
+ }
  const count=pages.length;
  const descriptors=pages.map((plan,index)=>{
   const audit={version:VERSION,release,...(presentation?{instrumentType:presentation.instrumentType,unit:presentation.unit}:{}),page:index+1,pages:count,title:plan.title,width:W,height:H,model,charts:plan.charts,text:plan.ops.filter(o=>o.kind==='text').map(o=>({value:o.rows.join('\n'),x:o.x,y:o.y,width:o.width,height:o.height,size:o.size})),barDates:bars.map(b=>b.date),researchOnly:true,performanceValidated:false};
