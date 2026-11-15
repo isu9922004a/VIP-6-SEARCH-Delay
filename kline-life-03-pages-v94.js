@@ -50,7 +50,7 @@ function build(study,display,{document:doc=globalThis.document,watermark=false,p
   start('第 2 頁／四根 K 棒怎麼形成？');
   chart(bars.slice(Math.max(0,bars.length-8)),'圖 A｜今天剛完成的多方 K0',true,830);
   card(display.teaching[1].title,display.teaching[1].value);
-  card('今天是哪四根？',details[8].value);
+  card('今天是哪四根？','K3 '+e.k3Date+' 最低 '+money(r.lifeLinePrice)+'\nK2 '+e.k2Date+'\nK1 '+e.k1Date+'\nK0 '+e.k0Date+' 收盤 '+money(r.close)+'\n四根都是收盤後確認的有效交易日 K。完整數字見技術證據頁。');
   card('突破與跌破看收盤',display.teaching[2].value);
   start('第 3 頁／明天可以觀察什麼？');
   card('情境 A｜可繼續觀察',r.scenarios.A);
@@ -62,7 +62,7 @@ function build(study,display,{document:doc=globalThis.document,watermark=false,p
   start('第 4 頁／完整技術證據與來源');
   chart(bars.slice(-10),'圖 B｜最近股價、平均價與成交量',false,730);
   card('研究與圖表根數','研究 '+bars.length+' 根完成日 K；圖 A '+Math.min(8,bars.length)+' 根；圖 B '+Math.min(10,bars.length)+' 根。兩張圖各自使用價格座標。');
-  for(const index of [5,4,6,9,7])card(details[index].title,details[index].value);
+  for(const index of [5,4,6,8,10,9,7])card(details[index].title,details[index].value);
   card('回頭測試與歷史參考',display.teaching[3].value);
  }else{
  // Page 1: independently useful current analysis. Detailed provenance belongs on the technical page.
