@@ -1,6 +1,9 @@
 name: Validate and deploy V9.1 2560 and K-line reports
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths: ['strategy-2560-*.js', 'kline-attack-*.js', 'scripts/*v90*', 'scripts/*2560*', 'scripts/tests/*v90*', 'scripts/tests/*2560*', 'version-v50.js', 'research-report-v1.js', 'research-mobile-v1.css', 'scripts/tests/*.test.cjs', 'scripts/tests/*-browser.cjs', '.github/workflows/future-shares-v873-review.yml', 'index.html', 'market-outlook.html', 'stock-professional-v84.js', 'research-v83/*-simple-report.js', '.github/workflows/v90-2560-kline.yml']
   push:
     branches: ['feat/v90-2560-kline', 'feat/v91-2560-ma25-volume', 'fix/2560-date-alignment-volume-confirmed', 'main']
     paths: ['strategy-2560-*.js', 'kline-attack-*.js', 'scripts/*v90*', 'scripts/*2560*', 'scripts/tests/*v90*', 'scripts/tests/*2560*', 'version-v50.js', 'research-report-v1.js', 'research-mobile-v1.css', 'scripts/tests/*.test.cjs', 'scripts/tests/*-browser.cjs', '.github/workflows/future-shares-v873-review.yml', 'index.html', 'market-outlook.html', 'stock-professional-v84.js', 'research-v83/*-simple-report.js', '.github/workflows/v90-2560-kline.yml']
@@ -48,6 +51,7 @@ jobs:
           fc-match -f 'Selected Chinese fallback: %{family}\\n' ':lang=zh-tw'
           fc-list :lang=zh-tw family | sed -n '1,5p'
       - run: node scripts/audit-v90-universe.cjs /tmp/v90-universe
+      - run: node scripts/tests/market-startup-v972-browser.cjs /tmp/v90-market-startup
       - run: node scripts/tests/v90-browser.cjs /tmp/v90-browser
       - run: npm run test:browser -- /tmp/v90-existing-browser
       - run: npm run test:elliott-browser -- /tmp/v90-existing-waves
