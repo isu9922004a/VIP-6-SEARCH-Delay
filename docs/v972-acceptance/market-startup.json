@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "results": [
+    {
+      "name": "before",
+      "state": "AVAILABLE",
+      "date": "2026-11-13",
+      "close": 43675.12,
+      "kline": null
+    },
+    {
+      "name": "after",
+      "state": "AVAILABLE",
+      "date": "2026-11-13",
+      "close": 43675.12,
+      "kline": "AVAILABLE"
+    }
+  ]
+}

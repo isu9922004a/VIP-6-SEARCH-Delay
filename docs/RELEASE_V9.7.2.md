@@ -73,3 +73,5 @@ V9.4 舊分頁 API 保持相容，既有大盤報告、TOP 8 排名總覽、PNG/
 [第一頁](v972-acceptance/6925-P01.png)｜[第二頁](v972-acceptance/6925-P02.png)｜[技術證據頁](v972-acceptance/6925-P03.png)｜[全部獨立PNG](v972-acceptance/6925-all.zip)｜[修改前](v972-acceptance/6925-before.png)｜[428px手機預覽](v972-acceptance/preview-428.png)｜[實際數據](v972-acceptance/6925-data.json)｜[文字版](v972-acceptance/6925.txt)｜[操作結果](v972-acceptance/results.json)。圖片為正式行情經程式產出，沒有使用AI示意圖。
 
 最後版全市場結果：[1965檔／19244頁與K棒像素檢查](v972-acceptance/universe-summary.json)，0失敗。[原六套完整結果比對](v972-acceptance/selection-comparison.json)完全一致。既有市場清晰度CI揭露舊v84測試仍操作已撤除寶塔面板，已將舊匯出移到隔離測試夾具，保留PNG、ZIP、文字複製與下載全部驗收，沒有修改正式策略或忽略失敗。
+
+部署後獨立大盤K線檢查揭露原有啟動競態：行情先回來時，market.js可在K線攻防依賴載入前建立快照，導致攻防欄位為空。後續最小修正只移動market.js啟動位置到依賴之後；延遲依賴500ms的真實瀏覽器比較證明修正前欄位缺失、修正後AVAILABLE，指數收盤完全相同。另將原V9.1完整驗收加入PR階段，避免只在發布後才發現問題。模型與行情未修改。
