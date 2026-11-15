@@ -13,6 +13,33 @@ async function ready(doc=globalThis.document){if(!doc?.createElement)throw Error
 function build(study,{document:doc=globalThis.document,record=null,display=null,source=null,watermark=false}={}){
  if(!doc?.createElement)throw Error('圖片畫布不可用');
  const m=Legacy.model(study,{record,display,source}),bars=m.bars.slice(-30),last=bars.at(-1),line=m.line;
+
+ // Extending MA lines is allowed only with the exact validated, unadjusted official
+ // series matching EVERY existing completed K. The research core remains untouched.
+ const candidate=source?.dailySeries;
+ const sourceAgrees=!!(source&&String(source.stock||source.code)===m.code&&
+   source.closeDate===m.date&&source.completed===true&&source.volumeUnit==='shares'&&
+   source.dailySeriesMeta?.onlyCompletedBars===true&&
+   source.priceAdjustment?.verified===true&&
+   source.priceAdjustment?.basis==='UNADJUSTED_OFFICIAL_OHLC'&&
+   Array.isArray(candidate)&&candidate.length>=m.bars.length+29&&
+   candidate.every((b,i)=>b&&typeof b.date==='string'&&Number.isFinite(b.close)&&b.close>0&&
+     (i===0||candidate[i-1].date<b.date))&&
+   candidate.at(-1).date===m.date&&m.bars.every((b,i)=>{
+    const c=candidate[candidate.length-m.bars.length+i];
+    return ['date','open','high','low','close','volume'].every(k=>b[k]===c[k]);
+   }));
+ const extendedMA={};
+ for(const n of [5,10,20,60]){
+   const current=m.maSeries[n].slice(-bars.length);
+   const longer=sourceAgrees?bars.map((_,i)=>{
+     const pos=candidate.length-bars.length+i;
+     return pos<n-1?null:candidate.slice(pos-n+1,pos+1).reduce((sum,b)=>sum+b.close,0)/n;
+   }):null;
+   extendedMA[n]=longer&&Number.isFinite(longer.at(-1))&&
+     Number.isFinite(m.ma[n])&&Math.abs(longer.at(-1)-m.ma[n])<1e-7?longer:current;
+ }
+
  const ranges=m.range||{},lifeCurrent=finite(line)&&!m.referenceOnly&&m.currentRole==='SUPPORT';
  const scenario=m.scenarios||[],fours=m.four||[];
  const lastBreak=m.event?.firstBreakdownDate;
@@ -139,14 +166,14 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
    if(finite(line)&&!m.referenceOnly)levels.push({value:line,title:'生命線 '+num(line)+'（K3）',color:C.mint,kind:'line'});
    const firstRes=m.resistance?.find(z=>finite(z.price)&&z.price>m.close&&Math.abs(z.price-ranges.high)>.01);
    if(firstRes)levels.push({value:firstRes.price,title:'確認壓力 '+num(firstRes.price),color:C.orange,kind:'level'});
-   const vals=bars.flatMap(b=>[b.high,b.low]);for(const n of [5,10,20,60])vals.push(...m.maSeries[n].slice(-bars.length).filter(finite));for(const l of levels)vals.push(l.value);
+   const vals=bars.flatMap(b=>[b.high,b.low]);for(const n of [5,10,20,60])vals.push(...extendedMA[n].filter(finite));for(const l of levels)vals.push(l.value);
    const lo=Math.min(...vals),hi=Math.max(...vals),pad=Math.max((hi-lo)*.075,1),min=lo-pad,max=hi+pad;
    const scale=v=>p.y+(max-v)/(max-min)*p.h,step=p.w/bars.length,xAt=i=>p.x+step*(i+.5);
    for(let i=0;i<=7;i++){const yy=p.y+p.h*i/7;hr(left,yy,right,yy,C.grid,1);fit(num(max-(max-min)*i/7),1154,yy-13,110,25,C.muted,530,22);}
    for(let i=0;i<=6;i++)hr(left+p.w*i/6,p.y,left+p.w*i/6,p.y+p.h,C.grid,1);
    ctx.save();ctx.beginPath();ctx.rect(p.x,p.y,p.w,p.h);ctx.clip();
    const cols={5:C.ink,10:C.blue,20:C.green,60:C.gold};
-   for(const n of [60,20,10,5]){const series=m.maSeries[n].slice(-bars.length);ctx.strokeStyle=cols[n];ctx.lineWidth=n===5?3.5:4;ctx.beginPath();let started=false;series.forEach((v,i)=>{if(!finite(v)){started=false;return;}if(!started){ctx.moveTo(xAt(i),scale(v));started=true;}else ctx.lineTo(xAt(i),scale(v));});ctx.stroke();}
+   for(const n of [60,20,10,5]){const series=extendedMA[n];ctx.strokeStyle=cols[n];ctx.lineWidth=n===5?3.5:4;ctx.beginPath();let started=false;series.forEach((v,i)=>{if(!finite(v)){started=false;return;}if(!started){ctx.moveTo(xAt(i),scale(v));started=true;}else ctx.lineTo(xAt(i),scale(v));});ctx.stroke();}
    bars.forEach((b,i)=>{const col=b.close>b.open?C.up:b.close<b.open?C.down:C.muted,xx=xAt(i),wid=Math.max(5,step*.55);hr(xx,scale(b.high),xx,scale(b.low),col,2);ctx.fillStyle=col;ctx.fillRect(xx-wid/2,Math.min(scale(b.open),scale(b.close)),wid,Math.max(3,Math.abs(scale(b.open)-scale(b.close))));});
    for(const v of levels){hr(left,scale(v.value),right,scale(v.value),v.color,3,[13,9]);}
    ctx.restore();
@@ -208,7 +235,7 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
   if(pageno===1)page1();else page2();
   if(watermark&&root.ShitouReportWatermark)root.ShitouReportWatermark.apply(canvas);
  };
- const snapshot={code:m.code,name:m.name,date:m.date,close:m.close,line:m.line,state:m.lifecycleState,role:m.currentRole,referenceOnly:m.referenceOnly,ma:m.ma,range:m.range,volume:m.volume,events:m.events,markers:fours.map(k=>({label:k.label,date:k.date})),source:m.source,chartBarDates:bars.map(b=>b.date)};
+ const snapshot={code:m.code,name:m.name,date:m.date,close:m.close,line:m.line,state:m.lifecycleState,role:m.currentRole,referenceOnly:m.referenceOnly,ma:m.ma,range:m.range,volume:m.volume,events:m.events,markers:fours.map(k=>({label:k.label,date:k.date})),source:m.source,chartBarDates:bars.map(b=>b.date),chartMa60Available:extendedMA[60].filter(finite).length};
  return [1,2].map(i=>{
   const audit={version:VERSION,release:RELEASE,width:W,height:H,page:i,pages:2,title:i===1?'個股分析':'生命線形成教學',model:snapshot,chartBars:bars.length,trophy:true,reportOnly:true,originalEventId:m.eventId,researchOnly:true,affectsEligibility:false,affectsRanking:false,automaticTrade:false};
   const filename='石頭少爺_V9.8_'+m.code+'_'+(m.date||'日期待核對').replaceAll('-','')+'_P0'+i+'_'+(i===1?'個股分析':'生命線形成教學')+'.png';
