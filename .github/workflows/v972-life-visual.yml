@@ -1,8 +1,8 @@
-name: V9.7.2 all-stock visual report acceptance
+name: V9.7.2 legacy renderer regression (superseded by V9.8 for stock report)
 on:
   pull_request:
     branches: [main]
-    paths: ['life-line-visual-v972.js', 'assets/shitou-character-original-v972.*', 'kline-life-03-*', 'main-force-*', 'research-integration-v1.js', 'index.html', 'version-v50.js', 'scripts/tests/life-visual-v972*', 'scripts/fixtures/v972-protected-main.json', '.github/workflows/v972-life-visual.yml']
+    paths: ['life-line-visual-v972.js', 'assets/shitou-character-original-v972.*', 'scripts/tests/life-visual-v972*', 'scripts/fixtures/v972-protected-main.json']
   workflow_dispatch:
 permissions: {contents: read}
 jobs:
