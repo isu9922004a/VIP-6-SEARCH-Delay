@@ -22,6 +22,8 @@ on:
       - 'research-ui-v921.css'
       - 'stock-professional-v84.js'
       - 'scripts/tests/kline-life-03*'
+      - 'scripts/tests/life-v94-mobile-browser.cjs'
+      - 'scripts/tests/life-visual-v98-browser.cjs'
       - 'scripts/tests/research-context-r16-browser.cjs'
       - 'scripts/tests/v84-live-smoke.cjs'
       # Only the successfully published and versioned real forecast catalog
