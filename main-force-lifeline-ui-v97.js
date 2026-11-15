@@ -16,10 +16,10 @@ function fail(error){$('cost971Message').textContent='圖片尚未完成：'+(er
 function bound(x){if(!snapshot?.records?.includes(x)||x.date!==snapshot.date||x.proof?.snapshotId!==snapshot.snapshotId)throw Error('個股與目前掃描快照不一致，請重新開啟');}
 async function preview(make,x=null){
  if(!ready()||previewBusy)return;invalidate();const token=revision,current=snapshot;previewBusy=true;selection=x;$('cost971Message').textContent='正在準備圖片…';syncActions();
- try{if(x)bound(x);await doc.fonts.ready;if(token!==revision||current!==snapshot)return;const pages=make(current);if(!pages?.length)throw Error('沒有可顯示的報告頁面');if(token!==revision||current!==snapshot)return;const shown=await root.ShitouLifeViewer94.show(pages);if(token!==revision||current!==snapshot)return;if(!shown)throw Error($('life94Status')?.textContent||'圖片編碼或預覽未完成');$('cost971Message').textContent='圖片已備妥，可儲存或分享目前頁。';
+ try{if(x)bound(x);await doc.fonts.ready;if(x)await root.ShitouLifeVisual972.ready(doc);if(token!==revision||current!==snapshot)return;const pages=make(current);if(!pages?.length)throw Error('沒有可顯示的報告頁面');if(token!==revision||current!==snapshot)return;const shown=await root.ShitouLifeViewer94.show(pages);if(token!==revision||current!==snapshot)return;if(!shown)throw Error($('life94Status')?.textContent||'圖片編碼或預覽未完成');$('cost971Message').textContent='圖片已備妥，可儲存或分享目前頁。';
  }catch(e){if(token===revision){if(owned())root.closeInfographicPreviewV3328?.();root.ShitouLifeViewer94?.reset();root.ShitouImageShareV1?.clear();fail(e);}}finally{if(token===revision){previewBusy=false;syncActions();}}
 }
-function images(x){return preview(()=>R.pages(x,{document:doc}),x);}
+function images(x){return preview(()=>R.pages(x,{document:doc,visual:true}),x);}
 function rankingImages(){return preview(current=>P.pages(current,{document:doc}));}
 function card(x,rank=null){const view=P.stock(x),box=el('article',undefined,'cost97-card');box.dataset.code=x.code;box.dataset.eventId=x.eventId;box.dataset.snapshotId=x.proof?.snapshotId||'';if(rank)box.dataset.rank=String(rank);
  const head=el('div',undefined,'cost971-card-head');if(rank)head.append(el('span','TOP '+rank,'cost971-rank'));head.append(el('h3',x.name+'（'+x.code+'）'));box.append(head);

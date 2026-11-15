@@ -1,0 +1,337 @@
+{
+  "version": "LIFE_VISUAL_RESEARCH_V972",
+  "release": "V9.7.2",
+  "analysisVersion": "KLINE_LIFE_03_V1",
+  "analysisModel": "V9.2-KLINE-LIFE03",
+  "code": "6925",
+  "name": "意藍",
+  "date": "2026-11-13",
+  "close": 106.5,
+  "line": 102.5,
+  "distancePct": 3.9024390243902474,
+  "lifecycleState": "SUPPORT_RECLAIMED",
+  "currentRole": "SUPPORT",
+  "referenceOnly": false,
+  "eventId": "V9.2-KLINE-LIFE03|6925|BULL|2026-11-06|2026-11-03|102.5",
+  "event": {
+    "eventId": "V9.2-KLINE-LIFE03|6925|BULL|2026-11-06|2026-11-03|102.5",
+    "detectedAt": "2026-11-06",
+    "signalDate": "2026-11-06",
+    "confirmedAt": null,
+    "k0Date": "2026-11-06",
+    "k1Date": "2026-11-05",
+    "k2Date": "2026-11-04",
+    "k3Date": "2026-11-03",
+    "k0Index": 55,
+    "k1Index": 54,
+    "k2Index": 53,
+    "k3Index": 52,
+    "lifeLinePrice": 102.5,
+    "lifeLineType": "SUPPORT",
+    "side": "BULL",
+    "status": "SUPPORT_RECLAIMED",
+    "invalidationDate": "2026-11-12",
+    "dataVersion": "V9.2-KLINE-LIFE03",
+    "events": [
+      {
+        "kind": "SUPPORT_RECLAIMED_INTRADAY",
+        "date": "2026-11-06",
+        "confirmedAt": null,
+        "price": 102.5,
+        "barIndex": 55
+      },
+      {
+        "kind": "SUPPORT_BROKEN",
+        "date": "2026-11-10",
+        "confirmedAt": "2026-11-10",
+        "price": 102.5,
+        "barIndex": 57,
+        "eventId": "V9.2-KLINE-LIFE03|6925|BULL|2026-11-06|2026-11-03|102.5|0|SUPPORT_BROKEN|2026-11-10"
+      },
+      {
+        "kind": "SUPPORT_RECLAIMED_INTRADAY",
+        "date": "2026-11-11",
+        "confirmedAt": null,
+        "price": 102.5,
+        "barIndex": 58
+      },
+      {
+        "kind": "SUPPORT_RECLAIMED",
+        "date": "2026-11-11",
+        "confirmedAt": "2026-11-11",
+        "price": 102.5,
+        "barIndex": 58,
+        "eventId": "V9.2-KLINE-LIFE03|6925|BULL|2026-11-06|2026-11-03|102.5|0|SUPPORT_RECLAIMED|2026-11-11"
+      },
+      {
+        "kind": "SUPPORT_BROKEN",
+        "date": "2026-11-12",
+        "confirmedAt": "2026-11-12",
+        "price": 102.5,
+        "barIndex": 59,
+        "eventId": "V9.2-KLINE-LIFE03|6925|BULL|2026-11-06|2026-11-03|102.5|0|SUPPORT_BROKEN|2026-11-12"
+      },
+      {
+        "kind": "SUPPORT_RECLAIMED_INTRADAY",
+        "date": "2026-11-13",
+        "confirmedAt": null,
+        "price": 102.5,
+        "barIndex": 60
+      },
+      {
+        "kind": "SUPPORT_RECLAIMED",
+        "date": "2026-11-13",
+        "confirmedAt": "2026-11-13",
+        "price": 102.5,
+        "barIndex": 60,
+        "eventId": "V9.2-KLINE-LIFE03|6925|BULL|2026-11-06|2026-11-03|102.5|0|SUPPORT_RECLAIMED|2026-11-13"
+      }
+    ],
+    "lastTransition": {
+      "previousState": "SUPPORT_BROKEN",
+      "currentState": "SUPPORT_RECLAIMED",
+      "transitionDate": "2026-11-13",
+      "transitionReason": "SUPPORT_RECLAIMED"
+    },
+    "firstBreakoutDate": null,
+    "firstBreakdownDate": "2026-11-10",
+    "latestConfirmationDate": "2026-11-13",
+    "lifecycleState": "SUPPORT_RECLAIMED",
+    "eventAgeBars": 5,
+    "dataAsOf": "2026-11-13",
+    "lastTransitionDate": "2026-11-13",
+    "distanceFromCurrentPricePct": 3.9024390243902474,
+    "isHistoricallyValid": true,
+    "referenceOnly": false,
+    "originalEvent": {
+      "eventId": "V9.2-KLINE-LIFE03|6925|BULL|2026-11-06|2026-11-03|102.5",
+      "signalDate": "2026-11-06",
+      "k3Date": "2026-11-03",
+      "k2Date": "2026-11-04",
+      "k1Date": "2026-11-05",
+      "k0Date": "2026-11-06",
+      "side": "BULL",
+      "lifeLinePrice": 102.5,
+      "evidence": "K3至K1嚴格高點遞增或低點遞減；K0停止同方向創新極值；排除雙向同時成立"
+    },
+    "currentRole": "SUPPORT",
+    "isCurrentResistance": false,
+    "isCurrentSupport": true,
+    "statusReason": "2026-11-13 收盤確認 SUPPORT_RECLAIMED"
+  },
+  "events": [
+    {
+      "kind": "SUPPORT_RECLAIMED_INTRADAY",
+      "date": "2026-11-06",
+      "confirmedAt": null,
+      "price": 102.5,
+      "barIndex": 55
+    },
+    {
+      "kind": "SUPPORT_BROKEN",
+      "date": "2026-11-10",
+      "confirmedAt": "2026-11-10",
+      "price": 102.5,
+      "barIndex": 57,
+      "eventId": "V9.2-KLINE-LIFE03|6925|BULL|2026-11-06|2026-11-03|102.5|0|SUPPORT_BROKEN|2026-11-10"
+    },
+    {
+      "kind": "SUPPORT_RECLAIMED_INTRADAY",
+      "date": "2026-11-11",
+      "confirmedAt": null,
+      "price": 102.5,
+      "barIndex": 58
+    },
+    {
+      "kind": "SUPPORT_RECLAIMED",
+      "date": "2026-11-11",
+      "confirmedAt": "2026-11-11",
+      "price": 102.5,
+      "barIndex": 58,
+      "eventId": "V9.2-KLINE-LIFE03|6925|BULL|2026-11-06|2026-11-03|102.5|0|SUPPORT_RECLAIMED|2026-11-11"
+    },
+    {
+      "kind": "SUPPORT_BROKEN",
+      "date": "2026-11-12",
+      "confirmedAt": "2026-11-12",
+      "price": 102.5,
+      "barIndex": 59,
+      "eventId": "V9.2-KLINE-LIFE03|6925|BULL|2026-11-06|2026-11-03|102.5|0|SUPPORT_BROKEN|2026-11-12"
+    },
+    {
+      "kind": "SUPPORT_RECLAIMED_INTRADAY",
+      "date": "2026-11-13",
+      "confirmedAt": null,
+      "price": 102.5,
+      "barIndex": 60
+    },
+    {
+      "kind": "SUPPORT_RECLAIMED",
+      "date": "2026-11-13",
+      "confirmedAt": "2026-11-13",
+      "price": 102.5,
+      "barIndex": 60,
+      "eventId": "V9.2-KLINE-LIFE03|6925|BULL|2026-11-06|2026-11-03|102.5|0|SUPPORT_RECLAIMED|2026-11-13"
+    }
+  ],
+  "four": [
+    {
+      "label": "K3",
+      "date": "2026-11-03",
+      "bar": {
+        "date": "2026-11-03",
+        "open": 105.5,
+        "high": 112,
+        "low": 102.5,
+        "close": 102.5,
+        "volume": 1031047
+      }
+    },
+    {
+      "label": "K2",
+      "date": "2026-11-04",
+      "bar": {
+        "date": "2026-11-04",
+        "open": 106,
+        "high": 112.5,
+        "low": 106,
+        "close": 112.5,
+        "volume": 1396583
+      }
+    },
+    {
+      "label": "K1",
+      "date": "2026-11-05",
+      "bar": {
+        "date": "2026-11-05",
+        "open": 123.5,
+        "high": 123.5,
+        "low": 105,
+        "close": 109.5,
+        "volume": 1669738
+      }
+    },
+    {
+      "label": "K0",
+      "date": "2026-11-06",
+      "bar": {
+        "date": "2026-11-06",
+        "open": 98.6,
+        "high": 120,
+        "low": 98.6,
+        "close": 105,
+        "volume": 8380102
+      }
+    }
+  ],
+  "trend": {
+    "state": "NEUTRAL",
+    "label": "盤整待確認",
+    "explanation": "均線還沒同向"
+  },
+  "life": {
+    "label": "跌破後站回",
+    "explanation": "站回不等於轉強"
+  },
+  "risk": {
+    "label": "追價風險較高",
+    "reasons": [
+      "近期平均每日波動較大，價格可能快速上下變動",
+      "最近股價起伏較大（ATR）；這條線是參考價，不保證能剛好在這個價格成交"
+    ],
+    "explanation": "追高仍可能回跌"
+  },
+  "range": {
+    "high": 129,
+    "low": 94.1
+  },
+  "ma": {
+    "5": 102.11999999999999,
+    "10": 105.35999999999999,
+    "20": 106.165,
+    "60": 74.43916666666668
+  },
+  "volume": {
+    "verified": true,
+    "date": "2026-11-13",
+    "unit": "股",
+    "last": 3020013,
+    "average5": 6003909.6,
+    "ratio": 0.5030077401565141
+  },
+  "resistance": [
+    {
+      "kind": "CONFIRMED_SWING",
+      "role": "RESISTANCE",
+      "price": 123.5,
+      "date": "2026-11-05",
+      "confirmedAt": "2026-11-09",
+      "label": "確認壓力",
+      "color": "#FFB45E"
+    }
+  ],
+  "support": [
+    {
+      "kind": "LIFE_LINE",
+      "role": "SUPPORT",
+      "price": 102.5,
+      "date": "2026-11-06",
+      "confirmedAt": "2026-11-06",
+      "label": "生命線／支撐",
+      "color": "#8FF5D3"
+    }
+  ],
+  "insights": [
+    {
+      "label": "生命線",
+      "text": "收盤已站回 102.50，仍須觀察。"
+    },
+    {
+      "label": "短期趨勢",
+      "text": "均線還沒同向"
+    },
+    {
+      "label": "上方壓力",
+      "text": "123.50 元仍待收盤突破。"
+    },
+    {
+      "label": "成交量",
+      "text": "當日量為前5日平均 0.50 倍。"
+    }
+  ],
+  "conclusion": "站回不等於轉強。均線還沒同向。追高仍可能回跌。",
+  "scenarios": [
+    {
+      "title": "偏強觀察",
+      "color": "#8FF5D3",
+      "text": "收盤守住 102.50，再看均線與量能。"
+    },
+    {
+      "title": "繼續整理",
+      "color": "#FFD76A",
+      "text": "收盤在 102.50～123.50 間，方向待確認。"
+    },
+    {
+      "title": "轉弱警示",
+      "color": "#FF8C93",
+      "text": "收盤低於 102.50，重新檢查支撐風險。"
+    }
+  ],
+  "historyBarCount": 61,
+  "chartBarCount": 30,
+  "snapshotId": null,
+  "cost": null,
+  "source": "Verified official exchange daily archive",
+  "priceAdjustment": {
+    "verified": true,
+    "basis": "UNADJUSTED_OFFICIAL_OHLC",
+    "source": "交易所指定日未還原成交價格",
+    "corporateActionsVerified": false
+  },
+  "sourceVolumeAudit": null,
+  "performanceValidated": false,
+  "researchOnly": true,
+  "affectsEligibility": false,
+  "affectsRanking": false,
+  "automaticTrade": false
+}

@@ -17,7 +17,7 @@ fs.mkdirSync(out,{recursive:true});
   if(u.hostname==='127.0.0.1'){
    // A test-only seed seam; export handlers and report drawing remain production code.
    if(/\/(strong-stock-ui-v47|tower-integration)\.js$/.test(u.pathname)){
-    const source=fs.readFileSync(path.join(root,path.basename(u.pathname)),'utf8').replace('getLast:()=>last','setTestScan:s=>{last=s;render(s);},getLast:()=>last');
+    const seam=u.pathname.endsWith('/tower-integration.js')?'setTestScan:s=>{last=s;by(\'towerImage\').onclick=()=>exportImages(false);by(\'towerZip\').onclick=()=>exportImages(true);by(\'towerCopy\').onclick=()=>navigator.clipboard.writeText(exportText(last));by(\'towerDownload\').onclick=download;render(s);},getLast:()=>last':'setTestScan:s=>{last=s;render(s);},getLast:()=>last';const source=fs.readFileSync(path.join(root,path.basename(u.pathname)),'utf8').replace('getLast:()=>last',seam);
     return route.fulfill({status:200,contentType:'text/javascript; charset=utf-8',body:source});
    }return route.continue();
   }
@@ -78,7 +78,10 @@ fs.mkdirSync(out,{recursive:true});
  const scans=JSON.parse(require('zlib').gunzipSync(fs.readFileSync(path.join(root,'scripts/fixtures/v84-scan-recordings.json.gz'))));
  await page.evaluate(s=>{
   lastMomentumScanDataV3762=s.main;lastDayTradeScanDataV1=s.daytrade;
-  STRONG_STOCK_TEST_API_V47.setTestScan(s.strong);ShitouTowerIntegration.setTestScan(s.tower);
+  STRONG_STOCK_TEST_API_V47.setTestScan(s.strong);
+  // V9.7 replaced the fourth UI. Exercise archived tower exports in an isolated legacy fixture,
+  // without restoring old controls or scan handlers in the shipped application.
+  globalThis.__v84ModernTowerPanel=document.getElementById('towerGoldPanel');const legacy=document.createElement('section');legacy.id='towerGoldPanel';legacy.innerHTML=ShitouTowerDesign.controls();__v84ModernTowerPanel.replaceWith(legacy);ShitouTowerIntegration.setTestScan(s.tower);
   document.querySelectorAll('#strongStockResult .watermark-image-btn').forEach((b,i)=>b.id='testStrongWatermark'+i);
   // Archived 6-gate restaurant fixtures cannot masquerade as the signed V9.1 2560 model.
   const core=ShitouStrategy2560,scanner=ShitouStrategy2560Scanner;
@@ -150,6 +153,7 @@ fs.mkdirSync(out,{recursive:true});
  for(const [filter,selector] of textCopies){await exportTab(filter);const b=page.locator(selector);if(!await b.isVisible()){const more=b.locator('..').locator(':scope > .up-more-btn');if(await more.isVisible())await more.click();}console.log('TRY text clipboard',selector);const n=await page.evaluate(()=>__textCopies.length);await b.click();await page.waitForFunction(n=>__textCopies.length>n,n);assert.ok(await page.evaluate(()=>__textCopies.at(-1).trim().length>0));checks.push({button:selector,status:'PASS_TEXT_CLIPBOARD'});console.log('PASS text clipboard',selector);}
  for(const [filter,selector] of [['stock','#downloadTowerStockReportButton'],['momentum','#downloadMomentumFullReportButton'],['daytrade','#downloadDayTradeFullReportButton'],['strong','[onclick="downloadStrongStockTextV47()"]'],['tower','#towerDownload'],['restaurant','#restaurantText'],['restaurant','#restaurantJSON']]){await exportTab(filter);const b=page.locator(selector);if(!await b.isVisible()){const more=b.locator('..').locator(':scope > .up-more-btn');if(await more.isVisible())await more.click();}const [d]=await Promise.all([page.waitForEvent('download'),b.click()]);const file=path.join(out,'text-'+checks.length+path.extname(d.suggestedFilename()));await d.saveAs(file);assert.ok(fs.statSync(file).size>0);checks.push({button:selector,status:'PASS_TEXT_DOWNLOAD',originalFilenameLength:d.suggestedFilename().length});console.log('PASS text download',selector);}
  await page.evaluate(()=>ShitouWorkspaceV831.closeReport());
+ await page.evaluate(()=>{document.getElementById('towerGoldPanel').replaceWith(__v84ModernTowerPanel);});
  for(const width of [390,428,1440]){await page.setViewportSize({width,height:926});await page.evaluate(()=>ShitouWorkspaceV831.select('stock'));assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'viewport overflow '+width);await page.screenshot({path:path.join(out,'home-'+width+'.png')});}
  await page.screenshot({path:path.join(out,'home-mobile.png')});
  assert.deepEqual(errors,[]);fs.writeFileSync(path.join(out,'report-checks.json'),JSON.stringify({checks,errors,scope:'Recorded worker responses through real query buttons; report renderers and PNG pixels'},null,2));
