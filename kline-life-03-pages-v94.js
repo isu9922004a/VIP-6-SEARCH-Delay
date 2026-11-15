@@ -60,6 +60,7 @@ function build(study,display,{document:doc=globalThis.document,watermark=false,p
   priceCard('原始生命線｜K3最低',r.lifeLinePrice,'收盤低於這條線，不能列入正式多方候選；仍須保留原始事件。',C.mint);
   card('先看下一個收盤','盤中短暫穿越不等於正式突破或跌破。這份報告沒有隔日盤中行情，也不會自動下單。\n目前門檻只是研究設定；股價在生命線上方仍可能下跌。');
   start('第 4 頁／完整技術證據與來源');
+  if(wrap(study.name||'',CW,66).length>3)card('股票完整名稱',study.name);
   chart(bars.slice(-10),'圖 B｜最近股價、平均價與成交量',false,730);
   card('研究與圖表根數','研究 '+bars.length+' 根完成日 K；圖 A '+Math.min(8,bars.length)+' 根；圖 B '+Math.min(10,bars.length)+' 根。兩張圖各自使用價格座標。');
   for(const index of [5,4,6,8,10,9,7])card(details[index].title,details[index].value);
