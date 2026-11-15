@@ -1,0 +1,61 @@
+name: V9.7.2 all-stock visual report acceptance
+on:
+  pull_request:
+    branches: [main]
+    paths: ['life-line-visual-v972.js', 'assets/shitou-character-original-v972.*', 'kline-life-03-*', 'main-force-*', 'research-integration-v1.js', 'index.html', 'version-v50.js', 'scripts/tests/life-visual-v972*', 'scripts/fixtures/v972-protected-main.json', '.github/workflows/v972-life-visual.yml']
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  visual-mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env: {CHROME_BIN: /usr/bin/google-chrome}
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - run: npm ci
+      - run: npm test
+      - run: npm run test:contract
+      - run: npm run research:validate
+      - run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Actual stock buttons, every page, original portrait, PNG, ZIP and share fallbacks
+        run: node scripts/tests/life-visual-v972-browser.cjs /tmp/v972-browser
+      - name: Six-strategy result snapshot with the current fourth-strategy engine
+        run: npm run test:selection:v95 -- /tmp/v972-selection
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v972-mobile-and-selection
+          path: |
+            /tmp/v972-browser
+            /tmp/v972-selection
+  every-stock-visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix: {shard: [0, 1, 2, 3]}
+    env:
+      CHROME_BIN: /usr/bin/google-chrome
+      V972_SHARDS: '4'
+      V972_SHARD: '${{ matrix.shard }}'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - run: npm ci
+      - run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Entire official stock universe, core closing-path oracle and point-in-time replay
+        run: node scripts/audit-life-v932-universe.cjs /tmp/v972-universe
+      - name: Draw every new report page and encode every stock's first-page PNG
+        run: node scripts/tests/life-visual-v972-universe-browser.cjs /tmp/v972-universe
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v972-all-stocks-${{ matrix.shard }}
+          path: |
+            /tmp/v972-universe/core-universe.json
+            /tmp/v972-universe/v972-universe-*.json
+            /tmp/v972-universe/V972-*.png

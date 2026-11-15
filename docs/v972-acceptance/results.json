@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "live": false,
+  "physicalIPhone": false,
+  "realLINEApp": false,
+  "checks": [
+    "6925: real source, every page rendered with no clipping/overlap, correct dates/events and original PNG size",
+    "8099: real source, every page rendered with no clipping/overlap, correct dates/events and original PNG size",
+    "8039: real source, every page rendered with no clipping/overlap, correct dates/events and original PNG size",
+    "2330: real source, every page rendered with no clipping/overlap, correct dates/events and original PNG size",
+    "6150: real source, every page rendered with no clipping/overlap, correct dates/events and original PNG size",
+    "stock/date switches never retain the previous close, lifecycle or download",
+    "Canvas failure never leaves a blank or stale image/download",
+    "missing original portrait fails explicitly; no soldier or generated substitute is exported"
+  ]
+}
