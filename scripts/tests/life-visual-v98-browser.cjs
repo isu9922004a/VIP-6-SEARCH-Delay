@@ -29,7 +29,7 @@ const png=b=>{assert.equal(b.subarray(1,4).toString(),'PNG');assert.equal(b.read
    assert.equal(a.length,2);assert.equal(a[0].model.code,code);assert.equal(a[0].model.date,'2026-11-13');assert.equal(a[0].chartBars,30);
    const p=await page.evaluate(async()=>{const c=ShitouLifeViewer94.getState().pages[0].renderExportRegion();const png=c.toDataURL('image/png');c.width=c.height=1;return png;});
    const data=Buffer.from(p.split(',')[1],'base64');png(data);fs.writeFileSync(path.join(out,code+'-V98-P01.png'),data);
-   if(code==='6925'){assert.equal(a[0].model.close,106.5);assert.equal(a[0].model.line,102.5);assert.ok(Math.abs(a[0].model.ma[5]-102.12)<1e-8);assert.equal(a[0].model.volume.last,3020013);}
+   if(code==='6925'){assert.equal(a[0].model.close,106.5);assert.equal(a[0].model.line,102.5);assert.ok(Math.abs(a[0].model.ma[5]-102.12)<1e-8);assert.equal(a[0].model.chartMa60Available,30,'verified 160-day source must extend 30 plotted MA60 values');assert.equal(a[0].model.volume.last,3020013);}
    if(code==='2330')assert.equal(a[0].model.volume.verified,false);
    await page.locator('#life94Next').click();await page.waitForFunction(()=>document.getElementById('life94Status')?.textContent.includes('備妥')&&ShitouLifeViewer94.getState().index===1);
    const p2=await page.evaluate(()=>ShitouLifeViewer94.getState().pages[1].renderExportRegion().toDataURL('image/png'));const b2=Buffer.from(p2.split(',')[1],'base64');png(b2);if(code==='6925')fs.writeFileSync(path.join(out,code+'-V98-P02.png'),b2);
