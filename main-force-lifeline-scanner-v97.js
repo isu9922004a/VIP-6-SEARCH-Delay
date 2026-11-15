@@ -14,7 +14,7 @@ function context({market,manifest,calendar,liquidity,now=new Date()}){
 }
 async function scan(options={}){
  if(active)throw Error('掃描正在進行，請先停止或等待完成');
- const c=context(options),controller=new AbortController();active=controller;last=null;const records=[],startedAt=new Date().toISOString();let cursor=0;
+ const c=context(options),controller=new AbortController();c.snapshotId+='|'+globalThis.crypto.randomUUID();active=controller;last=null;const records=[],startedAt=new Date().toISOString();let cursor=0;
  const timeout=Math.min(60000,Math.max(100,options.timeout||12000)),retries=options.retries??1,concurrency=Math.min(8,Math.max(1,options.concurrency||4));
  function progress(){options.onProgress?.(Engine.summarize(records,{total:c.rows.length,completed:false,date:c.target,snapshotId:c.snapshotId}));}
  async function worker(){while(!controller.signal.aborted){const i=cursor++;if(i>=c.rows.length)return;const quote=c.rows[i],item=c.manifest.stocks[quote.code];let record;

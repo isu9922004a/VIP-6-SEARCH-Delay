@@ -52,7 +52,7 @@
         "distancePct": 3.640776699
       }
     ],
-    "snapshotId": "2026-11-13|5e8d7223b3a00f47e11ebbdd10ccca367444a7670704481d39f64e3514964116"
+    "snapshotId": "2026-11-13|5e8d7223b3a00f47e11ebbdd10ccca367444a7670704481d39f64e3514964116|756d4100-7938-4196-9e05-010639e597e8"
   },
   "errors": [],
   "physicalIPhone": false,
@@ -172,5 +172,11 @@
         "positiveFraction": null
       }
     ]
+  },
+  "kronosFrozenRegression": {
+    "instruments": 6,
+    "changedInputBlocked": true,
+    "expiredModelBlocked": true,
+    "productionModelChanged": false
   }
 }
