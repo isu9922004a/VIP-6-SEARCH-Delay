@@ -5,7 +5,7 @@ fs.mkdirSync(out,{recursive:true});
 const png=b=>{assert.equal(b.subarray(1,4).toString(),'PNG');assert.equal(b.readUInt32BE(16),1284);assert.equal(b.readUInt32BE(20),2778);assert.ok(b.length>15000);};
 (async()=>{
  const server=http.createServer((req,res)=>{const u=new URL(req.url,'http://localhost'),f=path.resolve(root,'.'+(u.pathname==='/'?'/index.html':decodeURIComponent(u.pathname)));if(!f.startsWith(root+path.sep)){res.writeHead(403);res.end();return;}fs.readFile(f,(e,b)=>{if(e){res.writeHead(404);res.end();return;}res.setHeader('Content-Type',f.endsWith('.js')?'application/javascript':f.endsWith('.json')?'application/json':f.endsWith('.css')?'text/css':f.endsWith('.html')?'text/html':'application/octet-stream');res.end(b);});});
- await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin='http://127.0.0.1:'+server.address().port+'/';
+ await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin=process.env.V98_LIVE_ORIGIN||'http://127.0.0.1:'+server.address().port+'/';
  let browser;
  try{
   browser=await chromium.launch({executablePath:process.env.CHROME_BIN||'/usr/bin/chromium',headless:true,args:['--no-sandbox']});
@@ -29,7 +29,7 @@ const png=b=>{assert.equal(b.subarray(1,4).toString(),'PNG');assert.equal(b.read
    assert.equal(a.length,2);assert.equal(a[0].model.code,code);assert.equal(a[0].model.date,'2026-11-13');assert.equal(a[0].chartBars,30);
    const p=await page.evaluate(async()=>{const c=ShitouLifeViewer94.getState().pages[0].renderExportRegion();const png=c.toDataURL('image/png');c.width=c.height=1;return png;});
    const data=Buffer.from(p.split(',')[1],'base64');png(data);fs.writeFileSync(path.join(out,code+'-V98-P01.png'),data);
-   if(code==='6925'){assert.equal(a[0].model.close,106.5);assert.equal(a[0].model.line,102.5);assert.equal(a[0].model.ma[5],102.12);assert.equal(a[0].model.volume.last,3020013);}
+   if(code==='6925'){assert.equal(a[0].model.close,106.5);assert.equal(a[0].model.line,102.5);assert.ok(Math.abs(a[0].model.ma[5]-102.12)<1e-8);assert.equal(a[0].model.volume.last,3020013);}
    if(code==='2330')assert.equal(a[0].model.volume.verified,false);
    await page.locator('#life94Next').click();await page.waitForFunction(()=>document.getElementById('life94Status')?.textContent.includes('備妥')&&ShitouLifeViewer94.getState().index===1);
    const p2=await page.evaluate(()=>ShitouLifeViewer94.getState().pages[1].renderExportRegion().toDataURL('image/png'));const b2=Buffer.from(p2.split(',')[1],'base64');png(b2);if(code==='6925')fs.writeFileSync(path.join(out,code+'-V98-P02.png'),b2);
