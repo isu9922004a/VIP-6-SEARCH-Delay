@@ -1,0 +1,16 @@
+#towerGoldPanel[data-cost97] {scroll-margin-top:20px}
+#towerGoldPanel[data-cost97] p {overflow-wrap:anywhere;line-height:1.65}
+.cost97-actions {display:flex;flex-wrap:wrap;gap:12px;margin:16px 0}
+.cost97-actions button,.cost97-card button,#cost97Research button {min-height:48px;padding:12px 18px;white-space:normal}
+.cost97-grid {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:16px;margin:16px 0}
+.cost97-card {padding:20px;background:#102E43;border:1px solid #345267;border-radius:14px;min-width:0}
+.cost97-price {display:block;font-size:1.8rem;color:#FFD76A}
+.cost97-line {color:#8FF5D3}
+.cost97-warning {color:#FF8C93}
+#cost97Results summary {padding:16px 8px;min-height:48px;cursor:pointer;font-weight:700}
+#cost97Results li {margin:8px 0;overflow-wrap:anywhere}
+#cost97Research {box-sizing:border-box;max-width:850px;width:calc(100% - 24px);max-height:calc(100dvh - 24px);overflow:auto;background:#0B2032;color:#EDF6FF;border:1px solid #345267;border-radius:16px;padding:24px}
+#cost97Research::backdrop {background:#000b}
+#cost97Research p {white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7}
+#cost97Research section {border-top:1px solid #345267;padding-top:12px;margin-top:20px}
+@media(max-width:600px){.cost97-grid{grid-template-columns:1fr}.cost97-actions{display:grid;grid-template-columns:1fr}#cost97Research{padding:18px}.cost97-card{padding:16px}}

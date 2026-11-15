@@ -1,0 +1,44 @@
+name: V9.7 official turnover verification
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ['Update TWSE TPEx market snapshot']
+    types: [completed]
+    branches: [main]
+  schedule:
+    - cron: '5,35 10-14 * * 1-5'
+permissions: {contents: write, pages: write, id-token: write}
+concurrency:
+  group: lifeline-turnover-v97
+  cancel-in-progress: false
+jobs:
+  facts:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: main, fetch-depth: 0}
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - name: Fetch actual official turnover and bind exact snapshot prices
+        run: node scripts/update-lifeline-liquidity-v97.cjs
+      - name: Publish facts without changing quotes or other strategies
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- lifeline-liquidity-v97.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'data: verify V9.7 official turnover'
+          git pull --rebase origin main
+          node - <<'NODE'
+          const m=require('./data/market/latest.json'),f=require('./lifeline-liquidity-v97.json');
+          if(m.tradeDateIso!==f.date||m.contentSha256!==f.snapshotContentSha256)throw Error('Snapshot advanced: retain failure and retry against new data');
+          NODE
+          git push origin HEAD:main
+  publish:
+    needs: facts
+    permissions: {contents: read, pages: write, id-token: write}
+    uses: ./.github/workflows/deploy-data-pages.yml
+    with: {artifact-name: lifeline-turnover-pages}

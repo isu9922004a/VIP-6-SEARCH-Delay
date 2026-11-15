@@ -7,7 +7,7 @@ const filters=[
  {key:'momentum',label:'① 主升段'},
  {key:'daytrade',label:'② 明日當沖'},
  {key:'strong',label:'③ 強勢飆股'},
- {key:'tower',label:'④ 寶塔線'},
+ {key:'tower',label:'④ 主力生命線成本'},
  {key:'restaurant',label:'⑤ 🌟2560戰法'},
  {key:'structure',label:'⑥ 結構反轉'}
 ];
@@ -125,7 +125,7 @@ function build(){
  const intro=el('p','workspace-v831-intro');intro.id='workspaceTabIntroduction';nav.append(intro);
  const advanced=el('details','workspace-v831-advanced'),summary=el('summary',null,'進階工具及版本資訊'),details=el('div','workspace-v831-advanced-content');
  const source=doc.querySelector('.header .version-pill');if(source)details.append(el('div',null,source.textContent||''));
- const tower=el('a',null,'前往寶塔線點金術');tower.href='#towerGoldPanel';tower.addEventListener('click',event=>{event.preventDefault();select('filters','tower');$('towerGoldPanel')?.scrollIntoView({block:'start'});});
+ const tower=el('a',null,'前往主力生命線成本');tower.href='#towerGoldPanel';tower.addEventListener('click',event=>{event.preventDefault();select('filters','tower');$('towerGoldPanel')?.scrollIntoView({block:'start'});});
  details.append(tower);
  const extra=el('button',null,'顯示策略研究附層與量價研究工具');extra.type='button';extra.id='workspaceAdvancedResearchToggle';
  extra.setAttribute('aria-pressed','false');
