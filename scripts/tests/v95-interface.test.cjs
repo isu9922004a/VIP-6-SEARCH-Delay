@@ -6,7 +6,7 @@ test('V9.5 preserves exact scanner, strategy, life report/share dependencies and
   let source=fs.readFileSync(name);
   // V9.7 adds a dedicated, opt-in page plan. Compare every byte of the original default path.
   if(name==='kline-life-03-pages-v94.js')source=Buffer.from(source.toString().replace(/ \/\/ The fourth strategy opts[\s\S]*? \}else\{\n(?= \/\/ Page 1:)/,'').replace(' }\n const count=pages.length;',' const count=pages.length;'));
-  if(name==='kline-life-03-report-v1.js')source=Buffer.from(source.toString().replace("if(options.visual){const v=typeof module==='object'&&module.exports?require('./life-line-visual-v972.js'):globalThis.ShitouLifeVisual972;return v.build(x,{...options,display:{fields:fields(x),teaching:teaching()}});}",''));
+  if(name==='kline-life-03-report-v1.js')source=Buffer.from(source.toString().replace(/if\(options\.visual\)\{const v=typeof module==='object'&&module\.exports\?require\('\.\/life-line-visual-v(?:972|98)\.js'\):globalThis\.ShitouLifeVisual(?:972|98);return v\.build\(x,\{\.\.\.options,display:\{fields:fields\(x\),teaching:teaching\(\)\}\}\);\}/,''));
   assert.equal(sha(source),expected,name);
  }
 });
@@ -15,5 +15,5 @@ test('research workbench navigation, tools and state handling remain exactly at 
 });
 test('V9.5 entry module is idempotent and cannot replace data, scanner or analysis functions',()=>{
  const s=fs.readFileSync('ui-simplify-v95.js','utf8');assert.match(s,/if\(doc.documentElement.dataset.uiSimplifyV95\)return/);assert.doesNotMatch(s,/(?:root|globalThis|window)\.(?:analyzeStock|run\w*Scan\w*|Shitou\w+)\s*=/);assert.doesNotMatch(s,/innerHTML\s*=|\.replaceAll\(/);
- const release=require('../../version-v50.js');assert.equal(release.displayCode,'V9.7.2');assert.equal(release.fileVersion,'V9.7.2');assert.match(release.cacheVersion,/^V9\.7\.2-/);assert.equal(release.life03Version,'KLINE_LIFE_03_V1');
+ const release=require('../../version-v50.js');assert.equal(release.displayCode,'V9.8');assert.equal(release.fileVersion,'V9.8');assert.match(release.cacheVersion,/^V9\.8-/);assert.equal(release.life03Version,'KLINE_LIFE_03_V1');
 });
