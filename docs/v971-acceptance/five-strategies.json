@@ -1,0 +1,13 @@
+{
+  "baseline": "8be9d81de7ea2a243e1e78f7b307dd3eaf0c68ee",
+  "date": "2026-11-13",
+  "marketSha256": "e8208cb5617cac682fc4908ca0cc850531f49c5f97f27b944162fb84c1907a40",
+  "exactMatch": true,
+  "strategies": [
+    "momentum",
+    "daytrade",
+    "strong",
+    "restaurant",
+    "structure"
+  ]
+}

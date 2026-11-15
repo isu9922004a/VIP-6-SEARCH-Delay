@@ -4,7 +4,7 @@ const fmt=n=>typeof n==='number'&&Number.isFinite(n)?n.toFixed(2):'資料不足'
 function fields(record){
  if(record?.kind!=='NEWBORN'||record.event?.k0Date!==record.date||record.seed?.eventId!==record.eventId||record.raw?.closeDate!==record.date)throw Error('報告必須綁定同一檔、同一天的新生 K0');
  const r=record,t=r.indicators,source=r.liquidityProof;
- return [{title:'今天為什麼入選？',value:(r.formalCandidate?'今天形成多方 K0，通過目前設定的資格與風險門檻，列為 '+r.grade+' 級研究。':'今天有新生多方 K0，但未列正式候選。')+'\n'+r.conclusion},
+ return [{title:'本交易日為什麼入選？',value:presenter().stock(r).conclusion},
  {title:'生命線不是主力真實成本',value:'這條線取過去四根 K 棒中 K3 的最低價，作為觀察支撐的重要位置；不能證明主力或法人實際買進成本。靠近這條線也不保證上漲。'},
  {title:'量能與流動性',value:'今天成交金額 '+(source&&r.tradeValue!==null?r.tradeValue.toLocaleString('zh-TW')+' 元':'待核對')+'；最低研究門檻三千萬元。\n量比是今天成交量相對前5個交易日平均的倍數：'+(r.volumeVerified?fmt(r.volumeRatio)+' 倍':'成交量待核對，暫不作量能確認')+'。'},
  {title:'明天可以觀察什麼？',value:'適合繼續觀察｜'+r.scenarios.A+'\n追價風險太高｜'+r.scenarios.B+'\n結構轉弱｜'+r.scenarios.C},
@@ -17,7 +17,8 @@ function fields(record){
  {title:'四根原始日 K 數字',value:['K3','K2','K1','K0'].map(k=>{const b=(r.raw.dailySeries||r.raw.sourceBars).find(b=>b.date===r.event[k.toLowerCase()+'Date']);return k+' '+b.date+'｜開 '+fmt(b.open)+'、高 '+fmt(b.high)+'、低 '+fmt(b.low)+'、收 '+fmt(b.close)+' 元；成交 '+b.volume+' 股。';}).join('\n')}];
 }
 function study(record){fields(record);const original=Core.evaluate(record.raw),e=record.event;return {...original,event:e,events:[e],code:record.code,name:record.name,date:record.date,dataAsOf:record.date,close:record.close,lifecycleState:e.lifecycleState,currentRole:e.currentRole,referenceOnly:e.referenceOnly,distancePct:record.distancePct,currentTrend:record.indicators,sourceVolumeAudit:record.volumeVerified?null:{uncertain:true,archiveLastVolume:record.raw.dailySeries?.at(-1)?.volume??null,latestOfficialVolume:record.liquidityProof?.volume??null},originalPrimaryEventId:original.event?.eventId||null,scenario:{summary:record.conclusion,bullish:record.scenarios.A,bearish:record.scenarios.C,pending:['隔日尚未發生，不能用盤後資料代替隔日行情'],confirmed:[]}};}
-function text(record){return ['石頭少爺 V9.7｜主力生命線成本',record.name+'（'+record.code+'）｜'+record.date,'收盤 '+fmt(record.close)+' 元｜生命線 '+fmt(record.lifeLinePrice)+' 元｜價格距離 '+fmt(record.distancePct)+'%','研究 '+record.grade+' 級｜'+record.riskLabel,...fields(record).map(f=>'【'+f.title+'】\n'+f.value)].join('\n\n');}
-function pages(record,options={}){const s=study(record),result=Pages.build(s,{fields:Report.fields(s),teaching:Report.teaching()},{...options,presentation:{release:'V9.7',instrumentType:'STOCK_COST_FILTER',unit:'元',reportTitle:'主力生命線成本',firstPageTitle:'今天為什麼入選',costFilter:{record,fields:fields(record)}}});for(const p of result)p.dataset.costLife97Audit=p.dataset.life94Audit;return result;}
+function presenter(){return typeof module==='object'&&module.exports?require('./main-force-lifeline-ranking-v971.js'):globalThis.ShitouCostRanking971;}
+function text(record){const P=presenter();return ['石頭少爺 '+P.RELEASE+'｜主力生命線成本',record.name+'（'+record.code+'）｜'+record.date,'收盤 '+fmt(record.close)+' 元｜生命線 '+fmt(record.lifeLinePrice)+' 元｜'+P.distance(record),'研究 '+record.grade+' 級｜'+record.riskLabel,...fields(record).map(f=>'【'+f.title+'】\n'+f.value)].map(v=>P.formatStockText(record,v)).join('\n\n');}
+function pages(record,options={}){const P=presenter(),s=study(record),result=Pages.build(s,{fields:Report.fields(s),teaching:Report.teaching()},{...options,presentation:{release:P.RELEASE,formatText:v=>P.formatStockText(record,v),instrumentType:'STOCK_COST_FILTER',unit:'元',reportTitle:'主力生命線成本',firstPageTitle:'本交易日為什麼入選',costFilter:{record,fields:fields(record)}}});for(const p of result)p.dataset.costLife97Audit=p.dataset.life94Audit;return result;}
 return Object.freeze({fields,study,text,pages});
 });

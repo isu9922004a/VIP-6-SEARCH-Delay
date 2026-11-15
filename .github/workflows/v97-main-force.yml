@@ -24,6 +24,8 @@ jobs:
         run: node scripts/audit-main-force-v97.cjs /tmp/v97-audit
       - name: Actual scan, stop, research, measured PNG pages, download, ZIP and share fallbacks
         run: node scripts/tests/main-force-v97-browser.cjs /tmp/v97-browser
+      - name: TOP 8 counts, direct stock images, snapshot consistency and real ranking PNGs
+        run: V971_BASELINE_SCAN=/tmp/v97-audit/scan.json node scripts/tests/main-force-v971-browser.cjs /tmp/v971-browser
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -31,3 +33,4 @@ jobs:
           path: |
             /tmp/v97-audit
             /tmp/v97-browser
+            /tmp/v971-browser

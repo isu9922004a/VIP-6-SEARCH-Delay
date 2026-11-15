@@ -41,12 +41,14 @@ function build(study,display,{document:doc=globalThis.document,watermark=false,p
   const r=presentation.costFilter.record,details=presentation.costFilter.fields;
   Object.assign(model,{strategy:r.strategy,eventId:r.eventId,distancePct:r.distancePct,score:r.score,grade:r.grade,formalCandidate:r.formalCandidate,snapshotId:r.proof?.snapshotId||null});
   start('第 1 頁／今天為什麼入選',true);
-  metrics([['今天的生命線',money(r.lifeLinePrice),C.mint],['價格距離',number(r.distancePct)+'%',C.gold]],160);
+  metrics([['K3 生命線參考價',money(r.lifeLinePrice),C.mint],[r.distancePct===0?'收盤與生命線相同':r.distancePct<0?'收盤比生命線低':'收盤比生命線高',number(Math.abs(r.distancePct))+'%',C.gold]],160);
   metrics([['研究等級與分數',r.grade+'級・'+number(r.score),C.mint,44],['追價風險',r.riskLabel,C.risk,36]],160);
-  card(details[0].title,details[0].value);card(details[2].title,details[2].value);
+  card(details[0].title,details[0].value);
   card('現在怎麼看？',view.trendSummary+'\n'+details[6].value);
   card('明天先注意','隔日若比前收高出3%以上，先留意追價風險。短線觀察價 '+money(r.k0Low)+'；原始生命線 '+money(r.lifeLinePrice)+'。兩者不代表安全買價。');
   card(details[1].title,details[1].value);
+  // Use the remaining first-page space for actual recent prices, without adding a blank page.
+  if(BOTTOM-y>=618)chart(bars.slice(-10),'圖｜最近股價與生命線的位置',false,Math.min(900,BOTTOM-y-18));
   start('第 2 頁／四根 K 棒怎麼形成？');
   chart(bars.slice(Math.max(0,bars.length-8)),'圖 A｜今天剛完成的多方 K0',true,830);
   card(display.teaching[1].title,display.teaching[1].value);
@@ -63,7 +65,7 @@ function build(study,display,{document:doc=globalThis.document,watermark=false,p
   if(wrap(study.name||'',CW,66).length>3)card('股票完整名稱',study.name);
   chart(bars.slice(-10),'圖 B｜最近股價、平均價與成交量',false,730);
   card('研究與圖表根數','研究 '+bars.length+' 根完成日 K；圖 A '+Math.min(8,bars.length)+' 根；圖 B '+Math.min(10,bars.length)+' 根。兩張圖各自使用價格座標。');
-  for(const index of [5,4,6,8,10,9,7])card(details[index].title,details[index].value);
+  for(const index of [5,2,4,6,8,10,9,7])card(details[index].title,details[index].value);
   card('回頭測試與歷史參考',display.teaching[3].value);
  }else{
  // Page 1: independently useful current analysis. Detailed provenance belongs on the technical page.
