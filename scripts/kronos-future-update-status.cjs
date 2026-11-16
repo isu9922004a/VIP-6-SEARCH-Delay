@@ -20,7 +20,7 @@ function promoteVerifiedLive(old,next){
 function mayReplace(old,next){
  if(old?.schema!==SCHEMA)return true;
  if(old.marketDate!==next.marketDate)return old.marketDate<next.marketDate;
- if(old.state==='READY'&&old.stage==='VERIFIED_LIVE'&&old.identity&&old.identity===next.identity&&old.modelDate===next.modelDate&&next.stage!=='VERIFIED_LIVE')return false;
+ if(old.state==='READY'&&old.stage==='VERIFIED_LIVE'&&old.identity&&old.identity===next.identity&&old.modelDate===next.modelDate&&next.state==='READY'&&next.stage!=='VERIFIED_LIVE')return false;
  if(BigInt(old.runId)!==BigInt(next.runId))return BigInt(old.runId)<BigInt(next.runId);
  if(old.runAttempt!==next.runAttempt)return old.runAttempt<next.runAttempt;
  if(old.state==='READY'&&old.stage==='VERIFIED_LIVE'&&next.state!=='READY')return false;
