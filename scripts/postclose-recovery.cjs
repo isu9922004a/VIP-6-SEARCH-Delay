@@ -54,8 +54,9 @@ async function record(root,state,stage){
  if(state==='READY'){const input=A.inputs(root);if(A.plan(input,path.join(root,'data/kronos-future')))throw Error('未取得本批完整合格模型，不可標完成');const day=require('./kronos-automation.cjs');if(day.needsRun(day.inputs(root),path.join(root,'data/kronos')))throw Error('隔日模型尚未完成核對，不可將整批標完成');identity=input.identity;}
  const next=U.build({state,stage,date,identity,catalog,runId:process.env.GITHUB_RUN_ID,runAttempt:process.env.GITHUB_RUN_ATTEMPT,repository:process.env.GITHUB_REPOSITORY}),file=path.join(root,'data/kronos-future/update-status.json'),old=read(root,'data/kronos-future/update-status.json');
  if(state==='FAILED'&&old?.state==='FAILED'&&old.runId===next.runId&&old.runAttempt===next.runAttempt&&old.marketDate===date)return false;
- if(!U.mayReplace(old,next))return false;
- fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,JSON.stringify(next)+'\n');console.log('POSTCLOSE_STATUS '+JSON.stringify(next));return true;
+ const promoted=U.promoteVerifiedLive(old,next);
+ if(!U.mayReplace(old,promoted))return false;
+ fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,JSON.stringify(promoted)+'\n');console.log('POSTCLOSE_STATUS '+JSON.stringify(promoted));return true;
 }
 async function main(root=path.resolve(__dirname,'..')){
  if(process.argv[2]==='record')return record(root,process.argv[3],process.argv[4]);
