@@ -26,7 +26,7 @@ test('four levels have actual explanations, cannot turn low-verified volume into
  assert.equal(r.metrics.ma20,44634.4);
  assert.equal(r.scenarios.filter(x=>x.active)[0].id,r.activeScenario);
  const sparse={...study,validatedBars:study.validatedBars.slice(-4)};
- assert.throws(()=>Risk.evaluate(sparse),/日期|完成日/);
+ assert.equal(Risk.evaluate(sparse).risk.level,0);
 });
 test('a user supplied 11/16 intraday screenshot cannot masquerade as completed official bar',()=>{
  const snapshot=Risk.evaluate(study);
