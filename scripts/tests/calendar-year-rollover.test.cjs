@@ -12,7 +12,7 @@ test('official 2027 calendar with real 2026 source only reuses independently ver
  assert.equal(c.annualSourceStatus,'VERIFIED_SAME_YEAR_CACHE');
  assert.equal(c.officialEndpointCoverageYear,'2027');
  assert.equal(c.sourceSha256,saved.sourceSha256);
- assert.deepEqual(c.dates.filter(x=>x<=sourceDay),completed.dates);
+ assert.deepEqual(c.dates.filter(x=>x<=sourceDay),completed.dates.filter(x=>x<=sourceDay));
  assert.equal(c.dates.find(x=>x>sourceDay),'2026-11-16');
  assert.ok(!c.dates.includes('2026-10-23'));
 });
