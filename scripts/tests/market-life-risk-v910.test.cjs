@@ -3,6 +3,7 @@ const {test}=require('node:test'),assert=require('node:assert/strict');
 const Market=require('../../market-life-report-v96.js');
 const Risk=require('../../market-life-risk-v910.js');
 const Outcome=require('../../market-life-outcome-v910.js');
+// Frozen official completed-session fixture: production data/index/TAIEX.json must advance daily.
 const raw=require('../fixtures/taiex-20261113.json');
 const study=Market.evaluate(raw,{now:new Date('2026-11-14T08:00:00Z')});
 test('V9.10 reads verified completed TAIEX only and preserves every original K event',()=>{
