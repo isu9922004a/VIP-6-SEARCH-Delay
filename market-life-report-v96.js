@@ -54,32 +54,12 @@ function fields(study){
  f.details[8].value+='\n指數：TAIEX／台灣加權指數；單位：點。\n點位來源：'+(study.indexSource?.price||'未核對')+'；量能來源：'+(study.indexSource?.volume||'未核對')+'。\n資料擷取時間：'+(study.indexSource?.receipt?.retrievedAt||'未提供')+'。\n大盤方向不等於每檔個股方向；只供研究，不影響選股資格、排序或自動交易。';
  return f;
 }
-async function ready(doc=globalThis.document){
- if(typeof module==='object'&&module.exports)return require('./market-life-visual-v98.js').ready(doc);
- if(!doc?.createElement)throw Error('大盤圖片需要瀏覽器繪圖環境。');
- const dependencies=[
-  ['ShitouLifeVisual972','life-line-visual-v972.js'],
-  ['ShitouLifeVisual98','life-line-visual-v98.js'],
-  ['ShitouMarketLifeVisual98','market-life-visual-v98.js']
- ];
- for(const [key,file] of dependencies){
-  if(globalThis[key])continue;
-  await new Promise((resolve,reject)=>{
-   const script=doc.createElement('script');
-   script.src=new URL('./'+file+'?v=V9.8-MARKETLIFE1',doc.baseURI).href;
-   script.async=false;
-   script.onload=()=>globalThis[key]?resolve():reject(Error(file+' 載入後未提供繪圖模組'));
-   script.onerror=()=>reject(Error(file+' 載入失敗'));
-   doc.head.appendChild(script);
-  });
- }
- return globalThis.ShitouMarketLifeVisual98.ready(doc);
-}
 function pages(study,options={}){
- if(study.instrumentType!==INSTRUMENT||study.sourceVerified!==true)throw Error('大盤生命線不能使用未核對行情或個股研究物件。');
- const P=typeof module==='object'&&module.exports?require('./market-life-visual-v98.js'):globalThis.ShitouMarketLifeVisual98;
- if(!P)throw Error('V9.8 大盤圖片尚未載入，請先呼叫 ready()。');
- return P.build(study,options);
+ const P=typeof module==='object'&&module.exports?require('./kline-life-03-pages-v94.js'):globalThis.ShitouLifePages94;
+ if(study.instrumentType!==INSTRUMENT)throw Error('大盤生命線不能使用個股研究物件。');
+ const f=fields(study),result=P.build(study,{fields:f,teaching:f.teaching},{...options,presentation:{release:'V9.6',instrumentType:INSTRUMENT,unit:'點',reportTitle:'大盤生命線研究',firstPageTitle:'大盤分析',formatText:plain,scenario:f.scenario}});
+ for(const page of result)page.dataset.marketLifeAudit=page.dataset.life94Audit;
+ return result;
 }
-return Object.freeze({VERSION,INSTRUMENT,validate,evaluate,fields,pages,plain,fingerprint,sourceAudit,ready});
+return Object.freeze({VERSION,INSTRUMENT,validate,evaluate,fields,pages,plain,fingerprint,sourceAudit});
 });
