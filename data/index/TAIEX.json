@@ -1241,28 +1241,18 @@
       "2026-12-30",
       "2026-12-31"
     ],
-    "generatedAt": "2026-11-16T14:24:01.787Z",
+    "generatedAt": "2026-11-12T11:50:16.794Z",
     "futureSessionPolicy": "官方年度API已更新下一年度；本年度沿用有來源指紋的既有核驗交易日曆，並核對當期實際交易日",
     "sourceSha256": "fb3c71ce62aa4819e58d422fa08be383161a830230f84e9a50560e019eee577c",
     "historicalSource": "https://www.twse.com.tw/exchangeReport/FMTQIK",
-    "historicalSnapshotHash": "5e8d7223b3a00f47e11ebbdd10ccca367444a7670704481d39f64e3514964116",
+    "historicalSnapshotHash": "5354e5d5a059bc645b005834211929f48e928ddddce354c28ac17260b8c23bce",
     "annualSourceStatus": "VERIFIED_SAME_YEAR_CACHE",
-    "officialEndpointCoverageYear": "2027",
-    "end": "2026-11-16",
-    "independentIndexCalendar": true
+    "officialEndpointCoverageYear": "2027"
   },
   "sourceReceipt": {
     "url": "https://shitou-taiwanmarket-api.d318426.workers.dev/?market=TAIEX",
     "officialRecovery": null,
-    "retrievedAt": "2026-11-16T14:24:01.787Z",
-    "sha256": "de747d175796e0aeb45434fef757066542cc442fac4c9c174798c1e6899054a1",
-    "officialChecks": [
-      {
-        "month": "2026-11",
-        "url": "https://www.twse.com.tw/exchangeReport/FMTQIK?response=json&date=20261101",
-        "sha256": "7f7bd4e0604a2bdb727bbdb450bf51a05f14e76efa3457d867f392c208b30cc0"
-      }
-    ],
-    "expectedCompletedDate": "2026-11-16"
+    "retrievedAt": "2026-11-16T13:39:48.270Z",
+    "sha256": "de747d175796e0aeb45434fef757066542cc442fac4c9c174798c1e6899054a1"
   }
 }
