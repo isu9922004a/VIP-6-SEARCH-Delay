@@ -23,7 +23,7 @@ async function loadMarketVisual(doc){
   if(root[key])continue;
   await new Promise((resolve,reject)=>{
    const script=doc.createElement('script');
-   script.src=new URL('./'+file+'?v=V9.10-MARKETLIFE1',doc.baseURI).href;
+   script.src=new URL('./'+file+'?v=V9.11-MARKETLIFE1',doc.baseURI).href;
    script.async=false;
    script.onload=()=>root[key]?resolve():reject(Error(file+' 載入後未提供繪圖模組'));
    script.onerror=()=>reject(Error(file+' 載入失敗'));
@@ -38,7 +38,7 @@ function install(){
  const button=doc.createElement('button');button.id='marketLifeReportButton';button.type='button';button.className='btn market-btn market-life-button';button.textContent='大盤生命線研究報告';
  const note=doc.createElement('p');note.id='marketLifeReportStatus';note.className='market-life-status';note.setAttribute('role','status');note.setAttribute('aria-live','polite');host.append(button);host.after(note);
  let revision=0,pending=false,controller=null,history=null;
- const ownPreview=()=>by('imagePreviewModal')?.classList.contains('show')&&by('imageDownloadLink')?.download.startsWith('石頭少爺_V9.10_TAIEX_');
+ const ownPreview=()=>by('imagePreviewModal')?.classList.contains('show')&&by('imageDownloadLink')?.download.startsWith('石頭少爺_V9.11_TAIEX_');
  function invalidate(message=''){revision++;controller?.abort();controller=null;pending=false;history=null;button.disabled=false;button.removeAttribute('aria-busy');button.textContent='大盤生命線研究報告';note.textContent=message;if(ownPreview())root.closeInfographicPreviewV3328();}
  button.addEventListener('click',async()=>{
   if(pending)return;invalidate();const token=revision;pending=true;button.disabled=true;button.setAttribute('aria-busy','true');button.textContent='正在建立大盤報告…';note.textContent='正在核對加權指數完成日 K 與資料來源…';controller=new AbortController();
