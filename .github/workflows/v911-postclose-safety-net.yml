@@ -1,0 +1,42 @@
+name: V9.11 independent post-close market freshness safety net
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/v911-postclose-safety-net.yml'
+      - 'scripts/tests/postclose-recovery.test.cjs'
+      - 'scripts/tests/update-market-snapshot.test.mjs'
+      - 'scripts/postclose-recovery.cjs'
+      - 'scripts/update-market-snapshot.mjs'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v911-postclose-safety-net.yml'
+      - 'version-v50.js'
+      - 'scripts/tests/postclose-recovery.test.cjs'
+  schedule:
+    # Independent weekday safety net; cron is UTC, Taipei = UTC+8.
+    # 15:23, 17:23, 19:23, 21:23 Asia/Taipei.
+    # Existing postclose-recovery.yml remains the primary half-hour watchdog.
+    - cron: '23 7,9,11,13 * * 1-5'
+permissions:
+  contents: read
+concurrency:
+  group: v911-independent-postclose-safety-net
+  cancel-in-progress: false
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - name: Protect actual Monday data date and both-market integrity
+        run: node --test scripts/tests/update-market-snapshot.test.mjs scripts/tests/postclose-recovery.test.cjs
+  recover:
+    needs: regression
+    if: github.ref == 'refs/heads/main'
+    permissions: {contents: write, actions: read, pages: write, id-token: write}
+    uses: ./.github/workflows/update-market-snapshot.yml
