@@ -1,4 +1,4 @@
-name: V9.6 market life-line acceptance
+name: V9.9 market life-line acceptance
 on:
   pull_request:
     branches: [main]

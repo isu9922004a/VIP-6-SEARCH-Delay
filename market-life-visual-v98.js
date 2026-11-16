@@ -1,4 +1,4 @@
-/* V9.8 index-only presentation adapter: reuse the verified stock visual layout,
+/* V9.9 index-only presentation adapter: reuse the verified stock visual layout,
    never reuse stock quotes, stock selection, or stock trading assumptions. */
 (function(root,factory){
  const node=typeof module==='object'&&!!module.exports;
@@ -6,7 +6,7 @@
  if(node)module.exports=api;else root.ShitouMarketLifeVisual98=api;
 })(globalThis,function(StockVisual){
  'use strict';
- const VERSION='MARKET_LIFE_VISUAL_V98',RELEASE='V9.8',INSTRUMENT='TAIEX';
+ const VERSION='MARKET_LIFE_VISUAL_V99',RELEASE='V9.9',INSTRUMENT='TAIEX';
  function convert(value){
   let v=String(value??'');
   const terms=[
@@ -47,11 +47,11 @@
   }};
  }
  async function ready(doc=globalThis.document){
-  if(!StockVisual||typeof StockVisual.build!=='function')throw Error('大盤報告缺少 V9.8 共用繪圖模組');
+  if(!StockVisual||typeof StockVisual.build!=='function')throw Error('大盤報告缺少 V9.9 共用繪圖模組');
   return StockVisual.ready(doc);
  }
  function build(study,{document:doc=globalThis.document,source=null,watermark=false}={}){
-  if(!StockVisual||typeof StockVisual.build!=='function')throw Error('大盤圖片尚未載入 V9.8 繪圖模組');
+  if(!StockVisual||typeof StockVisual.build!=='function')throw Error('大盤圖片尚未載入 V9.9 繪圖模組');
   if(!doc?.createElement)throw Error('圖片畫布不可用');
   if(study?.instrumentType!==INSTRUMENT||study?.code!==INSTRUMENT||study?.sourceVerified!==true)throw Error('必須使用已核對的大盤加權指數，不接受個股或推論資料');
   if(!Array.isArray(study.validatedBars)||!study.validatedBars.length)throw Error('大盤已確認日 K 不足');

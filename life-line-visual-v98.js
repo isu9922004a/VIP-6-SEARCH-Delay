@@ -1,4 +1,4 @@
-/* V9.8 iPhone 12 Pro Max life-line poster: presentation only, core and pricing untouched. */
+/* V9.9 release of V9.8 iPhone 12 Pro Max life-line poster: presentation only, core and pricing untouched. */
 (function(root,factory){
  const node=typeof module==='object'&&!!module.exports;
  const api=factory(node?require('./life-line-visual-v972.js'):root.ShitouLifeVisual972);
@@ -6,7 +6,7 @@
 })(globalThis,function(Legacy){
 'use strict';
 if(!Legacy||typeof Legacy.model!=='function')throw Error('V9.8 requires the validated V9.7.2 life-line model');
-const RELEASE='V9.8',VERSION='LIFE_VISUAL_IPHONE_V98',W=1284,H=2778,M=14,FOOT=2672;
+const RELEASE='V9.9',VERSION='LIFE_VISUAL_IPHONE_V98',W=1284,H=2778,M=14,FOOT=2672;
 const C={bg:'#071C2D',card:'#0A2D43',card2:'#10364D',ink:'#F3F7FF',muted:'#C2D7E5',mint:'#81F1D0',green:'#60EE92',gold:'#FFE365',orange:'#FFB444',risk:'#FF859F',blue:'#39B9FF',grid:'#28506B',up:'#FF5975',down:'#3CDBB6',line:'#71CFFF'};
 const finite=n=>typeof n==='number'&&Number.isFinite(n),num=n=>finite(n)?n.toFixed(2):'資料不足',date=v=>typeof v==='string'&&v.length>=10?v.slice(5).replace('-','/'):'未確認';
 async function ready(doc=globalThis.document){if(!doc?.createElement)throw Error('圖片畫布不可用');if(doc.fonts?.ready)await doc.fonts.ready;return true;}
@@ -238,7 +238,7 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
  const snapshot={code:m.code,name:m.name,date:m.date,close:m.close,line:m.line,state:m.lifecycleState,role:m.currentRole,referenceOnly:m.referenceOnly,ma:m.ma,range:m.range,volume:m.volume,events:m.events,markers:fours.map(k=>({label:k.label,date:k.date})),source:m.source,chartBarDates:bars.map(b=>b.date),chartMa60Available:extendedMA[60].filter(finite).length};
  return [1,2].map(i=>{
   const audit={version:VERSION,release:RELEASE,width:W,height:H,page:i,pages:2,title:i===1?'個股分析':'生命線形成教學',model:snapshot,chartBars:bars.length,trophy:true,reportOnly:true,originalEventId:m.eventId,researchOnly:true,affectsEligibility:false,affectsRanking:false,automaticTrade:false};
-  const filename='石頭少爺_V9.8_'+m.code+'_'+(m.date||'日期待核對').replaceAll('-','')+'_P0'+i+'_'+(i===1?'個股分析':'生命線形成教學')+'.png';
+  const filename='石頭少爺_'+RELEASE+'_'+m.code+'_'+(m.date||'日期待核對').replaceAll('-','')+'_P0'+i+'_'+(i===1?'個股分析':'生命線形成教學')+'.png';
   const dataset={life98Audit:JSON.stringify(audit),life972Audit:JSON.stringify(audit),life94Audit:JSON.stringify(audit),fullBleed:'true',shareAsSingleImage:'true',filename};
   const render=()=>{const canvas=doc.createElement('canvas');canvas.width=W;canvas.height=H;draw(canvas,i);Object.assign(canvas.dataset,dataset);return canvas;};
   return {width:W,height:H,title:i===1?'第 1 頁／個股分析':'第 2 頁／生命線形成教學',filename,dataset,renderExportRegion:render,toBlob(callback,type='image/png',quality){const c=render();c.toBlob(blob=>{c.width=c.height=1;callback(blob);},type,quality);}};

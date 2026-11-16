@@ -13,7 +13,7 @@ const png=b=>{assert.equal(b.subarray(1,4).toString(),'PNG');assert.equal(b.read
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.route('**/*',r=>new URL(r.request().url()).origin===new URL(origin).origin?r.continue():r.abort());
   await page.goto(origin+'index.html',{waitUntil:'load'});
-  assert.equal(await page.evaluate(()=>ShitouReleaseV50.displayCode),'V9.8');
+  assert.equal(await page.evaluate(()=>ShitouReleaseV50.displayCode),'V9.9');
   await page.evaluate(()=>ShitouLifeVisual98.ready(document));
   for(const code of ['6925','8099','2330']){
    await page.evaluate(async(code)=>{
