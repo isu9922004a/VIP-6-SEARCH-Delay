@@ -42,6 +42,22 @@ test('later stages and a verified live result cannot be overwritten by delayed s
  assert.equal(U.mayReplace(live,U.build({...args,state:'FAILED',stage:'SOURCES',runId:'124'})),true);
  const computing=U.build({...args,state:'RUNNING',stage:'INFERENCE'});assert.equal(U.mayReplace(computing,U.build({...args,state:'RUNNING',stage:'SOURCES'})),false);
 });
+test('V9.11 validated production images promote a newer same-identity cache receipt safely',()=>{
+ const args={date,identity:'verified-hash',repository:'owner/repo',catalog:{asOf:date,identity:'verified-hash'}};
+ const cache=U.build({...args,state:'READY',stage:'VERIFIED_CACHE',runId:'43879786642',runAttempt:1});
+ const proven=U.build({...args,state:'READY',stage:'VERIFIED_LIVE',runId:'43876416524',runAttempt:2});
+ assert.equal(U.mayReplace(cache,proven),false);
+ const next=U.promoteVerifiedLive(cache,proven);
+ assert.equal(next.runId,cache.runId);
+ assert.equal(next.verifiedByRunId,proven.runId);
+ assert.equal(next.verifiedByRunAttempt,2);
+ assert.equal(next.stage,'VERIFIED_LIVE');
+ assert.equal(U.mayReplace(cache,next),true);
+ assert.equal(U.mayReplace(next,cache),false);
+ assert.deepEqual(U.promoteVerifiedLive(cache,{...proven,identity:'another-source'}),{...proven,identity:'another-source'});
+ assert.deepEqual(U.promoteVerifiedLive(cache,{...proven,marketDate:'2026-11-09'}),{...proven,marketDate:'2026-11-09'});
+ assert.deepEqual(U.promoteVerifiedLive(cache,U.build({...args,state:'FAILED',stage:'DEPLOYMENT',runId:'43876416524'})).stage,'DEPLOYMENT');
+});
 test('public current date alone cannot hide a different same-day model identity or market fingerprint',async()=>{
  const root=fs.mkdtempSync('/tmp/postclose-probe-');try{
   const records=[{tradeDateIso:date,contentSha256:'market'},{date,snapshotContentSha256:'market'},{asOf:date,identity:'current'}],files=['data/market/latest.json','data/research/manifest.json','data/kronos-future/manifest.json'];

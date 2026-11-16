@@ -7,9 +7,20 @@ function build({state,date,identity=null,stage,runId,runAttempt=1,repository,now
  if(state==='READY'&&(!catalog||catalog.asOf!==date||catalog.identity!==identity))throw Error('Cannot mark mismatched models ready');
  return {schema:SCHEMA,state,marketDate:date,modelDate:catalog?.asOf||null,identity,stage,runId:String(runId),runAttempt:Number(runAttempt),updatedAt:now,runUrl:`https://github.com/${repository}/actions/runs/${runId}`,reason:state==='FAILED'?(FAILURE_REASONS[stage]||'本次更新未完成，請查看執行紀錄。'):null};
 }
+// An independently completed live-browser verification may finish after a
+// newer run has already recorded VERIFIED_CACHE for the *same* model identity.
+// Preserve the newer update receipt's runId while attaching the actual
+// verification run. Never promote another date, model identity or failed state.
+function promoteVerifiedLive(old,next){
+ if(old?.schema!==SCHEMA||old.marketDate!==next.marketDate||old.identity!==next.identity||old.modelDate!==next.modelDate||old.state!=='READY'||next.state!=='READY'||next.stage!=='VERIFIED_LIVE'||old.stage==='VERIFIED_LIVE')return next;
+ if(!/^\d+$/.test(String(old.runId||''))||BigInt(old.runId)<=BigInt(next.runId))return next;
+ return {...next,runId:old.runId,runAttempt:old.runAttempt,runUrl:old.runUrl,
+  verifiedByRunId:next.runId,verifiedByRunAttempt:next.runAttempt,verifiedByRunUrl:next.runUrl};
+}
 function mayReplace(old,next){
  if(old?.schema!==SCHEMA)return true;
  if(old.marketDate!==next.marketDate)return old.marketDate<next.marketDate;
+ if(old.state==='READY'&&old.stage==='VERIFIED_LIVE'&&old.identity&&old.identity===next.identity&&old.modelDate===next.modelDate&&next.state==='READY'&&next.stage!=='VERIFIED_LIVE')return false;
  if(BigInt(old.runId)!==BigInt(next.runId))return BigInt(old.runId)<BigInt(next.runId);
  if(old.runAttempt!==next.runAttempt)return old.runAttempt<next.runAttempt;
  if(old.state==='READY'&&old.stage==='VERIFIED_LIVE'&&next.state!=='READY')return false;
@@ -21,8 +32,9 @@ function main(root=path.resolve(__dirname,'..')){
  const file=path.join(root,'data/kronos-future/update-status.json'),market=JSON.parse(fs.readFileSync(path.join(root,'data/market/latest.json'))),catalogFile=path.join(root,'data/kronos-future/manifest.json'),catalog=fs.existsSync(catalogFile)?JSON.parse(fs.readFileSync(catalogFile)):null;
  const next=build({state:process.argv[2],stage:process.argv[3]||'UNKNOWN',date:process.env.FUTURE_DATE||market.tradeDateIso,identity:process.env.EXPECTED_IDENTITY||null,runId:process.env.GITHUB_RUN_ID,runAttempt:process.env.GITHUB_RUN_ATTEMPT,repository:process.env.GITHUB_REPOSITORY,catalog});
  const old=fs.existsSync(file)?JSON.parse(fs.readFileSync(file)):null;
- if(!mayReplace(old,next)){console.log('Newer future update already recorded; status unchanged.');return false;}
- fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,JSON.stringify(next)+'\n');console.log(JSON.stringify(next));return true;
+ const promoted=promoteVerifiedLive(old,next);
+ if(!mayReplace(old,promoted)){console.log('Newer future update already recorded; status unchanged.');return false;}
+ fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,JSON.stringify(promoted)+'\n');console.log(JSON.stringify(promoted));return true;
 }
 if(require.main===module)main();
-module.exports={SCHEMA,build,mayReplace,main};
+module.exports={SCHEMA,build,promoteVerifiedLive,mayReplace,main};
