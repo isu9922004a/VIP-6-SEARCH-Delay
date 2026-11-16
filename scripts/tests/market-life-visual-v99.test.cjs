@@ -3,7 +3,7 @@ const {test}=require('node:test'),assert=require('node:assert/strict');
 const Market=require('../../market-life-report-v96.js');
 const Visual=require('../../market-life-visual-v99.js');
 const Stock=require('../../life-line-visual-v98.js');
-const raw=require('../../data/index/TAIEX.json');
+const raw=require('../fixtures/taiex-20261113.json');
 const now=new Date('2026-11-14T08:00:00Z');
 const doc={createElement:()=>({})};
 const study=Market.evaluate(raw,{now});

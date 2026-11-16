@@ -1,7 +1,7 @@
 'use strict';
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const Market=require('../../market-life-report-v96.js'),Risk=require('../../market-life-risk-v910.js'),Visual=require('../../market-life-visual-v910.js'),Stock=require('../../life-line-visual-v98.js'),Outcome=require('../../market-life-outcome-v910.js');
-const raw=require('../../data/index/TAIEX.json'),study=Market.evaluate(raw,{now:new Date('2026-11-14T08:00:00Z')});
+const raw=require('../fixtures/taiex-20261113.json'),study=Market.evaluate(raw,{now:new Date('2026-11-14T08:00:00Z')});
 const doc={createElement:()=>({})};
 test('V9.10 renders two independent TAIEX reports with risk and original K3 identity',()=>{
  const before=JSON.stringify(study),pages=Visual.build(study,{document:doc}),audit=pages.map(p=>JSON.parse(p.dataset.marketLifeAudit));

@@ -38,7 +38,13 @@ function install(){
  const button=doc.createElement('button');button.id='marketLifeReportButton';button.type='button';button.className='btn market-btn market-life-button';button.textContent='大盤生命線研究報告';
  const note=doc.createElement('p');note.id='marketLifeReportStatus';note.className='market-life-status';note.setAttribute('role','status');note.setAttribute('aria-live','polite');host.append(button);host.after(note);
  let revision=0,pending=false,controller=null,history=null;
- const ownPreview=()=>by('imagePreviewModal')?.classList.contains('show')&&by('imageDownloadLink')?.download.startsWith('石頭少爺_V9.11_TAIEX_');
+ // Match the report renderer's *actual* version, not the site release label.
+ // The V9.11 website may embed a V9.10 historical poster; never let its
+ // verified source-expiry/export guard be skipped by that filename difference.
+ const ownPreview=()=>{const version=root.ShitouMarketLifeVisual910?.RELEASE;
+  return !!version&&by('imagePreviewModal')?.classList.contains('show')&&
+   (by('imageDownloadLink')?.download||'').startsWith('石頭少爺_'+version+'_TAIEX_');
+ };
  function invalidate(message=''){revision++;controller?.abort();controller=null;pending=false;history=null;button.disabled=false;button.removeAttribute('aria-busy');button.textContent='大盤生命線研究報告';note.textContent=message;if(ownPreview())root.closeInfographicPreviewV3328();}
  button.addEventListener('click',async()=>{
   if(pending)return;invalidate();const token=revision;pending=true;button.disabled=true;button.setAttribute('aria-busy','true');button.textContent='正在建立大盤報告…';note.textContent='正在核對加權指數完成日 K 與資料來源…';controller=new AbortController();

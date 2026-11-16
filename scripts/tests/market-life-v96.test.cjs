@@ -1,7 +1,7 @@
 'use strict';
 const {test}=require('node:test'),assert=require('node:assert/strict');
 const M=require('../../market-life-report-v96.js'),Core=require('../../kline-life-03-core-v1.js'),Structure=require('../../structure-context-v1.js');
-const raw=require('../../data/index/TAIEX.json'),now=new Date('2026-11-14T08:00:00Z'),copy=()=>structuredClone(raw);
+const raw=require('../fixtures/taiex-20261113.json'),now=new Date('2026-11-14T08:00:00Z'),copy=()=>structuredClone(raw);
 const document={createElement:()=>({getContext:()=>({font:'',measureText(value){const size=Number(this.font.match(/(\d+)px/)?.[1]||32);return {width:[...value].reduce((s,ch)=>s+(/[\x00-\x7f]/.test(ch)?.55:1)*size,0)};}})})};
 const study=M.evaluate(raw,{now});
 test('verified official index adapter reuses exactly the stock life-line state machine',()=>{
