@@ -113,8 +113,8 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
    fit('▦ 最新完成交易日',524,142,360,30,C.ink,700);
    fit(m.date||'資料不足',555,190,300,41,C.ink,760);
    hr(915,147,915,252,C.line,2);
-   fit('收盤',936,164,105,42,C.ink,760,34);
-   fit(num(m.close),1016,151,243,48,C.gold,850,34);fit('點',1218,207,44,29,C.gold,750,24);
+   fit('收盤',927,172,76,32,C.ink,760,27);
+   fit(num(m.close),1013,151,249,46,C.gold,850,33);fit('點',1218,207,44,29,C.gold,750,24);
    stateCard(14,285,618,'大盤目前趨勢',intelligence.trend.label,intelligence.trend.state==='WEAK'?C.risk:intelligence.trend.state==='STRONG'?C.mint:C.gold);
    stateCard(652,285,618,'K3 生命線事件',m.life.label,['BREAKOUT_FAILED','SUPPORT_BROKEN'].includes(m.lifecycleState)?C.risk:C.mint);
    stateCard(14,391,618,'短線風險（第 '+intelligence.risk.level+' 級）',intelligence.risk.label,intelligence.risk.color);
