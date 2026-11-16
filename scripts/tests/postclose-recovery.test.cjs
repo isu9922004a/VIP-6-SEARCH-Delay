@@ -67,7 +67,7 @@ test('V9.11 independent post-close safety net has multiple local evening retries
  const root=path.resolve(__dirname,'../..');
  const safety=fs.readFileSync(path.join(root,'.github/workflows/v911-postclose-safety-net.yml'),'utf8');
  const updater=fs.readFileSync(path.join(root,'.github/workflows/update-market-snapshot.yml'),'utf8');
- assert.match(safety,/23 7,9,11,13 \* \* 1-5/);
+ assert.match(safety,/23 7-9 \* \* 1-5/);
  assert.match(safety,/workflow_dispatch:/);
  assert.match(safety,/uses: \.\/\.github\/workflows\/update-market-snapshot\.yml/);
  assert.match(safety,/scripts\/tests\/update-market-snapshot\.test\.mjs/);
