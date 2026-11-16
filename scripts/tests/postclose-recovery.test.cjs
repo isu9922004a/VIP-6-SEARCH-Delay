@@ -46,3 +46,31 @@ test('the watchdog calls the same pipeline and retains independent index and all
  assert.match(watch,/workflow_run:/);assert.match(watch,/Update independent index and its model/);assert.match(watch,/uses: \.\/\.github\/workflows\/update-market-snapshot.yml/);
  assert.match(market,/workflow_call:/);assert.match(market,/scripts\/build-official-research-history.mjs/);assert.match(market,/uses: \.\/\.github\/workflows\/kronos-future.yml/);assert.match(market,/record READY VERIFIED_LIVE/);assert.match(market,/postclose-live-browser.cjs/);assert.match(deploy,/timeout-minutes: 40/);
 });
+
+test('V9.11 Friday to Monday is fresh after the Taipei cutoff, never relabel Friday as Monday',async()=>{
+ const {expectedCompletedDate,verifySnapshotAdvancement}=await import('../update-market-snapshot.mjs');
+ const marketCalendar={ready:true,closures:[],specialTradingDates:[]};
+ const pre=new Date('2026-11-16T14:59:00+08:00');
+ const post=new Date('2026-11-16T15:00:00+08:00');
+ const evening=new Date('2026-11-16T21:17:00+08:00');
+ assert.equal(expectedCompletedDate(marketCalendar,pre),'20261113');
+ assert.equal(expectedCompletedDate(marketCalendar,post),'20261116');
+ assert.equal(expectedCompletedDate(marketCalendar,evening),'20261116');
+ const old={tradeDate:'20261113',marketCalendar};
+ assert.equal(verifySnapshotAdvancement(old,null,pre).tradeDate,'20261113');
+ assert.throws(()=>verifySnapshotAdvancement(old,null,evening),/最近已完成交易日/);
+ const decision=base();
+ decision.expected='2026-11-16';
+ assert.equal(R.decide(decision).action,'MARKET');
+});
+test('V9.11 independent post-close safety net has multiple local evening retries and retains strict source validation',()=>{
+ const root=path.resolve(__dirname,'../..');
+ const safety=fs.readFileSync(path.join(root,'.github/workflows/v911-postclose-safety-net.yml'),'utf8');
+ const updater=fs.readFileSync(path.join(root,'.github/workflows/update-market-snapshot.yml'),'utf8');
+ assert.match(safety,/23 7-9 \* \* 1-5/);
+ assert.match(safety,/workflow_dispatch:/);
+ assert.match(safety,/uses: \.\/\.github\/workflows\/update-market-snapshot\.yml/);
+ assert.match(safety,/scripts\/tests\/update-market-snapshot\.test\.mjs/);
+ assert.match(updater,/node scripts\/verify-market-snapshot\.mjs/);
+ assert.match(updater,/Research archive has not caught up/);
+});
