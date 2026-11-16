@@ -18,10 +18,32 @@ test('historical asOf uses only the same known prefix without future pivot confi
  const asOf=raw.dailySeries.at(-12).date,a=M.evaluate(raw,{now,asOf}),x=copy(),cut=x.dailySeries.findIndex(b=>b.date===asOf);x.dailySeries=x.dailySeries.slice(0,cut+1);x.closeDate=asOf;x.close=x.dailySeries.at(-1).close;Object.assign(x.dailySeriesMeta,{lastDate:asOf,returnedBars:x.dailySeries.length});
  const b=M.evaluate(x,{now:new Date(asOf+'T08:00:00Z')});for(const k of ['events','event','currentTrend','chaseRisk','scenario','lifecycleState'])assert.deepEqual(a[k],b[k],k);assert.ok(a.validatedBars.every(b=>b.date<=asOf));assert.equal(M.validate(raw,{now,asOf:'2026-11-15'}).ok,false);
 });
-test('index pages retain exact numbers, source evidence, teaching and independent price axes',()=>{
- const before=JSON.stringify(study),ps=M.pages(study,{document}),audit=ps.map(p=>JSON.parse(p.dataset.marketLifeAudit)),text=audit.flatMap(a=>a.text.map(t=>t.value)).join('\n');assert.equal(JSON.stringify(study),before);assert.ok(ps.length>=3);for(const p of ps){assert.equal(p.width,1284);assert.equal(p.height,2778);assert.match(p.filename,/石頭少爺_V9.6_TAIEX_20261113_P\d\d_/);}
- assert.match(audit[0].title,/大盤分析/);assert.equal(audit[0].model.close,study.close);assert.equal(audit[0].model.line,study.event.lifeLinePrice);assert.match(text,/集中市場成交股數/);assert.match(text,/台灣加權指數/);assert.match(text,/短線過熱風險/);assert.match(text,/連續 2 根完成日 K/);assert.doesNotMatch(text,/ 元|股價|目前股價方向/);assert.ok(audit.flatMap(a=>a.charts).some(c=>c.barDates.length===10));for(const a of audit)for(const t of a.text){assert.ok(t.size>=30);assert.ok(t.y+t.height<=2600,t.value);}assert.equal(M.plain(M.plain('股價 12.34 元，追價風險')),M.plain('股價 12.34 元，追價風險'));
+test('index V9.8 report mirrors the stock two-page visual while preserving exact TAIEX audit',()=>{
+ const before=JSON.stringify(study),ps=M.pages(study,{document}),audits=ps.map(p=>JSON.parse(p.dataset.marketLifeAudit));
+ assert.equal(JSON.stringify(study),before);
+ assert.equal(ps.length,2);
+ assert.deepEqual(audits.map(a=>a.title),['大盤分析','生命線形成教學']);
+ for(const [i,p] of ps.entries()){
+  const a=audits[i];
+  assert.equal(p.width,1284);assert.equal(p.height,2778);assert.equal(a.pages,2);
+  assert.equal(a.instrumentType,'TAIEX');assert.equal(a.unit,'點');assert.equal(a.sourceVerified,true);
+  assert.match(p.filename,/石頭少爺_V9.8_TAIEX_20261113_P0[12]_/);
+  assert.equal(a.model.close,43675.12);assert.equal(a.model.line,43741.54);
+  assert.equal(a.model.date,'2026-11-13');assert.equal(a.model.code,'TAIEX');
+  assert.equal(a.model.referenceOnly,false);
+  assert.equal(a.model.volume.verified,false);
+  assert.equal(a.volumeConfirmationAllowed,false);
+  assert.equal(a.model.chartBarDates.length,30);
+  assert.deepEqual(a.model.markers.map(x=>x.label),['K3','K2','K1','K0']);
+  assert.equal(a.reportOnly,true);assert.equal(a.affectsEligibility,false);assert.equal(a.affectsRanking,false);
+ }
+ const V=require('../../market-life-visual-v98.js');
+ assert.match(V.convert('個股收盤 143.50 元，股價仍須觀察；追價風險'),/大盤收盤 143.50 點，指數仍須觀察；短線過熱風險/);
+ assert.doesNotMatch(V.convert('最高價、最低價、成交量、主力真實持股成本'),/最高價|最低價|成交量|主力真實持股成本/);
+ assert.throws(()=>M.pages({...study,code:'2330'}, {document}),/加權指數|個股|核對/);
+ assert.throws(()=>M.pages({...study,sourceVerified:false},{document}),/核對/);
 });
+
 test('short valid history reports missing indicators rather than inventing MA20 or ATR',()=>{const x=copy();x.dailySeries=x.dailySeries.slice(-4);Object.assign(x.dailySeriesMeta,{firstDate:x.dailySeries[0].date,returnedBars:4});const a=M.evaluate(x,{now});assert.equal(a.sourceVerified,true);assert.equal(a.currentTrend.ma20,null);assert.equal(a.currentTrend.atr14,null);assert.equal(a.chaseRisk.level,'UNDETERMINED');assert.match(M.fields(a).overview.trendSummary,/資料不足/);});
 
 test('display describes a failed breakout as already failed while preserving core scenarios',()=>{const before=JSON.stringify(study.scenario),f=M.fields(study);assert.match(f.scenario.bearish,/原突破已失守/);assert.match(f.scenario.bullish,/不是首次突破/);assert.equal(JSON.stringify(study.scenario),before);assert.equal(f.details[4].value,f.scenario.bearish);});
