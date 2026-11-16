@@ -17,9 +17,9 @@ on:
       - 'scripts/tests/postclose-recovery.test.cjs'
   schedule:
     # Independent weekday safety net; cron is UTC, Taipei = UTC+8.
-    # 15:23, 17:23, 19:23, 21:23 Asia/Taipei.
-    # Existing postclose-recovery.yml remains the primary half-hour watchdog.
-    - cron: '23 7,9,11,13 * * 1-5'
+    # 15:23, 16:23, 17:23 Asia/Taipei (early-close gap).
+    # Existing recovery and V9.11 evening watchdog take over afterward.
+    - cron: '23 7-9 * * 1-5'
 permissions:
   contents: read
 concurrency:
