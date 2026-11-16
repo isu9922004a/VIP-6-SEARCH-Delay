@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: ['main']
-    paths: ['.github/workflows/postclose-recovery.yml', 'scripts/postclose-recovery.cjs', 'scripts/taiex-source-recovery.cjs', 'scripts/update-kronos-sources.cjs']
+    paths: ['.github/workflows/postclose-recovery.yml', 'scripts/postclose-recovery.cjs', 'scripts/taiex-source-recovery.cjs', 'scripts/update-kronos-sources.cjs', 'scripts/tests/postclose-live-browser.cjs']
   workflow_run:
     workflows: ['Update independent index and its model']
     types: [completed]
