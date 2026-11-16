@@ -226,18 +226,25 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
    if(!history.length)history.push('目前沒有已確認的生命線事件。');
    paragraph(history.slice(-7).join('\n'),38,1916,1190,34,C.ink,8,1.39,660);
    round(14,2332,1256,309,18,'#24271D',C.gold,2);
-   title(35,2352,'四、均線、動能與風險怎麼看？',C.gold);
+   title(35,2352,'四、四級風險與技術指標怎麼看？',C.gold);
+   const riskGuide=[
+    {text:'① 偏強：站穩關卡，均線支持',color:C.green},
+    {text:'② 整理：多空還沒分出方向',color:C.gold},
+    {text:'③ 偏弱：生命線失守、均線偏弱',color:C.orange},
+    {text:'④ 急跌：跌幅超出近期正常波動',color:C.risk}
+   ];
+   riskGuide.forEach((v,i)=>{const xx=i%2?647:34,yy=2404+Math.floor(i/2)*58;
+    round(xx,yy,590,51,9,C.card2,v.color,1.5);
+    fit(v.text,xx+12,yy+8,563,28,v.color,720,24);
+   });
    const move=intelligence.momentum;
-   const note='MA5看近期、MA20看較長方向；單日站回不保證反轉。'+'\n'
-    +'RSI5 '+num(move.rsi5)+'；MACD DIF '+num(move.macdDiff)+'；依 Wilder RSI5、EMA(12,26,9)計算。'+'\n'
-    +'風險分級：1偏強／2盤整／3弱勢／4急跌；現在為 '+intelligence.risk.label+'。'+'\n'
-    +intelligence.volume.notice+'\n'
-    +'資料日 '+intelligence.date+'；使用完成日K，盤中走勢不冒充收盤。';
-   paragraph(note,37,2407,1207,29,C.ink,6,1.32,600);
+   fit('RSI5 '+num(move.rsi5)+'｜MACD DIF '+num(move.macdDiff)+'（Wilder RSI5；EMA12/26/9）',37,2527,1200,26,C.ink,620,23);
+   fit('目前：'+intelligence.risk.label+'。'+intelligence.volume.notice,37,2566,1200,26,C.ink,620,23);
+   fit('資料日 '+intelligence.date+'｜依完成日收盤觀察，不用盤中價格冒充收盤。',37,2604,1200,26,C.muted,600,23);
    footer('第 2 / 2 頁　完整技術原始資料保留於研究系統');
   }
   if(pageno===1)page1();else page2();
-  if(watermark&&root.ShitouReportWatermark)root.ShitouReportWatermark.apply(canvas);
+  if(watermark&&globalThis.ShitouReportWatermark)globalThis.ShitouReportWatermark.apply(canvas);
  };
  const snapshot={code:m.code,name:m.name,date:m.date,close:m.close,line:m.line,state:m.lifecycleState,role:m.currentRole,referenceOnly:m.referenceOnly,ma:m.ma,range:m.range,volume:m.volume,events:m.events,markers:fours.map(k=>({label:k.label,date:k.date})),source:m.source,chartBarDates:bars.map(b=>b.date),chartMa60Available:extendedMA[60].filter(finite).length};
  return [1,2].map(i=>{

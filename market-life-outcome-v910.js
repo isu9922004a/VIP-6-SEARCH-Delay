@@ -28,7 +28,13 @@
   if(!Array.isArray(archive))throw Error('必須提供事前封存的研究快照。');
   const results=archive.map(x=>compare(x.snapshot,x.nextCompletedSession||null));
   const known=results.filter(x=>['MATCH','MISS','PARTIAL'].includes(x.status)),match=known.filter(x=>x.status==='MATCH').length,miss=known.filter(x=>x.status==='MISS').length;
-  return freeze({version:VERSION,archivedSamples:archive.length,verifiedSamples:known.length,matched:match,missed:miss,partial:known.length-match-miss,notVerified:archive.length-known.length,performanceValidated:known.length>=40,notice:known.length>=40?'歷史對照不等於未來保證；需與基準方法比較。':'可用事前封存資料不足；不得報稱預測勝率。',results});
+  const weak=known.filter(x=>x.decision==='C'),actualDown=known.filter(x=>x.returnPct<0),truePositive=weak.filter(x=>x.returnPct<0).length;
+  const falsePositive=weak.length-truePositive,falseNegative=known.filter(x=>x.decision!=='C'&&x.returnPct<0).length;
+  const trueNegative=known.length-truePositive-falsePositive-falseNegative;
+  const ratio=(numerator,denominator)=>denominator?Number((numerator/denominator*100).toFixed(2)):null;
+  const weakSignalAudit={truePositive,falsePositive,falseNegative,trueNegative,precisionPct:ratio(truePositive,truePositive+falsePositive),recallPct:ratio(truePositive,truePositive+falseNegative),falseAlarmPct:ratio(falsePositive,falsePositive+trueNegative)};
+  const baseline={name:'全部判為轉弱（對照基準，不代表建議）',accuracyPct:ratio(actualDown.length,known.length),samples:known.length};
+  return freeze({version:VERSION,archivedSamples:archive.length,verifiedSamples:known.length,matched:match,missed:miss,partial:known.length-match-miss,notVerified:archive.length-known.length,sampleSufficient:known.length>=40,performanceValidated:false,weakSignalAudit,baseline,notice:known.length>=40?'僅為事前封存樣本的探索性對照，仍須跨市況、獨立樣本與誤報成本檢驗，不可宣稱準確率已驗證。':'可用事前封存資料不足；不得報稱預測勝率。',results});
  }
  return Object.freeze({VERSION,snapshot,compare,walkForward});
 });
