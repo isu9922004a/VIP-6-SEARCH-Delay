@@ -7,6 +7,12 @@ on:
   push:
     branches: ['main']
     paths: ['.github/workflows/v911-postclose-watchdog.yml']
+  pull_request:
+    paths:
+      - '.github/workflows/v911-postclose-watchdog.yml'
+      - 'scripts/update-market-snapshot.mjs'
+      - 'scripts/tests/update-market-snapshot.test.mjs'
+      - 'version-v50.js'
   schedule:
     # UTC 10:17..14:17 = Taipei 18:17..22:17 on trading weekdays.
     - cron: '17 10-14 * * 1-5'
@@ -18,6 +24,15 @@ permissions:
   pages: write
   id-token: write
 jobs:
+  regression:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - name: Verify Monday, official TPEx date recovery and safeguards
+        run: node --test scripts/tests/update-market-snapshot.test.mjs scripts/tests/postclose-recovery.test.cjs
   verify-and-recover:
     if: github.ref == 'refs/heads/main'
     uses: ./.github/workflows/update-market-snapshot.yml
