@@ -2,7 +2,7 @@ name: V9.6 market life-line acceptance
 on:
   pull_request:
     branches: [main]
-    paths: ['market-life-*', 'kline-life-03-*', 'index.html', 'market-outlook.html', 'version-v50.js', 'scripts/tests/market-life-v96*', 'scripts/tests/market-life-visual-v98*', '.github/workflows/v96-market-life.yml']
+    paths: ['market-life-*', 'kline-life-03-*', 'index.html', 'market-outlook.html', 'version-v50.js', 'scripts/tests/market-life-v96*', 'scripts/tests/market-life-visual-v98*', 'scripts/tests/market-life-visual-v99*', '.github/workflows/v96-market-life.yml']
   workflow_dispatch:
 permissions:
   contents: read
