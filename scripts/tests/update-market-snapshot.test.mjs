@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  SOURCES,
+  extractTpexDailyQuoteRows,
   buildTwseMarketCalendar,
   expectedCompletedDate,
   marketCalendarClosure,
@@ -98,4 +100,43 @@ test('intraday fallback still requests the previous verified completed session',
  const calls=[];const dated=async d=>{calls.push(d);return latest(d);};
  await loadOfficialQuotePair({calendar,now:twTime('2026-10-27','10:00'),fetchLatest:async()=>{throw Error('offline');},fetchTwseByDate:dated,fetchTpexByDate:dated});
  assert.deepEqual(calls,['20261022','20261022']);
+});
+
+test('V9.11 Monday closes advance from Friday only on matching official dates',async()=>{
+  const monday=twTime('2026-11-16','21:00');
+  assert.equal(expectedCompletedDate(calendar,monday),'20261116');
+  const calls=[];
+  const recovered=await reconcileLatestTradeDate(latest('20261113'),latest('20261113'),{
+    calendar,now:monday,
+    fetchTwseByDate:async d=>{calls.push('TWSE:'+d);return latest(d);},
+    fetchTpexByDate:async d=>{calls.push('TPEX:'+d);return latest(d);}
+  });
+  assert.deepEqual(calls,['TWSE:20261116','TPEX:20261116']);
+  assert.equal(recovered.twseDate,'20261116');
+  assert.equal(recovered.tpexDate,'20261116');
+  await assert.rejects(reconcileLatestTradeDate(latest('20261113'),latest('20261113'),{
+    calendar,now:monday,
+    fetchTwseByDate:async()=>latest('20261116'),
+    fetchTpexByDate:async()=>latest('20261113')
+  }),/未對齊/);
+});
+
+test('V9.11 TPEx date-specific primary and legacy sources plus ROC payload audit',()=>{
+  assert.ok(SOURCES.tpexQuotesByDateBase.endsWith('/afterTrading/otc'));
+  assert.ok(SOURCES.tpexQuotesByDateLegacyBase.endsWith('/afterTrading/dailyQuotes'));
+  const fields=['代號','名稱','收盤','漲跌','開盤','最高','最低','成交股數'];
+  const payload={date:'115/11/16',tables:[{fields,data:[['6488','測試','42','0.5','40','43','39','100,000']]}]};
+  const rows=extractTpexDailyQuoteRows(payload,'20261116');
+  assert.equal(rows.length,1);
+  assert.equal(rows[0].Date,'20261116');
+  assert.deepEqual(extractTpexDailyQuoteRows(payload,'20261113'),[]);
+});
+
+test('V9.11 watchdog independently retries after the Monday closing window',async()=>{
+  const fs=await import('node:fs');
+  const file=new URL('../../.github/workflows/v911-postclose-watchdog.yml',import.meta.url);
+  const y=fs.readFileSync(file,'utf8');
+  assert.ok(y.includes("cron: '17 10-14 * * 1-5'"));
+  assert.ok(y.includes("cron: '47 10-14 * * 1'"));
+  assert.ok(y.includes('uses: ./.github/workflows/update-market-snapshot.yml'));
 });

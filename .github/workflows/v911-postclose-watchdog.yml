@@ -1,0 +1,38 @@
+name: V9.11 post-close freshness watchdog
+# Independent of the index heartbeat; must run after 18:00 Taipei.
+# Same calendar, official dates, history checks and live Pages gates are reused.
+# GitHub schedule is best-effort; a manual dispatch is available as backup.
+on:
+  workflow_dispatch:
+  push:
+    branches: ['main']
+    paths: ['.github/workflows/v911-postclose-watchdog.yml']
+  pull_request:
+    paths:
+      - '.github/workflows/v911-postclose-watchdog.yml'
+      - 'scripts/update-market-snapshot.mjs'
+      - 'scripts/tests/update-market-snapshot.test.mjs'
+      - 'version-v50.js'
+  schedule:
+    # UTC 10:17..14:17 = Taipei 18:17..22:17 on trading weekdays.
+    - cron: '17 10-14 * * 1-5'
+    # Extra Monday retries after the weekend (Taipei 18:47..22:47).
+    - cron: '47 10-14 * * 1'
+permissions:
+  contents: write
+  actions: read
+  pages: write
+  id-token: write
+jobs:
+  regression:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - name: Verify Monday, official TPEx date recovery and safeguards
+        run: node --test scripts/tests/update-market-snapshot.test.mjs scripts/tests/postclose-recovery.test.cjs
+  verify-and-recover:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/update-market-snapshot.yml

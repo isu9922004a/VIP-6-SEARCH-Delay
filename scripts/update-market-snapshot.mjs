@@ -14,7 +14,7 @@ const ROOT = process.cwd();
 const LATEST_PATH = path.join(ROOT, 'data/market/latest.json');
 const ARCHIVE_DIR = path.join(ROOT, 'data/market/archive');
 const MAX_ARCHIVES = 30;
-export const SNAPSHOT_UPDATE_VERSION = 'DATAFIX.20261027.1';
+export const SNAPSHOT_UPDATE_VERSION = 'DATAFIX.V9.11.1';
 
 // The annual TWSE holiday API does not necessarily include an emergency
 // closure announced on the preceding day. Keep manually verified exceptions
@@ -46,7 +46,9 @@ export const SOURCES = Object.freeze({
   twseQuotes: 'https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL',
   twseQuotesByDateBase: 'https://www.twse.com.tw/exchangeReport/MI_INDEX',
   tpexQuotes: 'https://www.tpex.org.tw/openapi/v1/tpex_mainboard_daily_close_quotes',
-  tpexQuotesByDateBase: 'https://www.tpex.org.tw/www/zh-tw/afterTrading/dailyQuotes',
+  // Official dated market-recovery endpoint, with a legacy dated fallback.
+  tpexQuotesByDateBase: 'https://www.tpex.org.tw/www/zh-tw/afterTrading/otc',
+  tpexQuotesByDateLegacyBase: 'https://www.tpex.org.tw/www/zh-tw/afterTrading/dailyQuotes',
   twseCompanies: 'https://openapi.twse.com.tw/v1/opendata/t187ap03_L',
   tpexCompanies: 'https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap03_O',
   twseHolidaySchedule: 'https://openapi.twse.com.tw/v1/holidaySchedule/holidaySchedule'
@@ -351,8 +353,8 @@ function slashDate(date) {
     : '';
 }
 
-function tpexDailyQuotesUrl(date) {
-  const u = new URL(SOURCES.tpexQuotesByDateBase);
+function tpexDailyQuotesUrl(date, base=SOURCES.tpexQuotesByDateBase) {
+  const u = new URL(base);
   u.searchParams.set('date', slashDate(date));
   u.searchParams.set('type', 'EW');
   u.searchParams.set('response', 'json');
@@ -382,13 +384,27 @@ export function extractTpexDailyQuoteRows(payload, targetDate) {
 }
 
 async function fetchTpexQuotesByDate(date) {
-  const url = tpexDailyQuotesUrl(date);
-  const res = await fetchJsonValue(url, `TPEx dailyQuotes ${date}`);
-  const stat = String(res.data?.stat || res.data?.status || '').trim();
-  if (stat && !/^ok$/i.test(stat)) throw new Error(`TPEx 指定日 ${date} 尚無完整行情｜stat ${stat}`);
-  const rows = extractTpexDailyQuoteRows(res.data, date);
-  if (rows.length < 600) throw new Error(`TPEx 指定日 ${date} 行情解析不足：${rows.length} 筆${stat ? `｜stat ${stat}` : ''}`);
-  return { rows, finalUrl:res.finalUrl, status:res.status, contentType:res.contentType, attempt:res.attempt, source:'TPEX_DAILY_QUOTES_BY_DATE' };
+  // V9.11: both the current feed and first dated endpoint can be stale on Mondays.
+  // Accept only the real date embedded in the exchange's response; never relabel.
+  const failures = [];
+  for (const [source, base] of [
+    ['TPEX_OTC_BY_DATE', SOURCES.tpexQuotesByDateBase],
+    ['TPEX_DAILY_QUOTES_BY_DATE', SOURCES.tpexQuotesByDateLegacyBase]
+  ]) {
+    try {
+      const res = await fetchJsonValue(tpexDailyQuotesUrl(date,base), `TPEx ${source} ${date}`, 3);
+      const stat = String(res.data?.stat || res.data?.status || '').trim();
+      if (stat && !/^ok$/i.test(stat)) throw new Error(`官方狀態 ${stat}`);
+      const rows = extractTpexDailyQuoteRows(res.data, date);
+      if (rows.length < 600 || latestMarketQuoteDate(rows) !== date) {
+        throw new Error(`回傳交易日、欄位或筆數不符（${rows.length} 筆）`);
+      }
+      return {rows,finalUrl:res.finalUrl,status:res.status,contentType:res.contentType,attempt:res.attempt,source};
+    } catch (error) {
+      failures.push(`${source}: ${error?.message || error}`);
+    }
+  }
+  throw new Error(`TPEx 指定日 ${date} 官方雙來源均未驗證成功｜${failures.join('｜')}`);
 }
 
 const FALLBACK_TWSE_CLOSED_2026 = Object.freeze({
@@ -484,7 +500,7 @@ export async function reconcileLatestTradeDate(twseQuotes, tpexQuotes, options =
   // 主動查今天的官方指定日資料；只有 TWSE + TPEx 都完整且同日，才一起升級。
   const expected=expectedCompletedDate(options.calendar||null,options.now||new Date());
   if (twseDate === tpexDate && twseDate < expected) {
-    events.push(`兩市場 latest 同停 ${twseDate}，台灣 ${clock.today} 已過 17:35；主動補查今天 TWSE＋TPEx 指定日行情`);
+    events.push(`兩市場 latest 同停 ${twseDate}，台灣 ${clock.today} 已達盤後核對門檻；主動補查 TWSE＋TPEx 指定日行情`);
     const [twseToday, tpexToday] = await Promise.all([fetchTwseByDate(expected), fetchTpexByDate(expected)]);
     const twseTodayDate = latestMarketQuoteDate(twseToday.rows);
     const tpexTodayDate = latestMarketQuoteDate(tpexToday.rows);
@@ -640,6 +656,7 @@ export async function buildSnapshot({twseQuoteRows,tpexQuoteRows,twseCompanyRows
       twseQuotesByDateBase: SOURCES.twseQuotesByDateBase,
       tpexQuotes: SOURCES.tpexQuotes,
       tpexQuotesByDateBase: SOURCES.tpexQuotesByDateBase,
+      tpexQuotesByDateLegacyBase: SOURCES.tpexQuotesByDateLegacyBase,
       twseCompanies: SOURCES.twseCompanies,
       tpexCompanies: SOURCES.tpexCompanies,
       twseHolidaySchedule: SOURCES.twseHolidaySchedule
