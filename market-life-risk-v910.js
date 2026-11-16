@@ -28,10 +28,11 @@
   if(!finite(line))return {code:'UNKNOWN',label:'尚無有效生命線',explanation:'沒有已確認 K3 價格，不能自行補造。'};
   if(study.referenceOnly||e.referenceOnly)return {code:'HISTORICAL_REFERENCE',label:'僅供歷史參考',explanation:'原始價位已不是可直接沿用的現行支撐。'};
   const state=study.lifecycleState||e.lifecycleState;
-  if(close<line&&['BREAKOUT_FAILED','SUPPORT_BROKEN'].includes(state))return {code:'RECLAIM_WATCH',label:'等待重新站回',explanation:'先前突破沒有守住，原始生命線現在是重新站回的觀察關卡。'};
+  if(close<=line&&['BREAKOUT_FAILED','SUPPORT_BROKEN'].includes(state))return {code:'RECLAIM_WATCH',label:'等待重新站回',explanation:'先前突破沒有守住，原始生命線現在是重新站回的觀察關卡。'};
   if(close<line)return {code:'ACTIVE_RESISTANCE',label:'目前為上方壓力',explanation:'收盤低於原始生命線，要重新站回才算改善。'};
   if(close>line&&e.currentRole==='RESISTANCE')return {code:'ACTIVE_RESISTANCE',label:'歷史壓力待核對',explanation:'收盤雖在關卡上方，仍須依原始事件確認是否有效站穩。'};
-  if(close>=line)return {code:'ACTIVE_SUPPORT',label:'目前是守住觀察',explanation:'指數在生命線上方，但不代表支撐一定有效。'};
+  if(close===line)return {code:'UNKNOWN',label:'剛好碰到生命線',explanation:'收盤與生命線相等，不代表已收盤突破或正式跌破。'};
+  if(close>line)return {code:'ACTIVE_SUPPORT',label:'目前是守住觀察',explanation:'指數在生命線上方，但不代表支撐一定有效。'};
   return {code:'UNKNOWN',label:'角色待核對',explanation:'需要完成日 K 才能確認角色。'};
  }
  function rebound(bars,line,lifeState,at){
