@@ -2,7 +2,8 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto'),cp=require('node:child_process'),{chromium}=require('playwright-core');
 const root=path.resolve(__dirname,'../..'),out=path.resolve(process.argv[2]||'/tmp/v96-market');fs.mkdirSync(out,{recursive:true});
 const base=process.env.RESEARCH_BROWSER_ORIGIN||'https://v96-market.test/',origin=new URL(base).origin,live=!!process.env.RESEARCH_BROWSER_ORIGIN;
-const raw=JSON.parse(fs.readFileSync(path.join(root,'data/index/TAIEX.json'))),baseline=cp.execFileSync('git',['show','f6bdac678efe1d19be8272dec96e734e47f5ff68:kline-life-03-pages-v94.js'],{cwd:root,encoding:'utf8'});
+// Compare against the last published V9.9 core; original 2026 baseline predated the file.
+const raw=JSON.parse(fs.readFileSync(path.join(root,'data/index/TAIEX.json'))),baseline=cp.execFileSync('git',['show','6e63d8d277dae88a5070d1585f60f4ddbbbce1ee:kline-life-03-pages-v94.js'],{cwd:root,encoding:'utf8'});
 const sha=b=>crypto.createHash('sha256').update(b).digest('hex'),checks=[];
 function png(bytes){assert.equal(bytes.readUInt32BE(16),1284);assert.equal(bytes.readUInt32BE(20),2778);assert.equal(bytes.subarray(1,4).toString(),'PNG');}
 (async()=>{let browser;try{browser=await chromium.launch({executablePath:process.env.CHROME_BIN||'/usr/bin/chromium',headless:true,args:['--no-sandbox']});
