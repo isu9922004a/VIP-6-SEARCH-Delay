@@ -156,7 +156,7 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
    const x=14,y=650,w=W-28,h=1061;round(x,y,w,h,18,'#05192B',C.line,2);
    title(x+21,y+14,'▥ 日 K 線走勢與關鍵位置（近30個交易日）');
    const legend=[[5,C.ink],[10,C.blue],[20,C.green],[60,C.gold]];
-   legend.forEach(([n,col],i)=>{const xx=122+i*267;hr(xx,y+87,xx+35,y+87,col,8);fit('MA'+n+' '+num(m.ma[n]),xx+49,y+67,208,29,C.ink,600,24);});
+   legend.forEach(([n,col],i)=>{const xx=38+i*308;hr(xx,y+87,xx+33,y+87,col,8);fit('MA'+n+' '+num(m.ma[n]),xx+44,y+67,247,27,C.ink,640,23);});
    if(!bars.length){title(45,y+250,'尚無經核對的完成日 K，暫不畫技術線。',C.risk);return;}
    const p={x:25,y:y+148,w:1119,h:611};const left=p.x,right=p.x+p.w;
    const levels=[];
@@ -164,7 +164,7 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
    if(finite(ranges.low))levels.push({value:ranges.low,title:'近10日低 '+num(ranges.low),color:C.green,kind:'range'});
    if(finite(line)&&!m.referenceOnly)levels.push({value:line,title:'生命線 '+num(line)+'（K3）',color:C.mint,kind:'line'});
    const firstRes=m.resistance?.find(z=>finite(z.price)&&z.price>m.close&&Math.abs(z.price-ranges.high)>.01);
-   if(firstRes)levels.push({value:firstRes.price,title:'確認壓力 '+num(firstRes.price),color:C.orange,kind:'level'});
+   if(firstRes&&!levels.some(v=>Math.abs(v.value-firstRes.price)<.01))levels.push({value:firstRes.price,title:'確認壓力 '+num(firstRes.price),color:C.orange,kind:'level'});
    const vals=bars.flatMap(b=>[b.high,b.low]);for(const n of [5,10,20,60])vals.push(...extendedMA[n].filter(finite));for(const l of levels)vals.push(l.value);
    const lo=Math.min(...vals),hi=Math.max(...vals),pad=Math.max((hi-lo)*.075,1),min=lo-pad,max=hi+pad;
    const scale=v=>p.y+(max-v)/(max-min)*p.h,step=p.w/bars.length,xAt=i=>p.x+step*(i+.5);
@@ -225,6 +225,7 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
    for(const e of m.events||[])if(e.confirmedAt&&/SUPPORT_BROKEN|SUPPORT_RECLAIMED|BREAKOUT_INITIAL|BREAKOUT_CONFIRMED|BREAKOUT_FAILED/.test(e.kind))history.push(e.date+'｜'+({SUPPORT_BROKEN:'收盤跌破',SUPPORT_RECLAIMED:'跌破後站回',BREAKOUT_INITIAL:'首次突破',BREAKOUT_CONFIRMED:'收盤突破',BREAKOUT_FAILED:'突破後失守'}[e.kind]||'歷史事件'));
    if(!history.length)history.push('目前沒有已確認的生命線事件。');
    paragraph(history.slice(-7).join('\n'),38,1916,1190,34,C.ink,8,1.39,660);
+   if(history.length<=4)paragraph('白話提醒：同一條生命線可能先突破，之後又失守。看最新完成日狀態，不要把以前的突破當成今天仍守住。',38,2164,1190,29,C.muted,3,1.26,590);
    round(14,2332,1256,309,18,'#24271D',C.gold,2);
    title(35,2352,'四、四級風險與技術指標怎麼看？',C.gold);
    const riskGuide=[
@@ -241,7 +242,7 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
    fit('RSI5 '+num(move.rsi5)+'｜MACD DIF '+num(move.macdDiff)+'（Wilder RSI5；EMA12/26/9）',37,2527,1200,26,C.ink,620,23);
    fit('目前：'+intelligence.risk.label+'。'+intelligence.volume.notice,37,2566,1200,26,C.ink,620,23);
    fit('資料日 '+intelligence.date+'｜依完成日收盤觀察，不用盤中價格冒充收盤。',37,2604,1200,26,C.muted,600,23);
-   footer('第 2 / 2 頁　完整技術原始資料保留於研究系統');
+   footer('第 2 / 2 頁　收盤確認｜非交易指令');
   }
   if(pageno===1)page1();else page2();
   if(watermark&&globalThis.ShitouReportWatermark)globalThis.ShitouReportWatermark.apply(canvas);
