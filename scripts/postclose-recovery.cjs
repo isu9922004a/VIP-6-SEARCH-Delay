@@ -25,11 +25,22 @@ async function published(root,{fetcher=fetch,repository=process.env.GITHUB_REPOS
   return !!(market&&history&&catalog&&m.tradeDateIso===market.tradeDateIso&&m.contentSha256===market.contentSha256&&h.date===history.date&&h.snapshotContentSha256===history.snapshotContentSha256&&c.asOf===catalog.asOf&&c.identity===catalog.identity);
  }catch{return false;}
 }
-async function running(update,{fetcher=fetch,repository=process.env.GITHUB_REPOSITORY,token=process.env.GITHUB_TOKEN}={}){
+async function running(update,{fetcher=fetch,repository=process.env.GITHUB_REPOSITORY,token=process.env.GITHUB_TOKEN,now=new Date()}={}){
  if(!(update?.state==='RUNNING'||update?.state==='READY'&&update.stage!=='VERIFIED_LIVE')||!/^\d+$/.test(update.runId||'')||!repository||!token)return false;
  const r=await fetcher('https://api.github.com/repos/'+repository+'/actions/runs/'+update.runId,{headers:{Authorization:'Bearer '+token,Accept:'application/vnd.github+json'},signal:AbortSignal.timeout(15000)});
  if(!r.ok)throw Error('更新工作狀態暫時無法查核 HTTP '+r.status);
- const job=await r.json();return ['queued','pending','waiting','in_progress','requested'].includes(job.status);
+ const job=await r.json();
+ if(job.status==='in_progress')return true;
+ if(['queued','pending','waiting','requested'].includes(job.status)){
+  // A queued run can remain pending during CI backlog. Do not allow a stale
+  // RUNNING receipt to indefinitely prevent the next verified recovery.
+  // The shared GitHub Actions concurrency group serializes update attempts.
+  const queuedAt=Date.parse(job.created_at||update.updatedAt||'');
+  const stale=Number.isFinite(queuedAt)&&now.getTime()-queuedAt>=30*60*1000;
+  if(stale)console.warn('POSTCLOSE_RECOVERY_STALE_QUEUE '+JSON.stringify({runId:update.runId,status:job.status,queuedAt:job.created_at||update.updatedAt}));
+  return !stale;
+ }
+ return false;
 }
 async function plan(root,{now=new Date(),fetcher=fetch,online=true}={}){
  const expected=await expectedDate(root,now),market=read(root,'data/market/latest.json'),history=read(root,'data/research/manifest.json'),index=read(root,'data/index/TAIEX.json'),catalog=read(root,'data/kronos-future/manifest.json'),update=read(root,'data/kronos-future/update-status.json');

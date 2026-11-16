@@ -20,6 +20,15 @@ test('the actual GitHub run state decides liveness, not an old RUNNING label',as
  assert.equal(await R.running(u,{...options,fetcher:async()=>({ok:true,json:async()=>({status:'in_progress'})})}),true);
  await assert.rejects(R.running(u,{...options,fetcher:async()=>({ok:false,status:503})}),/503/);
 });
+test('V9.11 queued GitHub runs cannot indefinitely freeze Monday post-close recovery',async()=>{
+ const update={state:'RUNNING',runId:'123',updatedAt:'2026-11-16T13:00:00.000Z'};
+ const now=new Date('2026-11-16T14:00:00.000Z');
+ const options={repository:'owner/repo',token:'test-only',now,fetcher:async()=>({ok:true,json:async()=>({status:'queued',created_at:'2026-11-16T13:00:00.000Z'})})};
+ assert.equal(await R.running(update,options),false);
+ assert.equal(await R.running(update,{...options,fetcher:async()=>({ok:true,json:async()=>({status:'pending',created_at:'2026-11-16T13:45:00.000Z'})})}),true);
+ assert.equal(await R.running(update,{...options,fetcher:async()=>({ok:true,json:async()=>({status:'in_progress',created_at:'2026-11-16T13:00:00.000Z'})})}),true);
+ assert.equal(await R.running(update,{...options,fetcher:async()=>({ok:true,json:async()=>({status:'completed',created_at:'2026-11-16T13:00:00.000Z'})})}),false);
+});
 test('backend and browser share the 15:00 Taipei cutoff without weakening source checks',async()=>{
  const {expectedCompletedDate}=await import('../update-market-snapshot.mjs');assert.equal(Release.postcloseDataCutoffMinutes,900);
  const calendar={ready:true,closures:[],specialTradingDates:[]},history={closeDate:'2026-11-09',tradingCalendar:{verified:true,dates:['2026-11-09','2026-11-10','2026-11-11']}};

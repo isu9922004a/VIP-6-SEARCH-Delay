@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches: ['main']
-    paths: ['scripts/update-index-snapshot.cjs', 'scripts/index-update-plan.cjs', '.github/workflows/update-index-snapshot.yml']
+    paths: ['scripts/update-index-snapshot.cjs', 'scripts/index-update-plan.cjs', '.github/workflows/update-index-snapshot.yml', 'data/market/latest.json']
   schedule:
     # UTC, all hours: recover missed post-close runs through the next morning.
     # The verified exchange calendar decides the completed session; current pairs skip inference.
@@ -16,7 +16,7 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
     outputs:
       updated: ${{ steps.plan.outputs.needed }}
     steps:
