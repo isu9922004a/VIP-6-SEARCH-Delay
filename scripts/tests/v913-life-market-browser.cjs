@@ -10,8 +10,9 @@ fs.mkdirSync(out,{recursive:true});
 const stockStudy=Core.evaluate(rawStock);
 const coreMarket=Core.evaluate({code:'TAIEX',name:'台灣加權指數',date:market.closeDate,sourceBars:market.dailySeries,validation:{technicalModelAvailable:true},completed:true,priceAdjustment:market.priceAdjustment});
 const marketStudy={...coreMarket,instrumentType:'TAIEX',sourceVerified:true};
+// The isolated browser must initialize release metadata before the tower-line core.
 const dependencies=[
- 'tower-line-core.js','research-common-v1.js','research-life-source-audit-v932.js',
+ 'version-v50.js','tower-line-core.js','research-common-v1.js','research-life-source-audit-v932.js',
  'kline-life-03-core-v1.js','research-chart-layout-v921.js','kline-life-03-report-v1.js',
  'life-line-visual-v972.js','life-line-intelligence-v913.js','market-life-risk-v910.js',
  'market-life-risk-v913.js','life-line-visual-v913.js','market-life-visual-v913.js'];
