@@ -5,6 +5,7 @@ on:
     paths:
       - 'research-integration-v1.js'
       - 'version-v50.js'
+      - 'index.html'
       - 'scripts/tests/etf-manual-v912.test.cjs'
       - '.github/workflows/v912-etf-manual.yml'
   push:
@@ -12,6 +13,7 @@ on:
     paths:
       - 'research-integration-v1.js'
       - 'version-v50.js'
+      - 'index.html'
       - 'scripts/tests/etf-manual-v912.test.cjs'
       - '.github/workflows/v912-etf-manual.yml'
   workflow_dispatch:
