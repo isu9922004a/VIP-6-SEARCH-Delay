@@ -54,7 +54,7 @@ async function main({fetcher=fetch,root=process.cwd()}={}){
  const instruments={},months=monthsBack(date),failed=[];
  for(const [code,name] of Object.entries(CODES)){
   try{
-   const source=[];for(const month of months){const m=await requestMonth(code,month,fetcher);source.push({...m,month});}
+   const source=[];for(const month of months){const m=await requestMonth(code,month,fetcher);source.push({...m,month});await new Promise(resolve=>setTimeout(resolve,1000));}
    const x=build(code,name,date,calendar.dates,source),raw=JSON.stringify(x.report)+'\n';
    await fs.writeFile(out+'/'+code+'.json',raw);
    instruments[code]={code,name,type:'ETF',market:'TWSE',path:date+'/'+code+'.json',sha256:sha(raw),ready:x.ready,bars:x.bars,reason:x.reason,close:x.report.close};
