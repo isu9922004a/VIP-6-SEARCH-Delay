@@ -31,7 +31,7 @@ function stockQueryIntro(stock){
  for(const [name,value] of [['收盤價（元）',stockFmt(stock.metrics.close)],['短線力道 RSI5（0～100）',stockFmt(stock.metrics.rsi5)],['20日平均價 MA20（元）',stockFmt(stock.metrics.ma20)]]){
   const cell=el('div');cell.className='research-stock-metric';cell.append(el('span',name),el('strong',value));row.append(cell);
  }
- const meta=el('p',`行情 ${stock.metrics.marketDate}｜${stock.analysis?.limitedHistory?'官方行情已核對，先作觀察':stock.metrics.verifiedDailyResearch?'使用已收盤日K':'資料還不完整'}｜個股查詢，不列入選股排行`);
+ const meta=el('p',`行情 ${stock.metrics.marketDate}｜${stock.analysis?.limitedHistory?'官方行情已核對，先作觀察':stock.source?.financialOfficialDailyOnly?'已核驗官方日K；月K及濾網資格不判讀':stock.metrics.verifiedDailyResearch?'使用已收盤日K':'資料還不完整'}｜個股查詢，不列入選股排行`);
  meta.className='research-stock-meta';
  box.append(heading,row,meta);return box;
 }
@@ -118,12 +118,28 @@ function researchCard(a,number,prefix='研究',expanded=false){
 }
 
 function bind(snapshot){if(snapshot?.identity!==identity){identity=snapshot?.identity||null;date=snapshot?.date||null;records.clear();sourceRecords.clear();baselines.clear();seen.clear();cache.clear();revision++;schedule();}}
+// A financial stock may use a verified official DAILY_ONLY archive for a manual
+// chart when the shared scan research path fails. This does not qualify a scan.
+function isOfficialFinancial(q){return String(q?.industryCode||'').padStart(2,'0')==='17'||/金融|銀行|保險|證券|金控/.test(String(q?.industryName||''));}
+function verifiedFinancialDaily(report,q,code,date){
+ const archive=root.ShitouOfficialResearchHistory,bar=report?.dailySeries?.at(-1);
+ if(!archive?.proof?.(report)||!isOfficialFinancial(q)||!q||!bar)return false;
+ if(String(report.stock)!==code||report.closeDate!==date||report.marketDate!==date||report.market!==q.market||
+    String(q.code)!==code||String(q.quoteDate||'').replaceAll('-','')!==date.replaceAll('-','')||
+    report.completed!==true||report.isComplete!==true||report.volumeUnit!=='shares'||
+    report.priceAdjustment?.verified!==true||report.priceAdjustment?.basis!=='UNADJUSTED_OFFICIAL_OHLC'||
+    report.dataContract?.sourceMode!=='DAILY_ONLY'||bar.date!==date)return false;
+ return ['open','high','low','close'].every(k=>Number.isFinite(q[k])&&Number.isFinite(bar[k])&&Math.abs(q[k]-bar[k])<=.011)&&
+   Number.isFinite(report.close)&&Math.abs(report.close-bar.close)<=.011;
+}
 function source(input){const raw=U.normalizeInput(input),r={...raw};
  const D=root.ShitouSelectionDataV2,code=String(r.stock||r.code||''),sourceDate=r.marketDate||r.closeDate||r.dataDate;
  // Only the verified canonical cache may supply history. A same ticker in an old
  // scan is insufficient evidence: apply also checks date, market, close and completion.
  const trustedObservation=r.officialObservationOnly===true&&safely(()=>root.ShitouOfficialResearchHistory?.availability(r,{quote:D.context(code).q}));
- if(!trustedObservation&&D?.get(code)&&D.getSnapshot()?.date===sourceDate){
+ const trustedFinancialDaily=r.financialOfficialDailyOnly===true&&D?.getSnapshot()?.date===sourceDate&&
+   safely(()=>verifiedFinancialDaily(r,D.context(code).q,code,sourceDate));
+ if(!trustedObservation&&!trustedFinancialDaily&&D?.get(code)&&D.getSnapshot()?.date===sourceDate){
   const canonical=D.get(code);
   // A failed canonical acquisition belongs to the shared snapshot, regardless
   // of whether the caller came through the async stock lookup or a scan adapter.
@@ -171,8 +187,18 @@ async function prepareStockQueryUncached(input){
   const reason=D.getSnapshot()?.date===date&&D.get(code)?.error||String(e.message||e);
   // Retain strictly verified official facts when the trading pipeline rejects
   // a short history or a volume-scope conflict. No scanner cache is upgraded.
-  const official=root.ShitouOfficialResearchHistory?.get(code,date);let q=null;try{q=D.context(code).q;}catch(_){}
-  if(official&&q&&root.ShitouOfficialResearchHistory.availability(official,{quote:q}))return {...official,code,officialObservationOnly:true,quoteEvidence:D.quoteEvidence?.(code,date),officialObservationReason:reason};
+  const archive=root.ShitouOfficialResearchHistory;let q=null;try{q=D.context(code).q;}catch(_){}
+  let official=archive?.get(code,date)||null;
+  // Do not confuse an uncached verified archive with missing market data.
+  // A manual financial lookup may load it; the scanner and its error cache are unchanged.
+  if(!official&&q&&isOfficialFinancial(q)&&D.getSnapshot()?.date===date){
+   try{official=await archive?.load(code,{date,market:q.market});}catch(e){console.warn('金融股官方日線備援無法核驗：'+String(e.message||e));}
+  }
+  if(official&&q&&archive?.availability(official,{quote:q}))return {...official,code,officialObservationOnly:true,quoteEvidence:D.quoteEvidence?.(code,date),officialObservationReason:reason};
+  if(official&&verifiedFinancialDaily(official,q,code,date))return {...official,code,financialOfficialDailyOnly:true,
+   officialMonthlyUnavailable:true,officialMonthlyUnavailableReason:'僅有已驗證官方日K，月K與策略資格不判讀',
+   monthlyStatus:'UNAVAILABLE',monthlyPass:null,entry:null,startMonthConfirmed:false,
+   quoteEvidence:D.quoteEvidence?.(code,date),officialObservationReason:reason};
   return {...raw,quoteEvidence:D.quoteEvidence?.(code,date)||raw.quoteEvidence,researchAcquisitionError:reason,researchInputErrors:[...new Set([...(raw.researchInputErrors||[]),reason])]};
  }
 }
