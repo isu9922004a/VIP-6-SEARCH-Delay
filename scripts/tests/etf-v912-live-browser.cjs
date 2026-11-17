@@ -29,7 +29,7 @@ async function json(p){
   await page.waitForFunction(()=>ShitouResearchIntegration.getCurrentStock()?.analysis?.code==='00878');
   const result=await page.evaluate(()=>{
    const x=ShitouResearchIntegration.getCurrentStock(),source=x.source;
-   return {name:x.analysis.name,code:x.analysis.code,date:x.analysis.date,close:x.analysis.close,
+   return {name:x.analysis.name,code:x.analysis.code,date:x.analysis.date,close:x.metrics.close,
      type:source.securityType,etfResearchOnly:source.etfResearchOnly,monthlyPass:source.monthlyPass,
      notice:document.getElementById('etf912Notice')?.textContent,
      visible:document.getElementById('result')?.style.display,
