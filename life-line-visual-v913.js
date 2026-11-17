@@ -10,10 +10,10 @@ const RELEASE='V9.13',VERSION='LIFE_VISUAL_IPHONE_V913',W=1284,H=2778,M=14,FOOT=
 const C={bg:'#071C2D',card:'#0A2D43',card2:'#10364D',ink:'#F3F7FF',muted:'#C2D7E5',mint:'#81F1D0',green:'#60EE92',gold:'#FFE365',orange:'#FFB444',risk:'#FF859F',blue:'#39B9FF',grid:'#28506B',up:'#FF5975',down:'#3CDBB6',line:'#71CFFF'};
 const finite=n=>typeof n==='number'&&Number.isFinite(n),num=n=>finite(n)?n.toFixed(2):'資料不足',date=v=>typeof v==='string'&&v.length>=10?v.slice(5).replace('-','/'):'未確認';
 async function ready(doc=globalThis.document){if(!doc?.createElement)throw Error('圖片畫布不可用');if(doc.fonts?.ready)await doc.fonts.ready;return true;}
-function build(study,{document:doc=globalThis.document,record=null,display=null,source=null,watermark=false}={}){
+function build(study,{document:doc=globalThis.document,record=null,display=null,source=null,market=null,watermark=false}={}){
  if(!doc?.createElement)throw Error('圖片畫布不可用');
  const m=Legacy.model(study,{record,display,source}),bars=m.bars.slice(-30),last=bars.at(-1),line=m.line;
- const intel=Info.evaluate(study,{securityMarket:source?.market||'UNKNOWN'});
+ const intel=Info.evaluate(study,{securityMarket:source?.market||'UNKNOWN',market});
 
  // Extending MA lines is allowed only with the exact validated, unadjusted official
  // series matching EVERY existing completed K. The research core remains untouched.
