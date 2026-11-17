@@ -38,6 +38,8 @@ async function json(p){
   assert.equal(result.type,'ETF');assert.equal(result.etfResearchOnly,true);assert.equal(result.monthlyPass,null);
   assert.equal(result.code,'00878');assert.equal(result.date,m.date);assert.equal(result.close,raw.close);
   assert.match(result.notice,/不是主力成本/);assert.equal(result.visible,'block');assert.equal(result.buttonDisabled,false);
+  // The life-image action lives inside the stock research dialog; open it through the visible user entry first.
+  await page.locator('#workspaceFourReportButton').click();
   await page.locator('#workspaceLifeReportButton').click();
   await page.waitForFunction(()=>document.getElementById('life94Status')?.textContent.includes('備妥'));
   const pages=await page.evaluate(async()=>{
