@@ -53,6 +53,7 @@ jobs:
           git commit -m "data(v9.12): verified official ETF completed-session research"
           for attempt in 1 2 3; do
             git pull --rebase origin main || exit 1
+            node -e "const m=require('./data/etf/manifest.json'),s=require('./data/market/latest.json');if(m.date!==s.tradeDateIso)throw Error('Market date changed while ETF was being built; retry fresh instead of publishing stale ETF')"
             if git push origin HEAD:main; then exit 0; fi
           done
           exit 1
