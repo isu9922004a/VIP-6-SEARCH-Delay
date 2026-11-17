@@ -307,7 +307,87 @@ function mount(){const panel=el('section');panel.id='researchPanel';panel.classN
  const target=by('priceActionPanel')||by('towerGoldPanel');if(target)target.after(panel);else document.body.append(panel);for(const [k,v] of Object.entries(LABEL)){const o=el('option',v);o.value=k;by('researchKind').append(o);}by('researchKind').value=activeKind;by('researchKind').onchange=e=>{activeKind=e.target.value;render();};by('researchToggle').onchange=e=>setFlags({fourModelsEnabled:e.target.checked});by('researchRollback').onclick=()=>setFlags(Object.fromEntries(Object.keys(U.DEFAULTS).filter(k=>k.endsWith('Enabled')).map(k=>[k,false])));by('researchRestore').onclick=()=>setFlags(U.DEFAULTS);by('researchPreview').onclick=()=>activeKind==='STOCK_QUERY'?latestStockQuery&&preview([latestStockQuery.analysis],{stockMode:true}):preview(selectedRows().slice(0,8).map(x=>x.analysis));by('researchTxt').onclick=()=>exportData('txt');by('researchCsvZh').onclick=()=>exportData('csv-zh');by('researchJson').onclick=()=>exportData('json');by('researchCsv').onclick=()=>{if(latestStockQuery)root.ShitouDraxPriceReminder?.open(latestStockQuery.analysis,by('researchCsv'));};
 }
 for(const name of ['buildReportText','buildReportTextV32','buildLegacyReportText']){const old=root[name];if(typeof old==='function')root[name]=function(input,...args){const out=old.call(this,input,...args);if(!flags.fourModelsEnabled&&!flags.threeDayStructureEnabled&&!flags.granvilleContextEnabled&&!flags.candlePatternEnabled&&!flags.dualScanEnabled&&!flags.alertPlanEnabled)return out;return typeof out==='string'&&!out.includes('【V8研究附錄】')?out+'\n\n【V8研究附錄】\n'+R.text(forReport(input)):out;};}
+// V9.12 ETF manual-only adapter: isolated official ETF catalog, never a scanner candidate.
+const ETF912_CODES=Object.freeze({'0050':'元大台灣50','0056':'元大高股息','006208':'富邦台50','00878':'國泰永續高股息','00919':'群益台灣精選高息'});
+let etf912Report=null,etf912OriginalGetter=null,etf912GetterInstalled=false;
+const etf912Base=()=>new URL('./data/etf/',globalThis.location.href).href;
+async function etf912JSON(url){
+ const r=await fetch(url,{cache:'no-store',headers:{Accept:'application/json'}});
+ if(!r.ok||!/json/i.test(r.headers.get('content-type')||''))throw Error('ETF 官方研究資料無法讀取（HTTP '+r.status+'）。尚未發布就不使用舊價格。');
+ return r.text();
+}
+function etf912Valid(report,entry,date,code){
+ const bars=report.dailySeries;
+ if(report.schema!=='SHITOU_ETF_DAILY_RESEARCH_V912'||report.etfResearchOnly!==true||report.securityType!=='ETF'||report.stock!==code||
+ report.market!=='TWSE'||report.closeDate!==date||report.marketDate!==date||report.completed!==true||report.isComplete!==true||
+ report.volumeUnit!=='shares'||report.dailySeriesMeta?.volumeUnit!=='shares'||report.dailySeriesMeta?.source!=='TWSE_STOCK_DAY_OFFICIAL_ETF'||
+ report.dailySeriesMeta?.onlyCompletedBars!==true||report.priceAdjustment?.basis!=='UNADJUSTED_OFFICIAL_OHLC'||
+ report.priceAdjustment?.verified!==true||report.monthlyPass!==null||report.entry!==null||!Array.isArray(bars)||bars.length!==entry.bars||
+ report.etfSourceAudit?.type!=='TWSE_OFFICIAL_ETF'||report.etfSourceAudit.asOf!==date||
+ report.etfSourceAudit.noSyntheticPrices!==true||!Array.isArray(report.etfSourceAudit.sourceMonths)||!report.etfSourceAudit.sourceMonths.length||
+ report.etfSourceAudit.sourceMonths.some(x=>!/^https:\/\/www\.twse\.com\.tw\/rwd\/zh\/afterTrading\/STOCK_DAY\?/.test(x.source)||!/^[a-f0-9]{64}$/.test(x.sourceSha256)))
+ throw Error('ETF 的代號、交易日、單位、價格來源或基金身分驗證失敗');
+ if(!bars.every((b,i)=>b&&/^\d{4}-\d{2}-\d{2}$/.test(b.date)&&b.date<=date&&(!i||bars[i-1].date<b.date)&&
+ ['open','high','low','close'].every(k=>Number.isFinite(b[k])&&b[k]>0)&&Number.isInteger(b.volume)&&b.volume>0&&
+ b.low<=Math.min(b.open,b.close)&&b.high>=Math.max(b.open,b.close)))throw Error('ETF 日 K 資料缺漏或成交單位異常');
+ if(bars.at(-1)?.date!==date||bars.at(-1).close!==report.close||report.close!==entry.close)throw Error('ETF 最新收盤日或收盤價與研究清單不一致');
+ return report;
+}
+async function etf912Load(code){
+ const base=etf912Base(),manifest=JSON.parse(await etf912JSON(base+'manifest.json?fresh='+Date.now()));
+ if(manifest.schema!=='SHITOU_ETF_MANIFEST_V912'||manifest.verified!==true||manifest.securityType!=='ETF'||manifest.selectionEligible!==false||
+ manifest.scannerUniverseModified!==false||! /^\d{4}-\d{2}-\d{2}$/.test(manifest.date))throw Error('ETF 官方資料清單未通過核驗');
+ const entry=manifest.instruments?.[code];
+ if(!entry||entry.type!=='ETF'||entry.market!=='TWSE'||entry.path!==manifest.date+'/'+code+'.json'||entry.name!==ETF912_CODES[code]||!/^[a-f0-9]{64}$/.test(entry.sha256))throw Error('ETF '+code+' 尚未加入官方行情研究檔；不使用普通股資料替代');
+ const snapshot=root.ShitouSelectionDataV2?.getSnapshot?.();
+ if(snapshot?.date&&snapshot.date!==manifest.date)throw Error('ETF '+code+' 與一般股票行情日期不同，暫停混用，等待盤後同步');
+ const content=await etf912JSON(base+entry.path+'?revision='+entry.sha256);
+ const bytes=new TextEncoder().encode(content),digest=await crypto.subtle.digest('SHA-256',bytes);
+ const hash=[...new Uint8Array(digest)].map(n=>n.toString(16).padStart(2,'0')).join('');
+ if(hash!==entry.sha256)throw Error('ETF 官方研究檔 SHA256 驗證失敗');
+ return etf912Valid(JSON.parse(content),entry,manifest.date,code);
+}
+function etf912HideOldResult(hide){
+ const result=by('result');if(!result)return;
+ for(const child of [...result.children]){
+  if(child.id==='researchStock'||child.id==='etf912Notice'||child.id==='stockReportActionsPanel')continue;
+  if(hide&&!child.hasAttribute('data-etf912-old-hidden')){child.setAttribute('data-etf912-old-hidden',child.hidden?'true':'false');child.hidden=true;}
+  if(!hide&&child.hasAttribute('data-etf912-old-hidden')){child.hidden=child.getAttribute('data-etf912-old-hidden')==='true';child.removeAttribute('data-etf912-old-hidden');}
+ }
+}
+function etf912Attach(report){
+ const result=by('result');if(!result)throw Error('查詢結果區尚未建立');
+ etf912Report=report;
+ if(!etf912GetterInstalled){etf912OriginalGetter=root.shitouGetLastReportV82;root.shitouGetLastReportV82=()=>etf912Report||etf912OriginalGetter?.();etf912GetterInstalled=true;}
+ root.ShitouWorkspaceV831?.closeReport();
+ result.style.display='block';
+ etf912HideOldResult(true);
+ by('etf912Notice')?.remove();
+ const n=el('p','ETF 盤後技術研究｜'+report.name+'（'+report.stock+'）｜完成交易日 '+report.closeDate+'｜此處生命線是價格型態參考，不是主力成本；不含淨值、折溢價、收益分配、營收籌碼或策略入選資格。');
+ n.id='etf912Notice';n.setAttribute('role','status');n.style.cssText='padding:12px;border:1px solid #71CFFF;border-radius:10px;line-height:1.7;';
+ result.prepend(n);
+ captureStockQuery(report,{activate:true});mountStock(report);
+ root.ShitouWorkspaceV831?.select('stock');root.ShitouWorkspaceV831?.renderSummary();
+}
 const oldAnalyze=root.analyzeStock;if(typeof oldAnalyze==='function')root.analyzeStock=async function(...args){
+ const code=String(by('stockInput')?.value||'').trim();
+ if(/^00\d{2,4}$/.test(code)){
+  if(by('searchButton')?.disabled)return;
+  const serial=++stockQuerySerial;clearStockQuery();etf912Report=null;
+  const result=by('result');by('etf912Notice')?.remove();
+  try{
+   const report=await root.ShitouQueryRuntime.deadline(()=>etf912Load(code),25000,'ETF 官方研究資料讀取超時');
+   if(serial!==stockQuerySerial)return;
+   etf912Attach(report);return report;
+  }catch(e){
+   if(serial!==stockQuerySerial)return;
+   etf912HideOldResult(true);
+   if(result){result.style.display='block';const n=el('p','ETF '+code+'：'+e.message+'。未使用模擬價格，亦未修改策略濾網。');n.id='etf912Notice';n.setAttribute('role','alert');result.prepend(n);}
+   console.warn('V9.12 ETF',e);root.ShitouWorkspaceV831?.renderSummary();return null;
+  }
+ }
+ etf912Report=null;etf912HideOldResult(false);by('etf912Notice')?.remove();
+
  if(by('searchButton')?.disabled)return;
  const seq=++stockQuerySerial;
  const stockInput=by('stockInput'),hasSearch=!!(stockInput?.value?.trim()||!stockInput);

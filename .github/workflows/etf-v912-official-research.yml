@@ -1,0 +1,58 @@
+name: V9.12 verified official ETF daily research
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'version-v50.js'
+      - 'scripts/build-etf-research-v912.mjs'
+      - 'scripts/tests/etf-v912.test.mjs'
+      - '.github/workflows/etf-v912-official-research.yml'
+  workflow_dispatch:
+  schedule:
+    # Taipei 17:25, 19:25 and 21:25 on market weekdays
+    - cron: '25 9,11,13 * * 1-5'
+permissions: {contents: write}
+concurrency:
+  group: etf-v912-official-publisher
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 27
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: main, fetch-depth: 0}
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - name: Verify isolated ETF parsing and selection safeguards
+        run: |
+          node --check research-integration-v1.js
+          node --check scripts/build-etf-research-v912.mjs
+          node --test scripts/tests/etf-v912.test.mjs
+      - name: Fetch verified official ETF monthly history (no Yahoo price substitution)
+        run: node scripts/build-etf-research-v912.mjs
+      - name: Check ETF manifest, signed files and completed dates
+        run: |
+          node - <<'NODE'
+          const fs=require('node:fs'),crypto=require('node:crypto'),m=require('./data/etf/manifest.json');
+          const market=require('./data/market/latest.json');
+          if(m.schema!=='SHITOU_ETF_MANIFEST_V912'||m.verified!==true||m.date!==market.tradeDateIso||m.selectionEligible!==false||Object.keys(m.instruments).length!==5)throw Error('ETF manifest invalid');
+          for(const [code,e] of Object.entries(m.instruments)){
+           const s=fs.readFileSync('data/etf/'+e.path,'utf8'),r=JSON.parse(s),h=crypto.createHash('sha256').update(s).digest('hex');
+           if(e.sha256!==h||r.stock!==code||r.securityType!=='ETF'||r.etfResearchOnly!==true||r.closeDate!==m.date||r.dailySeries.at(-1)?.date!==m.date||!e.ready||r.dailySeries.length<63)throw Error('ETF official archive invalid '+code);
+          }
+          console.log('V912_ETF_OFFICIAL_PASS '+m.date+' '+Object.keys(m.instruments).join(','));
+          NODE
+      - name: Commit only verified ETF research data to main
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- data/etf
+          if git diff --cached --quiet; then echo "ETF unchanged"; exit 0; fi
+          git commit -m "data(v9.12): verified official ETF completed-session research"
+          for attempt in 1 2 3; do
+            git pull --rebase origin main || exit 1
+            if git push origin HEAD:main; then exit 0; fi
+          done
+          exit 1

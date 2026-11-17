@@ -23,7 +23,7 @@ async function loadMarketVisual(doc){
   if(root[key])continue;
   await new Promise((resolve,reject)=>{
    const script=doc.createElement('script');
-   script.src=new URL('./'+file+'?v=V9.11-MARKETLIFE1',doc.baseURI).href;
+   script.src=new URL('./'+file+'?v=V9.12-MARKETLIFE1',doc.baseURI).href;
    script.async=false;
    script.onload=()=>root[key]?resolve():reject(Error(file+' 載入後未提供繪圖模組'));
    script.onerror=()=>reject(Error(file+' 載入失敗'));
@@ -39,7 +39,7 @@ function install(){
  const note=doc.createElement('p');note.id='marketLifeReportStatus';note.className='market-life-status';note.setAttribute('role','status');note.setAttribute('aria-live','polite');host.append(button);host.after(note);
  let revision=0,pending=false,controller=null,history=null;
  // Match the report renderer's *actual* version, not the site release label.
- // The V9.11 website may embed a V9.10 historical poster; never let its
+ // The V9.12 website may embed a V9.10 historical poster; never let its
  // verified source-expiry/export guard be skipped by that filename difference.
  const ownPreview=()=>{const version=root.ShitouMarketLifeVisual910?.RELEASE;
   return !!version&&by('imagePreviewModal')?.classList.contains('show')&&
