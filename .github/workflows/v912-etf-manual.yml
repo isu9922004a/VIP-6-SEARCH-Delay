@@ -1,0 +1,35 @@
+name: V9.12 ETF manual research, scanner isolation and regression
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'research-integration-v1.js'
+      - 'version-v50.js'
+      - 'scripts/tests/etf-manual-v912.test.cjs'
+      - '.github/workflows/v912-etf-manual.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'research-integration-v1.js'
+      - 'version-v50.js'
+      - 'scripts/tests/etf-manual-v912.test.cjs'
+      - '.github/workflows/v912-etf-manual.yml'
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  etf-manual-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - run: npm ci
+      - name: JS syntax and version
+        run: |
+          node --check research-integration-v1.js
+          node --check version-v50.js
+          node --check scripts/tests/etf-manual-v912.test.cjs
+          node -e "if(require('./version-v50.js').displayCode!=='V9.12')process.exit(1)"
+      - name: ETF signed-day isolation, financial stocks, fallback and life-line regressions
+        run: node --test scripts/tests/etf-manual-v912.test.cjs scripts/tests/financial-stocks-v911.test.cjs scripts/tests/research-query-fallback-v828.test.cjs scripts/tests/life-visual-v98.test.cjs
