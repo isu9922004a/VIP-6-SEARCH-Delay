@@ -68,11 +68,11 @@ test('V9.13 stock reports preserve 1284x2778 pages and original K3 source',()=>{
   assert.equal(a.model.close,66.6);
   assert.equal(a.model.life913.selectedPrimaryEvent.lifeLinePrice,70.9);
   assert.equal(a.affectsEligibility,false);
-  assert.match(p.filename,/V9\\.13/);
+  assert.ok(p.filename.includes('V9.13'));
  }
 });
 test('V9.13 market risk does not erase multi-session weakness when one-day drop is smaller',()=>{
- const s=Market.evaluate(taiex,{now:new Date('2026-11-18T08:00:00Z')});
+ const s=Market.evaluate(taiex,{now:new Date('2026-11-17T09:00:00Z')});
  assert.equal(s.sourceVerified,true,s.reason);
  assert.equal(s.close,40092.11);
  const r=Risk.evaluate(s);
@@ -89,7 +89,7 @@ test('V9.13 market risk does not erase multi-session weakness when one-day drop 
 });
 test('V9.13 actual front-end wiring must use new renderers, not legacy V9.8 / V9.10',()=>{
  const s=fs.readFileSync('research-integration-v1.js','utf8'),m=fs.readFileSync('market-life-ui-v96.js','utf8');
- assert.match(s,/ShitouLifeVisual913\\.build/);assert.match(m,/ShitouMarketLifeVisual913\\.build/);
- assert.match(s,/life-line-intelligence-v913\\.js/);
- assert.match(m,/market-life-risk-v913\\.js/);
+ assert.ok(s.includes('ShitouLifeVisual913.build'));assert.ok(m.includes('ShitouMarketLifeVisual913.build'));
+ assert.ok(s.includes('life-line-intelligence-v913.js'));
+ assert.ok(m.includes('market-life-risk-v913.js'));
 });
