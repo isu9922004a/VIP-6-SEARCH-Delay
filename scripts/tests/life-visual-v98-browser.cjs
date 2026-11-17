@@ -11,7 +11,14 @@ const png=b=>{assert.equal(b.subarray(1,4).toString(),'PNG');assert.equal(b.read
   browser=await chromium.launch({executablePath:process.env.CHROME_BIN||'/usr/bin/chromium',headless:true,args:['--no-sandbox']});
   const page=await browser.newPage({viewport:{width:428,height:926},isMobile:true,hasTouch:true});
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
-  await page.route('**/*',r=>new URL(r.request().url()).origin===new URL(origin).origin?r.continue():r.abort());
+  await page.route('**/*',r=>{
+   const u=new URL(r.request().url());if(u.origin!==new URL(origin).origin)return r.abort();
+   // The historical 11/13 price fixture is immutable and remains local; Pages
+   // intentionally publishes only manifest-referenced current research dates.
+   const m=u.pathname.match(/\/data\/research\/2026-11-13\/(6925|8099|2330)\.json$/);
+   if(process.env.V98_LIVE_ORIGIN&&m)return r.fulfill({contentType:'application/json',body:fs.readFileSync(path.join(root,'data/research/2026-11-13',m[1]+'.json'))});
+   return r.continue();
+  });
   await page.goto(origin+'index.html',{waitUntil:'load'});
   assert.equal(await page.evaluate(()=>ShitouReleaseV50.displayCode),'V9.11');
   assert.equal(await page.evaluate(()=>ShitouLifeVisual98.RELEASE),'V9.8','個股繪圖核心版本不得因大盤 V9.11 改版而變更');
