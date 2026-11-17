@@ -3,18 +3,10 @@
   "symbol": "TAIEX",
   "market": "TWSE_INDEX",
   "name": "臺灣加權股價指數",
-  "closeDate": "2026-11-16",
-  "close": 41040.08,
+  "closeDate": "2026-11-17",
+  "close": 40092.11,
   "completed": true,
   "dailySeries": [
-    {
-      "date": "2026-05-22",
-      "open": 41447.92,
-      "high": 42357.6,
-      "low": 41447.92,
-      "close": 42267.97,
-      "volume": 14518650616
-    },
     {
       "date": "2026-05-25",
       "open": 42667.87,
@@ -966,6 +958,14 @@
       "low": 41040.08,
       "close": 41040.08,
       "volume": 14120171417
+    },
+    {
+      "date": "2026-11-17",
+      "open": 40546.64,
+      "high": 41533.84,
+      "low": 39786.45,
+      "close": 40092.11,
+      "volume": 14624794027
     }
   ],
   "dailySeriesMeta": {
@@ -973,10 +973,10 @@
     "requestedBars": 120,
     "minRecommendedBars": 60,
     "returnedBars": 120,
-    "taiexOhlcRowsAvailable": 474,
-    "fmtqikVolumeRowsAvailable": 154,
-    "firstDate": "2026-05-22",
-    "lastDate": "2026-11-16",
+    "taiexOhlcRowsAvailable": 475,
+    "fmtqikVolumeRowsAvailable": 155,
+    "firstDate": "2026-05-25",
+    "lastDate": "2026-11-17",
     "ascending": true,
     "onlyCompletedBars": true,
     "readyForTrident": true,
@@ -1241,18 +1241,28 @@
       "2026-12-30",
       "2026-12-31"
     ],
-    "generatedAt": "2026-11-12T11:50:16.794Z",
+    "generatedAt": "2026-11-17T08:23:14.594Z",
     "futureSessionPolicy": "官方年度API已更新下一年度；本年度沿用有來源指紋的既有核驗交易日曆，並核對當期實際交易日",
     "sourceSha256": "fb3c71ce62aa4819e58d422fa08be383161a830230f84e9a50560e019eee577c",
     "historicalSource": "https://www.twse.com.tw/exchangeReport/FMTQIK",
     "historicalSnapshotHash": "5354e5d5a059bc645b005834211929f48e928ddddce354c28ac17260b8c23bce",
     "annualSourceStatus": "VERIFIED_SAME_YEAR_CACHE",
-    "officialEndpointCoverageYear": "2027"
+    "officialEndpointCoverageYear": "2027",
+    "end": "2026-11-17",
+    "independentIndexCalendar": true
   },
   "sourceReceipt": {
     "url": "https://shitou-taiwanmarket-api.d318426.workers.dev/?market=TAIEX",
     "officialRecovery": null,
-    "retrievedAt": "2026-11-16T13:39:48.270Z",
-    "sha256": "de747d175796e0aeb45434fef757066542cc442fac4c9c174798c1e6899054a1"
+    "retrievedAt": "2026-11-17T08:23:14.594Z",
+    "sha256": "88dc9b92dd101e1164e8e73df015c8a06c89d09795e6abf275164938e730cb13",
+    "officialChecks": [
+      {
+        "month": "2026-11",
+        "url": "https://www.twse.com.tw/exchangeReport/FMTQIK?response=json&date=20261101",
+        "sha256": "715a7a1f9522fbe3e64238b9de78b74119001e9270f89db091ac3a98ed2aade9"
+      }
+    ],
+    "expectedCompletedDate": "2026-11-17"
   }
 }
