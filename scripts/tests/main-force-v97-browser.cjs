@@ -4,7 +4,14 @@ const root=path.resolve(__dirname,'../..'),out=path.resolve(process.argv[2]||'/t
 fs.mkdirSync(out,{recursive:true});
 function png(b){assert.equal(b.readUInt32BE(16),1284);assert.equal(b.readUInt32BE(20),2778);}
 (async()=>{const browser=await chromium.launch({executablePath:process.env.CHROME_BIN||'/usr/bin/chromium',headless:true,args:['--no-sandbox']});const checks=[],errors=[];try{
- const page=await browser.newPage({viewport:{width:428,height:926},isMobile:true,hasTouch:true,acceptDownloads:true});page.on('pageerror',e=>errors.push(e.message));if(!live)await page.clock.setFixedTime(new Date('2026-11-15T02:00:00Z'));
+ const page=await browser.newPage({viewport:{width:428,height:926},isMobile:true,hasTouch:true,acceptDownloads:true});page.on('pageerror',e=>errors.push(e.message));if(!live){
+  // The published market snapshot is authoritative for the completed session under test.
+  // A fixed 11/15 clock with a newer 11/17 snapshot would incorrectly make every row future-dated.
+  const snapshot=JSON.parse(fs.readFileSync(path.join(root,'data/market/latest.json'),'utf8'));
+  const asOf=snapshot.tradeDateIso;
+  assert.match(asOf,/^\d{4}-\d{2}-\d{2}$/,'completed market snapshot date required');
+  await page.clock.setFixedTime(new Date(asOf+'T16:00:00+08:00'));
+ }
  await page.addInitScript(()=>{window.costShareCalls=[];window.costShareMode='success';Object.defineProperty(navigator,'canShare',{configurable:true,value:()=>true});Object.defineProperty(navigator,'share',{configurable:true,value:async request=>{costShareCalls.push({files:request.files.length,name:request.files[0].name,type:request.files[0].type,active:navigator.userActivation.isActive});if(costShareMode==='cancel')throw new DOMException('cancel','AbortError');if(costShareMode==='fail')throw Error('share unavailable');}});});
  let hold=false,held=[],requests=0;
  if(!live)await page.route('**/*',async route=>{const u=new URL(route.request().url());if(u.origin!==origin)return route.abort();const rel=u.pathname==='/'?'/index.html':u.pathname,f=path.resolve(root,'.'+rel);if(!f.startsWith(root+path.sep)||!fs.existsSync(f))return route.fulfill({status:404,body:''});const send=()=>route.fulfill({contentType:f.endsWith('.js')?'text/javascript':f.endsWith('.css')?'text/css':f.endsWith('.html')?'text/html':'application/json',body:fs.readFileSync(f)}).catch(()=>{});if(/\/data\/research\/\d{4}-\d\d-\d\d\//.test(u.pathname)){requests++;if(hold)return new Promise(resolve=>held.push(async()=>{await send();resolve();}));}return send();});
