@@ -10,7 +10,7 @@ const show=()=>page.evaluate(async()=>{
  const response=await fetch(new URL('./data/research/manifest.json',location.href),{cache:'no-store'});
  if(!response.ok)throw Error('正式研究清單載入失敗：HTTP '+response.status);
  const manifest=await response.json(),entry=manifest.stocks?.['8099'];
- if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(manifest.date||'')||entry?.path!==manifest.date+'/8099.json')throw Error('8099 與當前研究清單不一致');
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(manifest.date||'')||entry?.path!==manifest.date+'/8099.json')throw Error('8099 與當前研究清單不一致');
  const detail=await fetch(new URL('./data/research/'+entry.path,location.href),{cache:'no-store'});
  if(!detail.ok||!detail.headers.get('content-type')?.includes('json'))throw Error('當期8099官方行情缺失：HTTP '+detail.status);
  const raw=await detail.json();
