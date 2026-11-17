@@ -21,7 +21,7 @@
    if(normalized>=1.4&&now.close<prev.close)shocks.push({date:now.date,atrMultiple:Number(normalized.toFixed(2))});
   }
   const currentShock=base.risk.level===4,priorShock=shocks.some(s=>s.date!==last.date);
-  const weakBars=bars.slice(-5).filter(b=>b.close<(ma20||Infinity)).length;
+  const weakBars=bars.slice(-5).filter((b,i)=>{const atBar=bars.length-5+i,atMa20=ma(bars,20,atBar);return finite(atMa20)&&b.close<atMa20;}).length;
   const recentLow=bars.slice(-5).map(b=>b.low);
   const decliningLows=recentLow.length>=3&&recentLow.at(-1)<Math.min(...recentLow.slice(0,-1));
   let state='NORMAL_OR_UNCONFIRMED',label='多空尚待確認',reason='未達足夠條件，不能判定市場已經恢復正常。';
