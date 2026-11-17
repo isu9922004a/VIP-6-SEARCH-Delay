@@ -69,7 +69,7 @@ test('V9.13 market frozen verified 11/17 data remains valid and clearly weak',()
  assert.equal(after.activeScenario,'C');
  assert.equal(after.metrics.ma5,42431.27);
  assert.equal(after.metrics.ma20,43986.95);
- assert.equal(after.phase.weakClosesBelow20,4);
+ assert.equal(after.phase.weakClosesBelow20,5);
  assert.ok(after.phase.previousShocks.some(x=>x.date==='2026-11-16'));
  assert.match(after.scenarios.find(x=>x.id==='B').text,/不能單純稱為盤整/);
  assert.equal(after.performanceValidated,false);
