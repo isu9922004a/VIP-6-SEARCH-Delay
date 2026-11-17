@@ -164,7 +164,7 @@ function source(input){const raw=U.normalizeInput(input),r={...raw};
  const trustedObservation=r.officialObservationOnly===true&&safely(()=>root.ShitouOfficialResearchHistory?.availability(r,{quote:D.context(code).q}));
  const trustedFinancialDaily=r.financialOfficialDailyOnly===true&&D?.getSnapshot()?.date===sourceDate&&
    safely(()=>verifiedFinancialDaily(r,D.context(code).q,code,sourceDate));
- if(!isEtfManualCode(code,r)&&!trustedObservation&&!trustedFinancialDaily&&D?.get(code)&&D.getSnapshot()?.date===sourceDate){
+ if(!trustedObservation&&!trustedFinancialDaily&&D?.get(code)&&D.getSnapshot()?.date===sourceDate&&!isEtfManualCode(code,r)){
   const canonical=D.get(code);
   // A failed canonical acquisition belongs to the shared snapshot, regardless
   // of whether the caller came through the async stock lookup or a scan adapter.
