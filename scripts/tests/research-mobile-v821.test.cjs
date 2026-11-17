@@ -24,7 +24,7 @@ test('full-bleed iPhone image layout keeps enlarged text inside safe bounds',()=
 });
 test('frontend and report declare the current release and local assets use explicit cache versions',()=>{
  const html=fs.readFileSync(path.join(root,'index.html'),'utf8');const v=require('../../version-v50.js');
- assert.match(v.displayCode,/^(?:V8\.(?:2\.\d+|3|4|5|6(?:\.\d+)?|7(?:\.\d+)?|8)|V9\.(?:[0-9]|1[0-2])(?:\.\d+)?)(?:-R\d+)?$/);assert.equal(v.fileVersion,v.displayCode);
+ assert.match(v.displayCode,/^(?:V8\.(?:2\.\d+|3|4|5|6(?:\.\d+)?|7(?:\.\d+)?|8)|V9\.(?:[0-9]|1[0-3])(?:\.\d+)?)(?:-R\d+)?$/);assert.equal(v.fileVersion,v.displayCode);
  assert.ok(html.includes('<title>石頭少爺 '+v.displayCode));
  const src=fs.readFileSync(path.join(root,'research-report-v1.js'),'utf8');assert.ok(src.includes(v.displayCode));
  for(const file of ['version-v50.js','research-report-v1.js'])assert.ok(html.includes(file+'?v='+v.displayCode));
