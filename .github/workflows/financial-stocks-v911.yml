@@ -24,7 +24,7 @@ jobs:
         with: {node-version: '24'}
       - run: npm ci
       - name: JS syntax
-        run: node --check research-integration-v1.js && node --check scripts/tests/financial-stocks-v911.test.cjs && node --check scripts/tests/financial-stocks-v911-browser.cjs
+        run: node --check research-integration-v1.js && node --check scripts/tests/financial-stocks-v911.test.cjs && node --check scripts/tests/financial-stocks-v911-browser.cjs && node --check scripts/tests/financial-stocks-v911-live-browser.cjs
       - name: Financial data, V9.8 model and strategy exclusion audit
         run: node --test scripts/tests/financial-stocks-v911.test.cjs
       - name: Existing V9.8 and research query regression tests
@@ -46,3 +46,23 @@ jobs:
         with:
           name: v911-financial-research-mobile-acceptance
           path: /tmp/financial-v911
+
+  financial-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - run: npm ci
+      - run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Live manifest-backed financial stock viewer (not historic fixtures)
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+          RESEARCH_BROWSER_ORIGIN: https://isu9922004a.github.io/VIP-6-SEARCH-Delay/
+        run: node scripts/tests/financial-stocks-v911-live-browser.cjs /tmp/financial-live-v911
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v911-financial-live-current-date
+          path: /tmp/financial-live-v911
