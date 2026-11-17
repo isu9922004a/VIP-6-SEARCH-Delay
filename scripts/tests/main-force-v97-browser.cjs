@@ -10,7 +10,8 @@ function png(b){assert.equal(b.readUInt32BE(16),1284);assert.equal(b.readUInt32B
   const snapshot=JSON.parse(fs.readFileSync(path.join(root,'data/market/latest.json'),'utf8'));
   const asOf=snapshot.tradeDateIso;
   assert.match(asOf,/^\d{4}-\d{2}-\d{2}$/,'completed market snapshot date required');
-  await page.clock.setFixedTime(new Date(asOf+'T16:00:00+08:00'));
+  // The scanner accepts today's official completed archive only after 17:35 Asia/Taipei.
+  await page.clock.setFixedTime(new Date(asOf+'T18:00:00+08:00'));
  }
  await page.addInitScript(()=>{window.costShareCalls=[];window.costShareMode='success';Object.defineProperty(navigator,'canShare',{configurable:true,value:()=>true});Object.defineProperty(navigator,'share',{configurable:true,value:async request=>{costShareCalls.push({files:request.files.length,name:request.files[0].name,type:request.files[0].type,active:navigator.userActivation.isActive});if(costShareMode==='cancel')throw new DOMException('cancel','AbortError');if(costShareMode==='fail')throw Error('share unavailable');}});});
  let hold=false,held=[],requests=0;
