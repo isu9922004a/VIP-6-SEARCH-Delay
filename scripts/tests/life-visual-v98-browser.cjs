@@ -13,7 +13,7 @@ const png=b=>{assert.equal(b.subarray(1,4).toString(),'PNG');assert.equal(b.read
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.route('**/*',r=>new URL(r.request().url()).origin===new URL(origin).origin?r.continue():r.abort());
   await page.goto(origin+'index.html',{waitUntil:'load'});
-  assert.equal(await page.evaluate(()=>ShitouReleaseV50.displayCode),'V9.11');
+  assert.equal(await page.evaluate(()=>ShitouReleaseV50.displayCode),'V9.12');
   assert.equal(await page.evaluate(()=>ShitouLifeVisual98.RELEASE),'V9.8','個股繪圖核心版本不得因大盤 V9.11 改版而變更');
   await page.evaluate(()=>ShitouLifeVisual98.ready(document));
   const date=await page.evaluate(async()=>{
