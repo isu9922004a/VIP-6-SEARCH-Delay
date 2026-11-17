@@ -20,8 +20,8 @@ test('historical reference, absent K0, and insufficient-source volume do not pro
  const absent=JSON.parse(JSON.stringify(study));absent.event=null;assert.equal(inspect(absent)[0].model.line,null);assert.equal(inspect(absent)[0].model.markers.length,0);
  const uncertain=JSON.parse(JSON.stringify(study));uncertain.sourceVolumeAudit={uncertain:true};assert.equal(inspect(uncertain)[0].model.volume.verified,false);
 });
-test('visual routing chooses V9.8, but original full legacy pages and event core remain available',()=>{
- const code=fs.readFileSync('research-integration-v1.js','utf8');assert.match(code,/ShitouLifeVisual98\.build/);
+test('visual routing now chooses V9.13, but original full legacy pages and event core remain available',()=>{
+ const code=fs.readFileSync('research-integration-v1.js','utf8');assert.match(code,/ShitouLifeVisual913\.build/);
  assert.equal(V.build(study,{document:mock}).length,2);
  assert.ok(fs.readFileSync('life-line-visual-v972.js','utf8').includes('V9.7.2'));
 });

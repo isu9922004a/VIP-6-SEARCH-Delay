@@ -15,5 +15,5 @@ test('research workbench navigation, tools and state handling remain exactly at 
 });
 test('V9.5 entry module is idempotent and cannot replace data, scanner or analysis functions',()=>{
  const s=fs.readFileSync('ui-simplify-v95.js','utf8');assert.match(s,/if\(doc.documentElement.dataset.uiSimplifyV95\)return/);assert.doesNotMatch(s,/(?:root|globalThis|window)\.(?:analyzeStock|run\w*Scan\w*|Shitou\w+)\s*=/);assert.doesNotMatch(s,/innerHTML\s*=|\.replaceAll\(/);
- const release=require('../../version-v50.js');assert.equal(release.displayCode,'V9.12');assert.equal(release.fileVersion,'V9.12');assert.match(release.cacheVersion,/^V9\.12-/);assert.equal(release.life03Version,'KLINE_LIFE_03_V1');
+ const release=require('../../version-v50.js');assert.equal(release.displayCode,'V9.13');assert.equal(release.fileVersion,'V9.13');assert.match(release.cacheVersion,/^V9\.13-/);assert.equal(release.life03Version,'KLINE_LIFE_03_V1');
 });

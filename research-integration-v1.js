@@ -270,7 +270,18 @@ function alertControls(a){const plan=a.foundation.alertPlan,box=el('div');box.cl
 async function preview(analyses,{stockMode=false,detail=false,chartOnly=false,lifeOnly=false,watermark=false}={}){if(!analyses.length)return;const token=++previewSerial,query=stockQuerySerial;root.ShitouImageShareV1?.clear();if(!lifeOnly)await Promise.all(analyses.map(a=>root.ShitouKronosData?.ensure(a)));if(document.fonts?.ready)await document.fonts.ready;if(token!==previewSerial||query!==stockQuerySerial)return null;
  if(lifeOnly){
   by('life972Error')?.remove();root.closeInfographicPreviewV3328?.();root.ShitouLifeViewer94?.reset();
-  try{await root.ShitouLifeVisual98.ready(document);if(token!==previewSerial||query!==stockQuerySerial)return null;const pages=analyses.flatMap(a=>{const life=root.ShitouKlineLife03Report?.inspect(a);return life?root.ShitouLifeVisual98.build(life,{document,watermark,source:latestStockQuery?.analysis===a?latestStockQuery.source:null,display:{fields:root.ShitouKlineLife03Report.fields(life),teaching:root.ShitouKlineLife03Report.teaching()}}):[];});const shown=await root.ShitouLifeViewer94.show(pages);if(token!==previewSerial||query!==stockQuerySerial)return null;if(!shown)throw Error('圖片編碼或預覽未完成');return shown;
+  try{for(const [name,file] of [['ShitouLifeIntelligence913','life-line-intelligence-v913.js'],['ShitouLifeVisual913','life-line-visual-v913.js']]){if(root[name])continue;await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=new URL('./'+file+'?v=V9.13-STOCKLIFE1',document.baseURI).href;script.onload=()=>root[name]?resolve():reject(Error(file+' 模組不完整'));script.onerror=()=>reject(Error(file+' 載入失敗'));document.head.append(script);});}let marketContext=null;const marketSource=latestStockQuery?.analysis===analyses[0]?latestStockQuery?.source:null;
+  if(marketSource?.market==='TWSE'&&root.ShitouMarketLife96?.evaluate){
+   try{
+    for(const [name,file] of [['ShitouMarketLifeRisk910','market-life-risk-v910.js'],['ShitouMarketLifeRisk913','market-life-risk-v913.js']]){
+     if(root[name])continue;
+     await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=new URL('./'+file+'?v=V9.13-MARKETSTOCK1',document.baseURI).href;script.onload=()=>root[name]?resolve():reject(Error(file+' 載入不完整'));script.onerror=()=>reject(Error(file+' 載入失敗'));document.head.append(script);});
+    }
+    const response=await fetch(new URL('./data/index/TAIEX.json',document.baseURI),{cache:'no-store'});
+    if(response.ok){const official=await response.json(),verified=root.ShitouMarketLife96.evaluate(official);if(verified.sourceVerified===true&&verified.dataAsOf===marketSource.closeDate)marketContext=root.ShitouMarketLifeRisk913.evaluate(verified);}
+   }catch(_){marketContext=null;}
+  }
+  await root.ShitouLifeVisual913.ready(document);if(token!==previewSerial||query!==stockQuerySerial)return null;const pages=analyses.flatMap(a=>{const life=root.ShitouKlineLife03Report?.inspect(a);return life?root.ShitouLifeVisual913.build(life,{document,watermark,market:marketContext,source:latestStockQuery?.analysis===a?latestStockQuery.source:null,display:{fields:root.ShitouKlineLife03Report.fields(life),teaching:root.ShitouKlineLife03Report.teaching()}}):[];});const shown=await root.ShitouLifeViewer94.show(pages);if(token!==previewSerial||query!==stockQuerySerial)return null;if(!shown)throw Error('圖片編碼或預覽未完成');return shown;
   }catch(error){if(token!==previewSerial||query!==stockQuerySerial)return null;root.closeInfographicPreviewV3328?.();root.ShitouLifeViewer94?.reset();root.ShitouImageShareV1?.clear();const message=el('p','生命線圖片尚未完成：'+error.message);message.id='life972Error';message.setAttribute('role','alert');(by('researchStock')||by('researchPanel')||document.body).append(message);return null;}
  }
  const pages=analyses.flatMap(a=>{const metrics=stockMode&&latestStockQuery?.analysis===a?latestStockQuery.metrics:null;

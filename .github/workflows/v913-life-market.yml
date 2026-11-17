@@ -1,0 +1,55 @@
+name: V9.13 market and stock life-line intelligence acceptance
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'life-line-intelligence-v913.js'
+      - 'life-line-visual-v913.js'
+      - 'market-life-risk-v913.js'
+      - 'market-life-visual-v913.js'
+      - 'market-life-ui-v96.js'
+      - 'research-integration-v1.js'
+      - 'version-v50.js'
+      - 'scripts/tests/life-market-v913.test.cjs'
+      - 'scripts/tests/life-market-v913-browser.cjs'
+      - '.github/workflows/v913-life-market.yml'
+  workflow_dispatch:
+concurrency:
+  group: v913-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+permissions: {contents: read}
+jobs:
+  v913-real-data-and-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      CHROME_BIN: /usr/bin/google-chrome
+    steps:
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - run: npm ci
+      - name: Verify v913 syntax and real K3 events
+        run: |
+          node --check life-line-intelligence-v913.js
+          node --check market-life-risk-v913.js
+          node --check life-line-visual-v913.js
+          node --check market-life-visual-v913.js
+          node --test scripts/tests/life-market-v913.test.cjs
+      - run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Render actual web-entry stock and market posters
+        run: node scripts/tests/life-market-v913-browser.cjs /tmp/v913-acceptance
+      - name: Render independent real-date Chromium PNG cross-check
+        run: node scripts/tests/v913-life-market-browser.cjs /tmp/v913-acceptance/independent
+      - name: Full existing automated regression
+        run: npm test
+      - name: Validate existing contracts and sources
+        run: |
+          npm run test:contract
+          npm run research:validate
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v913-stock-and-market-png
+          path: /tmp/v913-acceptance
