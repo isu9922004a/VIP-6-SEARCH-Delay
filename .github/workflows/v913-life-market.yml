@@ -14,6 +14,9 @@ on:
       - 'scripts/tests/life-market-v913-browser.cjs'
       - '.github/workflows/v913-life-market.yml'
   workflow_dispatch:
+concurrency:
+  group: v913-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 permissions: {contents: read}
 jobs:
   v913-real-data-and-regression:
