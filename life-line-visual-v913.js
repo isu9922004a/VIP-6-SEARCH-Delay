@@ -119,7 +119,7 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
    const riskStatus=m.risk.label.includes('較高')?'較高':m.risk.label.includes('資料不足')?'資料不足':m.risk.label.replace('追價風險','')||'需留意';
    stateCard(14,408,'目前趨勢','↗',m.trend.label,'股價仍須觀察均線方向與收盤變化。',m.trend.state==='NEUTRAL'?C.gold:m.trend.state==='WEAK'?C.risk:C.mint);
    stateCard(438,408,'生命線狀態','◇',intel.lifeStatus,(intel.activeResistanceEvent?'空方壓力 '+num(intel.activeResistanceEvent.lifeLinePrice)+' 尚未突破。':'看完成日支撐與壓力。'),m.event?.side==='BEAR'?C.risk:C.mint);
-   stateCard(862,408,'追價風險','⚠',riskStatus,m.risk.explanation,C.risk);
+   stateCard(862,408,'追價風險','⚠',riskStatus,(intel.securityMarket==='TPEX'?'上櫃／':'上市／')+(intel.marketVerified?'所屬市場已核對。':'市場風險待核對。')+(intel.riskReasons[0]||'請留意價位與波動。'),C.risk);
    round(M,500,W-2*M,134,20,'#081E34',C.line,2);
    round(22,506,131,122,16,'#40316C','#AEB2FE',2);
    fit('關鍵',39,518,104,38,C.ink,740);fit('價位',39,561,104,38,C.ink,740);
@@ -131,7 +131,7 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
    const rows=[
     ['生命線',intel.activeResistanceEvent?'空方壓力 '+num(intel.activeResistanceEvent.lifeLinePrice)+'；'+(intel.activeSupportEvent?'原多方支撐 '+num(intel.activeSupportEvent.lifeLinePrice)+' 保留。':'下方支撐待確認。'):'支撐與壓力分開看。',C.mint,'◎'],
     ['短期趨勢',finite(m.ma[5])&&finite(m.ma[10])?'MA5 '+num(m.ma[5])+' '+(m.ma[5]>m.ma[10]?'高於':m.ma[5]<m.ma[10]?'低於':'等於')+' MA10 '+num(m.ma[10])+'；'+m.trend.explanation:'均線資料不足，方向待確認。',C.gold,'▥'],
-    ['上方壓力',m.resistance[0]?'確認壓力 '+num(m.resistance[0].price)+'；近10日高 '+num(ranges.high)+'，突破須收盤確認。':'尚無確認壓力；近10日高 '+num(ranges.high)+' 只供觀察。',C.orange,'◇'],
+    ['上方壓力',intel.activeResistanceEvent?'最新空方K3壓力 '+num(intel.activeResistanceEvent.lifeLinePrice)+'，收盤高於才算突破。':'尚無有效空方K3壓力；近10日高 '+num(ranges.high)+' 只供觀察。',C.orange,'◇'],
     ['成交量',m.volume.verified?'當日 '+mkVol(m.volume.last)+'；量比 '+num(m.volume.ratio)+'，仍須確認量價配合。':'成交量來源待核對，不能據此判斷放量。',C.gold,'▥']
    ];
    rows.forEach((r,i)=>{const y=1801+i*95;round(30,y,594,88,10,C.card2,'#739DB6',1);fit(r[3],40,y+23,48,38,r[2],800,32);fit(r[0],94,y+22,185,33,r[2],800,28);hr(280,y+5,280,y+81,'#7196AE',1);paragraph(r[1],294,y+5,314,24,C.ink,3,1.07,590);});
@@ -149,8 +149,8 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
    round(800,2213,470,429,18,'#292619',C.gold,2.5);
    title(814,2227,'☼ 目前綜合觀察',C.ink,439);
    const summary= m.referenceOnly?'原始生命線 '+num(line)+' 已列為歷史參考，不能再當成目前支撐。':m.life.label==='跌破後站回'?'已重新站回 '+num(line)+' 元生命線；站回不等於已確認轉強。':short(m.life.explanation);
-   const trend='目前為「'+m.trend.label+'」，'+short(m.trend.explanation)+'。';
-   const condition=m.resistance[0]?'後續觀察是否以收盤突破確認壓力 '+num(m.resistance[0].price)+' 元，並同時注意量能。':'尚無有效確認壓力，先看均線與量能是否配合。';
+   const trend='目前為「'+intel.priceTrend+'」，'+short(m.trend.explanation)+'。';
+   const condition=(intel.activeResistanceEvent?'收盤尚未突破 '+num(intel.activeResistanceEvent.lifeLinePrice)+' 元。':'上方有效壓力待確認。')+(intel.activeSupportEvent?'原多方支撐 '+num(intel.activeSupportEvent.lifeLinePrice)+' 元保留。':'')+' '+intel.context;
    paragraph(summary+' '+trend+' '+condition,821,2294,425,31,C.ink,8,1.26,630);
    footer('第 1 / 2 頁　下一頁：生命線教學 ▷');
   }
@@ -166,7 +166,7 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
    if(finite(intel.activeResistanceEvent?.lifeLinePrice))levels.push({value:intel.activeResistanceEvent.lifeLinePrice,title:'空方壓力 '+num(intel.activeResistanceEvent.lifeLinePrice),color:C.risk,kind:'resistance'});
    if(finite(ranges.high))levels.push({value:ranges.high,title:'近10日高 '+num(ranges.high),color:C.orange,kind:'range'});
    if(finite(ranges.low))levels.push({value:ranges.low,title:'近10日低 '+num(ranges.low),color:C.green,kind:'range'});
-   if(finite(line)&&!m.referenceOnly)levels.push({value:line,title:'生命線 '+num(line)+'（K3）',color:C.mint,kind:'line'});
+   if(finite(line)&&!m.referenceOnly&&!levels.some(v=>Math.abs(v.value-line)<0.005))levels.push({value:line,title:'生命線 '+num(line)+'（K3）',color:C.mint,kind:'line'});
    const firstRes=m.resistance?.find(z=>finite(z.price)&&z.price>m.close&&Math.abs(z.price-ranges.high)>.01);
    if(firstRes)levels.push({value:firstRes.price,title:'確認壓力 '+num(firstRes.price),color:C.orange,kind:'level'});
    const vals=bars.flatMap(b=>[b.high,b.low]);for(const n of [5,10,20,60])vals.push(...extendedMA[n].filter(finite));for(const l of levels)vals.push(l.value);
