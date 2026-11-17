@@ -15,7 +15,9 @@ test('financial universe is official, dated, complete enough to audit, but never
  for(const q of financial){
    const sector={industryCode:'17',industryName:'金融保險'};
    const status=P.classify(q.code,{...q,fullDelivery:false,fullDeliveryDate:M.date},sector,{targetTradeDate:M.date,completedTradeDate:M.date,exclusionCoverageReady:true,exclusionDate:M.date});
-   assert.equal(status.key,'FINANCIAL',q.code);
+   assert.equal(status.excluded,true,q.code+' must not become a scanner candidate');
+   assert.ok(['FINANCIAL','SPECIAL'].includes(status.key),q.code+' unexpected exclusion '+status.key);
+   if(status.key==='SPECIAL')assert.match(String(q.name),/基金/,q.code+' special-name precedence only');
    assert.equal(S.officialIndustry(sector).key,'FINANCIAL',q.code);
    assert.equal(Fifth.universe(q.code,q,sector).ok,false,q.code+' not excluded from 2560');
    assert.equal(Structure.classify(q.code,q,sector,{}).excluded,true,q.code+' not excluded from structure');
