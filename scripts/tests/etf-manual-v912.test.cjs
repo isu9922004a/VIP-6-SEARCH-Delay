@@ -38,6 +38,12 @@ test('signed same-date completed ETF daily bars work without the ordinary-stock 
   assert.equal(etf.verifiedEtfDaily(tampered,'0050',r.closeDate),false);
  }
 });
+test('actual stock search routes ETF directly to signed DAILY_ONLY and displays truthful scope',()=>{
+ const index=fs.readFileSync(path.join(ROOT,'index.html'),'utf8');
+ assert.match(index,/if\(\/\^00\\d\{2,4\}\$\/\.test\(String\(stock\)\)\)return fetchStockDailyFallbackV828\(stock/);
+ assert.match(index,/ETF個別研究：完成日K已核驗；不適用六套策略、月線資格或淨值判讀/);
+ assert.match(index,/<title>石頭少爺 V9\.12/);
+});
 test('ETF bypasses scanner cache and excludes monthly / eligibility promotion',()=>{
  assert.match(code,/if\(!trustedObservation&&!trustedFinancialDaily&&D\?\.get\(code\)&&D\.getSnapshot\(\)\?\.date===sourceDate&&!isEtfManualCode\(code,r\)\)/);
  assert.match(code,/if\(isEtfManualCode\(code,raw\)\)/);
