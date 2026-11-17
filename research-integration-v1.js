@@ -31,7 +31,7 @@ function stockQueryIntro(stock){
  for(const [name,value] of [['收盤價（元）',stockFmt(stock.metrics.close)],['短線力道 RSI5（0～100）',stockFmt(stock.metrics.rsi5)],['20日平均價 MA20（元）',stockFmt(stock.metrics.ma20)]]){
   const cell=el('div');cell.className='research-stock-metric';cell.append(el('span',name),el('strong',value));row.append(cell);
  }
- const meta=el('p',`行情 ${stock.metrics.marketDate}｜${stock.analysis?.limitedHistory?'官方行情已核對，先作觀察':stock.source?.financialOfficialDailyOnly?'已核驗官方日K；月K及濾網資格不判讀':stock.metrics.verifiedDailyResearch?'使用已收盤日K':'資料還不完整'}｜個股查詢，不列入選股排行`);
+ const meta=el('p',`行情 ${stock.metrics.marketDate}｜${stock.source?.etfManualOnly?(stock.source?.etfDailyValidated?'ETF已驗證完成日K；不提供月K資格、選股訊號或配息淨值判斷':'ETF完成日K尚未驗證；不顯示未核對的技術結論'):stock.analysis?.limitedHistory?'官方行情已核對，先作觀察':stock.source?.financialOfficialDailyOnly?'已核驗官方日K；月K及濾網資格不判讀':stock.metrics.verifiedDailyResearch?'使用已收盤日K':'資料還不完整'}｜個別查詢，不列入六套選股排名`);
  meta.className='research-stock-meta';
  box.append(heading,row,meta);return box;
 }
@@ -132,6 +132,31 @@ function verifiedFinancialDaily(report,q,code,date){
  return ['open','high','low','close'].every(k=>Number.isFinite(q[k])&&Number.isFinite(bar[k])&&Math.abs(q[k]-bar[k])<=.011)&&
    Number.isFinite(report.close)&&Math.abs(report.close-bar.close)<=.011;
 }
+// V9.12: ETF manual research is independent from the ordinary-stock snapshot.
+ // A signed completed worker report may be analysed, but never upgraded to a scanner candidate.
+function isEtfManualCode(code,report={}){
+ const kind=String(report.securityType||report.productType||report.instrumentType||'').toUpperCase();
+ return /^00\d{2,4}$/.test(String(code))||/^(ETF|EXCHANGE_TRADED_FUND)$/.test(kind);
+}
+function verifiedEtfDaily(report,code,date){
+ const contract=root.ShitouWorkerDataContractV1?.verify?.(report),c=contract?.contract;
+ const bars=report?.canonicalBars?.length?report.canonicalBars:report?.dailySeries,latest=bars?.at(-1);
+ if(!contract?.ok||!c||!isEtfManualCode(code,report)||!/^\d{4}-\d{2}-\d{2}$/.test(String(date))||
+    String(report.stock||report.code)!==code||c.stock!==code||!['TWSE','TPEX'].includes(c.market)||
+    c.market!==String(report.market).toUpperCase()||c.closeDate!==date||c.completed!==true||
+    report.completed!==true||report.isComplete===false||report.suspended===true||
+    report.corporateActionUnresolved===true||report.priceAdjustmentConsistent===false||
+    !Array.isArray(bars)||bars.length<2||latest?.date!==date||
+    !['shares','lots','thousand_shares'].includes(String(report.volumeUnit||report.dailySeriesMeta?.volumeUnit))||
+    !Number.isFinite(report.close)||Math.abs(report.close-latest.close)>.011||
+    [report.marketDate,report.closeDate,report.dataDate].filter(Boolean).some(d=>d!==date)||
+    report.researchInputErrors?.length)return false;
+ return bars.every((bar,i)=>/^\d{4}-\d{2}-\d{2}$/.test(bar.date)&&
+   (!i||bar.date>bars[i-1].date)&&(!bar.stock||String(bar.stock)===code)&&
+   (!bar.market||bar.market===c.market)&&['open','high','low','close'].every(k=>Number.isFinite(bar[k])&&bar[k]>0)&&
+   Number.isFinite(bar.volume)&&bar.volume>0&&bar.low<=Math.min(bar.open,bar.close)&&
+   bar.high>=Math.max(bar.open,bar.close)&&bar.low<=bar.high); 
+}
 function source(input){const raw=U.normalizeInput(input),r={...raw};
  const D=root.ShitouSelectionDataV2,code=String(r.stock||r.code||''),sourceDate=r.marketDate||r.closeDate||r.dataDate;
  // Only the verified canonical cache may supply history. A same ticker in an old
@@ -139,7 +164,7 @@ function source(input){const raw=U.normalizeInput(input),r={...raw};
  const trustedObservation=r.officialObservationOnly===true&&safely(()=>root.ShitouOfficialResearchHistory?.availability(r,{quote:D.context(code).q}));
  const trustedFinancialDaily=r.financialOfficialDailyOnly===true&&D?.getSnapshot()?.date===sourceDate&&
    safely(()=>verifiedFinancialDaily(r,D.context(code).q,code,sourceDate));
- if(!trustedObservation&&!trustedFinancialDaily&&D?.get(code)&&D.getSnapshot()?.date===sourceDate){
+ if(!isEtfManualCode(code,r)&&!trustedObservation&&!trustedFinancialDaily&&D?.get(code)&&D.getSnapshot()?.date===sourceDate){
   const canonical=D.get(code);
   // A failed canonical acquisition belongs to the shared snapshot, regardless
   // of whether the caller came through the async stock lookup or a scan adapter.
@@ -169,6 +194,19 @@ function prepareStockQuery(input){
 async function prepareStockQueryUncached(input){
  const raw=U.normalizeInput(input),D=root.ShitouSelectionDataV2,code=String(raw.stock||''),date=raw.marketDate||raw.closeDate||raw.dataDate;
  if(!D||!/^\d{4,6}$/.test(code))return raw;
+ // ETF is a separate instrument class; a missing ordinary-stock snapshot is not
+ // proof of invalid ETF data. Do not fetch/add ETF to any common-stock scanner.
+ if(isEtfManualCode(code,raw)){
+  if(verifiedEtfDaily(raw,code,date))return {...raw,code,securityType:'ETF',tickRuleVerified:false,
+   etfManualOnly:true,etfDailyValidated:true,officialMonthlyUnavailable:true,
+   officialMonthlyUnavailableReason:'ETF僅提供已簽章的完成日K；月K、配息、淨值及選股資格不判讀',
+   monthlyStatus:'UNAVAILABLE',monthlyPass:null,entry:null,startMonthConfirmed:false,
+   formalLaunchEligible:false,scanEligible:false,strategyEligible:false};
+  const reason='ETF完成日K來源尚未核驗：需要同代號、同日期、完成交易且來源契約有效的日線資料；不使用一般股票快照補造。';
+  return {...raw,code,securityType:'ETF',etfManualOnly:true,etfDailyValidated:false,
+   officialMonthlyUnavailable:true,monthlyStatus:'UNAVAILABLE',monthlyPass:null,entry:null,
+   researchAcquisitionError:reason,researchInputErrors:[...new Set([...(raw.researchInputErrors||[]),reason])]};
+ }
  // Explicitly unfinished or suspended input cannot be upgraded by cached history.
  if(raw.completed===false||raw.isComplete===false||raw.suspended)return raw;
  try{
