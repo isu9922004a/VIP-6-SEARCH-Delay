@@ -11,7 +11,7 @@ function classify(code,q={},sector={},meta={}){
  let key='OK';
  if(yes(r.fullDelivery)||yes(r.isFullDelivery)||yes(r.alteredTrading)||yes(r.AlteredTrading)||/全額交割|變更交易/.test(String(r.tradingMethod||r.tradingStatus||'')))key='FULL_DELIVERY';
  else if(kind==='DR'||/^91\d{2,4}$/.test(code)||/(?:^|[-－\s])DR(?:$|[-－\s])/i.test(name)||/臺灣存託憑證|台灣存託憑證|存託憑證/.test(name+' '+kind))key='DR';
- else if(!/^[1-9]\d{3}$/.test(code)||/ETF|ETN|REIT|WARRANT|FUND|PREFERRED|BOND|BENEFICIARY/.test(kind)||(/受益證券|受益憑證|權證|指數投資|特別股|基金/.test(name)&&ic!=='17')||yes(r.isSpecialProduct)||yes(r.ManagedStock)||yes(r.SuspensionOfTrading))key='SPECIAL';
+ else if(!/^[1-9]\d{3}$/.test(code)||/ETF|ETN|REIT|WARRANT|FUND|PREFERRED|BOND|BENEFICIARY/.test(kind)||/受益證券|受益憑證|權證|指數投資|特別股|基金/.test(name)||yes(r.isSpecialProduct)||yes(r.ManagedStock)||yes(r.SuspensionOfTrading))key='SPECIAL';
  else if(ic==='17'||/金融|銀行|保險|證券|金控/.test(industry))key='FINANCIAL';
  else if(ic==='22'||/生技|生物科技|醫療|醫材|製藥|藥品/.test(industry))key='BIOTECH';
  else if(ic==='14'||/建材營造|營建|營造|建設|房地產|不動產/.test(industry))key='CONSTRUCTION';
