@@ -16,22 +16,33 @@ const png=b=>{assert.equal(b.subarray(1,4).toString(),'PNG');assert.equal(b.read
   assert.equal(await page.evaluate(()=>ShitouReleaseV50.displayCode),'V9.11');
   assert.equal(await page.evaluate(()=>ShitouLifeVisual98.RELEASE),'V9.8','個股繪圖核心版本不得因大盤 V9.11 改版而變更');
   await page.evaluate(()=>ShitouLifeVisual98.ready(document));
+  const date=await page.evaluate(async()=>{
+   const r=await fetch('./data/research/manifest.json',{cache:'no-store'});
+   if(!r.ok)throw Error('正式研究清單未發布：HTTP '+r.status);
+   const m=await r.json();
+   for(const code of ['6925','8099','2330'])if(m.stocks?.[code]?.path!==m.date+'/'+code+'.json')throw Error('正式行情清單缺少 '+code);
+   return m.date;
+  });
   for(const code of ['6925','8099','2330']){
-   await page.evaluate(async(code)=>{
-    const raw=await(await fetch('./data/research/2026-11-13/'+code+'.json')).json();
+   const source=await page.evaluate(async({code,date})=>{
+    const response=await fetch('./data/research/'+date+'/'+code+'.json',{cache:'no-store'});
+    if(!response.ok||!response.headers.get('content-type')?.includes('json'))throw Error('完成日研究檔缺漏 '+code+'：HTTP '+response.status);
+    const raw=await response.json(),bars=raw.dailySeries;
+    if(raw.stock!==code||raw.closeDate!==date||raw.isComplete!==true||!Array.isArray(bars)||bars.at(-1)?.date!==date)throw Error('完成日與個股行情未核驗 '+code);
     ShitouWorkspaceV831.select('stock');ShitouResearchIntegration.clearStockQuery();
     globalThis.shitouGetLastReportV82=()=>raw;document.getElementById('stockInput').value=code;
     ShitouResearchIntegration.captureStockQuery(raw);ShitouResearchIntegration.mountStock(raw);
     document.getElementById('result').style.display='block';ShitouWorkspaceV831.renderSummary();
-   },code);
+    return {close:raw.close,lastVolume:bars.at(-1)?.volume,bars:bars.length,ma5:bars.slice(-5).reduce((sum,b)=>sum+b.close,0)/5};
+   },{code,date});
    await page.locator('#workspaceFourReportButton').click();await page.locator('#workspaceLifeReportButton').click();
    await page.waitForFunction(()=>document.getElementById('imagePreviewModal').classList.contains('show')&&document.getElementById('life94Status')?.textContent.includes('備妥'));
    const a=await page.evaluate(()=>ShitouLifeViewer94.getState().pages.map(p=>JSON.parse(p.dataset.life98Audit)));
-   assert.equal(a.length,2);assert.equal(a[0].model.code,code);assert.equal(a[0].model.date,'2026-11-13');assert.equal(a[0].chartBars,30);
+   assert.equal(a.length,2);assert.equal(a[0].model.code,code);assert.equal(a[0].model.date,date);assert.equal(a[0].chartBars,30);assert.equal(a[0].model.close,source.close);assert.ok(Math.abs(a[0].model.ma[5]-source.ma5)<1e-8);
    const p=await page.evaluate(async()=>{const c=ShitouLifeViewer94.getState().pages[0].renderExportRegion();const png=c.toDataURL('image/png');c.width=c.height=1;return png;});
    const data=Buffer.from(p.split(',')[1],'base64');png(data);fs.writeFileSync(path.join(out,code+'-V98-P01.png'),data);
-   if(code==='6925'){assert.equal(a[0].model.close,106.5);assert.equal(a[0].model.line,102.5);assert.ok(Math.abs(a[0].model.ma[5]-102.12)<1e-8);assert.equal(a[0].model.chartMa60Available,30,'official full 160-day data should draw 30 MA60 points');assert.equal(a[0].model.volume.last,3020013);}
-   if(code==='2330')assert.equal(a[0].model.volume.verified,false);
+   if(source.bars>=89)assert.equal(a[0].model.chartMa60Available,30,'官方完成日K足夠時應畫滿 30 個 MA60 點');
+   if(a[0].model.volume.verified)assert.equal(a[0].model.volume.last,source.lastVolume,'成交股數只能取同一完成日來源');
    await page.locator('#life94Next').click();await page.waitForFunction(()=>document.getElementById('life94Status')?.textContent.includes('備妥')&&ShitouLifeViewer94.getState().index===1);
    const p2=await page.evaluate(()=>ShitouLifeViewer94.getState().pages[1].renderExportRegion().toDataURL('image/png'));const b2=Buffer.from(p2.split(',')[1],'base64');png(b2);if(code==='6925')fs.writeFileSync(path.join(out,code+'-V98-P02.png'),b2);
    await page.evaluate(()=>closeInfographicPreviewV3328());
