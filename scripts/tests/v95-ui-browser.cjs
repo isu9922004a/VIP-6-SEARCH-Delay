@@ -2,7 +2,8 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),{chromium}=require('playwright-core');
 const root=path.resolve(__dirname,'../..'),out=path.resolve(process.argv[2]||'/tmp/v95-ui');fs.mkdirSync(out,{recursive:true});
 const raws=Object.fromEntries(['8039','4939','6176'].map(c=>[c,JSON.parse(fs.readFileSync(path.join(root,'data/research/2026-11-13',c+'.json')))]));
-const marketSnapshot=JSON.parse(fs.readFileSync(path.join(root,'data/market/latest.json')));
+// Freeze the UI-only scanner failure fixture to the matching archived trade date.
+const marketSnapshot=JSON.parse(fs.readFileSync(path.join(root,'data/market/archive/2026-11-13.json')));
 // Deliberately undersized UI fixture: one unchanged official quote, never selection evidence.
 const unavailable={type:'MARKET_SCAN_SNAPSHOT',mode:'ALL_STOCKS',rows:marketSnapshot.rows.slice(0,1),exclusionStatus:marketSnapshot.exclusionStatus,meta:{total:1,targetTradeDate:'2026-11-13',completedTradeDate:'2026-11-13',expectedTradeDate:'2026-11-13',twseQuoteDate:'2026-11-13',tpexQuoteDate:'2026-11-13',snapshotTimelinessReady:true,marketCoverageReady:true,industryCoverageReady:true,quoteSourcesReady:{twse:false,tpex:false}}};
 const keys=['momentum','daytrade','strong','tower','restaurant','structure'],ids=['momentumScanButton','dayTradeScanButton','strongStockScanButton','towerRun','restaurantRun','structureRun'];
