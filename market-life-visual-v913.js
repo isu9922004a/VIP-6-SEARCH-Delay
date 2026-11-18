@@ -1,12 +1,12 @@
-/* V9.13 index-only multi-event fork: original individual stock renderer untouched. */
+/* V9.14 index-only multi-event fork: original individual stock renderer untouched. */
 (function(root,factory){
  const node=typeof module==='object'&&!!module.exports;
  const api=factory(node?require('./life-line-visual-v972.js'):root.ShitouLifeVisual972,node?require('./market-life-risk-v913.js'):root.ShitouMarketLifeRisk913,node?require('./life-line-intelligence-v913.js'):root.ShitouLifeIntelligence913);
  if(node)module.exports=api;else root.ShitouMarketLifeVisual913=api;
 })(globalThis,function(Legacy,Risk,Info){
 'use strict';
-if(!Legacy||typeof Legacy.model!=='function'||!Risk||typeof Risk.evaluate!=='function'||!Info||typeof Info.evaluate!=='function')throw Error('缺少大盤 V9.13 風險模型或K3事件資料');
-const RELEASE='V9.13',VERSION='MARKET_LIFE_VISUAL_V913',W=1284,H=2778,M=14,FOOT=2672;
+if(!Legacy||typeof Legacy.model!=='function'||!Risk||typeof Risk.evaluate!=='function'||!Info||typeof Info.evaluate!=='function')throw Error('缺少大盤 V9.14 風險模型或K3事件資料');
+const RELEASE='V9.14',VERSION='MARKET_LIFE_VISUAL_V913',W=1284,H=2778,M=14,FOOT=2672;
 const C={bg:'#071C2D',card:'#0A2D43',card2:'#10364D',ink:'#F3F7FF',muted:'#C2D7E5',mint:'#81F1D0',green:'#60EE92',gold:'#FFE365',orange:'#FFB444',risk:'#FF859F',blue:'#39B9FF',grid:'#28506B',up:'#FF5975',down:'#3CDBB6',line:'#71CFFF'};
 const finite=n=>typeof n==='number'&&Number.isFinite(n),num=n=>finite(n)?n.toFixed(2):'資料不足',date=v=>typeof v==='string'&&v.length>=10?v.slice(5).replace('-','/'):'未確認';
 async function ready(doc=globalThis.document){if(!doc?.createElement)throw Error('圖片畫布不可用');if(doc.fonts?.ready)await doc.fonts.ready;return true;}
