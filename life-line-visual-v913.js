@@ -118,7 +118,7 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
    fit(num(m.close)+' 元',1032,151,234,57,C.gold,850,39);
    const riskStatus=m.risk.label.includes('較高')?'較高':m.risk.label.includes('資料不足')?'資料不足':m.risk.label.replace('追價風險','')||'需留意';
    stateCard(14,408,'目前趨勢','↗',m.trend.label,'股價仍須觀察均線方向與收盤變化。',m.trend.state==='NEUTRAL'?C.gold:m.trend.state==='WEAK'?C.risk:C.mint);
-   stateCard(438,408,'生命線狀態','◇',(({BREAKOUT_HELD:'突破後仍守住支撐',BREAKOUT_FAILED:'突破後又跌回去',SUPPORT_BROKEN:'已跌破重要支撐',SUPPORT_RECLAIMED:'已重新站回重要價位'}[intel.lifeStatus])||(/^[A-Z_0-9]+$/.test(intel.lifeStatus)?(m.life.label&&!/^[A-Z_0-9]+$/.test(m.life.label)?m.life.label:'生命線狀態待確認'):intel.lifeStatus)),(intel.activeResistanceEvent?'空方壓力 '+num(intel.activeResistanceEvent.lifeLinePrice)+' 尚未突破。':'看完成日支撐與壓力。'),m.event?.side==='BEAR'?C.risk:C.mint);
+   stateCard(438,408,'生命線狀態','◇',Info.statusLabel(intel.lifeStatus),(intel.activeResistanceEvent?'空方壓力 '+num(intel.activeResistanceEvent.lifeLinePrice)+' 尚未突破。':'看完成日支撐與壓力。'),m.event?.side==='BEAR'?C.risk:C.mint);
    stateCard(862,408,'追價風險','⚠',riskStatus,(intel.securityMarket==='TPEX'?'上櫃／':'上市／')+(intel.marketVerified?'所屬市場已核對。':'市場風險待核對。')+(intel.riskReasons[0]||'請留意價位與波動。'),C.risk);
    round(M,500,W-2*M,134,20,'#081E34',C.line,2);
    round(22,506,131,122,16,'#40316C','#AEB2FE',2);
