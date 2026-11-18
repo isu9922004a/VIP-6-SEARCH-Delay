@@ -1,12 +1,12 @@
-/* V9.13 index-only multi-event fork: original individual stock renderer untouched. */
+/* V9.14 index-only multi-event fork: original individual stock renderer untouched. */
 (function(root,factory){
  const node=typeof module==='object'&&!!module.exports;
  const api=factory(node?require('./life-line-visual-v972.js'):root.ShitouLifeVisual972,node?require('./market-life-risk-v913.js'):root.ShitouMarketLifeRisk913,node?require('./life-line-intelligence-v913.js'):root.ShitouLifeIntelligence913);
  if(node)module.exports=api;else root.ShitouMarketLifeVisual913=api;
 })(globalThis,function(Legacy,Risk,Info){
 'use strict';
-if(!Legacy||typeof Legacy.model!=='function'||!Risk||typeof Risk.evaluate!=='function'||!Info||typeof Info.evaluate!=='function')throw Error('缺少大盤 V9.13 風險模型或K3事件資料');
-const RELEASE='V9.13',VERSION='MARKET_LIFE_VISUAL_V913',W=1284,H=2778,M=14,FOOT=2672;
+if(!Legacy||typeof Legacy.model!=='function'||!Risk||typeof Risk.evaluate!=='function'||!Info||typeof Info.evaluate!=='function')throw Error('缺少大盤 V9.14 風險模型或K3事件資料');
+const RELEASE='V9.14',VERSION='MARKET_LIFE_VISUAL_V913',W=1284,H=2778,M=14,FOOT=2672;
 const C={bg:'#071C2D',card:'#0A2D43',card2:'#10364D',ink:'#F3F7FF',muted:'#C2D7E5',mint:'#81F1D0',green:'#60EE92',gold:'#FFE365',orange:'#FFB444',risk:'#FF859F',blue:'#39B9FF',grid:'#28506B',up:'#FF5975',down:'#3CDBB6',line:'#71CFFF'};
 const finite=n=>typeof n==='number'&&Number.isFinite(n),num=n=>finite(n)?n.toFixed(2):'資料不足',date=v=>typeof v==='string'&&v.length>=10?v.slice(5).replace('-','/'):'未確認';
 async function ready(doc=globalThis.document){if(!doc?.createElement)throw Error('圖片畫布不可用');if(doc.fonts?.ready)await doc.fonts.ready;return true;}
@@ -117,9 +117,9 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
    fit('收盤',927,172,76,32,C.ink,760,27);
    fit(num(m.close),1013,151,249,46,C.gold,850,33);fit('點',1218,207,44,29,C.gold,750,24);
    stateCard(14,285,618,'大盤目前趨勢',intelligence.trend.label,intelligence.trend.state==='WEAK'?C.risk:intelligence.trend.state==='STRONG'?C.mint:C.gold);
-   stateCard(652,285,618,'K3 生命線事件',m.life.label,['BREAKOUT_FAILED','SUPPORT_BROKEN'].includes(m.lifecycleState)?C.risk:C.mint);
+   stateCard(652,285,618,'K3 生命線事件',Info.statusLabel(m.lifecycleState,Info.statusLabel(m.life.label)),['BREAKOUT_FAILED','SUPPORT_BROKEN'].includes(m.lifecycleState)?C.risk:C.mint);
    stateCard(14,391,618,'短線風險（第 '+intelligence.risk.level+' 級）',intelligence.risk.label,intelligence.risk.color);
-   stateCard(652,391,618,'多日風險階段',intelligence.phase.label,['ACTIVE_SHOCK','POST_SHOCK_WEAKNESS'].includes(intelligence.phase.state)?C.risk:C.gold);
+   stateCard(652,391,618,'多日風險階段',Info.statusLabel(intelligence.phase.state,Info.statusLabel(intelligence.phase.label)),['ACTIVE_SHOCK','POST_SHOCK_WEAKNESS'].includes(intelligence.phase.state)?C.risk:C.gold);
    round(M,500,W-2*M,134,20,'#081E34',C.line,2);
    round(22,506,131,122,16,'#40316C','#AEB2FE',2);
    fit('關鍵',39,518,104,38,C.ink,740);fit('價位',39,561,104,38,C.ink,740);

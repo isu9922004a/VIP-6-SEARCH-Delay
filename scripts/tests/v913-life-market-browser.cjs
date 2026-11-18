@@ -33,7 +33,7 @@ const dependencies=[
     return pages.map(p=>{const key=type==='stock'?'life98Audit':'marketLifeAudit';return JSON.parse(p.dataset[key]);});
    },{type,payload,source});
    assert.equal(audit.length,2,type+' must create exactly two independent pages');
-   assert.ok(audit.every(x=>x.release==='V9.13'&&x.width===1284&&x.height===2778));
+   assert.ok(audit.every(x=>x.release==='V9.14'&&x.width===1284&&x.height===2778));
    if(type==='stock'){
     assert.equal(audit[0].model.life913.activeSupportEvent.lifeLinePrice,56.2);
     assert.equal(audit[0].model.life913.activeResistanceEvent.lifeLinePrice,70.9);
@@ -59,7 +59,7 @@ const dependencies=[
    }
   }
   assert.deepEqual(errors,[]);
-  fs.writeFileSync(path.join(out,'acceptance.json'),JSON.stringify({status:'PASS',revision:'V9.13',evidence,errors},null,2));
+  fs.writeFileSync(path.join(out,'acceptance.json'),JSON.stringify({status:'PASS',revision:'V9.14',evidence,errors},null,2));
   console.log('V913_BROWSER_2X2_PNG_PASS '+JSON.stringify(evidence));
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

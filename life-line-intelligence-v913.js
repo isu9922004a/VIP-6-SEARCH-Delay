@@ -9,6 +9,11 @@
  const finite=n=>typeof n==='number'&&Number.isFinite(n);
  const fmt=n=>finite(n)?n.toFixed(2):'未確認';
  const freeze=o=>{if(o&&typeof o==='object'&&!Object.isFrozen(o)){Object.values(o).forEach(freeze);Object.freeze(o);}return o;};
+ const labels=Object.freeze({SUPPORT_WATCH:'觀察下方支撐能否守住',RESISTANCE_WATCH:'觀察上方壓力能否突破',RETEST_HELD:'回測後仍守住支撐',INSUFFICIENT_DATA:'資料不足，暫時無法判斷',RECOVERY_CONFIRMED:'收盤與均線顯示走勢改善',BREAKOUT_HELD:'突破後仍守住支撐',BREAKOUT_FAILED:'突破後又跌回去',SUPPORT_BROKEN:'已跌破重要支撐',SUPPORT_RECLAIMED:'已重新站回重要價位',BREAKOUT_INITIAL:'剛突破重要價位',BREAKOUT_CONFIRMED:'收盤確認突破',SUPPORT_HELD:'仍守住重要支撐',RESISTANCE_HELD:'尚未突破上方壓力',HISTORICAL_REFERENCE:'僅供歷史參考',NO_EVENT:'尚無確認的生命線',POST_SHOCK_WEAKNESS:'大跌後仍未恢復強勢',ACTIVE_SHOCK:'目前波動異常',REBOUND_ATTEMPT:'正在嘗試反彈',NORMAL_OR_UNCONFIRMED:'方向仍待確認'});
+ function statusLabel(value,fallback='生命線狀態待確認'){
+  if(typeof value==='string'&&Object.prototype.hasOwnProperty.call(labels,value))return labels[value];
+  return typeof value==='string'&&/[\u3400-\u9fff]/.test(value)&&!/[A-Z]{2,}_[A-Z0-9_]+/.test(value)?value:fallback;
+ }
  function evaluate(study,{market=null,securityMarket=null}={}){
   if(!study||!Array.isArray(study.validatedBars)||!study.validatedBars.length||!Array.isArray(study.events))throw Error('缺少已驗證的完成日日K與生命線事件');
   const bars=study.validatedBars,date=study.dataAsOf||study.date,latest=bars.at(-1);
@@ -32,7 +37,7 @@
   const resistance=activeResistanceEvent?.lifeLinePrice, support=activeSupportEvent?.lifeLinePrice;
   const upper=finite(resistance)?'上方空方生命線 '+fmt(resistance)+' 元尚未收盤突破':'尚無已確認且有效的上方生命線壓力';
   const lower=finite(support)?'下方多方支撐 '+fmt(support)+' 元需以收盤守住':'下方有效多方生命線待確認';
-  const status=selectedPrimaryEvent?.signalDate===date?(selectedPrimaryEvent.side==='BEAR'?'空方壓力K0剛成立':'多方支撐K0剛成立'):(study.lifecycleState||'資料不足');
+  const status=selectedPrimaryEvent?.signalDate===date?(selectedPrimaryEvent.side==='BEAR'?'空方壓力K0剛成立':'多方支撐K0剛成立'):statusLabel(study.lifecycleState);
   const marketName=securityMarket==='TPEX'?'櫃買指數':securityMarket==='TWSE'?'加權指數':'所屬市場';
   const marketValid=!!market&&market.sourceVerified===true&&market.date===date&&(securityMarket==='TPEX'?market.instrumentType==='TPEX':securityMarket==='TWSE'?market.instrumentType==='TAIEX':false);
   const marketStatus=marketValid?market.risk?.label||'市場已核對':'所屬'+marketName+'風險資料尚未核對';
@@ -51,5 +56,5 @@
   ];
   return freeze({version:VERSION,date,code:study.code,close:latest.close,priceTrend,lifeStatus:status,selectedPrimaryEvent,activeSupportEvent,activeResistanceEvent,historicalReferenceEvents,marketStatus,marketVerified:marketValid,securityMarket:securityMarket||'UNKNOWN',relativeStrengthStatus:marketValid&&finite(market.metrics?.returnPct)?((latest.close/(recent?.close||latest.close)-1)*100-market.metrics.returnPct):null,riskReasons,trendText,context,scenarios,researchOnly:true,performanceValidated:false,affectsEligibility:false,affectsRanking:false});
  }
- return Object.freeze({VERSION,evaluate});
+ return Object.freeze({VERSION,evaluate,statusLabel});
 });
