@@ -33,7 +33,7 @@ async function published(p){
   page.on('pageerror',e=>errors.push(e.message));
   await page.route('**/*',r=>new URL(r.request().url()).origin===new URL(base).origin?r.continue():r.abort());
   await page.goto(url('index.html'),{waitUntil:'load'});
-  assert.equal(await page.evaluate(()=>ShitouReleaseV50.displayCode),'V9.13');
+  assert.equal(await page.evaluate(()=>ShitouReleaseV50.displayCode),'V9.14');
   assert.equal(await page.evaluate(()=>ShitouLifeVisual98.RELEASE),'V9.8');
   await page.evaluate(()=>ShitouLifeVisual98.ready(document));
   for(const {code,raw} of inputs){
