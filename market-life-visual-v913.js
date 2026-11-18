@@ -117,9 +117,9 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
    fit('收盤',927,172,76,32,C.ink,760,27);
    fit(num(m.close),1013,151,249,46,C.gold,850,33);fit('點',1218,207,44,29,C.gold,750,24);
    stateCard(14,285,618,'大盤目前趨勢',intelligence.trend.label,intelligence.trend.state==='WEAK'?C.risk:intelligence.trend.state==='STRONG'?C.mint:C.gold);
-   stateCard(652,285,618,'K3 生命線事件',m.life.label,['BREAKOUT_FAILED','SUPPORT_BROKEN'].includes(m.lifecycleState)?C.risk:C.mint);
+   stateCard(652,285,618,'K3 生命線事件',Info.statusLabel(m.lifecycleState,Info.statusLabel(m.life.label)),['BREAKOUT_FAILED','SUPPORT_BROKEN'].includes(m.lifecycleState)?C.risk:C.mint);
    stateCard(14,391,618,'短線風險（第 '+intelligence.risk.level+' 級）',intelligence.risk.label,intelligence.risk.color);
-   stateCard(652,391,618,'多日風險階段',intelligence.phase.label,['ACTIVE_SHOCK','POST_SHOCK_WEAKNESS'].includes(intelligence.phase.state)?C.risk:C.gold);
+   stateCard(652,391,618,'多日風險階段',Info.statusLabel(intelligence.phase.state,Info.statusLabel(intelligence.phase.label)),['ACTIVE_SHOCK','POST_SHOCK_WEAKNESS'].includes(intelligence.phase.state)?C.risk:C.gold);
    round(M,500,W-2*M,134,20,'#081E34',C.line,2);
    round(22,506,131,122,16,'#40316C','#AEB2FE',2);
    fit('關鍵',39,518,104,38,C.ink,740);fit('價位',39,561,104,38,C.ink,740);
