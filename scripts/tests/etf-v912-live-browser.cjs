@@ -23,7 +23,7 @@ async function json(p){
   page.on('pageerror',e=>errors.push(e.message));
   await page.route('**/*',r=>new URL(r.request().url()).origin===new URL(base).origin?r.continue():r.abort());
   await page.goto(loc('index.html'),{waitUntil:'load'});
-  assert.equal(await page.evaluate(()=>ShitouReleaseV50.displayCode),'V9.13');
+  assert.equal(await page.evaluate(()=>ShitouReleaseV50.displayCode),'V9.14');
   await page.evaluate(()=>{document.getElementById('stockInput').value='00878';});
   await page.evaluate(()=>globalThis.analyzeStock());
   await page.waitForFunction(()=>ShitouResearchIntegration.getCurrentStock()?.analysis?.code==='00878');
