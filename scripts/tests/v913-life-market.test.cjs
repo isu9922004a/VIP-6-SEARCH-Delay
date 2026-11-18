@@ -85,6 +85,10 @@ test('V9.13 both research layers are read-only; not authorized to rank or trade'
  assert.equal(Object.isFrozen(s),true);assert.equal(Object.isFrozen(m),true);
 });
 test('V9.14 beginner labels never expose raw lifecycle codes',()=>{
+ for(const code of ['SUPPORT_WATCH','RESISTANCE_WATCH','RETEST_HELD','INSUFFICIENT_DATA','RECOVERY_CONFIRMED','BREAKOUT_INITIAL','BREAKOUT_FAILED','SUPPORT_BROKEN','SUPPORT_RECLAIMED','ACTIVE_SHOCK','REBOUND_ATTEMPT','NORMAL_OR_UNCONFIRMED']){
+  assert.notEqual(Info.statusLabel(code),'生命線狀態待確認',code);
+  assert.match(Info.statusLabel(code),/[\u3400-\u9fff]/);
+ }
  assert.equal(Info.statusLabel('BREAKOUT_HELD'),'突破後仍守住支撐');
  assert.equal(Info.statusLabel('POST_SHOCK_WEAKNESS'),'大跌後仍未恢復強勢');
  assert.equal(Info.statusLabel('UNKNOWN_FUTURE_STATE'),'生命線狀態待確認');
