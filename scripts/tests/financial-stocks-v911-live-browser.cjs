@@ -33,7 +33,9 @@ async function published(p){
   page.on('pageerror',e=>errors.push(e.message));
   await page.route('**/*',r=>new URL(r.request().url()).origin===new URL(base).origin?r.continue():r.abort());
   await page.goto(url('index.html'),{waitUntil:'load'});
-  assert.equal(await page.evaluate(()=>ShitouReleaseV50.displayCode),'V9.14');
+  // PR checks the currently published base; main release must match the new release exactly.
+  const expectedRelease=process.env.GITHUB_EVENT_NAME==='pull_request'?'V9.13':require('../../version-v50.js').displayCode;
+  assert.equal(await page.evaluate(()=>ShitouReleaseV50.displayCode),expectedRelease);
   assert.equal(await page.evaluate(()=>ShitouLifeVisual98.RELEASE),'V9.8');
   await page.evaluate(()=>ShitouLifeVisual98.ready(document));
   for(const {code,raw} of inputs){
