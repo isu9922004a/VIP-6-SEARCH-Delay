@@ -25,7 +25,7 @@ const keys=['momentum','daytrade','strong','tower','restaurant','structure'],ids
  await page.locator('[data-filter="restaurant"]').click();
  for(const status of ['FAIL','INSUFFICIENT_DATA']){
   await page.evaluate(status=>{const S=ShitouStrategy2560Scanner,C=ShitouStrategy2560;const result={code:'9001',name:'介面狀態測試',date:'2026-11-13',status,label:C.LABELS[status],eligible:false,reasons:['僅供介面狀態測試']};const s={date:'2026-11-13',sessionOffset:0,requestedMode:'100',results:[result],planned:1,attempted:1,parsed:1,universe:1,deferred:0,excluded:[],issues:[],exclusionCounts:{},stopped:false,marketCoverageReady:false};ShitouStrategy2560UI.render(S.snapshot(S.finish(s)));},status);
-  const metrics=await page.locator('#restaurantResult .momentum-summary-card').allTextContents();assert.ok(metrics.some(x=>/核心三條通過\s*0/.test(x)));assert.ok(metrics.some(x=>new RegExp('行情不足\\s*'+(status==='FAIL'?'0':'1')).test(x)));assert.match(await page.locator('#restaurantResult').innerText(),/沒有|未符合|不足/);
+  const metrics=await page.locator('#restaurantResult .momentum-summary-card').allTextContents();assert.ok(metrics.some(x=>/四條全部通過\s*0/.test(x)));assert.ok(metrics.some(x=>new RegExp('行情不足\\s*'+(status==='FAIL'?'0':'1')).test(x)));assert.match(await page.locator('#restaurantResult').innerText(),/沒有|未符合|不足/);
   checks.push(status==='FAIL'?'zero candidates: 0 matches and no missing-data count':'insufficient data: 0 matches plus explicit missing-data count');
  }
  // Inject archived reports through the same existing research mounting API used by scanner sidecars.
