@@ -125,10 +125,11 @@
  function buildPage(report,{document:doc=globalThis.document}={}){
   ensure(doc?.createElement&&report?.version===VERSION,'V9.16 報告資料或畫布無效');
   const planned=pageSegments(doc,report);
+  const displayRelease=globalThis.ShitouReleaseV50?.displayCode||RELEASE;
   return planned.chunks.map((items,offset)=>{
    const pageNumber=3+offset,total=2+planned.chunks.length;
-   const name='石頭少爺_V9.16_'+report.code+'_'+report.date.replaceAll('-','')+'_P0'+pageNumber+'_風險透明化.png';
-   const audit={version:VERSION,release:RELEASE,code:report.code,type:report.type,date:report.date,close:report.close,
+   const name='石頭少爺_'+displayRelease+'_'+report.code+'_'+report.date.replaceAll('-','')+'_P0'+pageNumber+'_風險透明化.png';
+   const audit={version:VERSION,release:displayRelease,code:report.code,type:report.type,date:report.date,close:report.close,
     sourceRiskVersion:report.sourceRiskVersion||null,sourceRiskLevel:report.sourceRiskLevel??null,explanationStatus:report.explanationStatus,
     sections:items.map(x=>({title:x.title,lines:x.lines})),page:pageNumber,pages:total,width:W,height:H,researchOnly:true,affectsEligibility:false,affectsRanking:false,performanceValidated:false};
    const key=report.type==='market'?'marketLifeAudit':'life98Audit';
@@ -140,7 +141,7 @@
     const rect=(x,y,w,h,color,stroke=theme.border)=>{ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(x,y,w,h,20);ctx.fill();ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke();};
     const write=(t,x,y,sz=30,color=theme.white,weight=600)=>{ctx.font=weight+' '+sz+'px "Noto Sans TC","Microsoft JhengHei",sans-serif';ctx.fillStyle=color;ctx.fillText(t,x,y);};
     rect(15,15,1254,272,theme.card);
-    write('🏆 石頭少爺 V9.16｜生命線風險透明化',35,35,46,theme.gold,800);
+    write('🏆 石頭少爺 '+displayRelease+'｜生命線風險透明化',35,35,46,theme.gold,800);
     write(report.type==='market'?'大盤生命線｜真正的四級判定條件':'個股生命線｜沿用既有強弱模型',37,109,35,theme.white,700);
     const head=planned.wrap(report.headline,1150,33);
     head.forEach((t,i)=>write(t,39,169+i*40,33,report.type==='market'&&report.sourceRiskLevel>=3?theme.risk:theme.normal,750));
