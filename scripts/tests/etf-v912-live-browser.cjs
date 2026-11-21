@@ -50,8 +50,10 @@ async function json(p){
    return arr;
   });
   assert.equal(pages.length,3,'current stock life report must export all three audited pages');
-  for(const p of pages){assert.equal(p.width,1284);assert.equal(p.height,2778);assert.ok(p.bytes>15000);
-   assert.equal(p.audit.model.code,'00878');assert.equal(p.audit.model.date,m.date);assert.equal(p.audit.model.close,raw.close);
+  for(const [index,p] of pages.entries()){assert.equal(p.width,1284);assert.equal(p.height,2778);assert.ok(p.bytes>15000);
+   if(index<2){assert.equal(p.audit.model.code,'00878');assert.equal(p.audit.model.date,m.date);assert.equal(p.audit.model.close,raw.close);}
+   else{assert.equal(p.audit.code,'00878');assert.equal(p.audit.date,m.date);assert.equal(p.audit.close,raw.close);
+    assert.equal(p.audit.researchOnly,true);assert.ok(p.audit.explanationStatus,'risk appendix must have audit status');}
    assert.equal(p.audit.affectsEligibility,false);assert.equal(p.audit.affectsRanking,false);}
   assert.deepEqual(errors,[]);
   fs.writeFileSync(path.join(out,'etf-live.json'),JSON.stringify({result,pages:pages.map(x=>({width:x.width,height:x.height,bytes:x.bytes,page:x.audit.page})),errors,status:'PASS'},null,2));
