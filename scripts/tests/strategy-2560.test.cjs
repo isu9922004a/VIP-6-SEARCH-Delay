@@ -91,4 +91,14 @@ test('zero-qualified complete market differs from incomplete and never invents e
  for(const ok of [true,false]){const f=fixture(Array(61).fill(100)),p=S.pool({map:new Map([['2330',f.options.quote]]),sectorMap:new Map([['2330',f.options.sector]]),meta:{targetTradeDate:f.date,marketCoverageReady:true},snapshotRows:1}),s=await S.scan({pool:p,fetchBatch:async()=>({type:'MOMENTUM_DEEP_SCAN',results:[{code:'2330',ok,data:ok?f.report:null,error:'未完成'}]})});
  assert.equal(s.candidates.length,0);assert.equal(s.fullMarketCertified,ok);assert.match(s.text,ok?/全市場2560沒有符合四項條件的股票/:/不能宣稱全市場0檔/);
  }});
+test('real-bar research comparison never uses same-day fills or future signal bars',()=>{
+ const BT=require('../compare-v918-2560-history.cjs');
+ const f=fixture([...Array(59).fill(100),90,130,135,140,145,146,147,148,149,150]);
+ f.report.canonicalBars.forEach((b,i)=>{b.volume=i>=58?2000000:1000000;});
+ const research=BT.study({lookback:120});research.add('2330',f.report.canonicalBars);const result=research.report();
+ assert.equal(result.state,'EXPLORATORY_HISTORICAL_COMPARISON_NOT_VALIDATED');
+ assert.equal(result.modes.original.signals,1);assert.equal(result.modes.continuation.signals,1);
+ assert.equal(result.modes.original.horizons[5].sampleSize,1);assert.equal(result.modes.continuation.horizons[5].sampleSize,1);
+ assert.match(result.limitations.join('、'),/存活者偏差/);
+});
 test('other five and archived restaurant engines remain byte-identical to baseline',()=>{const crypto=require('node:crypto'),b=require('../fixtures/v90-protected-baseline.json'),hash=x=>crypto.createHash('sha256').update(x).digest('hex');for(const[p,h]of Object.entries(b.sha256))assert.equal(hash(fs.readFileSync(p)),h,p);const html=fs.readFileSync('index.html','utf8'),inline=[...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]);assert.equal(hash(JSON.stringify(inline)),b.inlineSha256);});
