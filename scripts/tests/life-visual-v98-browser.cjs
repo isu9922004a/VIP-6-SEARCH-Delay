@@ -38,18 +38,18 @@ const png=b=>{assert.equal(b.subarray(1,4).toString(),'PNG');assert.equal(b.read
    await page.locator('#workspaceFourReportButton').click();await page.locator('#workspaceLifeReportButton').click();
    await page.waitForFunction(()=>document.getElementById('imagePreviewModal').classList.contains('show')&&document.getElementById('life94Status')?.textContent.includes('備妥'));
    const a=await page.evaluate(()=>ShitouLifeViewer94.getState().pages.map(p=>JSON.parse(p.dataset.life98Audit)));
-   assert.equal(a.length,2);assert.equal(a[0].model.code,code);assert.equal(a[0].model.date,date);assert.equal(a[0].chartBars,30);assert.equal(a[0].model.close,source.close);assert.ok(Math.abs(a[0].model.ma[5]-source.ma5)<1e-8);
+   assert.ok(a.length>=3,'V9.16 adds an explanation page to the original two');assert.equal(a[2].explanationStatus,'VERIFIED_FROM_CORE');assert.equal(a[0].model.code,code);assert.equal(a[0].model.date,date);assert.equal(a[0].chartBars,30);assert.equal(a[0].model.close,source.close);assert.ok(Math.abs(a[0].model.ma[5]-source.ma5)<1e-8);
    const p=await page.evaluate(async()=>{const c=ShitouLifeViewer94.getState().pages[0].renderExportRegion();const png=c.toDataURL('image/png');c.width=c.height=1;return png;});
    const data=Buffer.from(p.split(',')[1],'base64');png(data);fs.writeFileSync(path.join(out,code+'-V98-P01.png'),data);
    if(source.bars>=89)assert.equal(a[0].model.chartMa60Available,30,'官方完成日K足夠時應畫滿 30 個 MA60 點');
    if(a[0].model.volume.verified)assert.equal(a[0].model.volume.last,source.lastVolume,'成交股數只能取同一完成日來源');
    await page.locator('#life94Next').click();await page.waitForFunction(()=>document.getElementById('life94Status')?.textContent.includes('備妥')&&ShitouLifeViewer94.getState().index===1);
-   const p2=await page.evaluate(()=>ShitouLifeViewer94.getState().pages[1].renderExportRegion().toDataURL('image/png'));const b2=Buffer.from(p2.split(',')[1],'base64');png(b2);if(code==='6925')fs.writeFileSync(path.join(out,code+'-V98-P02.png'),b2);
+   const p2=await page.evaluate(()=>ShitouLifeViewer94.getState().pages[1].renderExportRegion().toDataURL('image/png'));const b2=Buffer.from(p2.split(',')[1],'base64');png(b2);if(code==='6925')fs.writeFileSync(path.join(out,code+'-V98-P02.png'),b2);const p3=await page.evaluate(()=>ShitouLifeViewer94.getState().pages[2].renderExportRegion().toDataURL('image/png'));const b3=Buffer.from(p3.split(',')[1],'base64');png(b3);if(code==='6925')fs.writeFileSync(path.join(out,code+'-V916-P03.png'),b3);
    await page.evaluate(()=>closeInfographicPreviewV3328());
   }
   await page.setViewportSize({width:428,height:926});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
-  fs.writeFileSync(path.join(out,'v98-results.json'),JSON.stringify({status:'PASS',codes:['6925','8099','2330'],pages:2,size:[1284,2778],errors},null,2));
+  fs.writeFileSync(path.join(out,'v98-results.json'),JSON.stringify({status:'PASS',codes:['6925','8099','2330'],pages:'V9.16>=3',size:[1284,2778],errors},null,2));
   assert.deepEqual(errors,[]);
-  console.log('V98_LIFE_BROWSER_PASS 6925 8099 2330 2-page 1284x2778 PNG');
+  console.log('V98_LIFE_BROWSER_PASS 6925 8099 2330 3+-page 1284x2778 PNG');
  }finally{if(browser)await browser.close();await new Promise(r=>server.close(r));}
 })().catch(e=>{console.error(e);process.exitCode=1;});

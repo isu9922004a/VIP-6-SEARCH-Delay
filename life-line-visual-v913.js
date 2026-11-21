@@ -10,7 +10,7 @@ const RELEASE='V9.15',VERSION='LIFE_VISUAL_IPHONE_V913',W=1284,H=2778,M=14,FOOT=
 const C={bg:'#071C2D',card:'#0A2D43',card2:'#10364D',ink:'#F3F7FF',muted:'#C2D7E5',mint:'#81F1D0',green:'#60EE92',gold:'#FFE365',orange:'#FFB444',risk:'#FF859F',blue:'#39B9FF',grid:'#28506B',up:'#FF5975',down:'#3CDBB6',line:'#71CFFF'};
 const finite=n=>typeof n==='number'&&Number.isFinite(n),num=n=>finite(n)?n.toFixed(2):'資料不足',date=v=>typeof v==='string'&&v.length>=10?v.slice(5).replace('-','/'):'未確認';
 async function ready(doc=globalThis.document){if(!doc?.createElement)throw Error('圖片畫布不可用');if(doc.fonts?.ready)await doc.fonts.ready;return true;}
-function build(study,{document:doc=globalThis.document,record=null,display=null,source=null,market=null,watermark=false}={}){
+function build(study,{document:doc=globalThis.document,record=null,display=null,source=null,market=null,watermark=false,v916=false}={}){
  if(!doc?.createElement)throw Error('圖片畫布不可用');
  const m=Legacy.model(study,{record,display,source}),bars=m.bars.slice(-30),last=bars.at(-1),line=m.line;
  const intel=Info.evaluate(study,{securityMarket:source?.market||'UNKNOWN',market});
@@ -46,6 +46,11 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
  const scenario=obs.scenarios,fours=m.four||[];
  const volumeVerified=m.volume.verified;
  const mkVol=v=>finite(v)?Math.round(v/1000).toLocaleString('en-US')+' 張':'資料不足';
+ const RUNTIME_RELEASE=v916?'V9.16':RELEASE;
+ const Transparency=v916?(typeof module==='object'&&module.exports?require('./life-risk-transparency-v916.js'):globalThis.ShitouTransparency916):null;
+ if(v916&&!Transparency)throw Error('V9.16 風險透明化模組未載入，停止輸出');
+ const extraPages=v916?Transparency.buildPage(Transparency.stock(study,intel,obs,m,market),{document:doc}):[];
+ const totalPages=2+extraPages.length;
  const draw=(canvas,pageno)=>{
   const ctx=canvas.getContext('2d');if(!ctx)throw Error('Canvas 2D 不可用');
   ctx.textBaseline='top';ctx.fillStyle=C.bg;ctx.fillRect(0,0,W,H);
@@ -83,16 +88,16 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
    ctx.restore();
   }
   function header(sub){
-   trophy();fit('石頭少爺 '+RELEASE+'｜',128,15,365,54,C.ink,820,43);fit('生命線研究',494,14,350,55,C.gold,800,46);
-   fit(sub,129,82,790,30,C.muted,640,25);
+   trophy();fit('石頭少爺 '+RUNTIME_RELEASE+'｜',128,15,365,54,C.ink,820,43);fit('生命線研究',494,14,350,55,C.gold,800,46);
+   fit(sub.replace(' / 2 頁',' / '+totalPages+' 頁'),129,82,790,30,C.muted,640,25);
    round(960,17,306,69,21,'#0763AD',C.blue,2);
    fit('個股生命線圖片報告',978,30,269,32,C.ink,760,26);
   }
   function footer(pageLabel){
    hr(M,2660,W-M,2660,C.line,2);
-   fit('ⓘ 研究參考，非買賣建議，績效未驗證｜'+RELEASE,22,2691,705,28,C.muted,610,24);
+   fit('ⓘ 研究參考，非買賣建議，績效未驗證｜'+RUNTIME_RELEASE,22,2691,705,28,C.muted,610,24);
    round(760,2682,500,56,12,'#081F35',C.muted,1.5);
-   fit(pageLabel,778,2693,467,29,C.ink,650,23);
+   fit(pageLabel.replace(' / 2 頁',' / '+totalPages+' 頁'),778,2693,467,29,C.ink,650,23);
   }
   function title(x,y,text,color=C.ink,width=1100){fit(text,x,y,width,38,color,770,30);}
   function stateCard(x,w,label,icon,status,note,color){
@@ -232,13 +237,14 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
   if(watermark&&globalThis.ShitouReportWatermark)globalThis.ShitouReportWatermark.apply(canvas);
  };
  const snapshot={observation:obs,life913:intel,code:m.code,name:m.name,date:m.date,close:m.close,line:m.line,state:m.lifecycleState,role:m.currentRole,referenceOnly:m.referenceOnly,ma:m.ma,range:m.range,volume:m.volume,events:m.events,markers:fours.map(k=>({label:k.label,date:k.date})),source:m.source,chartBarDates:bars.map(b=>b.date),chartMa60Available:extendedMA[60].filter(finite).length};
- return [1,2].map(i=>{
-  const audit={version:VERSION,release:RELEASE,width:W,height:H,page:i,pages:2,title:i===1?'個股分析':'生命線形成教學',model:snapshot,chartBars:bars.length,trophy:true,reportOnly:true,originalEventId:m.eventId,researchOnly:true,affectsEligibility:false,affectsRanking:false,automaticTrade:false};
-  const filename='石頭少爺_V9.15_'+m.code+'_'+(m.date||'日期待核對').replaceAll('-','')+'_P0'+i+'_'+(i===1?'個股分析':'生命線形成教學')+'.png';
+ const basePages=[1,2].map(i=>{
+  const audit={version:VERSION,release:RUNTIME_RELEASE,width:W,height:H,page:i,pages:totalPages,title:i===1?'個股分析':'生命線形成教學',model:snapshot,chartBars:bars.length,trophy:true,reportOnly:true,originalEventId:m.eventId,researchOnly:true,affectsEligibility:false,affectsRanking:false,automaticTrade:false};
+  const filename='石頭少爺_'+RUNTIME_RELEASE+'_'+m.code+'_'+(m.date||'日期待核對').replaceAll('-','')+'_P0'+i+'_'+(i===1?'個股分析':'生命線形成教學')+'.png';
   const dataset={life98Audit:JSON.stringify(audit),life972Audit:JSON.stringify(audit),life94Audit:JSON.stringify(audit),fullBleed:'true',shareAsSingleImage:'true',filename};
   const render=()=>{const canvas=doc.createElement('canvas');canvas.width=W;canvas.height=H;draw(canvas,i);Object.assign(canvas.dataset,dataset);return canvas;};
   return {width:W,height:H,title:i===1?'第 1 頁／個股分析':'第 2 頁／生命線形成教學',filename,dataset,renderExportRegion:render,toBlob(callback,type='image/png',quality){const c=render();c.toBlob(blob=>{c.width=c.height=1;callback(blob);},type,quality);}};
  });
+ return basePages.concat(extraPages);
 }
 return Object.freeze({RELEASE,VERSION,ready,build,model:Legacy.model,textReport:Legacy.textReport});
 });
