@@ -46,7 +46,7 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
  const scenario=obs.scenarios,fours=m.four||[];
  const volumeVerified=m.volume.verified;
  const mkVol=v=>finite(v)?Math.round(v/1000).toLocaleString('en-US')+' 張':'資料不足';
- const RUNTIME_RELEASE=v916?'V9.16':RELEASE;
+ const RUNTIME_RELEASE=v916?(globalThis.ShitouReleaseV50?.displayCode||'V9.19'):RELEASE;
  const Transparency=v916?(typeof module==='object'&&module.exports?require('./life-risk-transparency-v916.js'):globalThis.ShitouTransparency916):null;
  if(v916&&!Transparency)throw Error('V9.16 風險透明化模組未載入，停止輸出');
  const extraPages=v916?Transparency.buildPage(Transparency.stock(study,intel,obs,m,market),{document:doc}):[];
@@ -119,11 +119,11 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
    fit(num(m.close)+' 元',1032,151,234,57,C.gold,850,39);
    stateCard(14,408,'目前狀況','◎',obs.stage,obs.reason,obs.stage==='還在走弱'?C.risk:obs.stage.includes('強')?C.green:C.gold);
    stateCard(438,408,'重要訊號','◇',obs.signal,obs.lineText,C.gold);
-   stateCard(862,408,'操作提醒','⚠',obs.tip,m.risk.label+'。',C.risk);
+   stateCard(862,408,'新手提醒','⚠','反彈不等於轉強','5日均價每日重算；站回後還要看隔日能否守住。',C.risk);
    round(M,500,W-2*M,134,20,'#081E34',C.line,2);
    round(22,506,131,122,16,'#40316C','#AEB2FE',2);
    fit('關鍵',39,518,104,38,C.ink,740);fit('價位',39,561,104,38,C.ink,740);
-   const metrics=[['最新收盤',num(m.close),C.gold],['空方壓力',num(intel.activeResistanceEvent?.lifeLinePrice),C.risk],['近10日高點',num(ranges.high),C.orange],['近10日低點',num(ranges.low),C.green],['原始K3生命線',num(line),C.green]];
+   const metrics=[['最新收盤',num(m.close),C.gold],['短線5日均價',num(obs.shortTerm.ma5),C.blue],['已確認歷史壓力',num(obs.shortTerm.historicalResistance),C.risk],['近10日高點',num(ranges.high),C.orange],['近10日低點',num(ranges.low),C.green]];
    const mw=219;metrics.forEach((a,i)=>{const x=155+i*mw;fit(a[0],x+3,516,208,30,C.ink,710,25);fit(a[1],x+5,557,208,43,a[2],800,29);if(i)hr(x-3,510,x-3,623,C.line,1.5);});
    drawChart();
    round(14,1727,624,472,18,C.card,C.line,2);
@@ -159,7 +159,8 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
    const p={x:25,y:y+148,w:1119,h:611};const left=p.x,right=p.x+p.w;
    const levels=[];
    if(finite(intel.activeSupportEvent?.lifeLinePrice))levels.push({value:intel.activeSupportEvent.lifeLinePrice,title:'多方支撐 '+num(intel.activeSupportEvent.lifeLinePrice),color:C.green,kind:'support'});
-   if(finite(intel.activeResistanceEvent?.lifeLinePrice))levels.push({value:intel.activeResistanceEvent.lifeLinePrice,title:'空方壓力 '+num(intel.activeResistanceEvent.lifeLinePrice),color:C.risk,kind:'resistance'});
+   if(finite(intel.activeResistanceEvent?.lifeLinePrice))levels.push({value:intel.activeResistanceEvent.lifeLinePrice,title:'已確認歷史壓力 '+num(intel.activeResistanceEvent.lifeLinePrice),color:C.risk,kind:'resistance'});
+   if(finite(obs.shortTerm.ma5)&&obs.shortTerm.ma5>m.close&&!levels.some(v=>Math.abs(v.value-obs.shortTerm.ma5)<0.005))levels.push({value:obs.shortTerm.ma5,title:'先看5日均價 '+num(obs.shortTerm.ma5)+'（動態）',color:C.blue,kind:'ma5-watch'});
    if(finite(ranges.high))levels.push({value:ranges.high,title:'近10日高 '+num(ranges.high),color:C.orange,kind:'range'});
    if(finite(ranges.low))levels.push({value:ranges.low,title:'近10日低 '+num(ranges.low),color:C.green,kind:'range'});
    if(finite(line)&&!m.referenceOnly&&!levels.some(v=>Math.abs(v.value-line)<0.005))levels.push({value:line,title:'生命線 '+num(line)+'（K3）',color:C.mint,kind:'line'});
