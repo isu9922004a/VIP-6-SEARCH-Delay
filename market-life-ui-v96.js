@@ -19,13 +19,14 @@ async function loadMarketVisual(doc){
   ['ShitouLifeIntelligence913','life-line-intelligence-v913.js'],
   ['ShitouMarketLifeRisk910','market-life-risk-v910.js'],
   ['ShitouMarketLifeRisk913','market-life-risk-v913.js'],
-  ['ShitouMarketLifeVisual913','market-life-visual-v913.js']
+  ['ShitouTransparency916','life-risk-transparency-v916.js'],
+   ['ShitouMarketLifeVisual913','market-life-visual-v913.js']
  ];
  for(const [key,file] of dependencies){
   if(root[key])continue;
   await new Promise((resolve,reject)=>{
    const script=doc.createElement('script');
-   script.src=new URL('./'+file+'?v=V9.15-MARKETLIFE1',doc.baseURI).href;
+   script.src=new URL('./'+file+'?v=V9.16-MARKETLIFE1',doc.baseURI).href;
    script.async=false;
    script.onload=()=>root[key]?resolve():reject(Error(file+' 載入後未提供繪圖模組'));
    script.onerror=()=>reject(Error(file+' 載入失敗'));
@@ -54,7 +55,7 @@ function install(){
    if(by('market-type')&&by('market-type').value!=='TAIEX')throw Error('目前僅支援台灣加權指數。');
    const signal=AbortSignal.any([controller.signal,AbortSignal.timeout(20000)]),response=await fetch(new URL('./data/index/TAIEX.json',doc.baseURI),{cache:'no-store',signal});if(!response.ok)throw Error('行情讀取失敗（HTTP '+response.status+'）');const source=await response.json();if(token!==revision)return;
    const study=root.ShitouMarketLife96.evaluate(source);if(!study.sourceVerified)throw Error(study.reason||'大盤資料尚未核對');if(!study.validatedBars?.length)throw Error(study.reason||'完成日 K 不足，暫無法建立報告');
-   await doc.fonts.ready;if(token!==revision)return;await loadMarketVisual(doc);if(token!==revision)return;const pages=root.ShitouMarketLifeVisual913.build(study,{document:doc});if(!pages.length)throw Error('圖片畫布無法使用');history=source;
+   await doc.fonts.ready;if(token!==revision)return;await loadMarketVisual(doc);if(token!==revision)return;const pages=root.ShitouMarketLifeVisual913.build(study,{document:doc,v916:true});if(!pages.length)throw Error('圖片畫布無法使用');history=source;
    standalonePreview();const shown=await root.ShitouLifeViewer94.show(pages);if(token!==revision)return;if(!shown)throw Error('圖片預覽未完成，請重試');note.textContent='加權指數｜'+study.dataAsOf+'｜'+pages.length+' 頁；'+(study.sourceVolumeAudit?.uncertain?'成交股數待核對，暫不作量能確認。':'量能為集中市場成交股數。');
   }catch(e){if(token!==revision)return;if(ownPreview())root.closeInfographicPreviewV3328();history=null;note.textContent='無法建立大盤生命線報告：'+(e.name==='TimeoutError'?'行情連線逾時，請重試。':e.message);}
   finally{if(token===revision){pending=false;controller=null;button.disabled=false;button.removeAttribute('aria-busy');button.textContent='大盤生命線研究報告';}}
