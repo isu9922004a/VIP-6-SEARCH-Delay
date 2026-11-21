@@ -1,0 +1,60 @@
+name: V9.16 lifeline risk transparency acceptance
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'life-risk-transparency-v916.js'
+      - 'market-life-visual-v913.js'
+      - 'life-line-visual-v913.js'
+      - 'research-integration-v1.js'
+      - 'market-life-ui-v96.js'
+      - 'version-v50.js'
+      - 'scripts/tests/life-v916*'
+      - '.github/workflows/v916-risk-transparency.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'life-risk-transparency-v916.js'
+      - 'market-life-visual-v913.js'
+      - 'life-line-visual-v913.js'
+      - 'research-integration-v1.js'
+      - 'market-life-ui-v96.js'
+      - 'version-v50.js'
+      - 'scripts/tests/life-v916*'
+      - '.github/workflows/v916-risk-transparency.yml'
+permissions:
+  contents: read
+jobs:
+  v916-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+      - name: Compile V9.16 changes
+        run: |
+          node --check life-risk-transparency-v916.js
+          node --check market-life-visual-v913.js
+          node --check life-line-visual-v913.js
+          node --check research-integration-v1.js
+          node --check market-life-ui-v96.js
+      - name: Verify original research regressions plus V9.16
+        run: |
+          npm test
+          node --test scripts/tests/life-v916.test.cjs
+      - name: Install Noto CJK
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y fonts-noto-cjk
+      - name: Render real stock and index V9.16 report PNGs
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+        run: node scripts/tests/life-v916-browser.cjs /tmp/v916-evidence
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v916-risk-transparency-evidence
+          path: /tmp/v916-evidence
