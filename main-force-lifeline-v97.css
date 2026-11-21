@@ -24,3 +24,19 @@
 #cost971Statistics dl{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 20px;padding:12px 0}#cost971Statistics dd{margin:0;text-align:right}#cost971Statistics dt{color:#B8CBE2}.cost971-source,.cost971-disclaimer{font-size:.85rem;overflow-wrap:anywhere}.cost971-disclaimer{border-top:1px solid #345267;padding-top:18px;margin-top:24px;color:#B8CBE2}
 #cost97Research{box-sizing:border-box;max-width:850px;width:calc(100% - 24px);max-height:calc(100dvh - 24px);overflow:auto;background:#0B2032;color:#EDF6FF;border:1px solid #345267;border-radius:16px;padding:24px;padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}#cost97Research::backdrop{background:#000b}#cost97Research p{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7}#cost97Research section{border-top:1px solid #345267;padding-top:12px;margin-top:20px}
 @media(max-width:600px){.cost97-grid{grid-template-columns:1fr}.cost971-ranking-head{display:block}.cost971-ranking-head button{width:100%;margin-top:14px}.cost97-actions:not(.cost971-card-actions){display:grid;grid-template-columns:1fr}#cost97Research{padding:18px}.cost97-card{padding:18px}.cost971-overview{gap:8px}.cost971-stat{padding:12px 8px}.cost971-card-actions button{padding:12px 8px}}
+
+/* V9.16 cost97 detail contrast repair: scoped to the six main-force result accordions.
+   Never change global filter-result styling or stock-screening behavior. */
+#towerGoldPanel[data-cost97] #cost97Results > details{
+  background:#102E43;
+  color:#EDF6FF;
+  border:1px solid #345267;
+  border-radius:12px;
+  padding:4px 14px;
+}
+#towerGoldPanel[data-cost97] #cost97Results > details > summary{
+  color:#EDF6FF!important;
+}
+#towerGoldPanel[data-cost97] #cost97Results > details[open]{
+  background:#102E43;
+}
