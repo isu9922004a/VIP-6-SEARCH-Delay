@@ -56,5 +56,72 @@
   ];
   return freeze({version:VERSION,date,code:study.code,close:latest.close,priceTrend,lifeStatus:status,selectedPrimaryEvent,activeSupportEvent,activeResistanceEvent,historicalReferenceEvents,marketStatus,marketVerified:marketValid,securityMarket:securityMarket||'UNKNOWN',relativeStrengthStatus:marketValid&&finite(market.metrics?.returnPct)?((latest.close/(recent?.close||latest.close)-1)*100-market.metrics.returnPct):null,riskReasons,trendText,context,scenarios,researchOnly:true,performanceValidated:false,affectsEligibility:false,affectsRanking:false});
  }
- return Object.freeze({VERSION,evaluate,statusLabel});
+ // Only validated completed bars enter this report. Each historical comparison
+ // uses the moving average or trailing low available at that session.
+ function observe(m,intel,market=false,marketRisk=null){
+  const bars=m.bars, last=bars.at(-1), prev=bars.at(-2), ma=m.maSeries[5];
+  const unit=market?' 點':' 元', subject=market?'指數':'股價';
+  const price=value=>fmt(value)+unit;
+  const activeLine=!!m.event&&!m.referenceOnly&&finite(m.line);
+  const broken=m.events.filter(e=>e.kind==='SUPPORT_BROKEN'&&e.confirmedAt===e.date).at(-1);
+  const reclaimed=m.events.find(e=>e.kind==='SUPPORT_RECLAIMED'&&e.confirmedAt===e.date&&broken&&e.date>broken.date);
+  const recentStart=Math.max(10,bars.length-30);
+  const history=[];
+  for(let i=recentStart;i<bars.length;i++){
+   const previous=bars.slice(Math.max(0,i-10),i);
+   const floor=Math.min(...previous.map(b=>b.low));
+   history.push({date:bars[i].date,maBreak:ma[i-1]!=null&&bars[i-1].close>=ma[i-1]&&bars[i].close<ma[i],
+    lowerLow:bars[i].low<floor,closedBelowLow:bars[i].close<floor});
+  }
+  const lastLow=history.filter(h=>h.lowerLow).at(-1);
+  const fresh=!!lastLow&&lastLow.date===last?.date;
+  const priorWeakness=history.slice(-10).some(h=>h.maBreak||h.closedBelowLow)||!!broken;
+  const noNewLow=history.length>=2&&history.slice(-2).every(h=>!h.lowerLow);
+  const targets=[...new Set([m.ma[5],m.ma[10],m.ma[20],activeLine?m.line:null,intel.activeResistanceEvent?.lifeLinePrice,m.range.high].filter(v=>finite(v)&&v>m.close))].sort((a,b)=>a-b);
+  const below=activeLine&&!!last&&last.close<m.line;
+  const held=activeLine&&m.currentRole!=='RESISTANCE'&&prev&&prev.date>=m.event.signalDate&&[prev,last].every((b,i)=>b.close>m.line&&finite(ma.at(i-2))&&b.close>ma.at(i-2));
+  let stage='方向還不明確',reason='目前的收盤與均價尚未指向同一方向。',tip='等待方向更明確';
+  if(!last||!prev||!finite(m.ma[20])){reason='完成交易日不足，方向尚未確認。';}
+  else if(fresh&&last.close<m.ma[5]&&last.close<m.ma[20]){
+   stage='還在走弱';reason=subject+'低於五日與二十日均價，今天又出現更低價位。';tip='注意可能繼續下跌';
+  }else if(marketRisk?.rebound.code==='REBOUND_FAILURE_WARNING'||marketRisk?.phase.state==='ACTIVE_SHOCK'){
+   stage='還在走弱';reason=marketRisk.rebound.code==='REBOUND_FAILURE_WARNING'?'先前回升時未站回生命線，最新收盤又下跌。':'指數跌幅已超過近期波動門檻。';tip='注意市場下跌風險';
+  }else if(held&&m.close>m.ma[20]&&noNewLow){
+   stage=m.trend.state==='STRONG'&&bars.slice(-3).every(b=>b.date>=m.event.signalDate&&b.close>m.line)?'持續走強':'逐漸變強';
+   reason='連兩日收在生命線及五日均價之上。';tip='觀察明天能否守住';
+  }else if(priorWeakness&&below&&noNewLow&&last.close>prev.close&&prev.close>bars.at(-3).close){
+   stage='正在反彈';reason='收盤連兩日回升，仍低於原本生命線。';tip='反彈仍要看能否守住';
+  }else if(priorWeakness&&noNewLow&&below){
+   stage='開始止跌觀察';reason='近兩日沒有再跌出新低，尚未收復生命線。';tip='觀察能不能守住低點';
+  }else if(m.trend.state==='WEAK'&&last.close<m.ma[5]&&last.close<m.ma[20]){
+   stage='還在走弱';reason='收盤仍低於五日與二十日均價。';tip='先不要急著搶反彈';
+  }
+  const signal=below&&broken?'已跌破原本支撐':activeLine&&reclaimed&&m.close>m.line?'已重新站回重要價位':activeLine&&last&&last.low<=m.line&&last.high>=m.line?'正在測試重要價位':'尚未確認轉強';
+  const lineText=activeLine?('收盤'+(m.close<m.line?'低於':m.close>m.line?'高於':'等於')+'生命線 '+price(m.line)+'。'):'有效生命線尚未確認。';
+  const rebound=targets.slice(0,2).map(price).join('，再看 ');
+  const low=m.range.low, floor=price(low);
+  const upper=targets[0], hold=activeLine&&!below?m.line:m.ma[5];
+  const scenarios=[
+   {title:'開始變好',text:finite(upper)?'若收盤站上 '+price(upper)+'，再看隔日能否守住，仍可能跌回。':finite(hold)?'若續守 '+price(hold)+' 且收盤走高，再觀察能否延續。':'上方觀察價位尚未確認。'},
+   {title:'還不確定',text:finite(low)&&finite(upper)?'若收在 '+floor+' 至 '+price(upper)+' 之間，方向仍待確認。':finite(low)?'若守住 '+floor+' 但收盤未上漲，仍要留意轉弱。':'近期區間尚未確認。'},
+   {title:'繼續變弱',text:finite(low)?'若收盤低於 '+floor+'，下跌風險可能擴大。':'近期低點尚未確認。'}];
+  const firstMA=history.find(h=>h.maBreak);
+  const currentBreak=last&&last.close<m.ma[5]?history.filter(h=>h.maBreak).at(-1):null;
+  const firstLow=history.find(h=>h.closedBelowLow&&(!currentBreak||h.date>=currentBreak.date));
+  const timeline='近30日首度收破五日均價：'+(firstMA?.date.slice(5)||'未觀察到')+'。本波收破五日均價：'+(currentBreak?.date.slice(5)||'未確認')+'。收破前低：'+(firstLow?.date.slice(5)||'未觀察到')+'。';
+  const summary=stage+'。'+(fresh?'今天再創近期低點。':noNewLow?'近兩日未再創低。':'止跌仍待觀察。')+(broken&&lastLow&&lastLow.date>broken.date?'跌破生命線後又出現更低價位。':'')+'明天先看'+(finite(low)?floor+'能否守住。':'低點能否確認。');
+  return {stage,reason,tip,signal,lineText,targets,rebound:rebound||'上方價位尚未確認',scenarios,history,timeline,summary,broken,reclaimed};
+ }
+ function historyFields(m,observation){
+  const labels={high:'最高價',low:'最低價',close:'收盤價'};
+  const rows=m.four.map((v,i)=>{
+   const field=i===3?'close':(i===0)===(m.event.side==='BULL')?'low':'high';
+   return {date:v.date,label:v.label,field:labels[field],value:v.bar?.[field]};
+  });
+  for(const [label,event] of [['跌破',observation.broken],['站回',observation.reclaimed]]){
+   rows.push({date:event?.date,label:!event&&label==='站回'?'尚未站回':label,field:labels.close,value:m.bars.find(b=>b.date===event?.date)?.close});
+  }
+  return rows;
+ }
+ return Object.freeze({VERSION,evaluate,statusLabel,observe,historyFields});
 });

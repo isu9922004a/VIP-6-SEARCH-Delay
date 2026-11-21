@@ -12,7 +12,7 @@ function checkPng(b){assert.equal(b.subarray(1,4).toString(),'PNG');assert.equal
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  const origin='http://127.0.0.1:'+server.address().port+'/';
  let browser;
- const status={version:'V9.14',stock:{},market:{},errors:[]};
+ const status={version:'V9.15',stock:{},market:{},errors:[]};
  try{
   browser=await chromium.launch({executablePath:process.env.CHROME_BIN||'/usr/bin/chromium',headless:true,args:['--no-sandbox']});
   const stock=await browser.newPage({viewport:{width:428,height:926},isMobile:true,hasTouch:true});
@@ -33,7 +33,7 @@ function checkPng(b){assert.equal(b.subarray(1,4).toString(),'PNG');assert.equal
   await stock.locator('#workspaceLifeReportButton').click();
   await stock.waitForFunction(()=>document.getElementById('imagePreviewModal')?.classList.contains('show')&&ShitouLifeViewer94.getState()?.pages?.length===2,{},{timeout:30000});
   const a=await stock.evaluate(()=>ShitouLifeViewer94.getState().pages.map(p=>JSON.parse(p.dataset.life98Audit)));
-  assert.equal(a.length,2);assert.equal(a[0].release,'V9.14');assert.equal(a[0].model.close,66.6);
+  assert.equal(a.length,2);assert.equal(a[0].release,'V9.15');assert.equal(a[0].model.close,66.6);
   assert.equal(a[0].model.life913.selectedPrimaryEvent.lifeLinePrice,70.9);
   assert.equal(a[0].model.life913.selectedPrimaryEvent.side,'BEAR');
   assert.equal(a[0].model.life913.priceTrend,'偏強觀察');
@@ -48,13 +48,14 @@ function checkPng(b){assert.equal(b.subarray(1,4).toString(),'PNG');assert.equal
   const market=await browser.newPage({viewport:{width:428,height:926},isMobile:true,hasTouch:true});
   market.on('pageerror',e=>status.errors.push('market: '+e.message));
   await market.route('**/*',r=>new URL(r.request().url()).origin===new URL(origin).origin?r.continue():r.abort());
+  await market.route('**/data/index/TAIEX.json*',r=>r.fulfill({path:path.join(root,'scripts/fixtures/taiex-20261117-v913.json'),contentType:'application/json'}));
   await market.clock.install({time:new Date('2026-11-17T16:40:00+08:00')});
   await market.goto(origin+'market-outlook.html',{waitUntil:'domcontentloaded'});
   await market.waitForSelector('#marketLifeReportButton');
   await market.locator('#marketLifeReportButton').click();
   await market.waitForFunction(()=>document.getElementById('imagePreviewModal')?.classList.contains('show')&&ShitouLifeViewer94.getState()?.pages?.length===2,{},{timeout:30000});
   const b=await market.evaluate(()=>ShitouLifeViewer94.getState().pages.map(p=>JSON.parse(p.dataset.marketLifeAudit)));
-  assert.equal(b.length,2);assert.equal(b[0].release,'V9.14');assert.equal(b[0].model.close,40092.11);
+  assert.equal(b.length,2);assert.equal(b[0].release,'V9.15');assert.equal(b[0].model.close,40092.11);
   assert.equal(b[0].marketRisk.version,'MARKET_LIFE_RISK_V913');assert.equal(b[0].marketRisk.phase.confirmedAt,'2026-11-17');
   for(let i=0;i<2;i++){
    const uri=await market.evaluate(i=>ShitouLifeViewer94.getState().pages[i].renderExportRegion().toDataURL('image/png'),i);

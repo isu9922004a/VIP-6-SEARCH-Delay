@@ -1,0 +1,35 @@
+{
+  "status": "PASS",
+  "revision": "V9.15",
+  "evidence": [
+    {
+      "type": "stock",
+      "page": 1,
+      "bytes": 820205,
+      "filename": "8039-P01.png",
+      "close": 137.5
+    },
+    {
+      "type": "stock",
+      "page": 2,
+      "bytes": 574601,
+      "filename": "8039-P02.png",
+      "close": 137.5
+    },
+    {
+      "type": "market",
+      "page": 1,
+      "bytes": 887458,
+      "filename": "TAIEX-P01.png",
+      "close": 36033.29
+    },
+    {
+      "type": "market",
+      "page": 2,
+      "bytes": 665404,
+      "filename": "TAIEX-P02.png",
+      "close": 36033.29
+    }
+  ],
+  "errors": []
+}

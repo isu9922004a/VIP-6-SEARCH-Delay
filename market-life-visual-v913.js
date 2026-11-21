@@ -1,19 +1,19 @@
-/* V9.14 index-only multi-event fork: original individual stock renderer untouched. */
+/* V9.15 index-only multi-event fork: original individual stock renderer untouched. */
 (function(root,factory){
  const node=typeof module==='object'&&!!module.exports;
  const api=factory(node?require('./life-line-visual-v972.js'):root.ShitouLifeVisual972,node?require('./market-life-risk-v913.js'):root.ShitouMarketLifeRisk913,node?require('./life-line-intelligence-v913.js'):root.ShitouLifeIntelligence913);
  if(node)module.exports=api;else root.ShitouMarketLifeVisual913=api;
 })(globalThis,function(Legacy,Risk,Info){
 'use strict';
-if(!Legacy||typeof Legacy.model!=='function'||!Risk||typeof Risk.evaluate!=='function'||!Info||typeof Info.evaluate!=='function')throw Error('缺少大盤 V9.14 風險模型或K3事件資料');
-const RELEASE='V9.14',VERSION='MARKET_LIFE_VISUAL_V913',W=1284,H=2778,M=14,FOOT=2672;
+if(!Legacy||typeof Legacy.model!=='function'||!Risk||typeof Risk.evaluate!=='function'||!Info||typeof Info.evaluate!=='function')throw Error('缺少大盤 V9.15 風險模型或K3事件資料');
+const RELEASE='V9.15',VERSION='MARKET_LIFE_VISUAL_V913',W=1284,H=2778,M=14,FOOT=2672;
 const C={bg:'#071C2D',card:'#0A2D43',card2:'#10364D',ink:'#F3F7FF',muted:'#C2D7E5',mint:'#81F1D0',green:'#60EE92',gold:'#FFE365',orange:'#FFB444',risk:'#FF859F',blue:'#39B9FF',grid:'#28506B',up:'#FF5975',down:'#3CDBB6',line:'#71CFFF'};
 const finite=n=>typeof n==='number'&&Number.isFinite(n),num=n=>finite(n)?n.toFixed(2):'資料不足',date=v=>typeof v==='string'&&v.length>=10?v.slice(5).replace('-','/'):'未確認';
 async function ready(doc=globalThis.document){if(!doc?.createElement)throw Error('圖片畫布不可用');if(doc.fonts?.ready)await doc.fonts.ready;return true;}
 function build(study,{document:doc=globalThis.document,record=null,display=null,source=null,watermark=false}={}){
  if(!doc?.createElement)throw Error('圖片畫布不可用');
  if(study?.instrumentType!=='TAIEX'||study?.code!=='TAIEX'||study?.sourceVerified!==true)throw Error('只允許已確認的加權指數日 K');
- const intelligence=Risk.evaluate(study);
+ const risk=Risk.evaluate(study);
  const intel=Info.evaluate(study);
  const m=Legacy.model(study,{record:null,display:null,source:null}),bars=m.bars.slice(-30),last=bars.at(-1),line=m.line;
 
@@ -44,13 +44,18 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
  }
 
  const ranges=m.range||{},lifeCurrent=finite(line)&&!m.referenceOnly&&m.currentRole==='SUPPORT';
- const scenario=intelligence.scenarios,fours=m.four||[];
- const lastBreak=m.event?.firstBreakdownDate;
- const breakEvent=m.events?.find(e=>e.date===lastBreak&&e.kind==='SUPPORT_BROKEN');
- const finalReclaim=[...(m.events||[])].reverse().find(e=>e.kind==='SUPPORT_RECLAIMED'&&e.confirmedAt);
- const sourceEvent=(m.event?.signalDate||null);
- const short=v=>String(v??'未確認').replace(/[\r\n]+/g,' ').replace(/\s+/g,' ').trim();
- const barOn=d=>m.bars.find(b=>b.date===d);
+ const obs=Info.observe(m,intel,true,risk);
+ const scenario=obs.scenarios,fours=m.four||[];
+ const receipt=study.indexSource?.receipt;
+ const confirmedShares=receipt?.confirmedShares||{};
+ const checks=receipt?.shareChecks||receipt?.officialChecks||[];
+ const checkedMonths=new Set(checks.filter(c=>/^https:\/\/www\.twse\.com\.tw\/exchangeReport\/FMTQIK\?response=json&date=\d{6}01$/.test(c.url)&&/^[a-f0-9]{64}$/.test(c.sha256)).map(c=>c.url.slice(-8,-2)));
+ const volumeWindow=m.bars.slice(-35);
+ const volumeVerified=study.indexSource?.volume==='TWSE Official FMTQIK'&&!study.sourceVolumeAudit?.uncertain&&volumeWindow.length>=6&&volumeWindow.every(b=>checkedMonths.has(b.date.slice(0,7).replace('-',''))&&confirmedShares[b.date]===b.volume);
+ const average5=volumeVerified?volumeWindow.slice(-6,-1).reduce((sum,b)=>sum+b.volume,0)/5:null;
+ const volume={verified:volumeVerified,last:volumeVerified?last.volume:null,average5,ratio:volumeVerified?last.volume/average5:null};
+ const volumeNote=volumeVerified?'集中市場成交股數已逐日核對，仍要看收盤位置。':'成交股數資料尚未確認。';
+ const intelligence={...risk,volume:{...risk.volume,verified:volumeVerified,notice:volumeNote}};
  const mkVol=v=>finite(v)?Math.round(v).toLocaleString('en-US')+' 股':'資料不足';
  const draw=(canvas,pageno)=>{
   const ctx=canvas.getContext('2d');if(!ctx)throw Error('Canvas 2D 不可用');
@@ -62,7 +67,7 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
    if(ctx.measureText(v).width>width){while(v.length>1&&ctx.measureText(v+'…').width>width)v=v.slice(0,-1);v+='…';}
    ctx.fillStyle=color;ctx.fillText(v,x,y);return s;
   }
-  function wrap(value,width,size,weight=600){font(size,weight);const lines=[];for(const part of String(value??'資料不足').split('\n')){let row='';for(const ch of Array.from(part)){if(row&&ctx.measureText(row+ch).width>width){lines.push(row);row=ch;}else row+=ch;}lines.push(row||' ');}return lines;}
+  function wrap(value,width,size,weight=600){font(size,weight);const lines=[];for(const part of String(value??'資料不足').split('\n')){let row='';for(const ch of part.match(/\d+(?:[.,/-]\d+)*|[A-Za-z]+\d*|./gu)||[]){if(row&&ctx.measureText(row+ch).width>width){lines.push(row);row=ch;}else row+=ch;}lines.push(row||' ');}return lines;}
   function paragraph(value,x,y,width,size,color=C.ink,maxLines=5,leading=1.27,weight=590){
    const lines=wrap(value,width,size,weight);const count=Math.min(maxLines,lines.length);for(let i=0;i<count;i++){const line=i===maxLines-1&&lines.length>maxLines?lines[i].slice(0,-1)+'…':lines[i];fit(line,x,y+i*size*leading,width,size,color,weight,Math.min(22,size));}return count*size*leading;
   }
@@ -101,10 +106,12 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
    fit(pageLabel,778,2693,467,29,C.ink,650,23);
   }
   function title(x,y,text,color=C.ink,width=1100){fit(text,x,y,width,38,color,770,30);}
-  function stateCard(x,y,w,label,status,color){
-   round(x,y,w,94,15,C.card,C.line,1.6);
-   fit(label,x+18,y+9,w-36,26,C.muted,690,22);
-   fit(status,x+18,y+45,w-36,37,color,780,27);
+  function stateCard(x,w,label,icon,status,note,color){
+   round(x,285,w,201,20,C.card,C.line,2);
+   fit(icon,x+15,302,52,40,color,720,34);
+   fit(label,x+68,303,w-82,34,C.ink,730,29);
+   fit(status,x+22,361,w-45,47,color,810,33);
+   paragraph(note,x+22,415,w-40,26,C.ink,2,1.1,580);
   }
   function page1(){
    header('第 1 / 2 頁｜大盤風險分析（趨勢・關鍵價位・隔日觀察）');
@@ -116,10 +123,9 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
    hr(915,147,915,252,C.line,2);
    fit('收盤',927,172,76,32,C.ink,760,27);
    fit(num(m.close),1013,151,249,46,C.gold,850,33);fit('點',1218,207,44,29,C.gold,750,24);
-   stateCard(14,285,618,'大盤目前趨勢',intelligence.trend.label,intelligence.trend.state==='WEAK'?C.risk:intelligence.trend.state==='STRONG'?C.mint:C.gold);
-   stateCard(652,285,618,'K3 生命線事件',Info.statusLabel(m.lifecycleState,Info.statusLabel(m.life.label)),['BREAKOUT_FAILED','SUPPORT_BROKEN'].includes(m.lifecycleState)?C.risk:C.mint);
-   stateCard(14,391,618,'短線風險（第 '+intelligence.risk.level+' 級）',intelligence.risk.label,intelligence.risk.color);
-   stateCard(652,391,618,'多日風險階段',Info.statusLabel(intelligence.phase.state,Info.statusLabel(intelligence.phase.label)),['ACTIVE_SHOCK','POST_SHOCK_WEAKNESS'].includes(intelligence.phase.state)?C.risk:C.gold);
+   stateCard(14,408,'目前狀況','◎',obs.stage,obs.reason,obs.stage==='還在走弱'?C.risk:obs.stage.includes('強')?C.green:C.gold);
+   stateCard(438,408,'重要訊號','◇',obs.signal,obs.lineText,C.gold);
+   stateCard(862,408,'操作提醒','⚠',obs.tip,intelligence.risk.label+'（第 '+intelligence.risk.level+' 級）。',C.risk);
    round(M,500,W-2*M,134,20,'#081E34',C.line,2);
    round(22,506,131,122,16,'#40316C','#AEB2FE',2);
    fit('關鍵',39,518,104,38,C.ink,740);fit('價位',39,561,104,38,C.ink,740);
@@ -129,33 +135,30 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
    round(14,1727,624,472,18,C.card,C.line,2);
    title(34,1742,'⌕ 現在怎麼看？（重點判讀）',C.ink,575);
    const rows=[
-    ['生命線角色',intelligence.life.role.label+'；'+(intel.activeResistanceEvent?'壓力 '+num(intel.activeResistanceEvent.lifeLinePrice)+' 點；':'')+(intel.activeSupportEvent?'支撐 '+num(intel.activeSupportEvent.lifeLinePrice)+' 點。':'支撐待核對。'),C.mint,'◎'],
-    ['短期均線','MA5 '+num(intelligence.metrics.ma5)+'、MA20 '+num(intelligence.metrics.ma20)+'，收盤位置才是確認依據。',C.gold,'▥'],
-    ['反彈觀察',intelligence.rebound.label+'；'+intelligence.rebound.explanation,C.orange,'◇'],
-    ['成交股數',intelligence.volume.notice,C.gold,'▥']
+    ['大盤方向',obs.reason,C.mint,'◎'],
+    ['走勢依據',obs.lineText,C.gold,'▥'],
+    ['反彈先看哪裡',obs.rebound,C.orange,'◇'],
+    ['量能能參考嗎',volumeNote,C.gold,'▥']
    ];
    rows.forEach((r,i)=>{const y=1801+i*95;round(30,y,594,88,10,C.card2,'#739DB6',1);fit(r[3],40,y+23,48,38,r[2],800,32);fit(r[0],94,y+22,185,33,r[2],800,28);hr(280,y+5,280,y+81,'#7196AE',1);paragraph(r[1],294,y+5,314,24,C.ink,3,1.07,590);});
    round(649,1727,621,472,18,C.card,C.line,2);
    title(665,1742,'◎ 下一個交易日觀察重點',C.ink,575);
-   const scenColors=[C.green,C.gold,C.risk],scenBG=['#0B3932','#483611','#4B1B30'],labels=['↗','～','↘'];
+   const scenColors=[C.green,C.gold,C.risk],scenBG=['#0B3932','#483611','#4B1B30'],labels=['A','B','C'];
    scenario.slice(0,3).forEach((s,i)=>{const y=1801+i*129;round(666,y,584,121,16,scenBG[i],C.line,1.5);round(680,y+22,68,68,34,scenColors[i],null);fit(labels[i],696,y+28,50,47,'#081F2E',850,35);fit('情境 '+['A','B','C'][i]+'｜'+s.title+(s.active?'【目前】':''),764,y+9,473,31,scenColors[i],780,25);paragraph(s.text,765,y+43,458,24,C.ink,3,1.04,590);});
    round(14,2213,773,429,18,C.card,C.line,2);title(33,2226,'▦ 已確認的歷史紀錄（生命線事件）',C.ink,735);
    hr(61,2299,750,2299,'#87D3FF',4);
-   const hs=fours.map((v,i)=>({date:v.date,label:v.label,price:v.bar?num(i===3?v.bar.close:i===0?(m.event?.side==='BULL'?v.bar.low:v.bar.high):(m.event?.side==='BEAR'?v.bar.low:v.bar.high)):'未確認',color:i===3?C.mint:C.gold}));
-   const makeHistorical=(dt,lab,kind,col)=>({date:dt,label:lab,price:dt&&barOn(dt)?num(barOn(dt).close):'未確認',color:col});
-   hs.push(makeHistorical(lastBreak,'跌破','broken',C.risk));hs.push(makeHistorical(finalReclaim?.date,'站回','reclaim',C.green));
-   hs.slice(0,6).forEach((e,i)=>{const x=24+i*126;round(x,2315,119,238,15,'#09243A',e.color,1.3);round(x+49,2287,18,18,9,e.color,null);fit(date(e.date),x+7,2338,106,27,C.ink,730,23);fit(e.label,x+12,2390,98,40,e.color,810,31);fit(i===3?'收盤價':i===0?(m.event?.side==='BULL'?'最低價':'最高價'):(m.event?.side==='BEAR'?'最低價':'最高價'),x+8,2449,107,22,C.muted,600,20);fit(e.price,x+4,2489,112,24,C.ink,760,18);});
+   const hs=Info.historyFields(m,obs).map((row,i)=>({...row,price:row.date?num(row.value):'—',color:[C.gold,C.gold,C.gold,C.mint,C.risk,C.green][i]}));
+   hs.slice(0,6).forEach((e,i)=>{const x=24+i*126;round(x,2315,119,238,15,'#09243A',e.color,1.3);round(x+49,2287,18,18,9,e.color,null);fit(date(e.date),x+7,2338,106,27,C.ink,730,23);fit(e.label,x+5,2390,109,40,e.color,810,23);fit(e.field,x+8,2449,107,22,C.muted,600,20);fit(e.price,x+4,2489,112,24,C.ink,760,18);});
    fit('K3 原始生命線 '+num(line)+' 點；歷史事件均以完成日收盤確認。',32,2580,735,25,C.muted,620,23);
    round(800,2213,470,429,18,'#292619',C.gold,2.5);
    title(814,2227,'☼ 目前綜合觀察',C.ink,439);
-   const summary=intelligence.risk.label+'；'+intelligence.phase.reason+' '+intelligence.risk.reasons.slice(0,1).join('；')+'。';
-   const status='生命線目前角色：'+intelligence.life.role.label+'。';
-   paragraph(summary+status+'主要情境 '+intelligence.activeScenario+'；判讀依完成日K，不保證隔日方向。',821,2294,425,28,C.ink,8,1.26,630);
+   paragraph(obs.summary,821,2294,425,31,C.ink,5,1.18,630);
+   paragraph(obs.timeline,821,2490,425,24,C.muted,5,1.15,600);
    footer('第 1 / 2 頁　下一頁：生命線教學 ▷');
   }
   function drawChart(){
    const x=14,y=650,w=W-28,h=1061;round(x,y,w,h,18,'#05192B',C.line,2);
-   title(x+21,y+14,'▥ 日 K 線走勢與關鍵位置（近30個交易日）');
+   title(x+21,y+14,'▥ 近30日日 K 線｜MA 數字代表平均天數');
    const legend=[[5,C.ink],[10,C.blue],[20,C.green],[60,C.gold]];
    legend.forEach(([n,col],i)=>{const xx=38+i*308;hr(xx,y+87,xx+33,y+87,col,8);fit('MA'+n+' '+num(m.ma[n]),xx+44,y+67,247,27,C.ink,640,23);});
    if(!bars.length){title(45,y+250,'尚無經核對的完成日 K，暫不畫技術線。',C.risk);return;}
@@ -165,7 +168,7 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
    if(finite(intel.activeResistanceEvent?.lifeLinePrice))levels.push({value:intel.activeResistanceEvent.lifeLinePrice,title:'空方壓力 '+num(intel.activeResistanceEvent.lifeLinePrice)+' 點',color:C.risk,kind:'resistance'});
    if(finite(ranges.high))levels.push({value:ranges.high,title:'近10日高 '+num(ranges.high),color:C.orange,kind:'range'});
    if(finite(ranges.low))levels.push({value:ranges.low,title:'近10日低 '+num(ranges.low),color:C.green,kind:'range'});
-   if(finite(line)&&!m.referenceOnly)levels.push({value:line,title:'生命線 '+num(line)+'（K3）',color:C.mint,kind:'line'});
+   if(finite(line)&&!m.referenceOnly&&!levels.some(v=>num(v.value)===num(line)))levels.push({value:line,title:'生命線 '+num(line)+'（K3）',color:C.mint,kind:'line'});
    const firstRes=m.resistance?.find(z=>finite(z.price)&&z.price>m.close&&Math.abs(z.price-ranges.high)>.01);
    if(firstRes&&!levels.some(v=>Math.abs(v.value-firstRes.price)<.01))levels.push({value:firstRes.price,title:'確認壓力 '+num(firstRes.price),color:C.orange,kind:'level'});
    const vals=bars.flatMap(b=>[b.high,b.low]);for(const n of [5,10,20,60])vals.push(...extendedMA[n].filter(finite));for(const l of levels)vals.push(l.value);
@@ -191,12 +194,14 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
    markers.forEach((k,i)=>{const idx=bars.findIndex(b=>b.date===k.date),bx=xAt(idx),by=scale(bars[idx].high),labelX=tagStart+i*141,yy=y+105;round(labelX,yy,131,69,12,'#091D32','#BDE9FF',1.5);fit(k.label,labelX+29,yy+6,100,31,C.gold,820);fit(k.date.slice(5),labelX+5,yy+41,122,21,C.ink,560,20);hr(labelX+65,yy+69,bx,by-7,'#E4F3FF',2);round(bx-5,by-7,10,10,5,C.green,null);});
    const volTop=y+816,volBottom=y+945,volHeight=volBottom-volTop;
    hr(26,volTop,1145,volTop,C.grid,1);
+   if(volumeVerified){
    const maxVol=Math.max(1,...bars.map(b=>b.volume)),volumeColor=b=>b.close>b.open?C.up:b.close<b.open?C.down:C.muted;
    bars.forEach((b,i)=>{const bh=b.volume/maxVol*volHeight,ww=Math.max(4,step*.56);ctx.fillStyle=volumeColor(b);ctx.fillRect(xAt(i)-ww/2,volBottom-bh,ww,bh);});
-   const volAvg=bars.map((b,i)=>{const index=m.bars.length-bars.length+i;return index>=4?m.bars.slice(index-4,index+1).reduce((sum,v)=>sum+v.volume,0)/5:null;});
+   const volAvg=bars.map((b,i)=>{const index=m.bars.length-bars.length+i;return index>=5?m.bars.slice(index-5,index).reduce((sum,v)=>sum+v.volume,0)/5:null;});
    ctx.strokeStyle=C.gold;ctx.lineWidth=3;ctx.beginPath();let began=false;volAvg.forEach((v,i)=>{if(!finite(v)){began=false;return;}const yy=volBottom-v/maxVol*volHeight;if(!began){ctx.moveTo(xAt(i),yy);began=true;}else ctx.lineTo(xAt(i),yy);});ctx.stroke();
+   }
    round(26,y+765,162,46,8,C.card2,C.line,1);fit('成交股數',36,y+773,145,29,C.ink,720,24);
-   const vs=m.volume.verified?'量 '+mkVol(m.volume.last)+'　量比 '+num(m.volume.ratio)+'　前5日均量 '+mkVol(m.volume.average5):'集中市場成交股數來源待核對（不使用量比）';
+   const vs=volumeVerified?'量 '+mkVol(volume.last)+'　量比 '+num(volume.ratio)+'　前5日均量 '+mkVol(volume.average5):'成交股數資料尚未確認';
    fit(vs,209,y+772,886,29,C.ink,660,23);
    for(const idx of [0,5,10,15,20,25,29])if(idx<bars.length){const xx=xAt(idx);fit(date(bars[idx].date),Math.max(38,xx-56),y+959,102,25,C.muted,540,21);}
    if(fours.length&&markers.length<fours.length)fit('部分 K3～K0 不在近30日範圍；完整歷史見第2頁。',40,y+1018,915,26,C.muted,520,22);
@@ -243,16 +248,16 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
    });
    const move=intelligence.momentum;
    fit('RSI5 '+num(move.rsi5)+'｜MACD DIF '+num(move.macdDiff)+'（Wilder RSI5；EMA12/26/9）',37,2527,1200,26,C.ink,620,23);
-   fit('目前：'+intelligence.phase.label+'。'+intelligence.volume.notice,37,2566,1200,26,C.ink,620,23);
+   fit('目前：'+intelligence.phase.label+'。'+volumeNote,37,2566,1200,26,C.ink,620,23);
    fit('資料日 '+intelligence.date+'｜依完成日收盤觀察，不用盤中價格冒充收盤。',37,2604,1200,26,C.muted,600,23);
    footer('第 2 / 2 頁　收盤確認｜非交易指令');
   }
   if(pageno===1)page1();else page2();
   if(watermark&&globalThis.ShitouReportWatermark)globalThis.ShitouReportWatermark.apply(canvas);
  };
- const snapshot={life913:intel,phase913:intelligence.phase,code:m.code,name:m.name,date:m.date,close:m.close,line:m.line,state:m.lifecycleState,role:m.currentRole,referenceOnly:m.referenceOnly,ma:m.ma,range:m.range,volume:m.volume,events:m.events,markers:fours.map(k=>({label:k.label,date:k.date})),source:m.source,chartBarDates:bars.map(b=>b.date),chartMa60Available:extendedMA[60].filter(finite).length};
+ const snapshot={observation:obs,life913:intel,phase913:intelligence.phase,code:m.code,name:m.name,date:m.date,close:m.close,line:m.line,state:m.lifecycleState,role:m.currentRole,referenceOnly:m.referenceOnly,ma:m.ma,range:m.range,volume,events:m.events,markers:fours.map(k=>({label:k.label,date:k.date})),source:m.source,chartBarDates:bars.map(b=>b.date),chartMa60Available:extendedMA[60].filter(finite).length};
  return [1,2].map(i=>{
-  const audit={version:VERSION,release:RELEASE,width:W,height:H,page:i,pages:2,title:i===1?'大盤風險分析':'生命線教學',model:snapshot,marketRisk:intelligence,sourceVerified:true,instrumentType:'TAIEX',unit:'點',marketVolumeMeaning:'集中市場成交股數',volumeConfirmationAllowed:intelligence.volume.verified,chartBars:bars.length,trophy:true,reportOnly:true,originalEventId:m.eventId,researchOnly:true,affectsEligibility:false,affectsRanking:false,automaticTrade:false};
+  const audit={version:VERSION,release:RELEASE,width:W,height:H,page:i,pages:2,title:i===1?'大盤風險分析':'生命線教學',model:snapshot,marketRisk:intelligence,sourceVerified:true,instrumentType:'TAIEX',unit:'點',marketVolumeMeaning:'集中市場成交股數',volumeConfirmationAllowed:volumeVerified,chartBars:bars.length,trophy:true,reportOnly:true,originalEventId:m.eventId,researchOnly:true,affectsEligibility:false,affectsRanking:false,automaticTrade:false};
   const filename='石頭少爺_'+RELEASE+'_TAIEX_'+(m.date||'日期待核對').replaceAll('-','')+'_P0'+i+'_'+(i===1?'大盤風險分析':'生命線教學')+'.png';
   const dataset={marketLifeAudit:JSON.stringify(audit),marketRiskAudit:JSON.stringify(intelligence),life98Audit:JSON.stringify(audit),life972Audit:JSON.stringify(audit),life94Audit:JSON.stringify(audit),fullBleed:'true',shareAsSingleImage:'true',filename};
   const render=()=>{const canvas=doc.createElement('canvas');canvas.width=W;canvas.height=H;draw(canvas,i);Object.assign(canvas.dataset,dataset);return canvas;};

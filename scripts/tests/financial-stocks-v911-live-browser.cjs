@@ -34,7 +34,7 @@ async function published(p){
   await page.route('**/*',r=>new URL(r.request().url()).origin===new URL(base).origin?r.continue():r.abort());
   await page.goto(url('index.html'),{waitUntil:'load'});
   // PR checks the currently published base; main release must match the new release exactly.
-  const expectedRelease=process.env.GITHUB_EVENT_NAME==='pull_request'?'V9.13':require('../../version-v50.js').displayCode;
+  const expectedRelease=await require('./expected-live-release.cjs')();
   assert.equal(await page.evaluate(()=>ShitouReleaseV50.displayCode),expectedRelease);
   assert.equal(await page.evaluate(()=>ShitouLifeVisual98.RELEASE),'V9.8');
   await page.evaluate(()=>ShitouLifeVisual98.ready(document));
