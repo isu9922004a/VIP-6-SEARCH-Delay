@@ -35,8 +35,8 @@ fs.mkdirSync(out,{recursive:true});
     });
    },{type,study,source:raw,marketRisk});
    assert.ok(pages.length>=3,type+' needs transparent V9.16 appendix');
-   assert.equal(pages[0].audit.release,type==='market'?require('../../version-v50.js').displayCode:'V9.16');
-   assert.equal(pages[1].audit.release,type==='market'?require('../../version-v50.js').displayCode:'V9.16');
+   assert.equal(pages[0].audit.release,require('../../version-v50.js').displayCode);
+   assert.equal(pages[1].audit.release,require('../../version-v50.js').displayCode);
    for(const p of pages){
     assert.equal(p.width,1284);assert.equal(p.height,2778);
     assert.equal(p.audit.date||p.audit.model?.date,'2026-11-20');
