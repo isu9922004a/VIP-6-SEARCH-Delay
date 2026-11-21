@@ -62,6 +62,7 @@ jobs:
           name: v90-images-and-universe
           path: |
             /tmp/v90-universe/results.json
+            /tmp/v90-universe/2560-v918-history.json
             /tmp/v90-universe/preview-input.json
             /tmp/v90-browser
             /tmp/v90-existing-browser
