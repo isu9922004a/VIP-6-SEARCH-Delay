@@ -6,33 +6,37 @@ const prices=(arr)=>fixture(arr);
 const sixty=Array(60).fill(100);
 const check=(c,key)=>c.checks.find(x=>x.key===key)?.pass;
 function volume(f,change){for(let i=0;i<f.report.canonicalBars.length;i++)f.report.canonicalBars[i].volume=change(i,f.report.canonicalBars.length);return refresh(f);}
-test('official prior-session comparison is explicitly dated and does not reinterpret latest new breakout',()=>{
- const f=fixture([...Array(59).fill(100),90,130,135]);
- const latest=C.evaluate(f.report,f.options),prior=C.evaluate(f.report,{...f.options,sessionOffset:1});
- assert.equal(check(latest,'9041'),false);
- assert.equal(latest.status,'FAIL');
- assert.equal(check(prior,'9041'),true);
- assert.equal(C.qualifies(prior),true);
- assert.equal(prior.sessionOffset,1);
- assert.equal(prior.signalDate,f.report.canonicalBars.at(-2).date);
- assert.equal(prior.date,f.date);
- assert.equal(prior.validation.sessionOffset,1);
- assert.equal(prior.validation.signalDate,prior.signalDate);
- assert.equal(prior.report.canonicalBars.at(-1).date,f.date);
- assert.equal(C.evaluate(f.report,{...f.options,sessionOffset:2}).status,'DATA_ERROR');
+test('single V9.18 mode: day 0, 1, 2 breakthroughs all count; old day-3 does not',()=>{
+ for(const [tail,age] of [[[90,130],0],[[90,130,135],1],[[90,130,135,140],2]]){
+  const f=prices([...Array(59).fill(100),...tail]),a=run(f);
+  assert.equal(a.status,'PASS');assert.equal(a.breakoutAge,age);assert.equal(a.signalDate,f.report.canonicalBars.at(-1-age).date);
+  assert.equal(a.features.breakoutAge,age);assert.equal(check(a,'9041'),true);assert.equal(check(a,'MA25_HOLD'),true);
+ }
+ const old=run(prices([...Array(59).fill(100),90,130,135,140,145]));
+ assert.equal(check(old,'9041'),false);assert.equal(old.eligible,false);assert.equal(old.signalDate,null);
 });
-test('previous-session scanner snapshot is independently revalidated and rejects tampering',async()=>{
- const f=fixture([...Array(59).fill(100),90,130,135]);
+test('last close below MA25 rejects despite a recent valid breakout',()=>{
+ const a=run(prices([...Array(59).fill(100),90,130,135,80]));
+ assert.equal(check(a,'9041'),true);assert.equal(check(a,'MA25_HOLD'),false);assert.equal(a.status,'FAIL');
+});
+test('last still above MA25 does not require fresh same-day crossover, but rejects removed comparison selector',()=>{
+ const f=prices([...Array(59).fill(100),90,130,135]),a=run(f);
+ assert.equal(a.status,'PASS');assert.equal(a.breakoutAge,1);
+ assert.equal(C.evaluate(f.report,{...f.options,sessionOffset:1}).status,'DATA_ERROR');
+});
+test('scan diagnostics distinguish independent and joint gate counts and tampered breakout age',async()=>{
+ const f=prices([...Array(59).fill(100),90,130,135]);
  const p=S.pool({map:new Map([['2330',f.options.quote]]),sectorMap:new Map([['2330',f.options.sector]]),meta:{targetTradeDate:f.date,marketCoverageReady:true},snapshotRows:1});
- const s=await S.scan({pool:p,sessionOffset:1,fetchBatch:async()=>({type:'MOMENTUM_DEEP_SCAN',results:[{code:'2330',ok:true,data:f.report}]})});
- assert.equal(s.sessionOffset,1);assert.equal(s.candidates.length,1);assert.equal(s.candidates[0].signalDate,f.report.canonicalBars.at(-2).date);
- S.assertSnapshot(s);
- const changed=structuredClone(s);changed.sessionOffset=0;assert.throws(()=>S.assertSnapshot(changed));
+ const x=await S.scan({pool:p,fetchBatch:async()=>({type:'MOMENTUM_DEEP_SCAN',results:[{code:'2330',ok:true,data:f.report}]})});
+ assert.equal(x.candidates.length,1);assert.equal(x.candidates[0].breakoutAge,1);
+ assert.deepEqual(x.diagnostics.independent,{'9041':1,MA25_HOLD:1,'9012':1,'533':1});
+ assert.equal(x.diagnostics.allPassed,1);assert.equal(x.diagnostics.combinations['1111'],1);assert.equal(x.diagnostics.breakoutAge['1'],1);
+ S.assertSnapshot(x);const changed=structuredClone(x);changed.candidates[0].breakoutAge=0;assert.throws(()=>S.assertSnapshot(changed));
 });
-test('V9.1 three rules use independent SMA and volume means and keep 2560 name',()=>{
+test('V9.18 four gates use independent SMA and volume means and keep 2560 name',()=>{
  const f=fixture(),a=run(f),b=f.report.canonicalBars;
- assert.equal(C.MODEL,'2560-STRATEGY-V2.1');assert.equal(C.RULE.minBars,60);assert.equal(C.RULE.exit,null);assert.equal(C.RULE.volumeRule9012Complete,true);
- assert.equal(a.status,'PASS');assert.equal(C.qualifies(a),true);assert.deepEqual(a.checks.map(c=>c.key),['9041','9012','533']);assert.equal(a.volumeRuleComplete,true);
+ assert.equal(C.MODEL,'2560-STRATEGY-V2.2');assert.equal(C.RULE.minBars,60);assert.equal(C.RULE.exit,null);assert.equal(C.RULE.volumeRule9012Complete,true);
+ assert.equal(a.status,'PASS');assert.equal(C.qualifies(a),true);assert.deepEqual(a.checks.map(c=>c.key),['9041','MA25_HOLD','9012','533']);assert.equal(a.volumeRuleComplete,true);
  for(const n of [5,25,40]){assert.equal(a.features['ma'+n].today,b.slice(-n).reduce((s,x)=>s+x.close,0)/n);assert.equal(a.features['ma'+n].previous,b.slice(-n-1,-1).reduce((s,x)=>s+x.close,0)/n);}
  for(const n of [5,60])assert.equal(a.features['vma'+n],b.slice(-n).reduce((s,x)=>s+x.volume,0)/n);
  assert.equal(a.features.breakoutPct,(a.features.close-a.features.ma25.today)/a.features.ma25.today*100);
@@ -40,7 +44,7 @@ test('V9.1 three rules use independent SMA and volume means and keep 2560 name',
 });
 test('#9041: yesterday below MA25 and today above passes',()=>{const a=run(prices([...Array(59).fill(100),90,130]));assert.equal(check(a,'9041'),true);});
 test('#9041: yesterday equal MA25 and today above passes',()=>{const a=run(prices([...sixty,130]));assert.equal(a.features.closePrev,a.features.ma25.previous);assert.equal(check(a,'9041'),true);});
-test('#9041: yesterday already above MA25 does not pass',()=>{const a=run(prices([...Array(59).fill(100),120,130]));assert.equal(check(a,'9041'),false);assert.equal(a.eligible,false);});
+test('#9041: a breakthrough on the preceding day is eligible for continuation',()=>{const a=run(prices([...Array(59).fill(100),120,130]));assert.equal(check(a,'9041'),true);assert.equal(a.breakoutAge,1);assert.equal(a.eligible,true);});
 test('#9041: close equal MA25 is not a new close breakout',()=>{const a=run(prices([...sixty,100]));assert.equal(check(a,'9041'),false);});
 test('#533 MA5 > MA40 passes even when MA5 was above yesterday; no same-day golden-cross requirement',()=>{const a=run(fixture());assert.ok(a.features.ma5.previous>a.features.ma40.previous);assert.equal(check(a,'533'),true);assert.equal(C.qualifies(a),true);});
 test('#533 equality fails',()=>{const a=run(prices([...sixty,100]));assert.equal(a.features.ma5.today,a.features.ma40.today);assert.equal(check(a,'533'),false);});
@@ -48,8 +52,8 @@ test('#533 below fails',()=>{const a=run(prices([...Array(56).fill(200),100,100,
 test('#9012 volume expansion strictly greater passes',()=>{const a=run(fixture());assert.equal(check(a,'9012'),true);});
 test('#9012 equal VMA5/VMA60 fails',()=>{const a=run(volume(fixture(),()=>1000000));assert.equal(a.features.vma5,a.features.vma60);assert.equal(check(a,'9012'),false);});
 test('#9012 below VMA60 fails',()=>{const a=run(volume(fixture(),(i,n)=>i>=n-5?500000:1000000));assert.ok(a.features.vma5<a.features.vma60);assert.equal(check(a,'9012'),false);});
-test('any one failed gate blocks PASS; all three must pass',()=>{const pass=run(fixture());assert.equal(pass.status,'PASS');for(const candidate of [
- prices([...Array(59).fill(100),120,130]),
+test('any one failed gate blocks PASS; all four must pass',()=>{const pass=run(fixture());assert.equal(pass.status,'PASS');for(const candidate of [
+ prices([...Array(61).fill(120)]),
  volume(fixture(),()=>1000000),
  prices([...sixty,100])
  ]){const a=run(candidate);assert.equal(a.status,'FAIL');assert.equal(a.eligible,false);assert.equal(C.qualifies(a),false);}
@@ -60,6 +64,12 @@ test('same-day MA5/MA25 slope is not an entry gate',()=>{
  const a=run(prices([...Array(35).fill(100),150,...Array(20).fill(60),100,100,100,60,120]));
  assert.equal(check(a,'9041'),true);assert.equal(check(a,'9012'),true);assert.equal(check(a,'533'),true);assert.equal(a.eligible,true);
  assert.ok(a.features.ma25.today<a.features.ma25.previous);
+});
+test('a weekend does not increase the 3-trading-day breakout age',()=>{
+ const f=prices([...Array(59).fill(100),90,130,135,140]),a=run(f);
+ assert.equal(a.breakoutAge,2);
+ assert.equal(a.signalDate,f.report.canonicalBars.at(-3).date);
+ assert.equal(a.status,'PASS');
 });
 test('risk indications and unusual volume do not become pass/fail gates',()=>{const a=run(fixture());assert.equal(a.status,'PASS');assert.equal(a.risk.unusualVolume,false);assert.ok(a.risk.supportObservation.every(x=>Number.isFinite(x)));assert.ok(a.warnings.some(x=>x.includes('無參數均量')));});
 for(const[name,change]of Object.entries({
@@ -75,10 +85,10 @@ test('full scan skips no entries, retains partial failures, and refuses stale/ta
  const f=fixture(),g=fixture(undefined,'2317'),bundle={map:new Map([['2330',f.options.quote],['2317',g.options.quote],['9999',{...g.options.quote,code:'9999'}]]),sectorMap:new Map(['2330','2317','9999'].map(c=>[c,f.options.sector])),meta:{targetTradeDate:f.date,marketCoverageReady:true},snapshotRows:3},p=S.pool(bundle);
  const scan=await S.scan({pool:p,batchSize:1,fetchBatch:async items=>({type:'MOMENTUM_DEEP_SCAN',results:items.map(i=>i.code==='9999'?{code:i.code,ok:false,error:'資料受限',failureCode:'DATA_INVALID'}:{code:i.code,ok:true,data:i.code==='2330'?f.report:g.report})})});
  assert.deepEqual(scan.candidates.map(c=>c.code),['2317','2330']);assert.equal(scan.failed,1);assert.equal(scan.complete,false);assert.equal(scan.inputAccounting.input,scan.inputAccounting.excluded+scan.inputAccounting.processed+scan.inputAccounting.pending+scan.inputAccounting.deferred);
- assert.equal(scan.release,'V9.1');S.assertSnapshot(scan);const bad=structuredClone(scan);bad.candidates[0].features.ma5.today++;assert.throws(()=>S.assertSnapshot(bad));
+ assert.equal(scan.release,'V9.18');S.assertSnapshot(scan);const bad=structuredClone(scan);bad.candidates[0].features.ma5.today++;assert.throws(()=>S.assertSnapshot(bad));
  assert.throws(()=>S.assertSnapshot({...scan,model:'2560-STRATEGY-V1.0'}));});
 test('zero-qualified complete market differs from incomplete and never invents eight',async()=>{
  for(const ok of [true,false]){const f=fixture(Array(61).fill(100)),p=S.pool({map:new Map([['2330',f.options.quote]]),sectorMap:new Map([['2330',f.options.sector]]),meta:{targetTradeDate:f.date,marketCoverageReady:true},snapshotRows:1}),s=await S.scan({pool:p,fetchBatch:async()=>({type:'MOMENTUM_DEEP_SCAN',results:[{code:'2330',ok,data:ok?f.report:null,error:'未完成'}]})});
- assert.equal(s.candidates.length,0);assert.equal(s.fullMarketCertified,ok);assert.match(s.text,ok?/今日2560無符合條件的股票/:/不能代表全市場0檔/);
+ assert.equal(s.candidates.length,0);assert.equal(s.fullMarketCertified,ok);assert.match(s.text,ok?/全市場2560沒有符合四項條件的股票/:/不能宣稱全市場0檔/);
  }});
 test('other five and archived restaurant engines remain byte-identical to baseline',()=>{const crypto=require('node:crypto'),b=require('../fixtures/v90-protected-baseline.json'),hash=x=>crypto.createHash('sha256').update(x).digest('hex');for(const[p,h]of Object.entries(b.sha256))assert.equal(hash(fs.readFileSync(p)),h,p);const html=fs.readFileSync('index.html','utf8'),inline=[...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]);assert.equal(hash(JSON.stringify(inline)),b.inlineSha256);});
