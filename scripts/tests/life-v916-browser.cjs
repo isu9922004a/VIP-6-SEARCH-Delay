@@ -35,8 +35,8 @@ fs.mkdirSync(out,{recursive:true});
     });
    },{type,study,source:raw,marketRisk});
    assert.ok(pages.length>=3,type+' needs transparent V9.16 appendix');
-   assert.equal(pages[0].audit.release,'V9.16');
-   assert.equal(pages[1].audit.release,'V9.16');
+   assert.equal(pages[0].audit.release,type==='market'?require('../../version-v50.js').displayCode:'V9.16');
+   assert.equal(pages[1].audit.release,type==='market'?require('../../version-v50.js').displayCode:'V9.16');
    for(const p of pages){
     assert.equal(p.width,1284);assert.equal(p.height,2778);
     assert.equal(p.audit.date||p.audit.model?.date,'2026-11-20');
@@ -46,7 +46,7 @@ fs.mkdirSync(out,{recursive:true});
     assert.ok(bin.length>15000,'PNG image must be real: '+file);
     fs.writeFileSync(path.join(out,file),bin);
     if(p.index>=3){
-     assert.equal(p.audit.release,'V9.16');
+     assert.equal(p.audit.release,require('../../version-v50.js').displayCode);
      assert.equal(p.audit.explanationStatus,'VERIFIED_FROM_CORE');
      assert.ok(p.audit.sections.length>0);
      assert.ok(p.audit.sections.some(x=>x.title.includes('為什麼')||x.title.includes('風險')));
