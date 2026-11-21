@@ -98,11 +98,20 @@
   }
   const signal=below&&broken?'已跌破原本支撐':activeLine&&reclaimed&&m.close>m.line?'已重新站回重要價位':activeLine&&last&&last.low<=m.line&&last.high>=m.line?'正在測試重要價位':'尚未確認轉強';
   const lineText=activeLine?('收盤'+(m.close<m.line?'低於':m.close>m.line?'高於':'等於')+'生命線 '+price(m.line)+'。'):'有效生命線尚未確認。';
-  const rebound=targets.slice(0,2).map(price).join('，再看 ');
+  // V9.19 presentation-only, data-bound MA5 from latest validated completed session.
+  const currentMA5=finite(m.ma[5])?m.ma[5]:null;
+  const historicalResistance=intel?.activeResistanceEvent?.lifeLinePrice;
+  const shortTerm=Object.freeze({
+   date:last?.date||null,ma5:currentMA5,
+   label:finite(currentMA5)?(m.close<currentMA5?'短線先看能否站回5日均價':'短線觀察能否守住5日均價'):'5日均價資料不足',
+   note:finite(currentMA5)?'截至 '+(last?.date||'最新完成日')+' 的5日均價 '+price(currentMA5)+'；下一完成交易日會重新計算。單日站回不等於趨勢轉強。':'5日均價待核對，不能推測反彈關卡。',
+   historicalResistance:finite(historicalResistance)?historicalResistance:null
+  });
+  const rebound=finite(currentMA5)?'先看5日均價'+price(currentMA5)+'（每日重算）'+(finite(historicalResistance)&&historicalResistance>m.close?'；再看歷史壓力'+price(historicalResistance):'；站穩還要核對20日均價'):'5日均價資料不足，短線關卡待核對';
   const low=m.range.low, floor=price(low);
   const upper=targets[0], hold=activeLine&&!below?m.line:m.ma[5];
   const scenarios=[
-   {title:'開始變好',text:finite(upper)?'若收盤站上 '+price(upper)+'，再看隔日能否守住，仍可能跌回。':finite(hold)?'若續守 '+price(hold)+' 且收盤走高，再觀察能否延續。':'上方觀察價位尚未確認。'},
+   {title:'開始變好',text:finite(currentMA5)?(m.close<currentMA5?'若收盤站回當日重算的5日均價，再看隔日能否守住；仍非轉強確認。':'若連續守住當日重算的5日均價，再核對20日均價與生命線。'):'短線5日均價尚未核對，暫不能確認反彈。'},
    {title:'還不確定',text:finite(low)&&finite(upper)?'若收在 '+floor+' 至 '+price(upper)+' 之間，方向仍待確認。':finite(low)?'若守住 '+floor+' 但收盤未上漲，仍要留意轉弱。':'近期區間尚未確認。'},
    {title:'繼續變弱',text:finite(low)?'若收盤低於 '+floor+'，下跌風險可能擴大。':'近期低點尚未確認。'}];
   const firstMA=history.find(h=>h.maBreak);
@@ -110,7 +119,7 @@
   const firstLow=history.find(h=>h.closedBelowLow&&(!currentBreak||h.date>=currentBreak.date));
   const timeline='近30日首度收破五日均價：'+(firstMA?.date.slice(5)||'未觀察到')+'。本波收破五日均價：'+(currentBreak?.date.slice(5)||'未確認')+'。收破前低：'+(firstLow?.date.slice(5)||'未觀察到')+'。';
   const summary=stage+'。'+(fresh?'今天再創近期低點。':noNewLow?'近兩日未再創低。':'止跌仍待觀察。')+(broken&&lastLow&&lastLow.date>broken.date?'跌破生命線後又出現更低價位。':'')+'明天先看'+(finite(low)?floor+'能否守住。':'低點能否確認。');
-  return {stage,reason,tip,signal,lineText,targets,rebound:rebound||'上方價位尚未確認',scenarios,history,timeline,summary,broken,reclaimed};
+  return {stage,reason,tip,signal,lineText,targets,rebound,shortTerm,scenarios,history,timeline,summary,broken,reclaimed};
  }
  function historyFields(m,observation){
   const labels={high:'最高價',low:'最低價',close:'收盤價'};

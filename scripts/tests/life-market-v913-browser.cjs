@@ -33,7 +33,7 @@ function checkPng(b){assert.equal(b.subarray(1,4).toString(),'PNG');assert.equal
   await stock.locator('#workspaceLifeReportButton').click();
   await stock.waitForFunction(()=>document.getElementById('imagePreviewModal')?.classList.contains('show')&&ShitouLifeViewer94.getState()?.pages?.length>=3,{},{timeout:30000});
   const a=await stock.evaluate(()=>ShitouLifeViewer94.getState().pages.map(p=>JSON.parse(p.dataset.life98Audit)));
-  assert.ok(a.length>=3,'must retain original two pages and risk appendix');assert.equal(a[2].explanationStatus,'VERIFIED_FROM_CORE');assert.equal(a[0].release,'V9.16');assert.equal(a[0].model.close,66.6);
+  assert.ok(a.length>=3,'must retain original two pages and risk appendix');assert.equal(a[2].explanationStatus,'VERIFIED_FROM_CORE');assert.equal(a[0].release,require('../../version-v50.js').displayCode);assert.equal(a[0].model.close,66.6);
   assert.equal(a[0].model.life913.selectedPrimaryEvent.lifeLinePrice,70.9);
   assert.equal(a[0].model.life913.selectedPrimaryEvent.side,'BEAR');
   assert.equal(a[0].model.life913.priceTrend,'偏強觀察');
