@@ -55,7 +55,7 @@ function checkPng(b){assert.equal(b.subarray(1,4).toString(),'PNG');assert.equal
   await market.locator('#marketLifeReportButton').click();
   await market.waitForFunction(()=>document.getElementById('imagePreviewModal')?.classList.contains('show')&&ShitouLifeViewer94.getState()?.pages?.length>=3,{},{timeout:30000});
   const b=await market.evaluate(()=>ShitouLifeViewer94.getState().pages.map(p=>JSON.parse(p.dataset.marketLifeAudit)));
-  assert.ok(b.length>=3,'must retain original two market pages and risk appendix');assert.equal(b[2].explanationStatus,'VERIFIED_FROM_CORE');assert.equal(b[0].release,'V9.16');assert.equal(b[0].model.close,40092.11);
+  assert.ok(b.length>=3,'must retain original two market pages and risk appendix');assert.equal(b[2].explanationStatus,'VERIFIED_FROM_CORE');assert.equal(b[0].release,require('../../version-v50.js').displayCode);assert.equal(b[0].model.close,40092.11);
   assert.equal(b[0].marketRisk.version,'MARKET_LIFE_RISK_V913');assert.equal(b[0].marketRisk.phase.confirmedAt,'2026-11-17');
   for(let i=0;i<b.length;i++){
    const uri=await market.evaluate(i=>ShitouLifeViewer94.getState().pages[i].renderExportRegion().toDataURL('image/png'),i);
