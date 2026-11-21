@@ -44,9 +44,11 @@ function install(){
  // Match the report renderer's *actual* version, not the site release label.
  // The V9.12 website may embed a V9.10 historical poster; never let its
  // verified source-expiry/export guard be skipped by that filename difference.
- const ownPreview=()=>{const version=root.ShitouMarketLifeVisual913?.RELEASE;
-  return !!version&&by('imagePreviewModal')?.classList.contains('show')&&
-   (by('imageDownloadLink')?.download||'').startsWith('石頭少爺_'+version+'_TAIEX_');
+ const ownPreview=()=>{
+  const versions=[root.ShitouReleaseV50?.displayCode,root.ShitouMarketLifeVisual913?.RELEASE].filter(Boolean);
+  const filename=by('imageDownloadLink')?.download||'';
+  return by('imagePreviewModal')?.classList.contains('show')&&
+   versions.some(version=>filename.startsWith('石頭少爺_'+version+'_TAIEX_'));
  };
  function invalidate(message=''){revision++;controller?.abort();controller=null;pending=false;history=null;button.disabled=false;button.removeAttribute('aria-busy');button.textContent='大盤生命線研究報告';note.textContent=message;if(ownPreview())root.closeInfographicPreviewV3328();}
  button.addEventListener('click',async()=>{
