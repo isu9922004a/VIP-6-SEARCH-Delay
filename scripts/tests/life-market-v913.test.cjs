@@ -60,5 +60,5 @@ test('V9.15 market completes shock-continuation analysis without altering V9.10 
  assert.equal(JSON.stringify(s),snapshot);
  const pages=MarketPoster.build(s,{document:mock});
  assert.equal(pages.length,2);
- for(const p of pages){const a=JSON.parse(p.dataset.marketLifeAudit);assert.equal(a.release,'V9.15');assert.equal(a.marketRisk.phase.confirmedAt,'2026-11-17');}
+ for(const p of pages){const a=JSON.parse(p.dataset.marketLifeAudit);assert.equal(a.release,require('../../version-v50.js').displayCode);assert.equal(a.marketRisk.phase.confirmedAt,'2026-11-17');}
 });
