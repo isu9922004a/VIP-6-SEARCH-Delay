@@ -1,4 +1,4 @@
-name: Validate and deploy V9.1 2560 and K-line reports
+name: Validate and deploy V9.18 2560 and K-line reports
 on:
   workflow_dispatch:
   pull_request:
