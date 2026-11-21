@@ -130,7 +130,7 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
    fit(num(m.close),1013,151,249,46,C.gold,850,33);fit('點',1218,207,44,29,C.gold,750,24);
    stateCard(14,408,'目前狀況','◎',obs.stage,obs.reason,obs.stage==='還在走弱'?C.risk:obs.stage.includes('強')?C.green:C.gold);
    stateCard(438,408,'重要訊號','◇',obs.signal,obs.lineText,C.gold);
-   stateCard(862,408,'操作提醒','⚠',obs.tip,intelligence.risk.label+'（第 '+intelligence.risk.level+' 級）。',C.risk);
+   stateCard(862,408,'操作提醒','⚠',obs.tip,(v916?'大盤風險 第'+intelligence.risk.level+'級／共4級（'+({0:'資料不足',1:'風險較低',2:'風險提高',3:'偏高風險',4:'極高風險'}[intelligence.risk.level])+'），詳見風險說明頁。':intelligence.risk.label+'（第 '+intelligence.risk.level+' 級）。'),C.risk);
    round(M,500,W-2*M,134,20,'#081E34',C.line,2);
    round(22,506,131,122,16,'#40316C','#AEB2FE',2);
    fit('關鍵',39,518,104,38,C.ink,740);fit('價位',39,561,104,38,C.ink,740);
