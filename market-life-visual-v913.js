@@ -57,7 +57,7 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
  const volumeNote=volumeVerified?'集中市場成交股數已逐日核對，仍要看收盤位置。':'成交股數資料尚未確認。';
  const intelligence={...risk,volume:{...risk.volume,verified:volumeVerified,notice:volumeNote}};
  const mkVol=v=>finite(v)?Math.round(v).toLocaleString('en-US')+' 股':'資料不足';
- const RUNTIME_RELEASE=v916?'V9.16':RELEASE;
+ const RUNTIME_RELEASE=v916?(globalThis.ShitouReleaseV50?.displayCode||'V9.16'):RELEASE;
  const Transparency=v916?(typeof module==='object'&&module.exports?require('./life-risk-transparency-v916.js'):globalThis.ShitouTransparency916):null;
  if(v916&&!Transparency)throw Error('V9.16 風險透明化模組未載入，停止輸出');
  const extraPages=v916?Transparency.buildPage(Transparency.market(study,risk,obs),{document:doc}):[];

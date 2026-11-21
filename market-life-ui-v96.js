@@ -26,7 +26,7 @@ async function loadMarketVisual(doc){
   if(root[key])continue;
   await new Promise((resolve,reject)=>{
    const script=doc.createElement('script');
-   script.src=new URL('./'+file+'?v=V9.16-MARKETLIFE1',doc.baseURI).href;
+   script.src=new URL('./'+file+'?v='+(root.ShitouReleaseV50?.displayCode||'V9.16')+'-MARKETLIFE1',doc.baseURI).href;
    script.async=false;
    script.onload=()=>root[key]?resolve():reject(Error(file+' 載入後未提供繪圖模組'));
    script.onerror=()=>reject(Error(file+' 載入失敗'));
