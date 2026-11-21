@@ -20,7 +20,7 @@ function build(raw,template,realized,monthly,expectedDate){
  if(JSON.stringify(expected)!==JSON.stringify(bars.map(b=>b.date)))throw Error('大盤日線與官方實際交易日不完整，拒絕補造缺日');
  if(!bars.every((b,i)=>['open','high','low','close'].every(k=>Number.isFinite(b[k])&&b[k]>0)&&Number.isFinite(b.volume)&&b.volume>0&&b.low<=Math.min(b.open,b.close)&&b.high>=Math.max(b.open,b.close)&&(!i||b.date>bars[i-1].date)))throw Error('官方大盤OHLCV無效');
  const calendar={...template,dates,end:date,historicalSource:'https://www.twse.com.tw/exchangeReport/FMTQIK',independentIndexCalendar:true,generatedAt:new Date().toISOString()},future=dates.find(d=>d>date);if(!future)throw Error('下一交易日尚未核驗');
- return {instrumentType:'TAIEX',symbol:'TAIEX',market:'TWSE_INDEX',name:'臺灣加權股價指數',closeDate:date,close:last.close,completed:true,dailySeries:bars,dailySeriesMeta:{...raw.dailySeriesMeta,source:raw.source},volumeUnit:'shares',priceAdjustment:{verified:true,basis:'OFFICIAL_INDEX_LEVEL',corporateActionsVerified:null},tradingCalendar:calendar,sourceReceipt:{url:raw.officialSourceRecovery?.priceSource||'https://shitou-taiwanmarket-api.d318426.workers.dev/?market=TAIEX',officialRecovery:raw.officialSourceRecovery||null,retrievedAt:new Date().toISOString(),sha256:sha(JSON.stringify(raw)),officialChecks:monthly.map(m=>({month:m.month,url:m.url,sha256:sha(JSON.stringify(m.payload))})),expectedCompletedDate:expectedDate}};
+ return {instrumentType:'TAIEX',symbol:'TAIEX',market:'TWSE_INDEX',name:'臺灣加權股價指數',closeDate:date,close:last.close,completed:true,dailySeries:bars,dailySeriesMeta:{...raw.dailySeriesMeta,source:raw.source},volumeUnit:'shares',priceAdjustment:{verified:true,basis:'OFFICIAL_INDEX_LEVEL',corporateActionsVerified:null},tradingCalendar:calendar,sourceReceipt:{url:raw.officialSourceRecovery?.priceSource||'https://shitou-taiwanmarket-api.d318426.workers.dev/?market=TAIEX',officialRecovery:raw.officialSourceRecovery||null,retrievedAt:new Date().toISOString(),sha256:sha(JSON.stringify(raw)),confirmedShares:Object.fromEntries(newDays.filter(d=>d.date<=date).slice(-35).map(d=>[d.date,d.volume])),officialChecks:monthly.map(m=>({month:m.month,url:m.url,sha256:sha(JSON.stringify(m.payload))})),expectedCompletedDate:expectedDate}};
 }
 const json=require('./taiex-source-recovery.cjs').json;
 async function main(){
@@ -29,6 +29,14 @@ async function main(){
  const {expectedCompletedDate}=await import('./update-market-snapshot.mjs'),expected=expectedCompletedDate(market.marketCalendar),expectedIso=iso(expected),raw=captured?.market||await require('./taiex-source-recovery.cjs').load({expected:expectedIso});
  const monthly=[];let month=realized.end.slice(0,7);while(month<=expectedIso.slice(0,7)){const url='https://www.twse.com.tw/exchangeReport/FMTQIK?response=json&date='+month.replace('-','')+'01',payload=captured?.months?.[month]||await json(url);monthly.push({month,url,payload});const d=new Date(month+'-01T00:00:00Z');d.setUTCMonth(d.getUTCMonth()+1);month=d.toISOString().slice(0,7);}
  const index=build(raw,template,realized,monthly,expectedIso),old=get('data/index/TAIEX.json');if(old.closeDate>index.closeDate)throw Error('大盤日期倒退，拒絕覆蓋');
+ // Carry checked sessions across a month boundary only when their share counts
+ // still match. Current official rows take precedence over archived receipts.
+ const priorReceipt=old.sourceReceipt||{},receipt=index.sourceReceipt;
+ const shares={...priorReceipt.confirmedShares,...receipt.confirmedShares};
+ receipt.confirmedShares=Object.fromEntries(index.dailySeries.slice(-35).filter(b=>shares[b.date]===b.volume).map(b=>[b.date,b.volume]));
+ const months=new Set(Object.keys(receipt.confirmedShares).map(d=>d.slice(0,7).replace('-','')));
+ const byUrl=new Map([...(priorReceipt.shareChecks||priorReceipt.officialChecks||[]),...receipt.officialChecks].map(c=>[c.url,c]));
+ receipt.shareChecks=[...byUrl.values()].filter(c=>months.has(c.url.slice(-8,-2)));
  fs.writeFileSync(path.join(ROOT,'data/index/TAIEX.json'),JSON.stringify(index,null,2)+'\n');console.log(JSON.stringify({indexDate:index.closeDate,close:index.close,nextSession:index.tradingCalendar.dates.find(d=>d>index.closeDate),independentOfStocks:true}));
 }
 if(require.main===module)main().catch(e=>{console.error(e);process.exitCode=1;});
