@@ -37,3 +37,4 @@
 /* MARKETPAGE1: approved single-page ABC/trident picture, dated live input and automatic refresh. */
 
 /* ENGULFRANGE1: research-only engulfing/range confirmation; no formal score, rank or Kronos change. */
+/* V9.17: synchronize the two independent PNG report labels with the release. */
