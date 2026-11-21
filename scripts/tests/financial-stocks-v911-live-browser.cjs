@@ -61,18 +61,26 @@ async function published(p){
     }
     return out;
    });
-   assert.equal(pages.length,2,code);
-   for(const p of pages){
-    assert.equal(p.audit.model.code,code);assert.equal(p.audit.model.date,manifest.date);
-    assert.equal(p.audit.model.close,raw.close);assert.equal(p.width,1284);assert.equal(p.height,2778);
+   // Active reports retain both original life-line pages and a verified risk appendix.
+   assert.ok(pages.length>=3,code+' requires original two pages and risk explanation');
+   for(const [index,p] of pages.entries()){
+    if(index<2){
+     assert.equal(p.audit.model.code,code);assert.equal(p.audit.model.date,manifest.date);
+     assert.equal(p.audit.model.close,raw.close);
+    }else{
+     assert.equal(p.audit.code,code);assert.equal(p.audit.date,manifest.date);
+     assert.equal(p.audit.close,raw.close);assert.equal(p.audit.researchOnly,true);
+     assert.ok(p.audit.explanationStatus,code+' risk appendix must have audit status');
+    }
+    assert.equal(p.width,1284);assert.equal(p.height,2778);
     assert.ok(p.bytes>15000);assert.equal(p.audit.affectsEligibility,false);
     assert.equal(p.audit.affectsRanking,false);
    }
-   rows.push({code,date:manifest.date,close:raw.close,pages:2,status:'PASS'});
+   rows.push({code,date:manifest.date,close:raw.close,pages:pages.length,status:'PASS'});
    await page.evaluate(()=>closeInfographicPreviewV3328());
   }
   assert.deepEqual(errors,[],'Live browser script errors');
   fs.writeFileSync(path.join(dir,'results.json'),JSON.stringify({date:manifest.date,site:base,rows,errors},null,2));
-  console.log('V911_FINANCIAL_LIVE_PAGES_PASS '+rows.length+' stocks x 2 PNG pages');
+  console.log('V911_FINANCIAL_LIVE_PAGES_PASS '+rows.length+' stocks with all audited PNG pages');
  }finally{await browser?.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
