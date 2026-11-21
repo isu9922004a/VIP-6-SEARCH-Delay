@@ -12,7 +12,7 @@ function checkPng(b){assert.equal(b.subarray(1,4).toString(),'PNG');assert.equal
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  const origin='http://127.0.0.1:'+server.address().port+'/';
  let browser;
- const status={version:'V9.15',stock:{},market:{},errors:[]};
+ const status={version:'V9.16',stock:{},market:{},errors:[]};
  try{
   browser=await chromium.launch({executablePath:process.env.CHROME_BIN||'/usr/bin/chromium',headless:true,args:['--no-sandbox']});
   const stock=await browser.newPage({viewport:{width:428,height:926},isMobile:true,hasTouch:true});
@@ -31,14 +31,14 @@ function checkPng(b){assert.equal(b.subarray(1,4).toString(),'PNG');assert.equal
   });
   await stock.locator('#workspaceFourReportButton').click();
   await stock.locator('#workspaceLifeReportButton').click();
-  await stock.waitForFunction(()=>document.getElementById('imagePreviewModal')?.classList.contains('show')&&ShitouLifeViewer94.getState()?.pages?.length===2,{},{timeout:30000});
+  await stock.waitForFunction(()=>document.getElementById('imagePreviewModal')?.classList.contains('show')&&ShitouLifeViewer94.getState()?.pages?.length>=3,{},{timeout:30000});
   const a=await stock.evaluate(()=>ShitouLifeViewer94.getState().pages.map(p=>JSON.parse(p.dataset.life98Audit)));
-  assert.equal(a.length,2);assert.equal(a[0].release,'V9.15');assert.equal(a[0].model.close,66.6);
+  assert.ok(a.length>=3,'must retain original two pages and risk appendix');assert.equal(a[2].explanationStatus,'VERIFIED_FROM_CORE');assert.equal(a[0].release,'V9.16');assert.equal(a[0].model.close,66.6);
   assert.equal(a[0].model.life913.selectedPrimaryEvent.lifeLinePrice,70.9);
   assert.equal(a[0].model.life913.selectedPrimaryEvent.side,'BEAR');
   assert.equal(a[0].model.life913.priceTrend,'偏強觀察');
   assert.match(a[0].model.life913.marketStatus,/櫃買指數/);
-  for(let i=0;i<2;i++){
+  for(let i=0;i<a.length;i++){
    const uri=await stock.evaluate(i=>ShitouLifeViewer94.getState().pages[i].renderExportRegion().toDataURL('image/png'),i);
    const bytes=Buffer.from(uri.split(',')[1],'base64');checkPng(bytes);fs.writeFileSync(path.join(out,'5013-'+(i+1)+'.png'),bytes);
   }
@@ -53,11 +53,11 @@ function checkPng(b){assert.equal(b.subarray(1,4).toString(),'PNG');assert.equal
   await market.goto(origin+'market-outlook.html',{waitUntil:'domcontentloaded'});
   await market.waitForSelector('#marketLifeReportButton');
   await market.locator('#marketLifeReportButton').click();
-  await market.waitForFunction(()=>document.getElementById('imagePreviewModal')?.classList.contains('show')&&ShitouLifeViewer94.getState()?.pages?.length===2,{},{timeout:30000});
+  await market.waitForFunction(()=>document.getElementById('imagePreviewModal')?.classList.contains('show')&&ShitouLifeViewer94.getState()?.pages?.length>=3,{},{timeout:30000});
   const b=await market.evaluate(()=>ShitouLifeViewer94.getState().pages.map(p=>JSON.parse(p.dataset.marketLifeAudit)));
-  assert.equal(b.length,2);assert.equal(b[0].release,'V9.15');assert.equal(b[0].model.close,40092.11);
+  assert.ok(b.length>=3,'must retain original two market pages and risk appendix');assert.equal(b[2].explanationStatus,'VERIFIED_FROM_CORE');assert.equal(b[0].release,'V9.16');assert.equal(b[0].model.close,40092.11);
   assert.equal(b[0].marketRisk.version,'MARKET_LIFE_RISK_V913');assert.equal(b[0].marketRisk.phase.confirmedAt,'2026-11-17');
-  for(let i=0;i<2;i++){
+  for(let i=0;i<b.length;i++){
    const uri=await market.evaluate(i=>ShitouLifeViewer94.getState().pages[i].renderExportRegion().toDataURL('image/png'),i);
    const bytes=Buffer.from(uri.split(',')[1],'base64');checkPng(bytes);fs.writeFileSync(path.join(out,'TAIEX-'+(i+1)+'.png'),bytes);
   }
