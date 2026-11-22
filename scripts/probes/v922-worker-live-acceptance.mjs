@@ -1,0 +1,43 @@
+// Read-only official V9.22 live Worker acceptance; runs from GitHub runner.
+// Does not write, configure or deploy the production Worker.
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+const market = JSON.parse(readFileSync('data/market/research-calendar.json','utf8'));
+assert.equal(market.verified,true);
+const date=market.dates.at(-1);
+assert.match(date,/^\d{4}-\d{2}-\d{2}$/);
+const api=new URL('https://shitou-taiwanmarket-api.d318426.workers.dev/');
+api.searchParams.set('market','HIGH_VOLATILITY_INPUTS');
+api.searchParams.set('date',date);
+const response=await fetch(api, {redirect:'manual',signal:AbortSignal.timeout(25000)});
+if(response.status!==200) throw Error('Live worker HTTP '+response.status);
+const data=await response.json();
+assert.equal(data?.type,'HIGH_VOLATILITY_INPUTS');
+assert.equal(data.date,date);
+const report={date, status:response.status, type:data.type, sources: {}, complete:false};
+for(const market of ['TWSE','TPEX']){
+  for(const key of ['volume','margin','status']){
+    const feed=data.markets?.[market]?.[key];
+    const name=market+'.'+key;
+    const valid=feed?.date===date && typeof feed.source==='string' &&
+      /^https:\/\//.test(feed.source) && Array.isArray(feed.rows) &&
+      (key==='status' || feed.rows.length>0) && !feed.error;
+    report.sources[name]={
+      valid, count:Array.isArray(feed?.rows)?feed.rows.length:null,
+      date:feed?.date??null, error:feed?.error??null,
+      source:feed?.source??null
+    };
+  }
+}
+const o=data.outstanding;
+const hasOutstanding=o?.date===date && /^https:\/\//.test(o.source??'') &&
+  o.scope==='OUTSTANDING_ORDINARY_SHARES' &&
+  o.unit==='shares' && Array.isArray(o.rows) && o.rows.length>0 && !o.error;
+report.sources.outstanding={valid:hasOutstanding,count:Array.isArray(o?.rows)?o.rows.length:null,
+  date:o?.date??null,error:o?.error??null,scope:o?.scope??null,source:o?.source??null};
+report.complete=Object.values(report.sources).every(x=>x.valid);
+console.log('V922_LIVE_WORKER_READ_ONLY '+JSON.stringify(report));
+if(!report.complete){
+  console.log('V922_LIVE_WORKER_NOT_VERIFIED: all seven sources must pass before accepting Top 8');
+  if(process.argv.includes('--require-ready')) process.exitCode=1;
+} else console.log('V922_LIVE_WORKER_7_SOURCES_READY_FOR_MANUAL_OFFICIAL_COMPARISON');
