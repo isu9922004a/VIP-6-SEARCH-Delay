@@ -20,7 +20,7 @@ const outIndex = process.argv.indexOf('--out');
 const outDir = outIndex < 0 ? 'data/high-volatility/tpex' : process.argv[outIndex + 1];
 if (!outDir) throw Error('missing --out directory');
 const feeds = [
-  ['volume', 'tpex_daily_turnover', ['Date', 'SecuritiesCompanyCode', 'TradingShares'], 'shares'],
+  ['volume', 'tpex_daily_turnover', ['Date', 'SecuritiesCompanyCode', 'TradingShares', 'Capitalization', 'TurnoverRatio'], 'shares'],
   ['margin', 'tpex_mainboard_margin_balance', ['Date', 'SecuritiesCompanyCode', 'MarginPurchaseBalance', 'ShortSaleBalance'], 'lots'],
   ['status', 'tpex_cmode', ['Date', 'SecuritiesCompanyCode', 'AlteredTrading', 'ManagedStock', 'SuspensionOfTrading'], null]
 ];
@@ -73,8 +73,13 @@ for (const [label, name, keys, unit] of feeds) {
       seen.add(code);
       if (label === 'volume') {
         const value = integerOrNull(row.TradingShares);
-        if (value === null) ++invalidNumbers;
-        tuples.push([code, value]);
+        const issued = integerOrNull(row.Capitalization);
+        const percent = Number(String(row.TurnoverRatio ?? '').replace(/,/g, ''));
+        const computed = issued > 0 ? value / issued * 100 : NaN;
+        // Official ratio is displayed to 2 decimals, with minor rounding/truncation variance.
+        if (value === null || !issued || !Number.isFinite(percent) ||
+            Math.abs(computed - percent) > 0.011) ++invalidNumbers;
+        tuples.push([code, value, issued, percent]);
       } else if (label === 'margin') {
         const margin = integerOrNull(row.MarginPurchaseBalance);
         const short = integerOrNull(row.ShortSaleBalance);
@@ -111,15 +116,15 @@ if (failures) {
     ' from GitHub runner; Cloudflare egress is NOT verified.');
   if (outDir) {
     const receipt = {
-      schema: 'V922_TPEX_OFFICIAL_INPUTS_V1',
-      date: expected, verification: 'OFFICIAL_DATE_FIELDS_COUNTS_AND_UNITS',
+      schema: 'V922_TPEX_OFFICIAL_INPUTS_V2',
+      date: expected, verification: 'OFFICIAL_DATE_FIELDS_COUNTS_AND_UNITS_AND_ISSUED_TURNOVER',
       publisher: 'GitHub Actions verified TPEx origin collector',
       markets: { TPEX: responseFeeds }
     };
     const payload = JSON.stringify(receipt) + '\n';
     const digest = sha256(payload);
     const manifest = {
-      schema: 'V922_TPEX_OFFICIAL_MANIFEST_V1', date: expected,
+      schema: 'V922_TPEX_OFFICIAL_MANIFEST_V2', date: expected,
       file: expected + '.json', sha256: digest,
       verification: receipt.verification,
       sources: Object.fromEntries(Object.entries(responseFeeds).map(([key, feed]) =>
