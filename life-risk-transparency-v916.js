@@ -122,12 +122,13 @@
   if(current.length)chunks.push(current);
   return {chunks,wrap};
  }
- function buildPage(report,{document:doc=globalThis.document}={}){
+ function buildPage(report,{document:doc=globalThis.document,additionalPages=0}={}){
   ensure(doc?.createElement&&report?.version===VERSION,'V9.16 報告資料或畫布無效');
+  ensure(Number.isInteger(additionalPages)&&additionalPages>=0&&additionalPages<=2,'V9.20 附加頁數無效');
   const planned=pageSegments(doc,report);
   const displayRelease=globalThis.ShitouReleaseV50?.displayCode||RELEASE;
   return planned.chunks.map((items,offset)=>{
-   const pageNumber=3+offset,total=2+planned.chunks.length;
+   const pageNumber=3+offset,total=2+planned.chunks.length+additionalPages;
    const name='石頭少爺_'+displayRelease+'_'+report.code+'_'+report.date.replaceAll('-','')+'_P0'+pageNumber+'_風險透明化.png';
    const audit={version:VERSION,release:displayRelease,code:report.code,type:report.type,date:report.date,close:report.close,
     sourceRiskVersion:report.sourceRiskVersion||null,sourceRiskLevel:report.sourceRiskLevel??null,explanationStatus:report.explanationStatus,
