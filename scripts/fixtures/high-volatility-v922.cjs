@@ -40,18 +40,25 @@ function fixture(rows = stocks) {
   const markets = Object.fromEntries(['TWSE', 'TPEX'].map(board => {
     const members = rows.filter(row => row.market === board);
     return [board, {
-      volume: feed(board + '/volume', members.map(row => [row.code, row.volume]), 'shares'),
+      volume: feed(board + '/volume', members.map(row => {
+        if (board === 'TWSE') return [row.code, row.volume];
+        const traded = Number(String(row.volume).replace(/,/g, ''));
+        const issued = Number(String(row.outstanding).replace(/,/g, ''));
+        return [row.code, row.volume, row.outstanding,
+          issued > 0 && Number.isFinite(traded) ? traded / issued * 100 : null];
+      }), 'shares'),
       margin: feed(board + '/margin', members.map(row => [row.code, row.margin, row.short]), 'lots'),
       status: feed(board + '/status', board === 'TWSE' ? ['1213'] : [])
     }];
   }));
-  const outstanding = {
-    ...feed('outstanding', rows.map(row => [row.market, row.code, row.outstanding]), 'shares'),
-    scope: 'OUTSTANDING_ORDINARY_SHARES'
+  const listedShares = {
+    ...feed('listed', rows.filter(row => row.market === 'TWSE')
+      .map(row => [row.code, row.outstanding]), 'shares'),
+    scope: 'OFFICIAL_TWSE_LISTED_SHARES'
   };
   return {
     snapshot: { type: 'MARKET_SCAN_SNAPSHOT', mode: 'ALL_STOCKS', rows, meta },
-    inputs: { type: 'HIGH_VOLATILITY_INPUTS', date, markets, outstanding }
+    inputs: { type: 'HIGH_VOLATILITY_INPUTS', date, markets, listedShares }
   };
 }
 
