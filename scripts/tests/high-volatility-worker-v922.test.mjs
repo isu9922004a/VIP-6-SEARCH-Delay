@@ -107,7 +107,7 @@ test('opt-in official Pages snapshot verifies byte SHA and never requests TPEx f
     status: 'https://www.tpex.org.tw/openapi/v1/tpex_cmode'
   };
   const feeds = {
-    volume: { source: source.volume, date, unit: 'shares', rows: codes.map(c => [c, 50000]) },
+    volume: { source: source.volume, date, unit: 'shares', rows: codes.map(c => [c, 50000, 100000, 50]) },
     margin: { source: source.margin, date, unit: 'lots', rows: codes.map(c => [c, 100, 35]) },
     status: { source: source.status, date, rows: ['1401'] }
   };
@@ -116,14 +116,14 @@ test('opt-in official Pages snapshot verifies byte SHA and never requests TPEx f
     ordinaryRows: feed.rows.length, invalidNumbers: 0
   });
   const snapshot = {
-    schema: 'V922_TPEX_OFFICIAL_INPUTS_V1', date,
-    verification: 'OFFICIAL_DATE_FIELDS_COUNTS_AND_UNITS',
+    schema: 'V922_TPEX_OFFICIAL_INPUTS_V2', date,
+    verification: 'OFFICIAL_DATE_FIELDS_COUNTS_AND_UNITS_AND_ISSUED_TURNOVER',
     markets: { TPEX: feeds }
   };
   const payload = JSON.stringify(snapshot) + '\n';
   const digest = createHash('sha256').update(payload).digest('hex');
   const manifest = {
-    schema: 'V922_TPEX_OFFICIAL_MANIFEST_V1', date, file: date + '.json',
+    schema: 'V922_TPEX_OFFICIAL_MANIFEST_V2', date, file: date + '.json',
     verification: snapshot.verification, sha256: digest,
     completedMarketSnapshot: 'c'.repeat(64),
     officialCalendarSource: 'https://www.twse.com.tw/exchangeReport/FMTQIK',
