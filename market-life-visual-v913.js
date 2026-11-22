@@ -272,7 +272,7 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
  if(!v916)return basePages.concat(extraPages);
  const HA=typeof module==='object'&&module.exports?require('./heikin-ashi-life-v920.js'):globalThis.ShitouHeikinAshi920;
  if(!HA?.page)throw Error('V9.20 神奇K線圖片模組缺失');
- const haPage=HA.page(study,m,{document:doc,watermark,release:RUNTIME_RELEASE});
+ const haPage=HA.page(study,m,{document:doc,watermark,release:RUNTIME_RELEASE,pageNumber:totalPages,totalPages});
  return basePages.concat(extraPages,[haPage]);
 }
 return Object.freeze({RELEASE,VERSION,ready,build,model:Legacy.model,textReport:Legacy.textReport});
