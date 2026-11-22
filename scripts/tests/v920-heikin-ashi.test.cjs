@@ -90,12 +90,12 @@ test('V9.21 never mislabels 5-19 preceding days as a full 20-day reference',()=>
 });
 test('V9.21 independently distinguishes historical high breakout and in-range status',()=>{
  const bars=Array.from({length:21},(_,i)=>({date:'2026-11-'+String(i+1).padStart(2,'0'),open:100,high:120,low:80,close:100}));
- bars.at(-1)={date:'2026-11-21',open:130,high:135,low:125,close:130};
+ bars[bars.length-1]={date:'2026-11-21',open:130,high:135,low:125,close:130};
  const up=HA.read({},taihongModel(bars));
  assert.equal(up.priceState,'ABOVE_PRIOR_HIGH');
  assert.equal(up.resistance,120);
  assert.ok(up.breakPct>0);
- bars.at(-1)={date:'2026-11-21',open:100,high:105,low:85,close:100};
+ bars[bars.length-1]={date:'2026-11-21',open:100,high:105,low:85,close:100};
  const within=HA.read({},taihongModel(bars));
  assert.equal(within.priceState,'IN_RANGE');
  assert.equal(within.breakPct,null);
