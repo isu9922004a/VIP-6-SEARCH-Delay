@@ -20,6 +20,7 @@ on:
     - cron: '40 8,9,11,13 * * 1-5'
 permissions:
   contents: write
+  actions: write
 concurrency:
   group: v922-official-tpex-snapshot
   cancel-in-progress: false
@@ -69,6 +70,8 @@ jobs:
       - name: Commit only the complete date-bound official snapshot on main
         if: github.ref == 'refs/heads/main'
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
@@ -79,6 +82,11 @@ jobs:
           for attempt in 1 2 3; do
             git pull --rebase origin main
             node scripts/verify-tpex-v922.mjs
-            if git push origin HEAD:main; then exit 0; fi
+            if git push origin HEAD:main; then
+              # Pushes authenticated with GITHUB_TOKEN cannot start push workflows.
+              # Explicit workflow_dispatch is required to publish daily GitHub Pages data.
+              gh workflow run deploy-frontend.yml --ref main
+              exit 0
+            fi
           done
           exit 1
