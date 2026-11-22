@@ -128,14 +128,14 @@ async function main() {
     };
     const recovered = await scan();
     assert.deepEqual(recovered, { qualified: 9, top8: 8, missing: 6 });
-    assert.match(await page.locator('#structureResult').innerText(), /上櫃官方同日快照校驗/);
+    assert.match(await page.locator('#structureResult').textContent(), /上櫃官方同日快照校驗/);
     const otcRecovered = await page.evaluate(() => ShitouHighVolatilityUI.getLast().rows.find(x => x.code === '1240'));
     assert.equal(otcRecovered.status, 'QUALIFIED');
     // A tampered receipt must fail closed and must not restore the OTC candidate.
     snapshotReceipt.manifest.sha256 = 'f'.repeat(64);
     const tampered = await scan();
     assert.equal(tampered.qualified, 8);
-    assert.match(await page.locator('#structureResult').innerText(), /SHA-256/);
+    assert.match(await page.locator('#structureResult').textContent(), /SHA-256/);
     const otcBlocked = await page.evaluate(() => ShitouHighVolatilityUI.getLast().rows.find(x => x.code === '1240'));
     assert.equal(otcBlocked.status, 'UNVERIFIED');
     snapshotReceipt = null;
