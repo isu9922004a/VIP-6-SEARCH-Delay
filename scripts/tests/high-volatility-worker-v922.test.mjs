@@ -97,3 +97,61 @@ test('TPEx redirects fail closed without burning the full Worker subrequest budg
   }
   assert.match(result.outstanding.error, /尚未設定/);
 });
+
+test('opt-in official Pages snapshot verifies byte SHA and never requests TPEx from Cloudflare', async t => {
+  const base = 'https://isu9922004a.github.io/VIP-6-SEARCH-Delay/data/high-volatility/tpex/';
+  const codes = Array.from({ length: 505 }, (_, i) => String(1000 + i));
+  const source = {
+    volume: 'https://www.tpex.org.tw/openapi/v1/tpex_daily_turnover',
+    margin: 'https://www.tpex.org.tw/openapi/v1/tpex_mainboard_margin_balance',
+    status: 'https://www.tpex.org.tw/openapi/v1/tpex_cmode'
+  };
+  const feeds = {
+    volume: { source: source.volume, date, unit: 'shares', rows: codes.map(c => [c, 50000]) },
+    margin: { source: source.margin, date, unit: 'lots', rows: codes.map(c => [c, 100, 35]) },
+    status: { source: source.status, date, rows: ['1401'] }
+  };
+  for (const feed of Object.values(feeds)) Object.assign(feed, {
+    rawResponseSha256: 'a'.repeat(64), sourceRecords: feed.rows.length,
+    ordinaryRows: feed.rows.length, invalidNumbers: 0
+  });
+  const snapshot = {
+    schema: 'V922_TPEX_OFFICIAL_INPUTS_V1', date,
+    verification: 'OFFICIAL_DATE_FIELDS_COUNTS_AND_UNITS',
+    markets: { TPEX: feeds }
+  };
+  const payload = JSON.stringify(snapshot) + '\n';
+  const digest = createHash('sha256').update(payload).digest('hex');
+  const manifest = {
+    schema: 'V922_TPEX_OFFICIAL_MANIFEST_V1', date, file: date + '.json',
+    verification: snapshot.verification, sha256: digest,
+    completedMarketSnapshot: 'c'.repeat(64),
+    officialCalendarSource: 'https://www.twse.com.tw/exchangeReport/FMTQIK',
+    sources: Object.fromEntries(Object.entries(feeds).map(([key, feed]) =>
+      [key, {url:feed.source, unit:feed.unit ?? null, sha256:feed.rawResponseSha256,
+        records:feed.sourceRecords, ordinaryRows:feed.ordinaryRows}]))
+  };
+  const urls = [];
+  t.mock.method(globalThis, 'fetch', async address => {
+    urls.push(String(address));
+    if (String(address) === base + 'manifest.json') return Response.json(manifest);
+    if (String(address) === base + date + '.json') return new Response(payload);
+    return Response.json({ stat: 'UNAVAILABLE', date: compact });
+  });
+  const env = { HIGH_VOLATILITY_TPEX_SNAPSHOT_BASE_URL: base };
+  const response = await Worker.fetch(new Request(url), env);
+  assert.equal(response.status, 200);
+  const result = await response.json();
+  assert.equal(result.markets.TPEX.volume.date, date);
+  assert.equal(result.markets.TPEX.volume.rows.length, 505);
+  assert.equal(result.markets.TPEX.margin.rows.length, 505);
+  assert.deepEqual(result.markets.TPEX.status.rows, ['1401']);
+  assert.ok(urls.every(url => !url.startsWith('https://www.tpex.org.tw/')));
+  manifest.sha256 = 'f'.repeat(64);
+  const corrupted = await (await Worker.fetch(new Request(url), env)).json();
+  for (const feed of Object.values(corrupted.markets.TPEX)) {
+    assert.equal(feed.date, null);
+    assert.deepEqual(feed.rows, []);
+    assert.match(feed.error, /SHA-256/);
+  }
+});
