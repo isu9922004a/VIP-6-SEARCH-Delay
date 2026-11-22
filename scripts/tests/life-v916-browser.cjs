@@ -39,6 +39,7 @@ fs.mkdirSync(out,{recursive:true});
    assert.equal(pages[1].audit.release,require('../../version-v50.js').displayCode);
    for(const p of pages){
     assert.equal(p.width,1284);assert.equal(p.height,2778);
+    assert.equal(p.audit.pages,4,'V9.20 全部圖片應共用正確總頁數');
     assert.equal(p.audit.date||p.audit.model?.date,'2026-11-20');
     assert.equal(p.audit.close??p.audit.model?.close,study.close);
     const file=(type==='market'?'TAIEX':'8039')+'-P0'+p.index+'.png',bin=Buffer.from(p.png,'base64');
