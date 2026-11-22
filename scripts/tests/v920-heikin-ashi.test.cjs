@@ -48,6 +48,7 @@ test('V9.20 appendix keeps originals untouched, research-only, 1284x2778',()=>{
  assert.equal(p.width,1284);assert.equal(p.height,2778);
  const audit=JSON.parse(p.dataset.heikinAshiAudit);
  assert.equal(audit.date,model.date);
+ assert.equal(audit.page,4);assert.equal(audit.pages,4);
  assert.equal(audit.model.close,model.close);
  assert.equal(audit.affectsEligibility,false);
  assert.equal(audit.affectsRanking,false);
