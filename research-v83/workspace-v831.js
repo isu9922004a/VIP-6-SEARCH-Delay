@@ -9,7 +9,7 @@ const filters=[
  {key:'strong',label:'③ 強勢飆股'},
  {key:'tower',label:'④ 主力生命線成本'},
  {key:'restaurant',label:'⑤ 🌟2560戰法'},
- {key:'structure',label:'⑥ 結構反轉'}
+ {key:'structure',label:'⑥ 高波動超夯選股'}
 ];
 let currentTab='stock',currentFilter='momentum',lastFocus=null,openMode=null,observedCode='',lifePreviewBusy=false,lifePreviewToken=0,lifePreviewError='';
 let tabs=[],filterButtons=[];

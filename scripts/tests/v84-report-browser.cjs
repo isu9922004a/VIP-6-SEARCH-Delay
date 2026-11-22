@@ -87,7 +87,6 @@ fs.mkdirSync(out,{recursive:true});
   const core=ShitouStrategy2560,scanner=ShitouStrategy2560Scanner;
   const empty=scanner.finish({...s.restaurant,model:core.MODEL,date:s.restaurant.date||'2026-10-22',dataDate:s.restaurant.date||'2026-10-22',results:[],candidates:[],planned:0,attempted:0,parsed:0,universe:0,deferred:0,excluded:[],issues:[],sessionOffset:0,requestedMode:'100',marketCoverageReady:false,stopped:false});
   ShitouRestaurantUI.render(scanner.snapshot(empty));
-  ShitouStructureUI.render(ShitouStructureScanner.snapshot(s.structure));
  },scans);
  for(const [filter,ids] of [
   ['momentum',['generateMomentumImageButton','generateMomentumWatermarkImageButton','downloadMomentumAllCandidatesImageButton','downloadMomentumAllCandidatesImageWatermarkButton']],
@@ -102,10 +101,8 @@ fs.mkdirSync(out,{recursive:true});
    checks.push({button:id,status:'PASS',bytes:bytes.length,width:bytes.readUInt32BE(16),height:bytes.readUInt32BE(20)});await page.evaluate(()=>closeInfographicPreviewV3328());console.log('PASS scan button',id);
   }
  }
- for(const filter of ['restaurant','structure']){
-  await page.evaluate(filter=>ShitouWorkspaceV831.select('filters',filter),filter);
-  for(const id of filter==='restaurant'?['restaurantImage','restaurantAllImages']:['structureImage','structurePrewatchImage']){assert.equal(await page.locator('#'+id).isEnabled(),false);checks.push({button:id,status:'PASS_EMPTY_GUARD'});}
- }
+ await page.evaluate(()=>ShitouWorkspaceV831.select('filters','restaurant'));
+ for(const id of ['restaurantImage','restaurantAllImages']){assert.equal(await page.locator('#'+id).isEnabled(),false);checks.push({button:id,status:'PASS_EMPTY_GUARD'});}
  // Positive V9.2 regression: use the production 2560 three-rule contract with auditable completed synthetic bars.
  await page.evaluate(({s,f})=>{
   const core=ShitouStrategy2560,scanner=ShitouStrategy2560Scanner;
@@ -127,17 +124,12 @@ fs.mkdirSync(out,{recursive:true});
    sessionOffset:0,requestedMode:'100',marketCoverageReady:false,marketSnapshotFingerprint:null,
    results:[c],planned:1,attempted:1,parsed:1,universe:1,deferred:0,excluded:[],issues:[],stopped:false});
   ShitouRestaurantUI.render(scanner.snapshot(restaurant));
-  const structure={...s.structure,results:{A:[s.structurePositive],B:[s.structurePrewatch]},planned:1,attempted:1};
-  ShitouStructureUI.render(ShitouStructureScanner.snapshot(structure));
   lastMarketReportData=s.market;
  },{s:scans,f:require('../strategy-2560-fixture.cjs').fixture(undefined,'9999')});
- for(const [filter,id] of [['restaurant','restaurantImage'],['restaurant','restaurantAllImages'],['structure','structureImage'],['structure','structureAllImages'],['structureB','structurePrewatchImage'],['market','generateMarketImageButton'],['market','generateMarketWatermarkImageButton']]){
-  await page.evaluate(filter=>{ShitouWorkspaceV831.select(filter==='market'?'market':'filters',filter==='structureB'?'structure':filter);if(filter==='structureB'){document.querySelector('#structureMode').value='B';document.querySelector('#structureMode').dispatchEvent(new Event('change'));}if(filter==='market')document.getElementById('marketResult').style.display='block';},filter);
+ for(const [filter,id] of [['restaurant','restaurantImage'],['restaurant','restaurantAllImages'],['market','generateMarketImageButton'],['market','generateMarketWatermarkImageButton']]){
+  await page.evaluate(filter=>{ShitouWorkspaceV831.select(filter==='market'?'market':'filters',filter);if(filter==='market')document.getElementById('marketResult').style.display='block';},filter);
   await revealExport(id);await page.locator('#'+id).click();await page.waitForFunction(()=>document.querySelector('#imagePreviewModal')?.classList.contains('show')&&document.querySelector('#imageDownloadLink')?.href.startsWith('blob:'),{},{timeout:30000});
-  const [download]=await Promise.all([page.waitForEvent('download'),page.locator('#imageDownloadLink').click()]);await download.saveAs(path.join(out,id+'.png'));checks.push({button:id,status:'PASS',fixture:filter.startsWith('structure')||filter==='restaurant'?'SYNTHETIC':'RECORDED'});console.log('PASS additional button',id);
-  if(id==='structureAllImages'){
-   const [zip]=await Promise.all([page.waitForEvent('download'),page.locator('#r45PreviewZip').click()]);const file=path.join(out,'structure-complete.zip');await zip.saveAs(file);assert.equal(fs.readFileSync(file).subarray(0,2).toString(),'PK');checks.push({button:'r45PreviewZip',status:'PASS'});
-  }
+  const [download]=await Promise.all([page.waitForEvent('download'),page.locator('#imageDownloadLink').click()]);await download.saveAs(path.join(out,id+'.png'));checks.push({button:id,status:'PASS',fixture:filter==='restaurant'?'SYNTHETIC':'RECORDED'});console.log('PASS additional button',id);
   await page.evaluate(()=>closeInfographicPreviewV3328());
  }
  await page.evaluate(()=>{globalThis.__clipboardPng=0;Object.defineProperty(navigator,'clipboard',{configurable:true,value:{write:async items=>{const blob=await items[0].getType('image/png');if(blob.size>0)globalThis.__clipboardPng++;}}});ShitouWorkspaceV831.select('filters','daytrade');});
@@ -148,7 +140,7 @@ fs.mkdirSync(out,{recursive:true});
  const [towerZip]=await Promise.all([page.waitForEvent('download'),page.locator('#towerZip').click()]);const zipPath=path.join(out,'tower-complete.zip');await towerZip.saveAs(zipPath);assert.equal(fs.readFileSync(zipPath).subarray(0,2).toString(),'PK');checks.push({button:'towerZip',status:'PASS'});
  // Exercise the original text export controls as well as the PNG controls above.
  await page.context().grantPermissions(['clipboard-read','clipboard-write']);await page.evaluate(()=>{globalThis.__textCopies=[];navigator.clipboard.writeText=async text=>{__textCopies.push(String(text));};const original=document.execCommand.bind(document);document.execCommand=(command,...args)=>{const value=document.activeElement?.value||getSelection()?.toString()||'',ok=original(command,...args);if(command==='copy'&&ok)__textCopies.push(String(value));return ok;};});
- const textCopies=[['stock','#copyReportButton'],['stock','#copyNewbieButton'],['stock','#copyThreePanReportButton'],['stock','#copyTowerStockReportButton'],['momentum','#copyMomentumReportButton'],['momentum','#copyMomentumFullPart1Button'],['momentum','#copyMomentumFullPart2Button'],['daytrade','#copyDayTradeReportButton'],['daytrade','[onclick="copyDayTradeReportPartV1(1)"]'],['daytrade','[onclick="copyDayTradeReportPartV1(2)"]'],['strong','[onclick="copyStrongStockTextV47()"]'],['tower','#towerCopy'],['restaurant','#restaurantCopy'],['structure','#structureCopy'],['market','#copyMarketReportButton']];
+ const textCopies=[['stock','#copyReportButton'],['stock','#copyNewbieButton'],['stock','#copyThreePanReportButton'],['stock','#copyTowerStockReportButton'],['momentum','#copyMomentumReportButton'],['momentum','#copyMomentumFullPart1Button'],['momentum','#copyMomentumFullPart2Button'],['daytrade','#copyDayTradeReportButton'],['daytrade','[onclick="copyDayTradeReportPartV1(1)"]'],['daytrade','[onclick="copyDayTradeReportPartV1(2)"]'],['strong','[onclick="copyStrongStockTextV47()"]'],['tower','#towerCopy'],['restaurant','#restaurantCopy'],['market','#copyMarketReportButton']];
  async function exportTab(filter){await page.evaluate(filter=>{ShitouWorkspaceV831.closeReport();ShitouWorkspaceV831.select(filter==='stock'?'stock':filter==='market'?'market':'filters',filter);if(filter==='stock')ShitouWorkspaceV831.openReport('full');const ids={momentum:'momentumResult',daytrade:'dayTradeResult',strong:'strongStockResult',market:'marketResult'};if(ids[filter])document.getElementById(ids[filter]).style.display='block';},filter);}
  for(const [filter,selector] of textCopies){await exportTab(filter);const b=page.locator(selector);if(!await b.isVisible()){const more=b.locator('..').locator(':scope > .up-more-btn');if(await more.isVisible())await more.click();}console.log('TRY text clipboard',selector);const n=await page.evaluate(()=>__textCopies.length);await b.click();await page.waitForFunction(n=>__textCopies.length>n,n);assert.ok(await page.evaluate(()=>__textCopies.at(-1).trim().length>0));checks.push({button:selector,status:'PASS_TEXT_CLIPBOARD'});console.log('PASS text clipboard',selector);}
  for(const [filter,selector] of [['stock','#downloadTowerStockReportButton'],['momentum','#downloadMomentumFullReportButton'],['daytrade','#downloadDayTradeFullReportButton'],['strong','[onclick="downloadStrongStockTextV47()"]'],['tower','#towerDownload'],['restaurant','#restaurantText'],['restaurant','#restaurantJSON']]){await exportTab(filter);const b=page.locator(selector);if(!await b.isVisible()){const more=b.locator('..').locator(':scope > .up-more-btn');if(await more.isVisible())await more.click();}const [d]=await Promise.all([page.waitForEvent('download'),b.click()]);const file=path.join(out,'text-'+checks.length+path.extname(d.suggestedFilename()));await d.saveAs(file);assert.ok(fs.statSync(file).size>0);checks.push({button:selector,status:'PASS_TEXT_DOWNLOAD',originalFilenameLength:d.suggestedFilename().length});console.log('PASS text download',selector);}
