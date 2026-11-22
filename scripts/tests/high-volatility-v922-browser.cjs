@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const { createHash } = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright-core');
@@ -24,11 +25,55 @@ async function main() {
     page.on('pageerror', error => errors.push(error.message));
     await page.clock.setFixedTime(new Date('2026-11-22T11:00:00Z'));
     let inputs = replay.inputs;
+    let snapshotReceipt = null;
+    function validTpexReceipt() {
+      const source = {
+        volume: 'https://www.tpex.org.tw/openapi/v1/tpex_daily_turnover',
+        margin: 'https://www.tpex.org.tw/openapi/v1/tpex_mainboard_margin_balance',
+        status: 'https://www.tpex.org.tw/openapi/v1/tpex_cmode'
+      };
+      const codes = Array.from({ length: 505 }, (_, i) => String(1000 + i));
+      const feed = (key, rows, unit) => ({
+        date, source: source[key], rows, ...(unit ? { unit } : {}),
+        sourceRecords: rows.length, ordinaryRows: rows.length, invalidNumbers: 0,
+        rawResponseSha256: 'a'.repeat(64)
+      });
+      const streams = {
+        volume: feed('volume', codes.map(code => [code, 35000]), 'shares'),
+        margin: feed('margin', codes.map(code => [code, 100, 31]), 'lots'),
+        status: feed('status', [], null)
+      };
+      const data = {
+        schema: 'V922_TPEX_OFFICIAL_INPUTS_V1', date,
+        verification: 'OFFICIAL_DATE_FIELDS_COUNTS_AND_UNITS',
+        markets: { TPEX: streams }
+      };
+      const payload = JSON.stringify(data) + '\n';
+      const manifest = {
+        schema: 'V922_TPEX_OFFICIAL_MANIFEST_V1', date, file: date + '.json',
+        verification: data.verification,
+        officialCalendarSource: 'https://www.twse.com.tw/exchangeReport/FMTQIK',
+        completedMarketSnapshot: 'c'.repeat(64),
+        sha256: createHash('sha256').update(payload).digest('hex'),
+        sources: Object.fromEntries(Object.entries(streams).map(([key, stream]) =>
+          [key, { url: stream.source, unit: stream.unit ?? null,
+            records: stream.sourceRecords, ordinaryRows: stream.ordinaryRows,
+            sha256: stream.rawResponseSha256 }]))
+      };
+      return { payload, manifest };
+    }
+
     let releaseInputs;
     let delayInput = false;
     await page.route('**/*', async route => {
       const url = new URL(route.request().url());
       const market = url.searchParams.get('market');
+      if (snapshotReceipt && url.origin === origin && url.pathname.endsWith('/data/high-volatility/tpex/manifest.json')) {
+        return route.fulfill({ json: snapshotReceipt.manifest });
+      }
+      if (snapshotReceipt && url.origin === origin && url.pathname.endsWith('/data/high-volatility/tpex/' + date + '.json')) {
+        return route.fulfill({ body: snapshotReceipt.payload, contentType: 'application/json' });
+      }
       if (url.origin === origin) {
         const file = path.resolve(root, '.' + (url.pathname === '/' ? '/index.html' : decodeURIComponent(url.pathname)));
         if (!file.startsWith(root + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) {
@@ -71,6 +116,31 @@ async function main() {
 
     const positive = await scan();
     assert.deepEqual(positive, { qualified: 9, top8: 8, missing: 6 });
+
+    // The live Worker can fail TPEx while GitHub Pages has an independently
+    // verified same-day receipt. Recovered results must match the original.
+    const originalInputs = inputs;
+    snapshotReceipt = validTpexReceipt();
+    inputs = {
+      ...inputs, markets: { ...inputs.markets,
+        TPEX: Object.fromEntries(['volume', 'margin', 'status'].map(key =>
+          [key, { date: null, rows: [], error: 'Cloudflare TPEx timeout' }])) }
+    };
+    const recovered = await scan();
+    assert.deepEqual(recovered, { qualified: 9, top8: 8, missing: 6 });
+    assert.match(await page.locator('#structureResult').innerText(), /上櫃官方同日快照校驗/);
+    const otcRecovered = await page.evaluate(() => ShitouHighVolatilityUI.getLast().rows.find(x => x.code === '1240'));
+    assert.equal(otcRecovered.status, 'QUALIFIED');
+    // A tampered receipt must fail closed and must not restore the OTC candidate.
+    snapshotReceipt.manifest.sha256 = 'f'.repeat(64);
+    const tampered = await scan();
+    assert.equal(tampered.qualified, 8);
+    assert.match(await page.locator('#structureResult').innerText(), /SHA-256/);
+    const otcBlocked = await page.evaluate(() => ShitouHighVolatilityUI.getLast().rows.find(x => x.code === '1240'));
+    assert.equal(otcBlocked.status, 'UNVERIFIED');
+    snapshotReceipt = null;
+    inputs = originalInputs;
+
     assert.equal(await page.locator('#structureProgress').getAttribute('value'), '100');
     assert.match(await page.locator('#structureResult').innerText(), /交易日 2026-11-20｜版本 V9\.22[\s\S]*券資比 31%｜單日週轉率 35%/);
     for (const width of [360, 390, 428, 1440]) {
