@@ -46,7 +46,7 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
  const scenario=obs.scenarios,fours=m.four||[];
  const volumeVerified=m.volume.verified;
  const mkVol=v=>finite(v)?Math.round(v/1000).toLocaleString('en-US')+' 張':'資料不足';
- const RUNTIME_RELEASE=v916?(globalThis.ShitouReleaseV50?.displayCode||'V9.19'):RELEASE;
+ const RUNTIME_RELEASE=v916?(globalThis.ShitouReleaseV50?.displayCode||'V9.20'):RELEASE;
  const Transparency=v916?(typeof module==='object'&&module.exports?require('./life-risk-transparency-v916.js'):globalThis.ShitouTransparency916):null;
  if(v916&&!Transparency)throw Error('V9.16 風險透明化模組未載入，停止輸出');
  const extraPages=v916?Transparency.buildPage(Transparency.stock(study,intel,obs,m,market),{document:doc,additionalPages:1}):[];
