@@ -5,9 +5,8 @@ import vm from 'node:vm';
 import {fileURLToPath} from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
-const indices=['price-action-context-v1.js','selection-evidence-v1.js','selection-data-v2.js','structure-reversal-core-v1.js','structure-reversal-scanner-v1.js','structure-reversal-ui-v1.js'].map(n=>html.indexOf(`<script src="./${n}?`));
-assert(indices.every(i=>i!==-1),'index.html 必須載入全部第六套依賴');
-assert(indices.every((i,k)=>!k||i>indices[k-1]),'第六套依賴腳本順序錯誤');
+assert.doesNotMatch(html, /<script src="[^"]*structure-reversal/);
+// Exercise archived structure scans without loading them in the current frontend.
 const ctx=vm.createContext({console,Date,Map,Set,Object,Array,JSON,Number,String,Error,Intl,setTimeout,clearTimeout,structuredClone});
 function load(name){vm.runInContext(fs.readFileSync(path.join(root,name),'utf8'),ctx,{filename:name});}
 for(const name of ['worker-data-contract-v1.js','price-action-context-v1.js','selection-evidence-v1.js','selection-data-v2.js','scan-exclusions-rsi-v5328.js','structure-reversal-config-v1.js','structure-reversal-core-v1.js','structure-reversal-scanner-v1.js','strong-stock-filter-v47.js'])load(name);

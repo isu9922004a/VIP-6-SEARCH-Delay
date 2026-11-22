@@ -69,7 +69,7 @@ function read(study,model){
  const risk=priceState==='BELOW_PRIOR_LOW'?'真實收盤已跌破前20日低點，不能把原低點說成仍守住。':priceState==='ABOVE_PRIOR_HIGH'?'真實收盤已突破前20日高點，但仍需觀察是否守穩。':priceState==='INSUFFICIENT'?'前20日資料不足，不能假稱已突破或跌破。':'價格仍位於前20日高低點之間，須搭配生命線觀察。';
  return {series,signal,alignment,risk,ma5,ma5GapPct,support,resistance,priceState,breakPct,priorDays:prior.length,code:model.code,name:model.name,date:model.date,realClose,market:study?.instrumentType==='TAIEX'||model.code==='TAIEX'};
 }
-function page(study,model,{document:doc=globalThis.document,watermark=false,release='V9.21',pageNumber=4,totalPages=4}={}){
+function page(study,model,{document:doc=globalThis.document,watermark=false,release=globalThis.ShitouReleaseV50?.displayCode||'V9.22',pageNumber=4,totalPages=4}={}){
  if(!doc?.createElement)throw Error('缺少瀏覽器畫布，無法產生神奇K線圖片');
  const data=read(study,model),unit=data.market?'點':'元',last=data.series.at(-1);
  const audit={version:VERSION,release,page:pageNumber,pages:totalPages,code:data.code,date:data.date,close:data.realClose,pageType:'HEIKIN_ASHI_APPENDIX',model:{code:data.code,date:data.date,close:data.realClose},signal:data.signal.code,signalText:data.signal.label,realPriceOnly:true,researchOnly:true,affectsEligibility:false,affectsRanking:false,automaticTrade:false,chartBarDates:data.series.slice(-30).map(x=>x.date),source:'VERIFIED_LIFELINE_COMPLETED_OHLC'};

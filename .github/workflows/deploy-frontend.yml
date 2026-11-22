@@ -15,6 +15,10 @@ on:
       - 'assets/shitou-character-original-v972.*'
       - 'version-v50.js'
       - 'index.html'
+      - 'high-volatility-*-v922.js'
+      - 'high-volatility-v922.js'
+      - 'high-volatility-v922.css'
+      - 'scripts/tests/high-volatility*'
       - 'market-outlook.html'
       - 'kline-life-03-*.js'
       - 'market-life-*.js'
@@ -90,14 +94,12 @@ jobs:
           node scripts/tests/wave-postclose-universe-browser.cjs /tmp/v864-browser/postclose-universe
           node scripts/tests/strong-all-memory-browser.cjs /tmp/v864-browser/strong-memory
           node scripts/tests/market-date-browser.cjs /tmp/v864-browser/market-date
-          node scripts/tests/structure-v863-browser.cjs /tmp/v864-browser
+          node scripts/tests/high-volatility-v922-browser.cjs /tmp/v864-browser/high-volatility
           node scripts/tests/market-v862-browser.cjs /tmp/v864-browser
           node scripts/tests/research-v921-browser.cjs /tmp/v864-browser/v921
           node scripts/tests/life-v94-mobile-browser.cjs /tmp/v864-browser/v94
           node scripts/tests/life-visual-v98-browser.cjs /tmp/v864-browser/v98
           node scripts/tests/market-comfort-browser.cjs /tmp/v864-browser
-      - name: Check structure observations across the published stock universe
-        run: node scripts/audit-structure-strength.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

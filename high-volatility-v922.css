@@ -1,0 +1,26 @@
+#structureProgress {
+  display: block;
+  width: 100%;
+  margin: .75rem 0;
+  accent-color: #167569;
+}
+
+#structureReportPanel h3,
+#structureReportPanel details {
+  margin: 1rem 0 .55rem;
+}
+
+.high-volatility-list {
+  margin: .4rem 0;
+  padding-inline-start: 1.5rem;
+}
+
+.high-volatility-list li {
+  padding: .5rem 0;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.high-volatility-list span {
+  display: block;
+}

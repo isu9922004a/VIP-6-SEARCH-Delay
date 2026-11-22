@@ -3,7 +3,7 @@
   "sources": {
     "kline-life-03-core-v1.js": "e05bb0155389f57c6bfc313a170bf1418a6fd8845e9bded3bccf861a9f4247a6",
     "stock-worker.mjs": "c2a54599efcb65b20bdfb12e169977ed333dbfd7cff24e4149522a0a5113fe9c",
-    "market-worker.mjs": "7811eccb157d76fc5a70df5016fff8154058849a343963924e65e519e3b4eb53",
+    "market-worker.mjs": "2342df059ecdf563246bacacdadaf2240685b5c8104498439c51d599f00e59d5",
     "tower-integration.js": "dcb8a58fc6876a2187ee4ab25fea07b46e65e2749d6b89779bbd9e6cae89cd40",
     "tower-gold-scanner.js": "5449841c79c2166390aa11a9840498de3430c8007e8637c8fb1b6197d5c8ae07",
     "strategy-2560-v1.js": "1538131147849dd88ecf91411c64cf83e1208be39e45f4a4e271df6de3c51d08",

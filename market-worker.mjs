@@ -497,6 +497,10 @@ export default {
 
     const debugMode = url.searchParams.get("debug") === "1";
 
+    if (market === "HIGH_VOLATILITY_INPUTS") {
+      return handleHighVolatilityInputs(url, corsHeaders, env);
+    }
+
     // V2.6：全市場掃描快照與第二階段深度分析代理。
     if (["ALL_STOCKS", "SCAN", "MOMENTUM", "MOMENTUM_FAST", "FAST_SCAN", "FAST"].includes(market)) {
       return handleAllStocksSnapshotV264(request, corsHeaders, debugMode, env);
@@ -539,6 +543,109 @@ export default {
     ctx.waitUntil(handleMarketSyncCronR5(controller, env));
   }
 };
+
+async function handleHighVolatilityInputs(url, corsHeaders, env) {
+  const date = url.searchParams.get("date");
+  const time = Date.parse(date + "T00:00:00+08:00");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date || "") || !Number.isFinite(time) ||
+      new Date(time + 8 * 3600000).toISOString().slice(0, 10) !== date || time > Date.now()) {
+    return jsonResponse({ error: "缺少有效交易日" }, 400, corsHeaders);
+  }
+
+  const compact = date.replace(/-/g, "");
+  const tpex = "https://www.tpex.org.tw/openapi/v1/";
+  const twseQuotes = `https://www.twse.com.tw/rwd/zh/afterTrading/MI_INDEX?date=${compact}&type=ALLBUT0999&response=json`;
+  const twseMargin = `https://www.twse.com.tw/rwd/zh/marginTrading/MI_MARGN?date=${compact}&selectType=ALL&response=json`;
+  const twseStatus = `https://www.twse.com.tw/exchangeReport/TWT85U?date=${compact}&response=json`;
+  const read = async (source, parse) => {
+    try {
+      const response = await fetch(source, { signal: AbortSignal.timeout(12000) });
+      if (!response.ok) throw Error("HTTP " + response.status);
+      return { source, date, rows: parse(await response.json()) };
+    } catch (error) {
+      return { source, date: null, error: error.message, rows: [] };
+    }
+  };
+  const twseReport = (raw, valid) => {
+    if (raw?.stat !== "OK" || normalizeMarketDateV2613(raw.date) !== compact) {
+      throw Error("上市官方資料日期未對齊");
+    }
+    const table = raw.tables?.find(item => valid(item.fields || [])) || raw;
+    if (!valid(table.fields || []) || !Array.isArray(table.data) || !table.data.length) {
+      throw Error("上市官方報表格式不符");
+    }
+    return table;
+  };
+  const tpexReport = (raw, required) => {
+    if (!Array.isArray(raw) || !raw.length || raw.some(row =>
+      normalizeMarketDateV2613(row.Date) !== compact || required.some(key => !Object.hasOwn(row, key)))) {
+      throw Error("上櫃官方資料日期或格式未驗證");
+    }
+    return raw;
+  };
+  const ordinary = code => /^[1-9]\d{3}$/.test(String(code));
+  const flagged = value => /^(Y|YES|TRUE|1|是)$/i.test(String(value ?? "").normalize("NFKC").trim());
+  const [listedQuotes, listedMargin, listedStatus, otcQuotes, otcMargin, otcStatus, outstanding] =
+    await Promise.all([
+      read(twseQuotes, raw => {
+        const table = twseReport(raw, fields => fields[0] === "證券代號" && fields.includes("成交股數"));
+        const volume = table.fields.indexOf("成交股數");
+        return table.data.filter(row => ordinary(row[0])).map(row => [row[0], row[volume]]);
+      }),
+      read(twseMargin, raw => {
+        const table = twseReport(raw, fields => fields[0] === "代號" &&
+          fields[4] === "現金償還" && fields[6] === "今日餘額" &&
+          fields[10] === "現券償還" && fields[12] === "今日餘額");
+        return table.data.filter(row => ordinary(row[0])).map(row => [row[0], row[6], row[12]]);
+      }),
+      read(twseStatus, raw => twseReport(raw, fields => fields[0] === "證券代號")
+        .data.filter(row => ordinary(row[0])).map(row => row[0])),
+      // The exchange reports total traded shares here. Its Capitalization field
+      // is issued shares and must never be used as the outstanding denominator.
+      read(tpex + "tpex_daily_turnover", raw => tpexReport(raw, ["SecuritiesCompanyCode", "TradingShares"])
+        .filter(row => ordinary(row.SecuritiesCompanyCode))
+        .map(row => [row.SecuritiesCompanyCode, row.TradingShares])),
+      read(tpex + "tpex_mainboard_margin_balance", raw => tpexReport(raw,
+        ["SecuritiesCompanyCode", "MarginPurchaseBalance", "ShortSaleBalance"])
+        .filter(row => ordinary(row.SecuritiesCompanyCode))
+        .map(row => [row.SecuritiesCompanyCode, row.MarginPurchaseBalance, row.ShortSaleBalance])),
+      read(tpex + "tpex_cmode", raw => tpexReport(raw,
+        ["SecuritiesCompanyCode", "AlteredTrading", "ManagedStock", "SuspensionOfTrading"])
+        .filter(row => ordinary(row.SecuritiesCompanyCode) &&
+          [row.AlteredTrading, row.ManagedStock, row.SuspensionOfTrading].some(flagged))
+        .map(row => row.SecuritiesCompanyCode)),
+      readHighVolatilityOutstanding(env, date)
+    ]);
+  return jsonResponse({
+    type: "HIGH_VOLATILITY_INPUTS", date,
+    markets: {
+      TWSE: { volume: { ...listedQuotes, unit: "shares" }, margin: { ...listedMargin, unit: "lots" }, status: listedStatus },
+      TPEX: { volume: { ...otcQuotes, unit: "shares" }, margin: { ...otcMargin, unit: "lots" }, status: otcStatus }
+    },
+    outstanding
+  }, 200, corsHeaders);
+}
+
+async function readHighVolatilityOutstanding(env, date) {
+  // This binding is populated only after the dataset's daily as-of semantics,
+  // ordinary-share scope and treatment of treasury shares have been verified.
+  const binding = env?.HIGH_VOLATILITY_OUTSTANDING_KV;
+  const source = env?.HIGH_VOLATILITY_OUTSTANDING_SOURCE;
+  if (!binding || typeof source !== "string" || !source.startsWith("https://")) {
+    return { date: null, error: "同日流通在外普通股數來源尚未設定", rows: [] };
+  }
+  try {
+    const receipt = await binding.get(date, "json");
+    if (receipt?.date !== date || receipt.source !== source ||
+        receipt.scope !== "OUTSTANDING_ORDINARY_SHARES" || receipt.unit !== "shares" ||
+        !Array.isArray(receipt.rows) || !receipt.rows.length) {
+      throw Error("流通在外普通股數缺少同日來源或股數口徑證明");
+    }
+    return { date, source, scope: receipt.scope, unit: receipt.unit, rows: receipt.rows };
+  } catch (error) {
+    return { date: null, error: error.message, rows: [] };
+  }
+}
 
 // ============================================================
 // 路由 A｜TAIEX
