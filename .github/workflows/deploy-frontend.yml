@@ -39,6 +39,9 @@ on:
       - 'scripts/tests/v84-live-smoke.cjs'
       # Only the successfully published and versioned real forecast catalog
       # should trigger post-recovery frontend/live verification.
+      # Publish only after the TPEx collector verifies the dated official receipt.
+      - 'data/high-volatility/tpex/manifest.json'
+      - 'data/high-volatility/tpex/*.json'
       - 'data/etf/manifest.json'
       - 'scripts/tests/etf-v912.test.mjs'
       - 'data/kronos-future/manifest.json'
