@@ -49,14 +49,15 @@ async function json(p){
     const v=new DataView(await blob.arrayBuffer());arr.push({width:v.getUint32(16),height:v.getUint32(20),bytes:blob.size,audit});canvas.width=canvas.height=1;}
    return arr;
   });
-  assert.equal(pages.length,3,'current stock life report must export all three audited pages');
+  assert.equal(pages.length,4,'V9.20 must preserve three audited pages and append Heikin-Ashi');
   for(const [index,p] of pages.entries()){assert.equal(p.width,1284);assert.equal(p.height,2778);assert.ok(p.bytes>15000);
    if(index<2){assert.equal(p.audit.model.code,'00878');assert.equal(p.audit.model.date,m.date);assert.equal(p.audit.model.close,raw.close);}
-   else{assert.equal(p.audit.code,'00878');assert.equal(p.audit.date,m.date);assert.equal(p.audit.close,raw.close);
+   else if(index===2){assert.equal(p.audit.code,'00878');assert.equal(p.audit.date,m.date);assert.equal(p.audit.close,raw.close);
     assert.equal(p.audit.researchOnly,true);assert.ok(p.audit.explanationStatus,'risk appendix must have audit status');}
+   else{assert.equal(p.audit.pageType,'HEIKIN_ASHI_APPENDIX');assert.equal(p.audit.model.code,'00878');assert.equal(p.audit.model.date,m.date);assert.equal(p.audit.model.close,raw.close);}
    assert.equal(p.audit.affectsEligibility,false);assert.equal(p.audit.affectsRanking,false);}
   assert.deepEqual(errors,[]);
   fs.writeFileSync(path.join(out,'etf-live.json'),JSON.stringify({result,pages:pages.map(x=>({width:x.width,height:x.height,bytes:x.bytes,page:x.audit.page})),errors,status:'PASS'},null,2));
-  console.log('V912_ETF_LIVE_PASS 00878 date='+m.date+' 3 real 1284x2778 PNG');
+  console.log('V912_ETF_LIVE_PASS 00878 date='+m.date+' 4 real 1284x2778 PNG');
  }finally{await browser?.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
