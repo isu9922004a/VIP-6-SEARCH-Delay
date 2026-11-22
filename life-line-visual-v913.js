@@ -9,7 +9,19 @@ if(!Legacy||typeof Legacy.model!=='function'||!Info||typeof Info.evaluate!=='fun
 const RELEASE='V9.15',VERSION='LIFE_VISUAL_IPHONE_V913',W=1284,H=2778,M=14,FOOT=2672;
 const C={bg:'#071C2D',card:'#0A2D43',card2:'#10364D',ink:'#F3F7FF',muted:'#C2D7E5',mint:'#81F1D0',green:'#60EE92',gold:'#FFE365',orange:'#FFB444',risk:'#FF859F',blue:'#39B9FF',grid:'#28506B',up:'#FF5975',down:'#3CDBB6',line:'#71CFFF'};
 const finite=n=>typeof n==='number'&&Number.isFinite(n),num=n=>finite(n)?n.toFixed(2):'資料不足',date=v=>typeof v==='string'&&v.length>=10?v.slice(5).replace('-','/'):'未確認';
-async function ready(doc=globalThis.document){if(!doc?.createElement)throw Error('圖片畫布不可用');if(doc.fonts?.ready)await doc.fonts.ready;return true;}
+async function ready(doc=globalThis.document){
+ if(!doc?.createElement)throw Error('圖片畫布不可用');
+ if(!(typeof module==='object'&&module.exports)&&!globalThis.ShitouHeikinAshi920){
+  await new Promise((resolve,reject)=>{
+   const script=doc.createElement('script');
+   script.src=new URL('./heikin-ashi-life-v920.js?v=V9.20',doc.baseURI).href;
+   script.onload=()=>globalThis.ShitouHeikinAshi920?resolve():reject(Error('V9.20 神奇K線模組載入不完整'));
+   script.onerror=()=>reject(Error('V9.20 神奇K線模組載入失敗'));
+   doc.head.append(script);
+  });
+ }
+ if(doc.fonts?.ready)await doc.fonts.ready;return true;
+}
 function build(study,{document:doc=globalThis.document,record=null,display=null,source=null,market=null,watermark=false,v916=false}={}){
  if(!doc?.createElement)throw Error('圖片畫布不可用');
  const m=Legacy.model(study,{record,display,source}),bars=m.bars.slice(-30),last=bars.at(-1),line=m.line;
@@ -50,7 +62,7 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
  const Transparency=v916?(typeof module==='object'&&module.exports?require('./life-risk-transparency-v916.js'):globalThis.ShitouTransparency916):null;
  if(v916&&!Transparency)throw Error('V9.16 風險透明化模組未載入，停止輸出');
  const extraPages=v916?Transparency.buildPage(Transparency.stock(study,intel,obs,m,market),{document:doc}):[];
- const totalPages=2+extraPages.length;
+ const totalPages=3+extraPages.length; // Original pages and risk appendix remain unchanged; HA is an additional page.
  const draw=(canvas,pageno)=>{
   const ctx=canvas.getContext('2d');if(!ctx)throw Error('Canvas 2D 不可用');
   ctx.textBaseline='top';ctx.fillStyle=C.bg;ctx.fillRect(0,0,W,H);
@@ -245,7 +257,10 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
   const render=()=>{const canvas=doc.createElement('canvas');canvas.width=W;canvas.height=H;draw(canvas,i);Object.assign(canvas.dataset,dataset);return canvas;};
   return {width:W,height:H,title:i===1?'第 1 頁／個股分析':'第 2 頁／生命線形成教學',filename,dataset,renderExportRegion:render,toBlob(callback,type='image/png',quality){const c=render();c.toBlob(blob=>{c.width=c.height=1;callback(blob);},type,quality);}};
  });
- return basePages.concat(extraPages);
+ const HA=typeof module==='object'&&module.exports?require('./heikin-ashi-life-v920.js'):globalThis.ShitouHeikinAshi920;
+ if(!HA?.page)throw Error('V9.20 神奇K線圖片模組缺失');
+ const haPage=HA.page(study,m,{document:doc,watermark,release:RUNTIME_RELEASE});
+ return basePages.concat(extraPages,[haPage]);
 }
 return Object.freeze({RELEASE,VERSION,ready,build,model:Legacy.model,textReport:Legacy.textReport});
 });
