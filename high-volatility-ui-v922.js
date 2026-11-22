@@ -61,9 +61,9 @@
     };
     try {
       const manifest = await (await get('manifest.json')).json();
-      if (manifest?.schema !== 'V922_TPEX_OFFICIAL_MANIFEST_V1' ||
+      if (manifest?.schema !== 'V922_TPEX_OFFICIAL_MANIFEST_V2' ||
           manifest.date !== date || manifest.file !== date + '.json' ||
-          manifest.verification !== 'OFFICIAL_DATE_FIELDS_COUNTS_AND_UNITS' ||
+          manifest.verification !== 'OFFICIAL_DATE_FIELDS_COUNTS_AND_UNITS_AND_ISSUED_TURNOVER' ||
           manifest.officialCalendarSource !== 'https://www.twse.com.tw/exchangeReport/FMTQIK' ||
           !/^[0-9a-f]{64}$/.test(manifest.sha256 || '') ||
           !/^[0-9a-f]{64}$/.test(manifest.completedMarketSnapshot || '')) {
@@ -74,7 +74,7 @@
       const hash = Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, '0')).join('');
       if (hash !== manifest.sha256) throw Error('官方快照 SHA-256 不相符');
       const content = JSON.parse(raw);
-      if (content.schema !== 'V922_TPEX_OFFICIAL_INPUTS_V1' ||
+      if (content.schema !== 'V922_TPEX_OFFICIAL_INPUTS_V2' ||
           content.date !== date || content.verification !== manifest.verification) {
         throw Error('官方快照內容與交易日不一致');
       }
@@ -101,8 +101,11 @@
             throw Error('上櫃 ' + key + ' 股票代號無效或重複');
           }
           seen.add(code);
-          if (key !== 'status' && (row.length !== (key === 'volume' ? 2 : 3) ||
-              !row.slice(1).every(n => Number.isSafeInteger(n) && n >= 0))) {
+          if (key !== 'status' && (row.length !== (key === 'volume' ? 4 : 3) ||
+              !row.slice(1, key === 'volume' ? 3 : undefined)
+                .every(n => Number.isSafeInteger(n) && n >= 0) ||
+              (key === 'volume' && !(row[2] > 0 && Number.isFinite(row[3]) &&
+                  row[3] >= 0 && Math.abs(row[1] / row[2] * 100 - row[3]) <= 0.011)))) {
             throw Error('上櫃 ' + key + ' 股數格式未核實');
           }
         }
