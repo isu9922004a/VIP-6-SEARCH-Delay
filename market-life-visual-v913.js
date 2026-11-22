@@ -60,7 +60,7 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
  const RUNTIME_RELEASE=v916?(globalThis.ShitouReleaseV50?.displayCode||'V9.19'):RELEASE;
  const Transparency=v916?(typeof module==='object'&&module.exports?require('./life-risk-transparency-v916.js'):globalThis.ShitouTransparency916):null;
  if(v916&&!Transparency)throw Error('V9.16 風險透明化模組未載入，停止輸出');
- const extraPages=v916?Transparency.buildPage(Transparency.market(study,risk,obs),{document:doc}):[];
+ const extraPages=v916?Transparency.buildPage(Transparency.market(study,risk,obs),{document:doc,additionalPages:1}):[];
  const totalPages=2+extraPages.length+(v916?1:0); // Preserve legacy page counts and risk appendix.
  const draw=(canvas,pageno)=>{
   const ctx=canvas.getContext('2d');if(!ctx)throw Error('Canvas 2D 不可用');
