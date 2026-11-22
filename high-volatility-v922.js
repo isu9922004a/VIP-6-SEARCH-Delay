@@ -47,19 +47,20 @@
         excluded: feedReady(status, date) ? new Set(status.rows) : null
       };
     }
-    const outstanding = inputs.outstanding;
-    const outstandingReady = feedReady(outstanding, date) &&
-      outstanding.scope === 'OUTSTANDING_ORDINARY_SHARES' && outstanding.unit === 'shares';
+    // Official exchange denominator: TWSE listed shares, TPEx issued shares.
+    const listed = inputs.listedShares;
+    const listedReady = feedReady(listed, date) &&
+      listed.scope === 'OFFICIAL_TWSE_LISTED_SHARES' && listed.unit === 'shares';
     return {
       markets,
-      outstanding: outstandingReady ? keyed(outstanding.rows, row => row[0] + ':' + row[1]) : null,
+      listedShares: listedReady ? keyed(listed.rows) : null,
       sources: [
         ...Object.keys(MARKET_NAMES).flatMap(market => [
           [SHORT_SOURCE[market], inputs.markets?.[market]?.margin],
           [VOLUME_SOURCE[market], inputs.markets?.[market]?.volume],
           [MARKET_NAMES[market] + '交易狀態', inputs.markets?.[market]?.status]
         ]),
-        ['流通在外普通股數', outstanding]
+        ['TWSE 官方同日上市股數', listed]
       ].map(([label, feed]) => ({ label, source: feed?.source, date: feed?.date, error: feed?.error }))
     };
   }
@@ -112,20 +113,29 @@
 
     const margin = sources.margin?.get(code);
     const volume = sources.volume?.get(code);
-    const outstanding = data.outstanding?.get(market + ':' + code);
+    const listed = data.listedShares?.get(code);
     const marginShares = count(margin?.[1], 'lots');
     const shortShares = count(margin?.[2], 'lots');
     const tradedShares = count(volume?.[1], 'shares');
-    const outstandingShares = count(outstanding?.[2], 'shares');
+    const denominatorShares = market === 'TPEX'
+      ? count(volume?.[2], 'shares') : count(listed?.[1], 'shares');
+    const officialRate = market === 'TPEX' && volume?.length === 4 &&
+      typeof volume[3] === 'number' ? volume[3] : null;
+    const tpexRatioVerified = market !== 'TPEX' ||
+      (denominatorShares > 0 && Number.isFinite(officialRate) &&
+       officialRate >= 0 && Math.abs(tradedShares / denominatorShares * 100 - officialRate) <= 0.011);
     row.shortRatio = ratio(shortShares, marginShares);
-    row.turnover = ratio(tradedShares, outstandingShares);
-    row.shares = { marginShares, shortShares, tradedShares, outstandingShares };
+    row.turnover = tpexRatioVerified ? ratio(tradedShares, denominatorShares) : null;
+    row.turnoverBase = market === 'TPEX' ? 'TPEx 發行股數' : 'TWSE 上市股數';
+    row.shares = { marginShares, shortShares, tradedShares, turnoverBaseShares: denominatorShares };
 
     const missing = [];
     if (!sources.excluded) missing.push('同日交易資格未確認');
     if (!row.shortRatio) missing.push(marginShares === 0 ? '融資餘額為 0' : '同日融資融券餘額未確認');
     if (tradedShares === null) missing.push('同日成交股數未確認');
-    if (!(outstandingShares > 0)) missing.push('同日流通在外普通股數未確認');
+    if (!(denominatorShares > 0)) missing.push(market === 'TPEX'
+      ? 'TPEx 官方發行股數未確認' : 'TWSE 官方同日上市股數未確認');
+    if (!tpexRatioVerified) missing.push('TPEx 官方周轉率與精確股數計算不一致');
     if (missing.length) return exit('UNVERIFIED', missing.join('、'));
     return exit(row.shortRatio.exceeds && row.turnover.exceeds ? 'QUALIFIED' : 'NOT_QUALIFIED', '');
   }
@@ -172,13 +182,13 @@
     const lines = row => [
       row.code + ' ' + row.name + '｜' + row.date + '｜' + STATUS[row.status] + (row.reason ? '｜' + row.reason : ''),
       metrics(row),
-      row.shares ? '融資／融券／成交／流通在外普通股（股） ' +
+      row.shares ? '融資／融券／成交／周轉率分母（股） ' +
         Object.values(row.shares).map(value => value ?? '未驗證').join('／') : ''
     ].filter(Boolean);
     return [
       '石頭少爺 ' + VERSION + '｜' + TITLE,
       '交易日 ' + result.date + '｜' + summary(result),
-      '券資比與單日週轉率均須 > 30%。Top 8 依週轉率、券資比、代號排序。',
+      '券資比與官方口徑單日週轉率均須 > 30%（上市用上市股數、上櫃用發行股數）。Top 8 依週轉率、券資比、代號排序。',
       'Top 8', ...result.top8.flatMap(lines),
       '合格清單', ...result.qualified.flatMap(lines),
       '資料未驗證清單', ...result.unverified.flatMap(lines),
