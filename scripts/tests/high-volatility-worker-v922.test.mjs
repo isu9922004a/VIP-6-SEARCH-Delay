@@ -14,7 +14,7 @@ const twseMarginFields = ['代號', '名稱', '買進', '賣出', '現金償還'
 test('the added route leaves all existing Market Worker handlers byte-identical', () => {
   const legacy = readFileSync(new URL('../../market-worker.mjs', import.meta.url), 'utf8')
     .replace(/\n    if \(market === "HIGH_VOLATILITY_INPUTS"\) \{\n      return handleHighVolatilityInputs\(url, corsHeaders, env\);\n    \}\n/, '')
-    .replace(/\nasync function handleHighVolatilityInputs\([\s\S]*?\n\}\n(?=\n\/\/ =)/, '');
+    .replace(/\nasync function handleHighVolatilityInputs\([\s\S]*?(?=\n\/\/ =+\n\/\/ 路由 A)/, '');
   assert.equal(createHash('sha256').update(legacy).digest('hex'),
     '7811eccb157d76fc5a70df5016fff8154058849a343963924e65e519e3b4eb53');
 });
