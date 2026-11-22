@@ -51,6 +51,26 @@ for (const [label, name, keys, unit] of feeds) {
       console.log('TPEX_OFFICIAL_TURNOVER_FIELDS ' +
         JSON.stringify(Object.fromEntries(Object.entries(body[0]).map(([k,v]) => [k, String(v).slice(0,90)]))));
     }
+    if (label === 'volume') {
+      const valid = body.filter(row => /^[1-9]\\d{3}$/.test(String(row.SecuritiesCompanyCode).trim()));
+      const checked = valid.map(row => {
+        const shares=Number(String(row.TradingShares).replace(/,/g,'')),
+              issued=Number(String(row.Capitalization).replace(/,/g,'')),
+              reported=Number(String(row.TurnoverRatio).replace(/,/g,''));
+        return { code:String(row.SecuritiesCompanyCode).trim(), shares, issued, reported,
+          computed: issued>0 ? shares/issued*100 : null };
+      });
+      const missing=checked.filter(row=>!Number.isFinite(row.issued)||row.issued<=0||
+        !Number.isFinite(row.reported)||!Number.isFinite(row.computed));
+      const mismatched=checked.filter(row=>row.computed!==null &&
+        Number.isFinite(row.reported) && Math.abs(row.computed-row.reported) > 0.011);
+      const top=checked.filter(row=>row.reported>30).sort((a,b)=>b.reported-a.reported)
+        .slice(0,10).map(row=>({code:row.code,officialTurnoverRatio:row.reported,computed:row.computed}));
+      console.log('TPEX_OFFICIAL_TURNOVER_PROOF '+JSON.stringify({
+        checked:checked.length,missing:missing.length,missingSamples:missing.slice(0,5),
+        mismatched:mismatched.length,mismatchSamples:mismatched.slice(0,5),
+        above30:checked.filter(row=>row.reported>30).length,top}));
+    }
     const dates = [...new Set(body.map(row => dateKey(row.Date)))];
     const fieldsValid = body.every(row => row && keys.every(key => Object.hasOwn(row, key)));
     if (!fieldsValid || dates.length !== 1 || dates[0] !== expected.replace(/-/g, '')) {
