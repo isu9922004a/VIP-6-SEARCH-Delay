@@ -20,6 +20,7 @@ async function loadMarketVisual(doc){
   ['ShitouMarketLifeRisk910','market-life-risk-v910.js'],
   ['ShitouMarketLifeRisk913','market-life-risk-v913.js'],
   ['ShitouTransparency916','life-risk-transparency-v916.js'],
+   ['ShitouHeikinAshi920','heikin-ashi-life-v920.js'],
    ['ShitouMarketLifeVisual913','market-life-visual-v913.js']
  ];
  for(const [key,file] of dependencies){
