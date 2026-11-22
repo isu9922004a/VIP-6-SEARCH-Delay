@@ -52,7 +52,7 @@ for (const [label, name, keys, unit] of feeds) {
         JSON.stringify(Object.fromEntries(Object.entries(body[0]).map(([k,v]) => [k, String(v).slice(0,90)]))));
     }
     if (label === 'volume') {
-      const valid = body.filter(row => /^[1-9]\\d{3}$/.test(String(row.SecuritiesCompanyCode).trim()));
+      const valid = body.filter(row => /^[1-9]\d{3}$/.test(String(row.SecuritiesCompanyCode).trim()));
       const checked = valid.map(row => {
         const shares=Number(String(row.TradingShares).replace(/,/g,'')),
               issued=Number(String(row.Capitalization).replace(/,/g,'')),
