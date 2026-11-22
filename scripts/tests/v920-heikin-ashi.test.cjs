@@ -56,3 +56,62 @@ test('V9.20 appendix keeps originals untouched, research-only, 1284x2778',()=>{
  assert.equal(p.renderExportRegion().height,2778);
  assert.match(p.filename,/V9\.20.*8039.*神奇K線/);
 });
+
+const taihongHistory=require('../../data/research/2026-11-20/8039.json').dailySeries.map(({date,open,high,low,close})=>({date,open,high,low,close}));
+const taihongModel=(bars=taihongHistory)=>({bars,code:'8039',name:'台虹',date:bars.at(-1).date,close:bars.at(-1).close,currentRole:'BEAR'});
+test('V9.21 real 8039 2026-11-20 archived input preserves HA signal and price risk',()=>{
+ const input=taihongHistory,copy=JSON.stringify(input),r=HA.read({},taihongModel());
+ assert.equal(r.date,'2026-11-20');
+ assert.equal(r.realClose,137.5);
+ assert.equal(r.ma5,165.3);
+ assert.equal(r.support,152.5);
+ assert.equal(r.resistance,315);
+ assert.equal(r.priorDays,20);
+ assert.equal(r.priceState,'BELOW_PRIOR_LOW');
+ assert.ok(Math.abs(r.ma5GapPct+16.81790683605566)<1e-8);
+ assert.ok(Math.abs(r.breakPct+9.836065573770492)<1e-8);
+ assert.equal(r.signal.code,'BEAR_STRENGTH');
+ assert.equal(r.signal.count,5);
+ assert.deepEqual(r.series.slice(-5).map(x=>x.color),Array(5).fill('綠K'));
+ assert.equal(JSON.stringify(input),copy,'read-only verification must not change archived OHLC');
+});
+test('V9.21 never mislabels 5-19 preceding days as a full 20-day reference',()=>{
+ const short=taihongHistory.slice(-20),r=HA.read({},taihongModel(short));
+ assert.equal(r.priorDays,19);
+ assert.equal(r.ma5,165.3);
+ assert.equal(r.support,null);
+ assert.equal(r.resistance,null);
+ assert.equal(r.priceState,'INSUFFICIENT');
+ assert.match(r.risk,/資料不足/);
+ const complete=HA.read({},taihongModel(taihongHistory.slice(-21)));
+ assert.equal(complete.priorDays,20);
+ assert.equal(complete.support,152.5);
+ assert.equal(complete.priceState,'BELOW_PRIOR_LOW');
+});
+test('V9.21 independently distinguishes historical high breakout and in-range status',()=>{
+ const bars=Array.from({length:21},(_,i)=>({date:'2026-11-'+String(i+1).padStart(2,'0'),open:100,high:120,low:80,close:100}));
+ bars[bars.length-1]={date:'2026-11-21',open:130,high:135,low:125,close:130};
+ const up=HA.read({},taihongModel(bars));
+ assert.equal(up.priceState,'ABOVE_PRIOR_HIGH');
+ assert.equal(up.resistance,120);
+ assert.ok(up.breakPct>0);
+ bars[bars.length-1]={date:'2026-11-21',open:100,high:105,low:85,close:100};
+ const within=HA.read({},taihongModel(bars));
+ assert.equal(within.priceState,'IN_RANGE');
+ assert.equal(within.breakPct,null);
+});
+test('V9.21 real 8039 rendered report explicitly shows prior-window label and gap',()=>{
+ const calls=[];
+ const ctx={measureText:s=>({width:[...String(s)].length*18}),beginPath(){},roundRect(){},fillRect(){},fill(){},stroke(){},moveTo(){},lineTo(){},fillText(s,x,y){calls.push({s:String(s),x,y});}};
+ const document={createElement:()=>({dataset:{},getContext:()=>ctx})};
+ const p=HA.page({},taihongModel(),{document});
+ assert.equal(p.width,1284);assert.equal(p.height,2778);
+ p.renderExportRegion();
+ const all=calls.map(x=>x.s).join('\n');
+ assert.match(all,/前20日低點（不含當日）/);
+ assert.match(all,/距5日均價：-16\.82%/);
+ assert.match(all,/已跌破前20日低點/);
+ assert.match(all,/止跌觀察/);
+ assert.match(all,/轉強觀察/);
+ assert.ok(calls.every(x=>x.x>=0&&x.y>=0&&x.y<2778));
+});

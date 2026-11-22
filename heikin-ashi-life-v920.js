@@ -1,4 +1,4 @@
-/* V9.20 | Independent, research-only Heikin-Ashi analysis and life-line appendix.
+/* V9.21 | Independent, research-only Heikin-Ashi analysis and life-line appendix.
  * Uses the standard Heikin-Ashi equations, not proprietary indicator code.
  * Never changes screening, life-line prices, ranking, or order execution.
  */
@@ -58,9 +58,16 @@ function read(study,model){
  if(/RESISTANCE|BEAR/.test(trend)&&signal.code==='BULL_STRENGTH')alignment='生命線仍有壓力，但神奇K線轉強：兩者不一致，先看真實收盤能否突破。';
  const completed=bars.filter(x=>Number.isFinite(x.close)&&Number.isFinite(x.high)&&Number.isFinite(x.low));
  const ma5=completed.length>=5?completed.slice(-5).reduce((sum,x)=>sum+x.close,0)/5:null;
- const prior=completed.slice(-21,-1),support=prior.length>=5?Math.min(...prior.map(x=>x.low)):null,resistance=prior.length>=5?Math.max(...prior.map(x=>x.high)):null;
- const risk='真實股價是否守住5日均價及最近20根已完成日K的低點，仍須搭配生命線確認。';
- return {series,signal,alignment,risk,ma5,support,resistance,code:model.code,name:model.name,date:model.date,realClose:model.close,market:study?.instrumentType==='TAIEX'||model.code==='TAIEX'};
+ // Historical levels exclude today's completed candle. Never call a partial window "20 days".
+ const prior=completed.slice(-21,-1),hasPrior20=prior.length===20;
+ const support=hasPrior20?Math.min(...prior.map(x=>x.low)):null;
+ const resistance=hasPrior20?Math.max(...prior.map(x=>x.high)):null;
+ const realClose=finite(model.close)?model.close:null;
+ const ma5GapPct=finite(realClose)&&finite(ma5)&&ma5>0?(realClose-ma5)/ma5*100:null;
+ const priceState=!finite(realClose)||!hasPrior20?'INSUFFICIENT':realClose<support?'BELOW_PRIOR_LOW':realClose>resistance?'ABOVE_PRIOR_HIGH':'IN_RANGE';
+ const breakPct=priceState==='BELOW_PRIOR_LOW'?(realClose-support)/support*100:priceState==='ABOVE_PRIOR_HIGH'?(realClose-resistance)/resistance*100:null;
+ const risk=priceState==='BELOW_PRIOR_LOW'?'真實收盤已跌破前20日低點，不能把原低點說成仍守住。':priceState==='ABOVE_PRIOR_HIGH'?'真實收盤已突破前20日高點，但仍需觀察是否守穩。':priceState==='INSUFFICIENT'?'前20日資料不足，不能假稱已突破或跌破。':'價格仍位於前20日高低點之間，須搭配生命線觀察。';
+ return {series,signal,alignment,risk,ma5,ma5GapPct,support,resistance,priceState,breakPct,priorDays:prior.length,code:model.code,name:model.name,date:model.date,realClose,market:study?.instrumentType==='TAIEX'||model.code==='TAIEX'};
 }
 function page(study,model,{document:doc=globalThis.document,watermark=false,release='V9.21',pageNumber=4,totalPages=4}={}){
  if(!doc?.createElement)throw Error('缺少瀏覽器畫布，無法產生神奇K線圖片');
@@ -117,21 +124,28 @@ function page(study,model,{document:doc=globalThis.document,watermark=false,rele
   txt('連續同色根數：'+data.signal.count+'根｜依完成日K計算',44,1504,1156,31,C.muted);
   card(20,1596,1244,400,C.line);
   txt('怎麼搭配生命線？',43,1624,1150,42,C.mint,800);
-  wrap(data.alignment,44,1716,1155,39,C.ink,4);
+  wrap(data.alignment,44,1690,1155,33,C.ink,2);
   const fmt=v=>Number.isFinite(v)?v.toFixed(2)+' '+unit:'資料不足';
-  txt('真實收盤：'+fmt(data.realClose)+' ｜ 5日均價：'+fmt(data.ma5),44,1844,1165,31,C.gold,730);
-  txt('近20日參考低點：'+fmt(data.support)+' ｜ 參考高點：'+fmt(data.resistance),44,1910,1165,30,C.gold,700);
+  const signedPct=v=>Number.isFinite(v)?(v>0?'+':'')+v.toFixed(2)+'%':'資料不足';
+  txt('真實收盤：'+fmt(data.realClose)+' ｜ 5日均價：'+fmt(data.ma5),44,1810,1165,31,C.gold,730);
+  txt('距5日均價：'+signedPct(data.ma5GapPct)+'（負數表示低於均價）',44,1857,1165,29,C.gold,700);
+  txt('前20日低點（不含當日）：'+fmt(data.support)+' ｜ 高點：'+fmt(data.resistance),44,1901,1165,28,C.gold,700);
+  let priceReminder='前20日資料不足（需至少21根完成日K），無法判斷前期關卡。';
+  if(data.priceState==='BELOW_PRIOR_LOW')priceReminder='已跌破前20日低點，低於該價'+Math.abs(data.breakPct).toFixed(2)+'%；原低點不代表仍守穩。';
+  else if(data.priceState==='ABOVE_PRIOR_HIGH')priceReminder='已突破前20日高點，高於該價'+data.breakPct.toFixed(2)+'%；還要觀察是否守穩。';
+  else if(data.priceState==='IN_RANGE')priceReminder='真實收盤仍在前20日高低點之間；關卡只是歷史參考。';
+  txt('價格提醒：'+priceReminder,44,1943,1165,26,data.priceState==='BELOW_PRIOR_LOW'?C.orange:C.muted,690);
   card(20,2020,1244,530,C.line);
   txt('新手下一步怎麼看？',43,2053,1162,43,C.mint,800);
   const notes=[
    '① 尚未持有：先觀察是否止跌，不因跌深就急著進場。',
    '② 已經持有：留意真實股價與預先設定的風險界線。',
-   '③ 等待轉強：觀察神奇K線轉紅及生命線是否改善。',
-   '④ 訊號不一致：先觀察；單根轉紅不等於確認反轉。'
+   '③ 止跌觀察：股價不再持續破低，賣壓逐漸減輕。',
+   '④ 轉強觀察：神奇K線轉紅，真實股價站回均線並守穩。'
   ];
   notes.forEach((s,i)=>wrap(s,46,2151+i*85,1164,33,C.ink,2));
   divider(2595);
-  wrap('提醒：神奇K線使用合成價格且可能延遲；近20日高低點是歷史參考，不保證支撐或壓力有效。研究參考，非買賣指令。',39,2630,1190,28,C.muted,3);
+  wrap('提醒：神奇K線使用合成價格且可能延遲；前20日高低點不含當日，歷史關卡不保證有效。研究參考，非買賣指令。',39,2630,1190,28,C.muted,3);
   if(watermark&&globalThis.ShitouReportWatermark)globalThis.ShitouReportWatermark.apply(canvas);
   Object.assign(canvas.dataset,dataset);
   return canvas;

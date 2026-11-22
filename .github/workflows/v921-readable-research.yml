@@ -39,6 +39,10 @@ jobs:
         env:
           CHROME_BIN: /usr/bin/google-chrome
         run: node scripts/tests/research-v921-browser.cjs /tmp/v921-browser
+      - name: Render audited 8039 and TAIEX V9.21 price-risk PNGs
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
+        run: node scripts/tests/v921-heikin-risk-browser.cjs /tmp/v921-browser/heikin
       - uses: actions/upload-artifact@v4
         if: always()
         with:
