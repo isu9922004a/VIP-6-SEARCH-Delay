@@ -47,6 +47,10 @@ for (const [label, name, keys, unit] of feeds) {
     const text = await response.text();
     const body = JSON.parse(text);
     if (!Array.isArray(body) || !body.length) throw Error('empty or invalid JSON array');
+    if (label === 'volume') {
+      console.log('TPEX_OFFICIAL_TURNOVER_FIELDS ' +
+        JSON.stringify(Object.fromEntries(Object.entries(body[0]).map(([k,v]) => [k, String(v).slice(0,90)]))));
+    }
     const dates = [...new Set(body.map(row => dateKey(row.Date)))];
     const fieldsValid = body.every(row => row && keys.every(key => Object.hasOwn(row, key)));
     if (!fieldsValid || dates.length !== 1 || dates[0] !== expected.replace(/-/g, '')) {
