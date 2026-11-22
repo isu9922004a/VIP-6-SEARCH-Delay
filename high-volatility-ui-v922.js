@@ -42,8 +42,18 @@
     const original = inputs?.markets?.TPEX;
     const valid = key => {
       const f = original?.[key];
-      return f?.date === date && !f.error && Array.isArray(f.rows) &&
-        (key === 'status' || f.rows.length > 0);
+      if (f?.date !== date || f.error || !Array.isArray(f.rows)) return false;
+      if (key === 'status') return true;
+      if (!f.rows.length || f.unit !== (key === 'volume' ? 'shares' : 'lots')) return false;
+      if (key === 'margin') return f.rows.every(row => Array.isArray(row) && row.length === 3);
+      // The deployed pre-fix Cloudflare Worker returned only [code, tradedShares]
+      // even when TPEx did not time out. That feed cannot provide the exchange
+      // denominator, so always recover from the date-locked V2 Pages receipt.
+      return f.rows.every(row => Array.isArray(row) && row.length === 4 &&
+        Number.isSafeInteger(row[1]) && row[1] >= 0 &&
+        Number.isSafeInteger(row[2]) && row[2] > 0 &&
+        Number.isFinite(row[3]) && row[3] >= 0 &&
+        Math.abs(row[1] / row[2] * 100 - row[3]) <= 0.011);
     };
     if (names.every(valid)) return { inputs, attempted: false };
     const base = new URL('data/high-volatility/tpex/', document.baseURI);
@@ -201,7 +211,7 @@
         throw Error('今日交易已結束，等待同日盤後資料');
       }
       const stocks = snapshot.rows.map(row => ({ ...row, quoteDate: root.ShitouScanPolicy5328.date(row.quoteDate) }));
-      message('核對 ' + date + ' 官方成交股數、融資融券與流通在外普通股數…');
+      message('核對 ' + date + ' 官方成交股數、融資融券與上市／發行股數…');
       const inputs = await request({ market: 'HIGH_VOLATILITY_INPUTS', date }, signal);
       const recovery = await recoverOfficialTpex(inputs, date, signal);
       const result = await C.scan(stocks, snapshot.meta, recovery.inputs, date, { signal, onProgress: progress });
