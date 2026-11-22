@@ -8,6 +8,13 @@ on:
       - 'scripts/collect-tpex-v922.mjs'
       - '.github/workflows/v922-collect-tpex.yml'
       - 'scripts/tests/v922-tpex-collector.test.mjs'
+      - 'scripts/tests/high-volatility-worker-v922.test.mjs'
+      - 'scripts/tests/high-volatility-v922.test.cjs'
+      - 'scripts/fixtures/high-volatility-v922.cjs'
+      - 'scripts/verify-tpex-v922.mjs'
+      - 'high-volatility-v922.js'
+      - 'high-volatility-ui-v922.js'
+      - 'market-worker.mjs'
   schedule:
     # Taipei 16:40, 17:40, 19:40, 21:40 on weekdays; market calendar is decisive.
     - cron: '40 8,9,11,13 * * 1-5'
@@ -31,7 +38,9 @@ jobs:
       - name: Validate V9.22 Worker syntax and isolated live-route behavior
         run: |
           node --check market-worker.mjs
-          node --test scripts/tests/high-volatility-worker-v922.test.mjs
+          node --check high-volatility-v922.js
+          node --check high-volatility-ui-v922.js
+          node --test scripts/tests/high-volatility-worker-v922.test.mjs scripts/tests/high-volatility-v922.test.cjs
       - name: Verify producer input guards
         run: node --test scripts/tests/v922-tpex-collector.test.mjs
       - name: Fetch three dated official TPEx sources and build integrity manifest
