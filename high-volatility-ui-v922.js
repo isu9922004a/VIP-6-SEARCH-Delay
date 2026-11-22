@@ -51,7 +51,7 @@
       // denominator, so always recover from the date-locked V2 Pages receipt.
       const count = value => {
         const text = String(value ?? '').trim();
-        if (!/^(?:\\d+|\\d{1,3}(?:,\\d{3})+)$/.test(text)) return null;
+        if (!/^(?:\d+|\d{1,3}(?:,\d{3})+)$/.test(text)) return null;
         const n = Number(text.replace(/,/g, ''));
         return Number.isSafeInteger(n) && n >= 0 ? n : null;
       };
