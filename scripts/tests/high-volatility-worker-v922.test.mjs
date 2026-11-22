@@ -142,7 +142,7 @@ test('opt-in official Pages snapshot verifies byte SHA and never requests TPEx f
   const response = await Worker.fetch(new Request(url), env);
   assert.equal(response.status, 200);
   const result = await response.json();
-  assert.equal(result.markets.TPEX.volume.date, date);
+  assert.equal(result.markets.TPEX.volume.date, date, JSON.stringify(result.markets.TPEX.volume));
   assert.equal(result.markets.TPEX.volume.rows.length, 505);
   assert.equal(result.markets.TPEX.margin.rows.length, 505);
   assert.deepEqual(result.markets.TPEX.status.rows, ['1401']);
