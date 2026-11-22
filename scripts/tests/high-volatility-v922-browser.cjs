@@ -200,8 +200,16 @@ async function main() {
 
     inputs = { ...inputs, listedShares: { date: null, rows: [], error: '同日來源未設定' } };
     const unavailable = await scan();
-    assert.equal(unavailable.qualified, 0);
-    assert.match(await page.locator('#structureResult').innerText(), /全市場合格檔數未確認/);
+    // A missing TWSE listed-shares feed must not erase independently verified
+    // TPEx candidates. This is a PARTIAL result, not a verified market-wide zero.
+    assert.equal(unavailable.qualified, 1);
+    assert.equal(unavailable.top8, 1);
+    const partial = await page.evaluate(() => ShitouHighVolatilityUI.getLast());
+    assert.deepEqual(partial.qualified.map(row => row.code), ['1240']);
+    assert.equal(partial.complete, false);
+    assert.ok(partial.unverified.some(row => row.market === 'TWSE' &&
+      /TWSE 官方同日上市股數未確認/.test(row.reason)));
+    assert.match(await page.locator('#structureResult').innerText(), /已驗證合格 1 檔｜全市場合格檔數未確認/);
     assert.doesNotMatch(await page.locator('#structureResult').innerText(), /合格 0 檔/);
     await page.screenshot({ path: path.join(out, 'mobile-unverified.png') });
 
