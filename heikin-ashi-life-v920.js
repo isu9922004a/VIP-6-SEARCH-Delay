@@ -128,7 +128,7 @@ function page(study,model,{document:doc=globalThis.document,watermark=false,rele
   Object.assign(canvas.dataset,dataset);
   return canvas;
  }
- const dataset={life94Audit:JSON.stringify(audit),heikinAshiAudit:JSON.stringify(audit),fullBleed:'true',shareAsSingleImage:'true',filename};
+ const dataset={life94Audit:JSON.stringify(audit),life98Audit:JSON.stringify(audit),marketLifeAudit:JSON.stringify(audit),heikinAshiAudit:JSON.stringify(audit),fullBleed:'true',shareAsSingleImage:'true',filename};
  return {width:W,height:H,title:'第二區｜神奇K線白話解讀',filename,dataset,audit,renderExportRegion:paint,toBlob(cb,type='image/png',quality){const c=paint();c.toBlob(blob=>{c.width=c.height=1;cb(blob);},type,quality);}};
 }
 return Object.freeze({VERSION,calculate,classify,read,page});
