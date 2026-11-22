@@ -12,14 +12,14 @@ function fixture() {
     sourceRecords:data.length,ordinaryRows:data.length,invalidNumbers:0
   });
   const feeds={
-    volume:feed('volume',rows.map(k=>[k,5000]),'shares'),
+    volume:feed('volume',rows.map(k=>[k,5000,100000,5]),'shares'),
     margin:feed('margin',rows.map(k=>[k,500,55]),'lots'),
     status:feed('status',['1991','1992'],null)
   };
   const market={tradeDateIso:date,contentSha256:'c'.repeat(64)};
   const calendar={verified:true,dates:[date],source:'https://www.twse.com.tw/exchangeReport/FMTQIK'};
-  const snapshot={schema:'V922_TPEX_OFFICIAL_INPUTS_V1',date,verification:'OFFICIAL_DATE_FIELDS_COUNTS_AND_UNITS',markets:{TPEX:feeds}};
-  const manifest={schema:'V922_TPEX_OFFICIAL_MANIFEST_V1',date,file:date+'.json',
+  const snapshot={schema:'V922_TPEX_OFFICIAL_INPUTS_V2',date,verification:'OFFICIAL_DATE_FIELDS_COUNTS_AND_UNITS_AND_ISSUED_TURNOVER',markets:{TPEX:feeds}};
+  const manifest={schema:'V922_TPEX_OFFICIAL_MANIFEST_V2',date,file:date+'.json',
     completedMarketSnapshot:market.contentSha256,officialCalendarSource:calendar.source,
     verification:snapshot.verification,
     sources:Object.fromEntries(Object.entries(feeds).map(([k,f])=>[k,{
@@ -48,4 +48,10 @@ test('reject an incomplete market, duplicated codes and absent numbers',()=>{
   assert.throws(()=>verifyV922Tpex(g.serialize()),/duplicate code/);
   const h=fixture();h.snapshot.markets.TPEX.margin.rows[0][1]=null;
   assert.throws(()=>verifyV922Tpex(h.serialize()),/invalid count/);
+});
+
+test('reject fabricated official turnover ratios even if snapshot digest matches',()=>{
+  const f=fixture();
+  f.snapshot.markets.TPEX.volume.rows[0][3] = 37;
+  assert.throws(()=>verifyV922Tpex(f.serialize()),/reported official turnover differs/);
 });
