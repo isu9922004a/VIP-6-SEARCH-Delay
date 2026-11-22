@@ -11,7 +11,7 @@ export const ENDPOINTS = Object.freeze({
   status: 'https://www.tpex.org.tw/openapi/v1/tpex_cmode'
 });
 export function verifyV922Tpex({ manifest, payload, market, calendar }) {
-  assert.equal(manifest?.schema, 'V922_TPEX_OFFICIAL_MANIFEST_V1');
+  assert.equal(manifest?.schema, 'V922_TPEX_OFFICIAL_MANIFEST_V2');
   assert.equal(manifest?.date, market?.tradeDateIso, 'market session mismatch');
   assert.equal(calendar?.verified, true, 'calendar unverified');
   assert.equal(calendar?.dates?.at(-1), manifest.date, 'calendar session mismatch');
@@ -22,9 +22,9 @@ export function verifyV922Tpex({ manifest, payload, market, calendar }) {
   assert.match(manifest.sha256, /^[a-f0-9]{64}$/);
   assert.equal(sha256(payload), manifest.sha256, 'snapshot bytes are tampered or truncated');
   const snapshot = JSON.parse(payload);
-  assert.equal(snapshot.schema, 'V922_TPEX_OFFICIAL_INPUTS_V1');
+  assert.equal(snapshot.schema, 'V922_TPEX_OFFICIAL_INPUTS_V2');
   assert.equal(snapshot.date, manifest.date);
-  assert.equal(snapshot.verification, 'OFFICIAL_DATE_FIELDS_COUNTS_AND_UNITS');
+  assert.equal(snapshot.verification, 'OFFICIAL_DATE_FIELDS_COUNTS_AND_UNITS_AND_ISSUED_TURNOVER');
   assert.equal(manifest.verification, snapshot.verification);
   const feeds = snapshot.markets?.TPEX;
   assert.deepEqual(Object.keys(feeds ?? {}).sort(), Object.keys(ENDPOINTS).sort());
@@ -51,9 +51,15 @@ export function verifyV922Tpex({ manifest, payload, market, calendar }) {
       assert.ok(!seen.has(code), key + ' duplicate code');
       seen.add(code);
       if (key !== 'status') {
-        assert.equal(row.length, key === 'volume' ? 2 : 3, key + ' wrong tuple width');
-        for (const count of row.slice(1)) {
+        assert.equal(row.length, key === 'volume' ? 4 : 3, key + ' wrong tuple width');
+        for (const count of row.slice(1, key === 'volume' ? 3 : undefined)) {
           assert.ok(Number.isSafeInteger(count) && count >= 0, key + ' invalid count');
+        }
+        if (key === 'volume') {
+          assert.ok(row[2] > 0 && Number.isFinite(row[3]) && row[3] >= 0,
+            'official issued shares or reported turnover invalid');
+          assert.ok(Math.abs(row[1] / row[2] * 100 - row[3]) <= 0.011,
+            'reported official turnover differs from exact share ratio');
         }
       }
     }
