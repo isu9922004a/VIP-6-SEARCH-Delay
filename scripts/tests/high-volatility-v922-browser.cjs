@@ -39,18 +39,18 @@ async function main() {
         rawResponseSha256: 'a'.repeat(64)
       });
       const streams = {
-        volume: feed('volume', codes.map(code => [code, 35000]), 'shares'),
+        volume: feed('volume', codes.map(code => [code, 35000, 100000, 35]), 'shares'),
         margin: feed('margin', codes.map(code => [code, 100, 31]), 'lots'),
         status: feed('status', [], null)
       };
       const data = {
-        schema: 'V922_TPEX_OFFICIAL_INPUTS_V1', date,
-        verification: 'OFFICIAL_DATE_FIELDS_COUNTS_AND_UNITS',
+        schema: 'V922_TPEX_OFFICIAL_INPUTS_V2', date,
+        verification: 'OFFICIAL_DATE_FIELDS_COUNTS_AND_UNITS_AND_ISSUED_TURNOVER',
         markets: { TPEX: streams }
       };
       const payload = JSON.stringify(data) + '\n';
       const manifest = {
-        schema: 'V922_TPEX_OFFICIAL_MANIFEST_V1', date, file: date + '.json',
+        schema: 'V922_TPEX_OFFICIAL_MANIFEST_V2', date, file: date + '.json',
         verification: data.verification,
         officialCalendarSource: 'https://www.twse.com.tw/exchangeReport/FMTQIK',
         completedMarketSnapshot: 'c'.repeat(64),
@@ -174,9 +174,9 @@ async function main() {
     await page.evaluate(() => closeInfographicPreviewV3328());
     const [file] = await Promise.all([page.waitForEvent('download'), page.locator('#structureText').click()]);
     await file.saveAs(path.join(out, 'report.txt'));
-    assert.match(fs.readFileSync(path.join(out, 'report.txt'), 'utf8'), /V9\.22[\s\S]*成交／流通在外普通股[\s\S]*融資餘額為 0/);
+    assert.match(fs.readFileSync(path.join(out, 'report.txt'), 'utf8'), /V9\.22[\s\S]*成交／周轉率分母[\s\S]*融資餘額為 0/);
 
-    inputs = { ...inputs, outstanding: { date: null, rows: [], error: '同日來源未設定' } };
+    inputs = { ...inputs, listedShares: { date: null, rows: [], error: '同日來源未設定' } };
     const unavailable = await scan();
     assert.equal(unavailable.qualified, 0);
     assert.match(await page.locator('#structureResult').innerText(), /全市場合格檔數未確認/);
