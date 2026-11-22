@@ -7,6 +7,11 @@ on:
     paths:
       - 'life-line-visual-v972.js'
       - 'life-line-visual-v98.js'
+      - 'life-line-visual-v913.js'
+      - 'life-risk-transparency-v916.js'
+      - 'heikin-ashi-life-v920.js'
+      - 'scripts/tests/v920-heikin-ashi.test.cjs'
+      - 'scripts/tests/life-v916-browser.cjs'
       - 'assets/shitou-character-original-v972.*'
       - 'version-v50.js'
       - 'index.html'

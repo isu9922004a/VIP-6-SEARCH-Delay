@@ -57,11 +57,11 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
  const volumeNote=volumeVerified?'集中市場成交股數已逐日核對，仍要看收盤位置。':'成交股數資料尚未確認。';
  const intelligence={...risk,volume:{...risk.volume,verified:volumeVerified,notice:volumeNote}};
  const mkVol=v=>finite(v)?Math.round(v).toLocaleString('en-US')+' 股':'資料不足';
- const RUNTIME_RELEASE=v916?(globalThis.ShitouReleaseV50?.displayCode||'V9.19'):RELEASE;
+ const RUNTIME_RELEASE=v916?(globalThis.ShitouReleaseV50?.displayCode||'V9.20'):RELEASE;
  const Transparency=v916?(typeof module==='object'&&module.exports?require('./life-risk-transparency-v916.js'):globalThis.ShitouTransparency916):null;
  if(v916&&!Transparency)throw Error('V9.16 風險透明化模組未載入，停止輸出');
- const extraPages=v916?Transparency.buildPage(Transparency.market(study,risk,obs),{document:doc}):[];
- const totalPages=2+extraPages.length;
+ const extraPages=v916?Transparency.buildPage(Transparency.market(study,risk,obs),{document:doc,additionalPages:1}):[];
+ const totalPages=2+extraPages.length+(v916?1:0); // Preserve legacy page counts and risk appendix.
  const draw=(canvas,pageno)=>{
   const ctx=canvas.getContext('2d');if(!ctx)throw Error('Canvas 2D 不可用');
   ctx.textBaseline='top';ctx.fillStyle=C.bg;ctx.fillRect(0,0,W,H);
@@ -269,7 +269,11 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
   const render=()=>{const canvas=doc.createElement('canvas');canvas.width=W;canvas.height=H;draw(canvas,i);Object.assign(canvas.dataset,dataset);return canvas;};
   return {width:W,height:H,title:i===1?'第 1 頁／大盤風險分析':'第 2 頁／生命線教學',filename,dataset,renderExportRegion:render,toBlob(callback,type='image/png',quality){const c=render();c.toBlob(blob=>{c.width=c.height=1;callback(blob);},type,quality);}};
  });
- return basePages.concat(extraPages);
+ if(!v916)return basePages.concat(extraPages);
+ const HA=typeof module==='object'&&module.exports?require('./heikin-ashi-life-v920.js'):globalThis.ShitouHeikinAshi920;
+ if(!HA?.page)throw Error('V9.20 神奇K線圖片模組缺失');
+ const haPage=HA.page(study,m,{document:doc,watermark,release:RUNTIME_RELEASE,pageNumber:totalPages,totalPages});
+ return basePages.concat(extraPages,[haPage]);
 }
 return Object.freeze({RELEASE,VERSION,ready,build,model:Legacy.model,textReport:Legacy.textReport});
 });
