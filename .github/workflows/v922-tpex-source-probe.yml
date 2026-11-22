@@ -1,0 +1,21 @@
+name: V9.22 official TPEx source egress diagnostic
+on:
+  push:
+    branches: ['probe/v922-tpex-source']
+    paths:
+      - 'scripts/probes/v922-tpex-source.mjs'
+      - '.github/workflows/v922-tpex-source-probe.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check official TPEx feed dates, fields and outbound connectivity
+        run: node scripts/probes/v922-tpex-source.mjs
