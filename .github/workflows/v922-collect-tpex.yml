@@ -28,6 +28,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Validate V9.22 Worker syntax and isolated live-route behavior
+        run: |
+          node --check market-worker.mjs
+          node --test scripts/tests/high-volatility-worker-v922.test.mjs
       - name: Verify producer input guards
         run: node --test scripts/tests/v922-tpex-collector.test.mjs
       - name: Fetch three dated official TPEx sources and build integrity manifest
