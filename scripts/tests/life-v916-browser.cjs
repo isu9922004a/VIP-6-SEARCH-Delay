@@ -11,7 +11,7 @@ const marketRisk=require('../../market-life-risk-v913').evaluate(market);
 const deps=['version-v50.js','tower-line-core.js','research-common-v1.js','research-life-source-audit-v932.js',
  'kline-life-03-core-v1.js','research-chart-layout-v921.js','kline-life-03-report-v1.js',
  'life-line-visual-v972.js','life-line-intelligence-v913.js','market-life-risk-v910.js','market-life-risk-v913.js',
- 'life-risk-transparency-v916.js','life-line-visual-v913.js','market-life-visual-v913.js'];
+ 'life-risk-transparency-v916.js','heikin-ashi-life-v920.js','life-line-visual-v913.js','market-life-visual-v913.js'];
 fs.mkdirSync(out,{recursive:true});
 (async()=>{
  const browser=await chromium.launch({executablePath:process.env.CHROME_BIN||'/usr/bin/chromium',headless:true,args:['--no-sandbox']});
@@ -34,7 +34,7 @@ fs.mkdirSync(out,{recursive:true});
      return {index:i+1,width:item.width,height:item.height,audit,filename:item.filename,png:rendered.toDataURL('image/png').split(',')[1]};
     });
    },{type,study,source:raw,marketRisk});
-   assert.ok(pages.length>=3,type+' needs transparent V9.16 appendix');
+   assert.equal(pages.length,4,type+' must preserve V9.16 appendix and add V9.20 HA page');
    assert.equal(pages[0].audit.release,require('../../version-v50.js').displayCode);
    assert.equal(pages[1].audit.release,require('../../version-v50.js').displayCode);
    for(const p of pages){
@@ -45,12 +45,13 @@ fs.mkdirSync(out,{recursive:true});
     assert.equal(bin.readUInt32BE(16),1284);assert.equal(bin.readUInt32BE(20),2778);
     assert.ok(bin.length>15000,'PNG image must be real: '+file);
     fs.writeFileSync(path.join(out,file),bin);
-    if(p.index>=3){
+    if(p.index===3){
      assert.equal(p.audit.release,require('../../version-v50.js').displayCode);
      assert.equal(p.audit.explanationStatus,'VERIFIED_FROM_CORE');
      assert.ok(p.audit.sections.length>0);
      assert.ok(p.audit.sections.some(x=>x.title.includes('為什麼')||x.title.includes('風險')));
     }
+    if(p.index===4){assert.equal(p.audit.pageType,'HEIKIN_ASHI_APPENDIX');assert.equal(p.audit.affectsRanking,false);assert.ok(p.audit.signalText);}
     records.push({type,page:p.index,date:study.date,width:p.width,height:p.height,file,bytes:bin.length});
    }
    const first=pages[0];
