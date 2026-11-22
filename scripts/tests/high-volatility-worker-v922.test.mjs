@@ -71,3 +71,29 @@ test('Worker projects only official same-day volume, current balance and status 
   assert.match(unconfigured.outstanding.error, /尚未設定/);
   assert.equal((await Worker.fetch(new Request(url.replace(date, '2026-02-30')), env)).status, 400);
 });
+
+test('TPEx redirects fail closed without burning the full Worker subrequest budget', async t => {
+  const requests = [];
+  t.mock.method(globalThis, 'fetch', async (address, options) => {
+    requests.push({ url: String(address), redirect: options?.redirect });
+    if (String(address).startsWith('https://www.tpex.org.tw/')) {
+      return new Response(null, {
+        status: 302,
+        headers: { Location: 'https://www.tpex.org.tw/errors' }
+      });
+    }
+    return Response.json({ stat: 'UNAVAILABLE', date: compact });
+  });
+  const response = await Worker.fetch(new Request(url), {});
+  assert.equal(response.status, 200);
+  const result = await response.json();
+  const tpexRequests = requests.filter(row => row.url.startsWith('https://www.tpex.org.tw/'));
+  assert.equal(tpexRequests.length, 3, 'each of three TPEx feeds makes exactly one attempt');
+  assert.ok(tpexRequests.every(row => row.redirect === 'manual'));
+  for (const feed of Object.values(result.markets.TPEX)) {
+    assert.equal(feed.date, null);
+    assert.deepEqual(feed.rows, []);
+    assert.match(feed.error, /TPEx 官方來源回傳 HTTP 302 重新導向/);
+  }
+  assert.match(result.outstanding.error, /尚未設定/);
+});
