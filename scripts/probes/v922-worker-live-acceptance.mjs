@@ -41,3 +41,35 @@ if(!report.complete){
   console.log('V922_LIVE_WORKER_NOT_VERIFIED: all seven sources must pass before accepting Top 8');
   if(process.argv.includes('--require-ready')) process.exitCode=1;
 } else console.log('V922_LIVE_WORKER_7_SOURCES_READY_FOR_MANUAL_OFFICIAL_COMPARISON');
+
+const publicSite='https://isu9922004a.github.io/VIP-6-SEARCH-Delay/';
+const check=async path=>{
+  const url=publicSite+path;
+  try{
+    const reply=await fetch(url,{redirect:'manual',signal:AbortSignal.timeout(16000),headers:{'Cache-Control':'no-cache'}});
+    const body=reply.status===200?await reply.text():'';
+    return { status:reply.status,body };
+  }catch(error){return{status:null,body:'',error:error.message};}
+};
+const [manifestReply,uiReply,coreReply]=await Promise.all([
+  check('data/high-volatility/tpex/manifest.json'),
+  check('high-volatility-ui-v922.js'),
+  check('high-volatility-v922.js')
+]);
+let parsed=null;
+try{parsed=JSON.parse(manifestReply.body);}catch{}
+console.log('V922_LIVE_PAGES_PUBLISH_CHECK '+JSON.stringify({
+  date,
+  manifestStatus:manifestReply.status,
+  manifestSchema:parsed?.schema??null,
+  manifestDate:parsed?.date??null,
+  uiStatus:uiReply.status,
+  uiVerifiedV2Recovery:uiReply.body.includes('V922_TPEX_OFFICIAL_MANIFEST_V2') &&
+    uiReply.body.includes('上櫃官方同日快照校驗'),
+  coreStatus:coreReply.status,
+  coreOfficialDenominator:coreReply.body.includes('OFFICIAL_TWSE_LISTED_SHARES') &&
+    coreReply.body.includes('TPEx 發行股數'),
+  liveWorkerTwseListedPresent:Object.hasOwn(data,'listedShares'),
+  liveWorkerTwseListedVerified:data.listedShares?.date===date &&
+    data.listedShares?.scope==='OFFICIAL_TWSE_LISTED_SHARES'
+}));
