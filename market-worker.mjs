@@ -595,6 +595,10 @@ async function handleHighVolatilityInputs(url, corsHeaders, env) {
   };
   const ordinary = code => /^[1-9]\d{3}$/.test(String(code));
   const flagged = value => /^(Y|YES|TRUE|1|是)$/i.test(String(value ?? "").normalize("NFKC").trim());
+  // V9.22 optional verified GitHub Pages receipt. The three direct TPEx URLs
+  // remain as fail-closed fallbacks until the published source is configured.
+  const tpexSnapshot = env?.HIGH_VOLATILITY_TPEX_SNAPSHOT_BASE_URL
+    ? loadV922TpexSnapshot(env.HIGH_VOLATILITY_TPEX_SNAPSHOT_BASE_URL, date) : null;
   const [listedQuotes, listedMargin, listedStatus, otcQuotes, otcMargin, otcStatus, outstanding] =
     await Promise.all([
       read(twseQuotes, raw => {
@@ -612,14 +616,14 @@ async function handleHighVolatilityInputs(url, corsHeaders, env) {
         .data.filter(row => ordinary(row[0])).map(row => row[0])),
       // The exchange reports total traded shares here. Its Capitalization field
       // is issued shares and must never be used as the outstanding denominator.
-      read(tpex + "tpex_daily_turnover", raw => tpexReport(raw, ["SecuritiesCompanyCode", "TradingShares"])
+      tpexSnapshot ? tpexSnapshot.then(x => x.volume) : read(tpex + "tpex_daily_turnover", raw => tpexReport(raw, ["SecuritiesCompanyCode", "TradingShares"])
         .filter(row => ordinary(row.SecuritiesCompanyCode))
         .map(row => [row.SecuritiesCompanyCode, row.TradingShares]), { stopOnRedirect: true }),
-      read(tpex + "tpex_mainboard_margin_balance", raw => tpexReport(raw,
+      tpexSnapshot ? tpexSnapshot.then(x => x.margin) : read(tpex + "tpex_mainboard_margin_balance", raw => tpexReport(raw,
         ["SecuritiesCompanyCode", "MarginPurchaseBalance", "ShortSaleBalance"])
         .filter(row => ordinary(row.SecuritiesCompanyCode))
         .map(row => [row.SecuritiesCompanyCode, row.MarginPurchaseBalance, row.ShortSaleBalance]), { stopOnRedirect: true }),
-      read(tpex + "tpex_cmode", raw => tpexReport(raw,
+      tpexSnapshot ? tpexSnapshot.then(x => x.status) : read(tpex + "tpex_cmode", raw => tpexReport(raw,
         ["SecuritiesCompanyCode", "AlteredTrading", "ManagedStock", "SuspensionOfTrading"])
         .filter(row => ordinary(row.SecuritiesCompanyCode) &&
           [row.AlteredTrading, row.ManagedStock, row.SuspensionOfTrading].some(flagged))
@@ -634,6 +638,79 @@ async function handleHighVolatilityInputs(url, corsHeaders, env) {
     },
     outstanding
   }, 200, corsHeaders);
+}
+
+
+async function loadV922TpexSnapshot(baseUrl, date) {
+  const errorFeeds = message => Object.fromEntries(['volume', 'margin', 'status'].map(name =>
+    [name, { source: String(baseUrl), date: null, rows: [], error: message }]));
+  try {
+    const approved = 'https://isu9922004a.github.io/VIP-6-SEARCH-Delay/data/high-volatility/tpex/';
+    const base = new URL(String(baseUrl).replace(/\/?$/, '/'));
+    if (base.href !== approved) throw Error('未核准的上櫃快照網址');
+    const get = async file => {
+      const response = await fetch(new URL(file, base).href, {
+        redirect: 'manual', signal: AbortSignal.timeout(12000)
+      });
+      if (response.status !== 200) throw Error('上櫃快照 HTTP ' + response.status);
+      return response.text();
+    };
+    const manifest = JSON.parse(await get('manifest.json'));
+    if (manifest?.schema !== 'V922_TPEX_OFFICIAL_MANIFEST_V1' ||
+        manifest.date !== date || manifest.file !== date + '.json' ||
+        manifest.verification !== 'OFFICIAL_DATE_FIELDS_COUNTS_AND_UNITS' ||
+        manifest.officialCalendarSource !== 'https://www.twse.com.tw/exchangeReport/FMTQIK' ||
+        !/^[0-9a-f]{64}$/.test(manifest.sha256 || '') ||
+        !/^[0-9a-f]{64}$/.test(manifest.completedMarketSnapshot || '')) {
+      throw Error('上櫃快照日期或清冊未驗證');
+    }
+    const raw = await get(manifest.file);
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
+    const hash = Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, '0')).join('');
+    if (hash !== manifest.sha256) throw Error('上櫃快照內容與 SHA-256 收據不符');
+    const snapshot = JSON.parse(raw);
+    if (snapshot.schema !== 'V922_TPEX_OFFICIAL_INPUTS_V1' ||
+        snapshot.date !== date || snapshot.verification !== manifest.verification) {
+      throw Error('上櫃快照內容日期或驗證契約不一致');
+    }
+    const endpoints = {
+      volume: 'https://www.tpex.org.tw/openapi/v1/tpex_daily_turnover',
+      margin: 'https://www.tpex.org.tw/openapi/v1/tpex_mainboard_margin_balance',
+      status: 'https://www.tpex.org.tw/openapi/v1/tpex_cmode'
+    };
+    const outputs = {};
+    for (const [key, source] of Object.entries(endpoints)) {
+      const feed = snapshot.markets?.TPEX?.[key], meta = manifest.sources?.[key];
+      const rows = feed?.rows;
+      const unit = key === 'volume' ? 'shares' : key === 'margin' ? 'lots' : undefined;
+      if (feed?.date !== date || feed.source !== source || meta?.url !== source ||
+          feed.unit !== unit || meta.unit !== (unit ?? null) ||
+          !/^[0-9a-f]{64}$/.test(feed.rawResponseSha256 || '') ||
+          feed.rawResponseSha256 !== meta.sha256 || feed.invalidNumbers !== 0 ||
+          !Array.isArray(rows) || !Number.isInteger(feed.sourceRecords) ||
+          feed.sourceRecords < rows.length || feed.ordinaryRows !== rows.length ||
+          meta.ordinaryRows !== rows.length || meta.records !== feed.sourceRecords ||
+          (key !== 'status' && rows.length < 500)) {
+        throw Error('上櫃 ' + key + ' 來源、數值或覆蓋率未驗證');
+      }
+      const seen = new Set();
+      for (const row of rows) {
+        const code = key === 'status' ? row : row?.[0];
+        if (!/^[1-9]\d{3}$/.test(String(code)) || seen.has(code)) {
+          throw Error('上櫃 ' + key + ' 股票代號無效或重複');
+        }
+        seen.add(code);
+        if (key !== 'status' && (row.length !== (key === 'volume' ? 2 : 3) ||
+            !row.slice(1).every(v => Number.isSafeInteger(v) && v >= 0))) {
+          throw Error('上櫃 ' + key + ' 股數格式不正確');
+        }
+      }
+      outputs[key] = { source, date, rows, ...(unit ? { unit } : {}) };
+    }
+    return outputs;
+  } catch (error) {
+    return errorFeeds(error.message || String(error));
+  }
 }
 
 async function readHighVolatilityOutstanding(env, date) {
