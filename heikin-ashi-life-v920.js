@@ -8,7 +8,7 @@
   else root.ShitouHeikinAshi920=api;
 })(globalThis,function(){
 'use strict';
-const VERSION='HEIKIN_ASHI_LIFE_V920',W=1284,H=2778;
+const VERSION='HEIKIN_ASHI_LIFE_V921',W=1284,H=2778;
 const C={bg:'#071C2D',card:'#0A2D43',card2:'#10364D',ink:'#F3F7FF',muted:'#C2D7E5',mint:'#81F1D0',gold:'#FFE365',orange:'#FFB444',red:'#FF5975',green:'#3CDBB6',line:'#71CFFF'};
 const finite=v=>typeof v==='number'&&Number.isFinite(v);
 function calculate(input){
@@ -38,8 +38,8 @@ function classify(series){
  const consecutive=color=>{let n=0;for(let i=series.length-1;i>=0&&series[i].color===color;i--)n++;return n;};
  const reds=consecutive('紅K'),greens=consecutive('綠K');
  const base=(recent.reduce((sum,x)=>sum+x.body,0)/3)||0;
- if(greens>=2&&a.noUpperWick&&a.body>=base*0.65)return {code:'BEAR_STRENGTH',label:'空方持續強勢',description:'連續綠K且上影線短，賣方目前比較有力；先留意真實價格的風險。',count:greens};
- if(reds>=2&&a.noLowerWick&&a.body>=base*0.80&&!(a.body<b.body*0.75))return {code:'BULL_STRENGTH',label:'多方持續強勢',description:'連續紅K且下影線短，上漲趨勢仍在；但不代表現在適合追價。',count:reds};
+ if(greens>=2&&a.noUpperWick&&a.body>=base*0.65)return {code:'BEAR_STRENGTH',label:'賣方比較有力，尚未確認止跌',description:'連續綠K且上影線短，短線仍有下跌風險；不代表明天一定下跌。',count:greens};
+ if(reds>=2&&a.noLowerWick&&a.body>=base*0.80&&!(a.body<b.body*0.75))return {code:'BULL_STRENGTH',label:'買方比較有力，但不代表適合追價',description:'連續紅K且下影線短，買方目前較有力；仍須確認真實股價與風險。',count:reds};
  if(reds>=2&&(a.body<b.body*0.75||a.lowerWick>Math.max(a.body*0.65,base*0.4)))return {code:'BULL_WEAKENING',label:'多方力道減弱',description:'雖然還是紅K，但實體縮短或影線變長；可能開始震盪，先不要追高。',count:reds};
  return {code:'UNCERTAIN',label:'多空方向不明',description:'紅綠與影線沒有形成明確連續訊號，等待下一根完成日K再判斷。',count:reds||greens};
 }
@@ -56,9 +56,13 @@ function read(study,model){
  else alignment='訊號尚未一致；不要硬判斷方向，等待更多完成日K。';
  if(/SUPPORT|BULL/.test(trend)&&signal.code==='BEAR_STRENGTH')alignment='生命線仍有偏多訊號，但神奇K線已偏空：兩者不一致，先降低追價衝動。';
  if(/RESISTANCE|BEAR/.test(trend)&&signal.code==='BULL_STRENGTH')alignment='生命線仍有壓力，但神奇K線轉強：兩者不一致，先看真實收盤能否突破。';
- return {series,signal,alignment,code:model.code,name:model.name,date:model.date,realClose:model.close,market:study?.instrumentType==='TAIEX'||model.code==='TAIEX'};
+ const completed=bars.filter(x=>Number.isFinite(x.close)&&Number.isFinite(x.high)&&Number.isFinite(x.low));
+ const ma5=completed.length>=5?completed.slice(-5).reduce((sum,x)=>sum+x.close,0)/5:null;
+ const prior=completed.slice(-21,-1),support=prior.length>=5?Math.min(...prior.map(x=>x.low)):null,resistance=prior.length>=5?Math.max(...prior.map(x=>x.high)):null;
+ const risk='真實股價是否守住5日均價及最近20根已完成日K的低點，仍須搭配生命線確認。';
+ return {series,signal,alignment,risk,ma5,support,resistance,code:model.code,name:model.name,date:model.date,realClose:model.close,market:study?.instrumentType==='TAIEX'||model.code==='TAIEX'};
 }
-function page(study,model,{document:doc=globalThis.document,watermark=false,release='V9.20',pageNumber=4,totalPages=4}={}){
+function page(study,model,{document:doc=globalThis.document,watermark=false,release='V9.21',pageNumber=4,totalPages=4}={}){
  if(!doc?.createElement)throw Error('缺少瀏覽器畫布，無法產生神奇K線圖片');
  const data=read(study,model),unit=data.market?'點':'元',last=data.series.at(-1);
  const audit={version:VERSION,release,page:pageNumber,pages:totalPages,code:data.code,date:data.date,close:data.realClose,pageType:'HEIKIN_ASHI_APPENDIX',model:{code:data.code,date:data.date,close:data.realClose},signal:data.signal.code,signalText:data.signal.label,realPriceOnly:true,researchOnly:true,affectsEligibility:false,affectsRanking:false,automaticTrade:false,chartBarDates:data.series.slice(-30).map(x=>x.date),source:'VERIFIED_LIFELINE_COMPLETED_OHLC'};
@@ -91,7 +95,8 @@ function page(study,model,{document:doc=globalThis.document,watermark=false,rele
   wrap('生命線幫你看方向；神奇K線幫你看上漲或下跌的力道。它不是預言明天一定漲跌。',45,275,1162,34,C.ink,2);
   card(20,382,1244,796);
   txt('神奇K線｜最近30根完成日K',43,405,1180,42,C.mint,800);
-  const chart=data.series.slice(-30),x0=82,y0=501,cw=1119,ch=580;
+  txt('紅K：買方較有力  ｜  綠K：賣方較有力（合成K線，非真實漲跌）',48,460,1170,27,C.muted,600);
+  const chart=data.series.slice(-30),x0=82,y0=535,cw=1119,ch=540;
   if(chart.length<5)wrap('完成日K數量不足，暫不顯示趨勢結論。',90,705,1060,40,C.orange,3);
   else{
    const hi=Math.max(...chart.map(x=>x.high)),lo=Math.min(...chart.map(x=>x.low)),span=Math.max(hi-lo,hi*0.001),scale=v=>y0+ch-((v-lo)/span)*ch;
@@ -113,18 +118,20 @@ function page(study,model,{document:doc=globalThis.document,watermark=false,rele
   card(20,1596,1244,400,C.line);
   txt('怎麼搭配生命線？',43,1624,1150,42,C.mint,800);
   wrap(data.alignment,44,1716,1155,39,C.ink,4);
-  txt('真實收盤：'+(Number.isFinite(data.realClose)?data.realClose.toFixed(2):'資料不足')+' '+unit,44,1910,1165,35,C.gold,730);
+  const fmt=v=>Number.isFinite(v)?v.toFixed(2)+' '+unit:'資料不足';
+  txt('真實收盤：'+fmt(data.realClose)+' ｜ 5日均價：'+fmt(data.ma5),44,1844,1165,31,C.gold,730);
+  txt('近20日參考低點：'+fmt(data.support)+' ｜ 參考高點：'+fmt(data.resistance),44,1910,1165,30,C.gold,700);
   card(20,2020,1244,530,C.line);
   txt('新手下一步怎麼看？',43,2053,1162,43,C.mint,800);
   const notes=[
-   '① 先看生命線：現在方向往上、往下，還是整理？',
-   '② 再看神奇K線：連續紅K、綠K，還是開始縮短？',
-   '③ 最後看真實股價：有沒有守住5日均價或重要支撐？',
-   '④ 訊號不一致時先觀察，不要用猜的追高殺低。'
+   '① 尚未持有：先觀察是否止跌，不因跌深就急著進場。',
+   '② 已經持有：留意真實股價與預先設定的風險界線。',
+   '③ 等待轉強：觀察神奇K線轉紅及生命線是否改善。',
+   '④ 訊號不一致：先觀察；單根轉紅不等於確認反轉。'
   ];
   notes.forEach((s,i)=>wrap(s,46,2151+i*85,1164,33,C.ink,2));
   divider(2595);
-  wrap('提醒：神奇K線使用平均後的合成價格，不能當作實際成交價、停損價或投資績效保證。研究參考，非買賣指令。',39,2630,1190,28,C.muted,3);
+  wrap('提醒：神奇K線使用合成價格且可能延遲；近20日高低點是歷史參考，不保證支撐或壓力有效。研究參考，非買賣指令。',39,2630,1190,28,C.muted,3);
   if(watermark&&globalThis.ShitouReportWatermark)globalThis.ShitouReportWatermark.apply(canvas);
   Object.assign(canvas.dataset,dataset);
   return canvas;
