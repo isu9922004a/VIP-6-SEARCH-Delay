@@ -34,6 +34,90 @@
     }
   }
 
+
+  // Recover only V9.22's broken TPEx feeds from the same-origin, verified
+  // GitHub Pages receipt. Never alter TWSE/outstanding or relax either gate.
+  async function recoverOfficialTpex(inputs, date, signal) {
+    const names = ['volume', 'margin', 'status'];
+    const original = inputs?.markets?.TPEX;
+    const valid = key => {
+      const f = original?.[key];
+      return f?.date === date && !f.error && Array.isArray(f.rows) &&
+        (key === 'status' || f.rows.length > 0);
+    };
+    if (names.every(valid)) return { inputs, attempted: false };
+    const base = new URL('data/high-volatility/tpex/', document.baseURI);
+    const endpoints = {
+      volume: 'https://www.tpex.org.tw/openapi/v1/tpex_daily_turnover',
+      margin: 'https://www.tpex.org.tw/openapi/v1/tpex_mainboard_margin_balance',
+      status: 'https://www.tpex.org.tw/openapi/v1/tpex_cmode'
+    };
+    const get = async file => {
+      const response = await fetch(new URL(file, base), {
+        signal, cache: 'no-store', redirect: 'error'
+      });
+      if (!response.ok) throw Error('官方快照 HTTP ' + response.status);
+      return response;
+    };
+    try {
+      const manifest = await (await get('manifest.json')).json();
+      if (manifest?.schema !== 'V922_TPEX_OFFICIAL_MANIFEST_V1' ||
+          manifest.date !== date || manifest.file !== date + '.json' ||
+          manifest.verification !== 'OFFICIAL_DATE_FIELDS_COUNTS_AND_UNITS' ||
+          manifest.officialCalendarSource !== 'https://www.twse.com.tw/exchangeReport/FMTQIK' ||
+          !/^[0-9a-f]{64}$/.test(manifest.sha256 || '') ||
+          !/^[0-9a-f]{64}$/.test(manifest.completedMarketSnapshot || '')) {
+        throw Error('官方快照清冊日期或來源未核實');
+      }
+      const raw = await (await get(manifest.file)).text();
+      const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
+      const hash = Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, '0')).join('');
+      if (hash !== manifest.sha256) throw Error('官方快照 SHA-256 不相符');
+      const content = JSON.parse(raw);
+      if (content.schema !== 'V922_TPEX_OFFICIAL_INPUTS_V1' ||
+          content.date !== date || content.verification !== manifest.verification) {
+        throw Error('官方快照內容與交易日不一致');
+      }
+      const tpex = {};
+      for (const [key, source] of Object.entries(endpoints)) {
+        const feed = content.markets?.TPEX?.[key], receipt = manifest.sources?.[key];
+        const unit = key === 'volume' ? 'shares' : key === 'margin' ? 'lots' : undefined;
+        const rows = feed?.rows;
+        if (feed?.date !== date || feed.source !== source ||
+            receipt?.url !== source || feed.unit !== unit ||
+            receipt.unit !== (unit ?? null) ||
+            !/^[0-9a-f]{64}$/.test(feed.rawResponseSha256 || '') ||
+            feed.rawResponseSha256 !== receipt.sha256 || feed.invalidNumbers !== 0 ||
+            !Array.isArray(rows) || !Number.isInteger(feed.sourceRecords) ||
+            feed.sourceRecords < rows.length || feed.ordinaryRows !== rows.length ||
+            receipt.ordinaryRows !== rows.length || receipt.records !== feed.sourceRecords ||
+            (key !== 'status' && rows.length < 500)) {
+          throw Error('上櫃 ' + key + ' 資料筆數、來源或單位不符');
+        }
+        const seen = new Set();
+        for (const row of rows) {
+          const code = key === 'status' ? row : row?.[0];
+          if (!/^[1-9]\d{3}$/.test(String(code)) || seen.has(code)) {
+            throw Error('上櫃 ' + key + ' 股票代號無效或重複');
+          }
+          seen.add(code);
+          if (key !== 'status' && (row.length !== (key === 'volume' ? 2 : 3) ||
+              !row.slice(1).every(n => Number.isSafeInteger(n) && n >= 0))) {
+            throw Error('上櫃 ' + key + ' 股數格式未核實');
+          }
+        }
+        tpex[key] = { source, date, rows, ...(unit ? { unit } : {}) };
+      }
+      return { attempted: true, recovered: true, source: new URL(manifest.file, base).href,
+        inputs: { ...inputs, markets: { ...inputs.markets, TPEX: tpex } } };
+    } catch (error) {
+      if (signal.aborted) throw error;
+      // Keep original error states. Never manufacture official rows or zero candidates.
+      return { attempted: true, recovered: false, inputs,
+        source: base.href, error: error.message || String(error) };
+    }
+  }
+
   function progress(done, total, label = '') {
     const value = total ? Math.round(done / total * 100) : 0;
     by('Progress').value = value;
@@ -116,7 +200,12 @@
       const stocks = snapshot.rows.map(row => ({ ...row, quoteDate: root.ShitouScanPolicy5328.date(row.quoteDate) }));
       message('核對 ' + date + ' 官方成交股數、融資融券與流通在外普通股數…');
       const inputs = await request({ market: 'HIGH_VOLATILITY_INPUTS', date }, signal);
-      const result = await C.scan(stocks, snapshot.meta, inputs, date, { signal, onProgress: progress });
+      const recovery = await recoverOfficialTpex(inputs, date, signal);
+      const result = await C.scan(stocks, snapshot.meta, recovery.inputs, date, { signal, onProgress: progress });
+      if (recovery.attempted) result.sources.push({
+        label: '上櫃官方同日快照校驗', date: recovery.recovered ? date : null,
+        source: recovery.source, error: recovery.recovered ? null : recovery.error
+      });
       render(result);
       message((result.stopped ? '已停止｜' : '掃描完成｜') + C.summary(result));
     } catch (error) {
