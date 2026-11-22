@@ -61,13 +61,22 @@ async function published(p){
     }
     return out;
    });
-   // Active reports retain both original life-line pages and a verified risk appendix.
-   assert.ok(pages.length>=3,code+' requires original two pages and risk explanation');
+   // V9.20 retains the original two pages, at least one risk appendix and one separate Heikin-Ashi page.
+   assert.ok(pages.length>=4,code+' requires original life pages, risk explanation and Heikin-Ashi');
+   let riskPages=0,heikinPages=0;
    for(const [index,p] of pages.entries()){
     if(index<2){
      assert.equal(p.audit.model.code,code);assert.equal(p.audit.model.date,manifest.date);
      assert.equal(p.audit.model.close,raw.close);
+    }else if(p.audit.pageType==='HEIKIN_ASHI_APPENDIX'){
+     heikinPages++;
+     assert.equal(index,pages.length-1,code+' Heikin-Ashi must be the final page');
+     assert.equal(p.audit.model.code,code);assert.equal(p.audit.model.date,manifest.date);
+     assert.equal(p.audit.model.close,raw.close);assert.equal(p.audit.researchOnly,true);
+     assert.equal(p.audit.source,'VERIFIED_LIFELINE_COMPLETED_OHLC');
+     assert.ok(p.audit.signal,code+' Heikin-Ashi must include the computed signal');
     }else{
+     riskPages++;
      assert.equal(p.audit.code,code);assert.equal(p.audit.date,manifest.date);
      assert.equal(p.audit.close,raw.close);assert.equal(p.audit.researchOnly,true);
      assert.ok(p.audit.explanationStatus,code+' risk appendix must have audit status');
@@ -76,6 +85,8 @@ async function published(p){
     assert.ok(p.bytes>15000);assert.equal(p.audit.affectsEligibility,false);
     assert.equal(p.audit.affectsRanking,false);
    }
+   assert.ok(riskPages>=1,code+' must retain a risk appendix');
+   assert.equal(heikinPages,1,code+' must have exactly one Heikin-Ashi appendix');
    rows.push({code,date:manifest.date,close:raw.close,pages:pages.length,status:'PASS'});
    await page.evaluate(()=>closeInfographicPreviewV3328());
   }
