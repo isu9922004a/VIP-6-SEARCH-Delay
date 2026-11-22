@@ -58,12 +58,12 @@ function read(study,model){
  if(/RESISTANCE|BEAR/.test(trend)&&signal.code==='BULL_STRENGTH')alignment='生命線仍有壓力，但神奇K線轉強：兩者不一致，先看真實收盤能否突破。';
  return {series,signal,alignment,code:model.code,name:model.name,date:model.date,realClose:model.close,market:study?.instrumentType==='TAIEX'||model.code==='TAIEX'};
 }
-function page(study,model,{document:doc=globalThis.document,watermark=false,release='V9.20'}={}){
+function page(study,model,{document:doc=globalThis.document,watermark=false,release='V9.20',pageNumber=4,totalPages=4}={}){
  if(!doc?.createElement)throw Error('缺少瀏覽器畫布，無法產生神奇K線圖片');
  const data=read(study,model),unit=data.market?'點':'元',last=data.series.at(-1);
- const audit={version:VERSION,release,code:data.code,date:data.date,close:data.realClose,pageType:'HEIKIN_ASHI_APPENDIX',model:{code:data.code,date:data.date,close:data.realClose},signal:data.signal.code,signalText:data.signal.label,realPriceOnly:true,researchOnly:true,affectsEligibility:false,affectsRanking:false,automaticTrade:false,chartBarDates:data.series.slice(-30).map(x=>x.date),source:'VERIFIED_LIFELINE_COMPLETED_OHLC'};
+ const audit={version:VERSION,release,page:pageNumber,pages:totalPages,code:data.code,date:data.date,close:data.realClose,pageType:'HEIKIN_ASHI_APPENDIX',model:{code:data.code,date:data.date,close:data.realClose},signal:data.signal.code,signalText:data.signal.label,realPriceOnly:true,researchOnly:true,affectsEligibility:false,affectsRanking:false,automaticTrade:false,chartBarDates:data.series.slice(-30).map(x=>x.date),source:'VERIFIED_LIFELINE_COMPLETED_OHLC'};
  const code=String(data.code||'未確認').replace(/[^A-Za-z0-9_-]/g,''),date=String(data.date||'').replaceAll('-','');
- const filename='石頭少爺_'+release+'_'+code+'_'+date+'_神奇K線白話解讀.png';
+ const filename='石頭少爺_'+release+'_'+code+'_'+date+'_P'+String(pageNumber).padStart(2,'0')+'_神奇K線白話解讀.png';
  function paint(){
   const canvas=doc.createElement('canvas');canvas.width=W;canvas.height=H;
   const ctx=canvas.getContext('2d');if(!ctx)throw Error('神奇K線畫布不可用');
@@ -85,6 +85,7 @@ function page(study,model,{document:doc=globalThis.document,watermark=false,rele
   function divider(y){ctx.strokeStyle='#28506B';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(40,y);ctx.lineTo(1244,y);ctx.stroke();}
   txt('石頭少爺 '+release+'｜神奇K線白話解讀',34,32,1216,52,C.gold,820);
   txt((data.market?'台灣加權指數':'個股 '+(data.name||data.code)+'（'+data.code+'）')+'｜資料日 '+data.date,38,118,1190,34,C.ink,690);
+  txt('第 '+pageNumber+' / '+totalPages+' 頁',1018,164,234,27,C.muted,650);
   card(20,196,1244,166,C.gold);
   txt('這頁是幹嘛的？',45,216,1140,42,C.mint,800);
   wrap('生命線幫你看方向；神奇K線幫你看上漲或下跌的力道。它不是預言明天一定漲跌。',45,275,1162,34,C.ink,2);
