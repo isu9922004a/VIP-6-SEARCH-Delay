@@ -32,6 +32,8 @@ jobs:
         run: node --test scripts/tests/v922-tpex-collector.test.mjs
       - name: Fetch three dated official TPEx sources and build integrity manifest
         run: node scripts/collect-tpex-v922.mjs
+      - name: Require digest, session, coverage, units and source provenance
+        run: node scripts/verify-tpex-v922.mjs
       - name: Preserve verified receipt independently of publishing
         uses: actions/upload-artifact@v4
         with:
@@ -51,7 +53,7 @@ jobs:
           git commit -m 'data(v9.22): verified TPEx daily source receipt'
           for attempt in 1 2 3; do
             git pull --rebase origin main
-            node scripts/tests/v922-tpex-collector.test.mjs
+            node scripts/verify-tpex-v922.mjs
             if git push origin HEAD:main; then exit 0; fi
           done
           exit 1
