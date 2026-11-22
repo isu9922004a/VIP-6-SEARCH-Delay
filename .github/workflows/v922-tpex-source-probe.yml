@@ -18,4 +18,12 @@ jobs:
         with:
           node-version: '24'
       - name: Check official TPEx feed dates, fields and outbound connectivity
-        run: node scripts/probes/v922-tpex-source.mjs
+        run: node scripts/probes/v922-tpex-source.mjs --out "$RUNNER_TEMP/tpex-verified"
+      - name: Save dated source evidence (non-production only)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v922-tpex-official-probe-2026-11-20
+          path: ${{ runner.temp }}/tpex-verified/
+          if-no-files-found: error
+          retention-days: 7
