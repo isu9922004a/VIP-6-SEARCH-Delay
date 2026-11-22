@@ -131,6 +131,28 @@ async function main() {
     assert.match(await page.locator('#structureResult').textContent(), /上櫃官方同日快照校驗/);
     const otcRecovered = await page.evaluate(() => ShitouHighVolatilityUI.getLast().rows.find(x => x.code === '1240'));
     assert.equal(otcRecovered.status, 'QUALIFIED');
+
+    // A non-timeout old Cloudflare response is still unusable without the
+    // denominator: [code, tradedShares] must trigger the same verified fallback.
+    const timedOutInputs = inputs;
+    inputs = {
+      ...originalInputs,
+      markets: {
+        ...originalInputs.markets,
+        TPEX: {
+          ...originalInputs.markets.TPEX,
+          volume: {
+            ...originalInputs.markets.TPEX.volume,
+            rows: originalInputs.markets.TPEX.volume.rows.map(row => row.slice(0, 2))
+          }
+        }
+      }
+    };
+    const twoColumnRecovery = await scan();
+    assert.deepEqual(twoColumnRecovery, { qualified: 9, top8: 8, missing: 6 });
+    assert.match(await page.locator('#structureResult').textContent(), /上櫃官方同日快照校驗/);
+    inputs = timedOutInputs;
+
     // A tampered receipt must fail closed and must not restore the OTC candidate.
     snapshotReceipt.manifest.sha256 = 'f'.repeat(64);
     const tampered = await scan();
