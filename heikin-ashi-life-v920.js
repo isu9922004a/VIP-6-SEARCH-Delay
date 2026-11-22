@@ -131,5 +131,34 @@ function page(study,model,{document:doc=globalThis.document,watermark=false,rele
  const dataset={life94Audit:JSON.stringify(audit),life98Audit:JSON.stringify(audit),marketLifeAudit:JSON.stringify(audit),heikinAshiAudit:JSON.stringify(audit),fullBleed:'true',shareAsSingleImage:'true',filename};
  return {width:W,height:H,title:'第二區｜神奇K線白話解讀',filename,dataset,audit,renderExportRegion:paint,toBlob(cb,type='image/png',quality){const c=paint();c.toBlob(blob=>{c.width=c.height=1;cb(blob);},type,quality);}};
 }
-return Object.freeze({VERSION,calculate,classify,read,page});
+function installJump(doc,pages){
+ const viewer=globalThis.ShitouLifeViewer94,host=doc?.getElementById?.('life94Controls');
+ const haIndex=Array.isArray(pages)?pages.findIndex(p=>!!p.dataset?.heikinAshiAudit):-1;
+ if(!viewer||!host||haIndex<0)return false;
+ let button=doc.getElementById('life94HeikinJump');
+ if(!button){button=doc.createElement('button');button.id='life94HeikinJump';button.type='button';
+  button.setAttribute('aria-label','切換生命線與神奇K線白話解讀');
+  host.insertBefore(button,doc.getElementById('life94Zip')||null);
+ }
+ button._heikinObserver?.disconnect();
+ const sync=()=>{
+  const state=viewer.getState?.();
+  button.hidden=!state||state.pages!==pages;
+  if(!button.hidden)button.textContent=state.index===haIndex?'返回生命線主報告':'查看神奇K線解讀';
+ };
+ button.onclick=async()=>{
+  const state=viewer.getState?.();
+  if(!state||state.pages!==pages)return;
+  await viewer.select(state.index===haIndex?0:haIndex);
+  sync();
+ };
+ const label=doc.getElementById('life94PageLabel');
+ if(label&&typeof MutationObserver==='function'){
+  const observer=new MutationObserver(sync);
+  observer.observe(label,{childList:true,characterData:true,subtree:true});
+  button._heikinObserver=observer;
+ }
+ sync();return true;
+}
+return Object.freeze({VERSION,calculate,classify,read,page,installJump});
 });
