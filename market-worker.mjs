@@ -557,9 +557,19 @@ async function handleHighVolatilityInputs(url, corsHeaders, env) {
   const twseQuotes = `https://www.twse.com.tw/rwd/zh/afterTrading/MI_INDEX?date=${compact}&type=ALLBUT0999&response=json`;
   const twseMargin = `https://www.twse.com.tw/rwd/zh/marginTrading/MI_MARGN?date=${compact}&selectType=ALL&response=json`;
   const twseStatus = `https://www.twse.com.tw/exchangeReport/TWT85U?date=${compact}&response=json`;
-  const read = async (source, parse) => {
+  const read = async (source, parse, { stopOnRedirect = false } = {}) => {
     try {
-      const response = await fetch(source, { signal: AbortSignal.timeout(12000) });
+      // TPEx OpenAPI can redirect Cloudflare edge requests repeatedly.  Redirect
+      // chains consume subrequests and can exhaust the entire Worker invocation.
+      // Never auto-follow redirects for these official feeds: fail closed.
+      const response = await fetch(source, {
+        signal: AbortSignal.timeout(12000),
+        redirect: stopOnRedirect ? "manual" : "follow"
+      });
+      if (stopOnRedirect && response.status >= 300 && response.status < 400) {
+        throw Error("TPEx 官方來源回傳 HTTP " + response.status +
+          " 重新導向，疑似限制 Cloudflare 出口；禁止追隨重新導向");
+      }
       if (!response.ok) throw Error("HTTP " + response.status);
       return { source, date, rows: parse(await response.json()) };
     } catch (error) {
@@ -604,16 +614,16 @@ async function handleHighVolatilityInputs(url, corsHeaders, env) {
       // is issued shares and must never be used as the outstanding denominator.
       read(tpex + "tpex_daily_turnover", raw => tpexReport(raw, ["SecuritiesCompanyCode", "TradingShares"])
         .filter(row => ordinary(row.SecuritiesCompanyCode))
-        .map(row => [row.SecuritiesCompanyCode, row.TradingShares])),
+        .map(row => [row.SecuritiesCompanyCode, row.TradingShares]), { stopOnRedirect: true }),
       read(tpex + "tpex_mainboard_margin_balance", raw => tpexReport(raw,
         ["SecuritiesCompanyCode", "MarginPurchaseBalance", "ShortSaleBalance"])
         .filter(row => ordinary(row.SecuritiesCompanyCode))
-        .map(row => [row.SecuritiesCompanyCode, row.MarginPurchaseBalance, row.ShortSaleBalance])),
+        .map(row => [row.SecuritiesCompanyCode, row.MarginPurchaseBalance, row.ShortSaleBalance]), { stopOnRedirect: true }),
       read(tpex + "tpex_cmode", raw => tpexReport(raw,
         ["SecuritiesCompanyCode", "AlteredTrading", "ManagedStock", "SuspensionOfTrading"])
         .filter(row => ordinary(row.SecuritiesCompanyCode) &&
           [row.AlteredTrading, row.ManagedStock, row.SuspensionOfTrading].some(flagged))
-        .map(row => row.SecuritiesCompanyCode)),
+        .map(row => row.SecuritiesCompanyCode), { stopOnRedirect: true }),
       readHighVolatilityOutstanding(env, date)
     ]);
   return jsonResponse({
