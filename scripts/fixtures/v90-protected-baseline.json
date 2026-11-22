@@ -11,7 +11,7 @@
     "structure-reversal-core-v1.js": "cdf3dc5ab19741b0177f8b908a5d00e0a45bf1c3b43f066e0c64644af7a49d34",
     "structure-reversal-scanner-v1.js": "22e47c9cf2281346fc5f2bfa204508e6bd9c584bed958a9fc1ea3e724820562a",
     "scan-exclusions-rsi-v5328.js": "35e4be1709333ec803319d62115f5747dc077410ab55548534582ec4ac3cd567",
-    "market-worker.mjs": "3ec183a96936e8ea1a1311056c72aa598c2ec05d4cc51a0a648e09f475835690"
+    "market-worker.mjs": "9b63db063c7ca80404690a393e05d40f2459640e56b0e3ad55db8a7b1727451f"
   },
   "inlineSha256": "89f417047f22293b28f9fcf12219525cd94616afeea699af5990af9a95a0606c"
 }
