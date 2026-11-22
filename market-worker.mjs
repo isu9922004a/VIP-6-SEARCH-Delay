@@ -599,7 +599,7 @@ async function handleHighVolatilityInputs(url, corsHeaders, env) {
   // remain as fail-closed fallbacks until the published source is configured.
   const tpexSnapshot = env?.HIGH_VOLATILITY_TPEX_SNAPSHOT_BASE_URL
     ? loadV922TpexSnapshot(env.HIGH_VOLATILITY_TPEX_SNAPSHOT_BASE_URL, date) : null;
-  const [listedQuotes, listedMargin, listedStatus, otcQuotes, otcMargin, otcStatus, outstanding] =
+  const [listedQuotes, listedMargin, listedStatus, otcQuotes, otcMargin, otcStatus, outstanding, listedShares] =
     await Promise.all([
       read(twseQuotes, raw => {
         const table = twseReport(raw, fields => fields[0] === "證券代號" && fields.includes("成交股數"));
@@ -628,7 +628,8 @@ async function handleHighVolatilityInputs(url, corsHeaders, env) {
         .filter(row => ordinary(row.SecuritiesCompanyCode) &&
           [row.AlteredTrading, row.ManagedStock, row.SuspensionOfTrading].some(flagged))
         .map(row => row.SecuritiesCompanyCode), { stopOnRedirect: true }),
-      readHighVolatilityOutstanding(env, date)
+      readHighVolatilityOutstanding(env, date),
+      readOfficialTwseListedShares(env, date)
     ]);
   return jsonResponse({
     type: "HIGH_VOLATILITY_INPUTS", date,
@@ -636,7 +637,7 @@ async function handleHighVolatilityInputs(url, corsHeaders, env) {
       TWSE: { volume: { ...listedQuotes, unit: "shares" }, margin: { ...listedMargin, unit: "lots" }, status: listedStatus },
       TPEX: { volume: { ...otcQuotes, unit: "shares" }, margin: { ...otcMargin, unit: "lots" }, status: otcStatus }
     },
-    outstanding
+    outstanding, listedShares
   }, 200, corsHeaders);
 }
 
@@ -713,6 +714,42 @@ async function loadV922TpexSnapshot(baseUrl, date) {
     return outputs;
   } catch (error) {
     return errorFeeds(error.message || String(error));
+  }
+}
+
+async function readOfficialTwseListedShares(env, date) {
+  // Official TWSE turnover is traded shares / shares LISTED, not merely issued.
+  // No substitute from public company-profile issued shares or market cap.
+  const source = env?.HIGH_VOLATILITY_TWSE_LISTED_SOURCE;
+  const binding = env?.HIGH_VOLATILITY_TWSE_LISTED_KV;
+  if (!source || !binding?.get) {
+    return { date: null, rows: [], error: 'TWSE 同日上市股數官方來源未設定（不得使用發行股數代替）' };
+  }
+  try {
+    const official = new URL(source);
+    if (official.protocol !== 'https:' ||
+        !['www.twse.com.tw', 'eshop.twse.com.tw'].includes(official.hostname)) {
+      throw Error('非核准 TWSE 上市股數來源');
+    }
+    const receipt = await binding.get(date, 'json');
+    if (receipt?.date !== date || receipt.reportDate !== date ||
+        receipt.source !== source || receipt.scope !== 'OFFICIAL_TWSE_LISTED_SHARES' ||
+        receipt.unit !== 'shares' || !/^[a-f0-9]{64}$/.test(receipt.rawSha256 || '') ||
+        !Array.isArray(receipt.rows) || receipt.rows.length < 800) {
+      throw Error('同日 TWSE 上市股數來源、覆蓋率或原始收據未驗證');
+    }
+    const seen = new Set();
+    for (const row of receipt.rows) {
+      const [code, shares] = Array.isArray(row) ? row : [];
+      if (!/^[1-9]\d{3}$/.test(String(code)) || seen.has(code) ||
+          !Number.isSafeInteger(shares) || shares <= 0) {
+        throw Error('TWSE 上市股數代碼重複、缺值或數量錯誤');
+      }
+      seen.add(code);
+    }
+    return { date, source, scope: receipt.scope, unit: receipt.unit, rows: receipt.rows };
+  } catch (error) {
+    return { date: null, rows: [], error: error.message || String(error) };
   }
 }
 
