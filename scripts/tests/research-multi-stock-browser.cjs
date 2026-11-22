@@ -29,7 +29,7 @@ const byCode=new Map(fixture.records.map(r=>[r.code,r]));fs.mkdirSync(out,{recur
     const I=ShitouResearchIntegration,R=ShitouResearchReport,stock=I.getCurrentStock().analysis,raw=shitouGetLastReportV82();
     const core=a=>({code:a.code,date:a.date,state:a.state,models:a.models,features:a.features,families:a.families,risks:a.risks,breakout:a.researchBreakoutPrice,invalidation:a.researchInvalidation,quality:a.dataQuality});
     const report=R.view(stock),baseline=JSON.stringify(core(stock)),text=JSON.stringify(R.lines(stock)),entries=[];
-    for(const kind of ['MAIN','DAYTRADE','STRONG','TOWER','RESTAURANT','STRUCTURE_A','STRUCTURE_B']){
+    for(const kind of ['MAIN','DAYTRADE','STRONG','TOWER','RESTAURANT']){
      // Research adapter envelopes only; this never asserts formal scanner eligibility.
      const candidate={code,report:raw,score:88,eligible:false},before=JSON.stringify(candidate),a=I.forReport(candidate);
      I.baseline(kind,{date:stock.date,candidates:[candidate]},[candidate]);
@@ -94,6 +94,6 @@ const byCode=new Map(fixture.records.map(r=>[r.code,r]));fs.mkdirSync(out,{recur
   const sample=await page.evaluate(a=>{const p=ShitouResearchReport.pages(a,{stockMode:true});return {pages:p.length,audit:JSON.parse(p[0].dataset.researchAudit),url:p[0].renderExportRegion().toDataURL('image/png')};},reference);
   assert.equal(sample.pages,1);assert.ok(sample.audit.noClipping);fs.writeFileSync(path.join(out,'synthetic-reference-6690.png'),Buffer.from(sample.url.split(',')[1],'base64'));
   assert.deepEqual(errors,[]);assert.ok(new Set(results.map(row=>row.state)).size>1,'Different stock data must not be forced into one identical state');
-  fs.writeFileSync(path.join(out,'multi-stock-results.json'),JSON.stringify({status:'PASS',scope:'Seven real API-response recordings through actual stock-query button; seven research envelope adapters per stock; actual card fields, summary/full images and preview buttons; not full scanner universe/eligibility verification',capturedAt:fixture.capturedAt,stockCount:results.length,entryComparisons:results.reduce((n,row)=>n+row.entries.length,0),results,errors},null,2));
+  fs.writeFileSync(path.join(out,'multi-stock-results.json'),JSON.stringify({status:'PASS',scope:'Seven real API-response recordings through actual stock-query button; five strategy research envelopes per stock; actual card fields, summary/full images and preview buttons; not full scanner universe/eligibility verification',capturedAt:fixture.capturedAt,stockCount:results.length,entryComparisons:results.reduce((n,row)=>n+row.entries.length,0),results,errors},null,2));
  }finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}
 })().catch(error=>{console.error(error);process.exitCode=1;});

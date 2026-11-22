@@ -5,7 +5,7 @@ if(!C||!U||!R)return;
 let identity=null,date=null,revision=0,scheduled=false,activeKind='STRONG',latestStockQuery=null,stockQuerySerial=0,previewSerial=0;const sourceRecords=new Map(),records=new Map(),baselines=new Map(),cache=new Map(),seen=new Map();
 const entryModes=new Map();
 let flags=U.flags();try{const saved=JSON.parse(localStorage.getItem('shitou-research-flags-v1')||'null');if(saved)flags=U.flags(saved);}catch(_){}
-const el=(tag,text)=>{const x=document.createElement(tag);if(text!==undefined)x.textContent=text;return x;},by=id=>document.getElementById(id),LABEL={MAIN:'① 主升段',DAYTRADE:'② 當沖盤前',STRONG:'③ 強勢飆股',TOWER:'④ 寶塔點金',RESTAURANT:'⑤ 🌟2560戰法',STRUCTURE_A:'⑥ 結構A',STRUCTURE_B:'⑥ 結構B',STOCK_QUERY:'⑦ 個股查詢｜專屬研究'};
+const el=(tag,text)=>{const x=document.createElement(tag);if(text!==undefined)x.textContent=text;return x;},by=id=>document.getElementById(id),LABEL={MAIN:'① 主升段',DAYTRADE:'② 當沖盤前',STRONG:'③ 強勢飆股',TOWER:'④ 寶塔點金',RESTAURANT:'⑤ 🌟2560戰法',STOCK_QUERY:'⑦ 個股查詢｜專屬研究'};
 const plain=value=>root.ShitouChartLayout921?.plain(value)??String(value??'');
 function safely(fn){try{return fn();}catch(e){console.warn('研究附層暫停：'+e.message);return null;}}
 function briefLine(a,label){const line=R.lines(a).find(x=>x.startsWith('【'+label+'】'));return line?line.slice(label.length+2):'—';}
@@ -205,9 +205,9 @@ async function prepareStockQueryUncached(input){
 function forReport(input){const r=source(input),key=U.hash([root.ShitouUnifiedAnalysis.VERSION,r,flags]);if(!cache.has(key)){if(cache.size>=512)cache.delete(cache.keys().next().value);const evaluated=C.evaluate(r,{flags}),result=root.ShitouKlineLife03?.withSource(evaluated,r)||evaluated;cache.set(key,result);if(result.unifiedResearch?.code)try{root.ShitouResearchHistory?.append(localStorage,result.unifiedResearch);}catch(e){console.warn('歷史研究快照未保存：'+e.message);}}return cache.get(key);}
 function capture({snapshot,items,results}){if(!snapshot?.identity)return;bind(snapshot);for(const item of items){const code=String(item.code),matches=results.filter(x=>String(x.code||x.data?.stock||x.data?.code||'')===code),x=matches.length===1?matches[0]:null;let a;if(x?.ok&&x.data){sourceRecords.set(code,structuredClone(x.data));a=safely(()=>forReport(x.data));}else sourceRecords.delete(code);if(!a)a=C.evaluate({stock:code,name:item.name||code,closeDate:date,completed:false});records.set(code,a);}revision++;schedule();}
 function baseline(kind,scan,rows){
- if(!scan||!Array.isArray(rows))return;const d=U.T.date(scan.dataDate||scan.date||scan.marketBundleMeta?.targetTradeDate||scan.marketBundleMeta?.completedTradeDate);if(!d||date&&d!==date)return;
+ if(!Object.hasOwn(LABEL,kind)||!scan||!Array.isArray(rows))return;const d=U.T.date(scan.dataDate||scan.date||scan.marketBundleMeta?.targetTradeDate||scan.marketBundleMeta?.completedTradeDate);if(!d||date&&d!==date)return;
  const entries=rows.map((c,i)=>({code:String(c.code||c.stock||c.report?.stock||c.report?.code||''),rank:i+1,score:structuredClone(c.score??null),eligible:c.eligible??c.formalLaunchEligible??null}));
- const host=by(({MAIN:'momentumResult',DAYTRADE:'dayTradeResult',STRONG:'strongStockResult',TOWER:'towerGoldPanel',RESTAURANT:'restaurantResult',STRUCTURE_A:'structureResult',STRUCTURE_B:'structureResult'})[kind]);
+ const host=by(({MAIN:'momentumResult',DAYTRADE:'dayTradeResult',STRONG:'strongStockResult',TOWER:'towerGoldPanel',RESTAURANT:'restaurantResult'})[kind]);
  const signature=U.hash([d,entries,scan.id||scan.snapshotId||null,revision,flags]),unchanged=seen.get(kind)===signature;
  // Legacy renderers replace their result DOM again after broker enrichment or
  // mode changes. The same data signature does not prove our section survived.
@@ -226,9 +226,8 @@ function sync(){
  const main=typeof lastMomentumScanDataV3762!=='undefined'?lastMomentumScanDataV3762:null,day=typeof lastDayTradeScanDataV1!=='undefined'?lastDayTradeScanDataV1:null;
  safely(()=>baseline('MAIN',main,main?.candidates));safely(()=>baseline('DAYTRADE',day,day?.candidates));
  for(const [kind,provider] of [['STRONG',root.STRONG_STOCK_TEST_API_V47],['TOWER',root.ShitouTowerIntegration],['RESTAURANT',root.ShitouRestaurantUI]]){const s=provider?.getLast?.();safely(()=>baseline(kind,s,s?.candidates));}
- const s=root.ShitouStructureUI?.getLast?.();for(const mode of ['A','B'])safely(()=>baseline('STRUCTURE_'+mode,s,s?.modeResults?.[mode]?.ranked));
 }
-function ranking(){const base=baselines.get(activeKind),kind=activeKind.startsWith('STRUCTURE')?'STRUCTURE':activeKind,all=new Map(records);for(const a of base?.analyses||[])all.set(a.code,a);return C.rank([...all.values()].filter(a=>!date||a.date===date),{kind,baselineCodes:base?.entries.map(x=>x.code)||[]});}
+function ranking(){const base=baselines.get(activeKind),all=new Map(records);for(const a of base?.analyses||[])all.set(a.code,a);return C.rank([...all.values()].filter(a=>!date||a.date===date),{kind:activeKind,baselineCodes:base?.entries.map(x=>x.code)||[]});}
 function entryMode(kind=activeKind){return flags.entryDirectionEnabled===false?'ALL':entryModes.get(kind)||'EVALUATE';}
 function researchPool(){return baselines.get(activeKind)?.analyses||[...records.values()].filter(a=>!date||a.date===date);}
 function selectedRows(){return Entry.select(researchPool(),entryMode()).map(x=>({analysis:x.analysis,rank:x.index+1}));}

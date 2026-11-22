@@ -58,6 +58,7 @@ async function main() {
     }
     assert.equal(await page.locator('[data-filter="structure"]').innerText(), '⑥ 高波動超夯選股');
     assert.equal(await page.locator('#structureMode, #structurePrewatchImage').count(), 0);
+    assert.equal(await page.locator('#researchKind option[value^="STRUCTURE"]').count(), 0);
 
     async function scan() {
       await page.locator('#structureRun').click();
