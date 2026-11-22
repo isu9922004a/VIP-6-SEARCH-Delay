@@ -83,7 +83,7 @@ test('official TPEx denominator and displayed rate are required, exact >30 cutof
   const good = await assess(fixture([stock]));
   assert.equal(good.qualified.length,1);
   const wrong = fixture([stock]);
-  wrong.inputs.markets.TPEX.volume.rows[0][3]=30;
+  wrong.inputs.markets.TPEX.volume.rows[0][3]=31;
   const rejected=await assess(wrong);
   assert.equal(rejected.qualified.length,0);
   assert.equal(rejected.unverified.length,1);
