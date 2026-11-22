@@ -49,11 +49,20 @@
       // The deployed pre-fix Cloudflare Worker returned only [code, tradedShares]
       // even when TPEx did not time out. That feed cannot provide the exchange
       // denominator, so always recover from the date-locked V2 Pages receipt.
-      return f.rows.every(row => Array.isArray(row) && row.length === 4 &&
-        Number.isSafeInteger(row[1]) && row[1] >= 0 &&
-        Number.isSafeInteger(row[2]) && row[2] > 0 &&
-        Number.isFinite(row[3]) && row[3] >= 0 &&
-        Math.abs(row[1] / row[2] * 100 - row[3]) <= 0.011);
+      const count = value => {
+        const text = String(value ?? '').trim();
+        if (!/^(?:\\d+|\\d{1,3}(?:,\\d{3})+)$/.test(text)) return null;
+        const n = Number(text.replace(/,/g, ''));
+        return Number.isSafeInteger(n) && n >= 0 ? n : null;
+      };
+      return f.rows.every(row => {
+        if (!Array.isArray(row) || row.length !== 4) return false;
+        const traded = count(row[1]), issued = count(row[2]);
+        const official = Number(String(row[3] ?? '').replace(/,/g, ''));
+        return traded !== null && issued > 0 &&
+          row[3] !== null && row[3] !== '' && Number.isFinite(official) &&
+          official >= 0 && Math.abs(traded / issued * 100 - official) <= 0.011;
+      });
     };
     if (names.every(valid)) return { inputs, attempted: false };
     const base = new URL('data/high-volatility/tpex/', document.baseURI);
