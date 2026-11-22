@@ -7,7 +7,7 @@ import { join } from 'node:path';
 const market = JSON.parse(await (await import('node:fs/promises')).readFile('data/market/latest.json', 'utf8'));
 const calendar = JSON.parse(await (await import('node:fs/promises')).readFile('data/market/research-calendar.json','utf8'));
 const expected = market.tradeDateIso;
-if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(expected || '') || calendar.verified !== true ||
+if (!/^\d{4}-\d{2}-\d{2}$/.test(expected || '') || calendar.verified !== true ||
     !calendar.dates.includes(expected) || expected !== calendar.dates.at(-1)) {
   throw Error('Official completed-session snapshot and verified calendar are not aligned');
 }
