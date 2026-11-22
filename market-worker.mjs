@@ -656,9 +656,9 @@ async function loadV922TpexSnapshot(baseUrl, date) {
       return response.text();
     };
     const manifest = JSON.parse(await get('manifest.json'));
-    if (manifest?.schema !== 'V922_TPEX_OFFICIAL_MANIFEST_V1' ||
+    if (manifest?.schema !== 'V922_TPEX_OFFICIAL_MANIFEST_V2' ||
         manifest.date !== date || manifest.file !== date + '.json' ||
-        manifest.verification !== 'OFFICIAL_DATE_FIELDS_COUNTS_AND_UNITS' ||
+        manifest.verification !== 'OFFICIAL_DATE_FIELDS_COUNTS_AND_UNITS_AND_ISSUED_TURNOVER' ||
         manifest.officialCalendarSource !== 'https://www.twse.com.tw/exchangeReport/FMTQIK' ||
         !/^[0-9a-f]{64}$/.test(manifest.sha256 || '') ||
         !/^[0-9a-f]{64}$/.test(manifest.completedMarketSnapshot || '')) {
@@ -669,7 +669,7 @@ async function loadV922TpexSnapshot(baseUrl, date) {
     const hash = Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, '0')).join('');
     if (hash !== manifest.sha256) throw Error('上櫃快照內容與 SHA-256 收據不符');
     const snapshot = JSON.parse(raw);
-    if (snapshot.schema !== 'V922_TPEX_OFFICIAL_INPUTS_V1' ||
+    if (snapshot.schema !== 'V922_TPEX_OFFICIAL_INPUTS_V2' ||
         snapshot.date !== date || snapshot.verification !== manifest.verification) {
       throw Error('上櫃快照內容日期或驗證契約不一致');
     }
@@ -700,8 +700,11 @@ async function loadV922TpexSnapshot(baseUrl, date) {
           throw Error('上櫃 ' + key + ' 股票代號無效或重複');
         }
         seen.add(code);
-        if (key !== 'status' && (row.length !== (key === 'volume' ? 2 : 3) ||
-            !row.slice(1).every(v => Number.isSafeInteger(v) && v >= 0))) {
+        if (key !== 'status' && (row.length !== (key === 'volume' ? 4 : 3) ||
+            !row.slice(1, key === 'volume' ? 3 : undefined)
+              .every(v => Number.isSafeInteger(v) && v >= 0) ||
+            (key === 'volume' && !(row[2] > 0 && Number.isFinite(row[3]) &&
+                row[3] >= 0 && Math.abs(row[1] / row[2] * 100 - row[3]) <= 0.011)))) {
           throw Error('上櫃 ' + key + ' 股數格式不正確');
         }
       }
