@@ -95,6 +95,24 @@
         list(result.complete ? result.qualified : result.qualified.slice().sort((a, b) => a.code.localeCompare(b.code))));
       host.append(known);
     }
+    if (Array.isArray(result.comparison) && result.comparison.length) {
+      const diagnostics = element('details');
+      diagnostics.open = true;
+      diagnostics.append(element('summary', '7788／2451 為何未入選（逐條診斷）'));
+      for (const row of result.comparison) {
+        const item = element('p');
+        const capital = Number.isFinite(row.capital) ? number(row.capital / 100000000) + ' 億元' : '未驗證';
+        const volume = Number.isFinite(row.volume) ? lots(row.volume) : '未驗證';
+        const gate = key => row.gates?.[key] === true ? '通過' :
+          row.gates?.[key] === false ? '未通過' : '尚未驗證';
+        item.textContent = (row.name || row.code) + '（' + row.code + '）｜' +
+          'MACD交叉：' + gate('cross') + '｜成交量：' + gate('volume') +
+          '（' + volume + '）｜股本：' + gate('capital') + '（' + capital + '）｜' +
+          (row.reasons?.length ? row.reasons.join('；') : '符合三項基本條件');
+        diagnostics.append(item);
+      }
+      host.append(diagnostics);
+    }
     if (result.errors.length || result.incomplete.length) {
       const detail = element('details');
       detail.append(element('summary', '資料不足原因'));
