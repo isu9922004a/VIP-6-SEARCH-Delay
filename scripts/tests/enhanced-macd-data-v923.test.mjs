@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readOfficial } from '../collect-enhanced-macd-v923.mjs';
+import { parseTwseStockMonth, readOfficial } from '../collect-enhanced-macd-v923.mjs';
 import { outcomes } from '../backtest-enhanced-macd-v923.mjs';
 import Core from '../../enhanced-macd-v923.js';
 
@@ -35,4 +35,23 @@ test('backtest uses next session open and keeps missing prices and costs visible
   assert.equal(outcomes(signal, [bars[0], null, ...bars.slice(2)])[3], null);
   assert.deepEqual(outcomes(signal, []), { 1: null, 3: null, 5: null });
   assert.equal(Core.validBar(null, undefined), false);
+});
+
+test('TWSE stock month retains explicit zero volume and verifies identity and calendar', () => {
+  const data = {
+    stat: 'OK', date: '20260701', title: '115年07月 2254 巨鎧精密-創 各日成交資訊',
+    fields: ['日期', '成交股數', '開盤價', '最高價', '最低價', '收盤價'],
+    data: [
+      ['115/07/01', '3,000', '59.60', '59.60', '59.60', '59.60'],
+      ['115/07/21', '0', '--', '--', '--', '--']
+    ]
+  };
+  const date = '2026-07-21';
+  const parsed = parseTwseStockMonth(data, '2254', date);
+  assert.equal(parsed.get(date).成交股數, '0');
+  assert.equal(parsed.get(date).收盤價, '--');
+  assert.equal(parsed.has('2026-07-22'), false);
+  assert.throws(() => parseTwseStockMonth(data, '2330', date), /代號/);
+  assert.throws(() => parseTwseStockMonth(data, '2254', '2026-08-18'), /月份/);
+  assert.throws(() => parseTwseStockMonth({ ...data, data: [data.data[1], data.data[1]] }, '2254', date), /重複/);
 });

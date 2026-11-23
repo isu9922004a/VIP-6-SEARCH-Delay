@@ -146,6 +146,25 @@ export async function readHistory(root, sessions, errors) {
   return histories;
 }
 
+export function parseTwseStockMonth(payload, code, date) {
+  const month = date.slice(0, 7);
+  const title = String(payload?.title ?? '').trim().split(/\s+/);
+  const valueDate = iso(payload?.date);
+  if (payload?.stat !== 'OK' || title[1] !== code || valueDate?.slice(0, 7) !== month ||
+      !Array.isArray(payload.fields) || !Array.isArray(payload.data) || !payload.data.length ||
+      !['日期', '成交股數', '開盤價', '最高價', '最低價', '收盤價'].every(field => payload.fields.includes(field))) {
+    throw Error('證交所個股月報的股票代號、月份或欄位未核對');
+  }
+  const rows = payload.data.map(values => {
+    if (!Array.isArray(values) || values.length !== payload.fields.length) throw Error('證交所個股月報欄位長度不符');
+    const row = Object.fromEntries(payload.fields.map((field, i) => [field, values[i]]));
+    const day = iso(row.日期);
+    if (!Core.validDate(day) || day.slice(0, 7) !== month) throw Error('證交所個股月報含錯誤交易日');
+    return { ...row, day, 證券代號: code };
+  });
+  return indexBy(rows, 'day');
+}
+
 async function reconcileMissingHistory(stocks, sessions, histories, fetcher) {
   const reports = new Map();
   const receipts = [];
@@ -177,37 +196,97 @@ async function reconcileMissingHistory(stocks, sessions, histories, fetcher) {
     return reports.get(key);
   };
 
+  const readStockMonth = (stock, date) => {
+    const month = date.slice(0, 7);
+    const key = stock.market + ':' + stock.code + ':' + month;
+    if (!reports.has(key)) {
+      const request = pending.TWSE.then(async () => {
+        const errors = [];
+        for (const endpoint of ['https://www.twse.com.tw/exchangeReport/STOCK_DAY',
+          'https://www.twse.com.tw/rwd/zh/afterTrading/STOCK_DAY']) {
+          const source = endpoint + '?response=json&date=' + compact(month) + '01&stockNo=' + stock.code;
+          try {
+            const { rows, receipt } = await readOfficial(source, fetcher);
+            const quotes = parseTwseStockMonth(rows, stock.code, date);
+            const overlap = sessions.filter(day => day < sessions.at(-1) && day.startsWith(month) &&
+              histories.TWSE.get(day)?.rows.has(stock.code));
+            if (!overlap.length || overlap.some(day => {
+              const raw = quotes.get(day);
+              const bar = raw && normalizeQuote(raw, 'TWSE', compact(day), new Map());
+              const archived = histories.TWSE.get(day).rows.get(stock.code);
+              return !bar || ['open', 'high', 'low', 'close', 'volume'].some(field => bar[field] !== archived[field]);
+            })) throw Error('證交所個股月報與指定日歷史行情不符');
+            receipts.push({ ...receipt, market: 'TWSE', month, code: stock.code });
+            return quotes;
+          } catch (error) {
+            errors.push(error.message);
+          }
+        }
+        throw Error(errors.join('／'));
+      });
+      reports.set(key, request);
+      pending.TWSE = request.catch(() => {});
+    }
+    return reports.get(key);
+  };
+
+  async function recover(stock, date) {
+    if (!histories[stock.market].has(date)) throw Error('指定日官方行情檔案未核對');
+    let raw;
+    try {
+      raw = (await read(stock.market, date)).get(stock.code);
+    } catch (error) {
+      if (stock.market !== 'TWSE') throw error;
+      const monthly = await readStockMonth(stock, date);
+      raw = monthly.get(date);
+      if (!raw) throw Error('證交所個股月報缺少指定日期');
+    }
+    const volume = Core.shares(raw?.成交股數, 'shares');
+    const normalized = raw && normalizeQuote(raw, stock.market, compact(date), new Map());
+    const bar = normalized && volume !== null ? { ...normalized, date, volume } : null;
+    if (Core.validBar(bar, date) && bar.volume > 0) {
+      const recovered = { date, open: bar.open, high: bar.high, low: bar.low, close: bar.close, volume };
+      stock.bars[sessions.indexOf(date)] = recovered;
+      (stock.historyRecovered ??= []).push(recovered);
+    } else {
+      const fields = stock.market === 'TWSE' ? ['開盤價', '最高價', '最低價', '收盤價'] : ['開盤', '最高', '最低', '收盤'];
+      const noPrices = raw && fields.every(field => /^-+$/.test(String(raw[field] ?? '').trim()));
+      if (raw && (volume === null || (!noPrices && volume !== 0))) throw Error('指定日股數或開高低收欄位不完整');
+      const type = !raw ? 'OFFICIAL_ABSENT' : noPrices ? 'OFFICIAL_NO_OHLC' : 'OFFICIAL_ZERO_VOLUME';
+      (stock.historyGaps ??= []).push({ date, volume, type });
+    }
+  }
+
   await Promise.all(stocks.map(async stock => {
     let row = Core.evaluate(stock, sessions);
-    while (row.missingHistoryDate) {
-      const date = row.missingHistoryDate;
-      const index = sessions.indexOf(date);
-      if (!histories[stock.market].has(date)) return;
+    if (!row.missingHistoryDate) return;
+    const failures = new Map();
+    const dates = sessions.slice(-Core.WINDOW, -2).filter(date => {
+      if (stock.listingDate && date < stock.listingDate) return false;
+      const bar = histories[stock.market].get(date)?.rows.get(stock.code);
+      return !Core.validBar(bar, date) || bar.volume === 0;
+    }).reverse();
+    const attempted = new Set();
+    const attempt = async date => {
+      if (attempted.has(date)) return;
+      attempted.add(date);
       try {
-        const quotes = await read(stock.market, date);
-        const raw = quotes.get(stock.code);
-        const volume = Core.shares(raw?.成交股數, 'shares');
-        const normalized = raw && normalizeQuote(raw, stock.market, compact(date), new Map());
-        const bar = normalized && volume !== null ? { ...normalized, date, volume } : null;
-        if (Core.validBar(bar, date) && bar.volume > 0) {
-          const recovered = { date, open: bar.open, high: bar.high, low: bar.low, close: bar.close, volume };
-          stock.bars[index] = recovered;
-          (stock.historyRecovered ??= []).push(recovered);
-        } else {
-          const fields = stock.market === 'TWSE' ? ['開盤價', '最高價', '最低價', '收盤價'] : ['開盤', '最高', '最低', '收盤'];
-          const noPrices = raw && fields.every(field => /^-+$/.test(String(raw[field] ?? '').trim()));
-          if (raw && (volume === null || (!noPrices && volume !== 0))) return;
-          const type = !raw ? 'OFFICIAL_ABSENT' : noPrices ? 'OFFICIAL_NO_OHLC' : 'OFFICIAL_ZERO_VOLUME';
-          (stock.historyGaps ??= []).push({ date, volume, type });
-        }
-        row = Core.evaluate(stock, sessions);
+        await recover(stock, date);
       } catch (error) {
-        stock.historyError = date + '：' + error.message;
-        return;
+        failures.set(date, error.message);
       }
+    };
+    for (const date of dates) await attempt(date);
+    row = Core.evaluate(stock, sessions);
+    while (row.missingHistoryDate && !attempted.has(row.missingHistoryDate)) {
+      await attempt(row.missingHistoryDate);
+      row = Core.evaluate(stock, sessions);
     }
+    const failure = failures.get(row.missingHistoryDate);
+    if (failure) stock.historyError = row.missingHistoryDate + '：' + failure;
   }));
-  return receipts.sort((a, b) => a.date.localeCompare(b.date) || a.market.localeCompare(b.market));
+  return receipts.sort((a, b) => (a.date ?? a.month).localeCompare(b.date ?? b.month) ||
+    a.market.localeCompare(b.market) || a.source.localeCompare(b.source));
 }
 
 export async function collect(root, fetcher = fetch, now = new Date()) {
