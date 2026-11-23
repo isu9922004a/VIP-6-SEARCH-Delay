@@ -155,7 +155,7 @@
     };
   }
 
-  function evaluate(stock, sessions) {
+  function evaluate(stock, sessions, { inspectRejected = false } = {}) {
     const date = sessions.at(-1);
     const base = { code: stock.code, name: stock.name, market: stock.market, date };
     const result = (status, reason) => ({ ...base, status, reason });
@@ -175,16 +175,14 @@
     const tradeVolume = latestBarValid ? latest.volume : stock.quoteVolume;
     if (!Number.isSafeInteger(tradeVolume) || tradeVolume < 0) return result('DATA', '最新完成日成交股數缺漏／異常');
     const volumeOk = tradeVolume >= MIN_VOLUME && tradeVolume <= MAX_VOLUME;
-    if (!capitalOk || !volumeOk) {
-      return {
-        ...result('REJECTED', latestBarValid ? '實收資本額或成交量未達門檻' :
-          '日 K 缺少完整價格，官方成交股數或股本已可確認未達門檻'),
-        volume: tradeVolume, gates: { capital: capitalOk, volume: volumeOk }
-      };
-    }
-    if (!latestBarValid) return result('DATA', '最新完成日 K 缺漏、異常或與指定日行情不符');
-
+    const rejected = !capitalOk || !volumeOk ? {
+      ...result('REJECTED', latestBarValid ? '實收資本額或成交量未達門檻' :
+        '日 K 缺少完整價格，官方成交股數或股本已可確認未達門檻'),
+      volume: tradeVolume, gates: { capital: capitalOk, volume: volumeOk }
+    } : null;
+    if (rejected && !inspectRejected) return rejected;
     const data = reason => result('DATA', reason);
+    if (!latestBarValid) return data('最新完成日 K 缺漏、異常或與指定日行情不符');
     if (stock.bars.length !== sessions.length || !validBar(stock.bars.at(-2), sessions.at(-2)) || stock.bars.at(-2).volume === 0) {
       return data('前一交易日缺少有效收盤價，無法核對當日交叉');
     }

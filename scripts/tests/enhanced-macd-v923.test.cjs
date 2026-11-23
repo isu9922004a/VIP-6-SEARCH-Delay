@@ -178,3 +178,14 @@ test('five-day volume stays in exchange-date order and missing recent closes nev
   assert.equal(C.evaluate(row, days).score.volume, 0);
   assert.equal(C.evaluate(row, days).qualifiesB, null);
 });
+
+
+test('comparison can calculate the crossover for a rejected stock without admitting it', () => {
+  const aboveCapitalLimit = { ...stock(), capital: 5_000_000_000 };
+  assert.equal(evaluate(aboveCapitalLimit).gates.cross, undefined);
+  const audit = C.evaluate(aboveCapitalLimit, sessions, { inspectRejected: true });
+  assert.equal(audit.gates.cross, true);
+  assert.equal(audit.gates.capital, false);
+  assert.equal(audit.status, 'REJECTED');
+  assert.equal(C.scan([aboveCapitalLimit], sessions).qualified.length, 0);
+});

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseTwseStockMonth, readOfficial } from '../collect-enhanced-macd-v923.mjs';
+import { parseTwseStockMonth, readOfficial, withinCollectionWindow } from '../collect-enhanced-macd-v923.mjs';
 import { outcomes } from '../backtest-enhanced-macd-v923.mjs';
 import Core from '../../enhanced-macd-v923.js';
 
@@ -54,4 +54,45 @@ test('TWSE stock month retains explicit zero volume and verifies identity and ca
   assert.throws(() => parseTwseStockMonth(data, '2330', date), /代號/);
   assert.throws(() => parseTwseStockMonth(data, '2254', '2026-08-18'), /月份/);
   assert.throws(() => parseTwseStockMonth({ ...data, data: [data.data[1], data.data[1]] }, '2254', date), /重複/);
+});
+
+
+test('a verified session may finish collection until the next Taipei market open', () => {
+  const date = '2026-11-23';
+  for (const [time, expected] of [
+    ['2026-11-23T09:34:59Z', false],
+    ['2026-11-23T09:35:00Z', true],
+    ['2026-11-23T16:00:00Z', true],
+    ['2026-11-24T00:59:59Z', true],
+    ['2026-11-24T01:00:00Z', false],
+    ['2026-11-24T12:00:00Z', false]
+  ]) assert.equal(withinCollectionWindow(date, new Date(time)), expected, time);
+});
+
+test('retries non-JSON and a bounded rate limit while retaining response evidence', async () => {
+  const source = 'https://www.twse.com.tw/exchangeReport/STOCK_DAY';
+  const responses = [
+    new Response('<html>Temporary error</html>', { headers: { 'content-type': 'text/html' } }),
+    new Response(null, { status: 429, headers: { 'retry-after': '1' } }),
+    new Response('{"stat":"OK"}', { headers: { 'content-type': 'application/json' } })
+  ];
+  const { rows, receipt } = await readOfficial(source, async () => responses.shift());
+  assert.equal(rows.stat, 'OK');
+  assert.equal(responses.length, 0);
+  assert.deepEqual(receipt.attempts.map(attempt => attempt.status), [200, 429]);
+  assert.equal(receipt.attempts[0].contentType, 'text/html');
+  assert.match(receipt.attempts[0].sha256, /^[a-f0-9]{64}$/);
+  assert.ok(receipt.attempts.every(attempt => attempt.source === source && Date.parse(attempt.retrievedAt)));
+  await assert.rejects(readOfficial(source, async () =>
+    new Response(null, { status: 429, headers: { 'retry-after': '3600' } })), /HTTP 429/);
+});
+
+test('a persistent network timeout fails closed after three attempts', async () => {
+  let attempts = 0;
+  await assert.rejects(readOfficial('https://www.twse.com.tw/', async (_url, { signal }) => {
+    assert.ok(signal instanceof AbortSignal);
+    attempts++;
+    throw new DOMException('request timed out', 'TimeoutError');
+  }), /request timed out/);
+  assert.equal(attempts, 3);
 });
