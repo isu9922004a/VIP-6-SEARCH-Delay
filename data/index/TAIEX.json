@@ -3,18 +3,10 @@
   "symbol": "TAIEX",
   "market": "TWSE_INDEX",
   "name": "臺灣加權股價指數",
-  "closeDate": "2026-11-20",
-  "close": 36033.29,
+  "closeDate": "2026-11-23",
+  "close": 36811.89,
   "completed": true,
   "dailySeries": [
-    {
-      "date": "2026-05-28",
-      "open": 44240.8,
-      "high": 44954.09,
-      "low": 43236.36,
-      "close": 43636.44,
-      "volume": 19686100251
-    },
     {
       "date": "2026-05-29",
       "open": 43815.48,
@@ -966,6 +958,14 @@
       "low": 35738.68,
       "close": 36033.29,
       "volume": 17086212904
+    },
+    {
+      "date": "2026-11-23",
+      "open": 35899.48,
+      "high": 37108.2,
+      "low": 35442.41,
+      "close": 36811.89,
+      "volume": 15947613387
     }
   ],
   "dailySeriesMeta": {
@@ -973,10 +973,10 @@
     "requestedBars": 120,
     "minRecommendedBars": 60,
     "returnedBars": 120,
-    "taiexOhlcRowsAvailable": 478,
-    "fmtqikVolumeRowsAvailable": 158,
-    "firstDate": "2026-05-28",
-    "lastDate": "2026-11-20",
+    "taiexOhlcRowsAvailable": 479,
+    "fmtqikVolumeRowsAvailable": 159,
+    "firstDate": "2026-05-29",
+    "lastDate": "2026-11-23",
     "ascending": true,
     "onlyCompletedBars": true,
     "readyForTrident": true,
@@ -1241,45 +1241,22 @@
       "2026-12-30",
       "2026-12-31"
     ],
-    "generatedAt": "2026-11-20T10:37:37.397Z",
+    "generatedAt": "2026-11-23T11:22:49.996Z",
     "futureSessionPolicy": "官方年度API已更新下一年度；本年度沿用有來源指紋的既有核驗交易日曆，並核對當期實際交易日",
     "sourceSha256": "fb3c71ce62aa4819e58d422fa08be383161a830230f84e9a50560e019eee577c",
     "historicalSource": "https://www.twse.com.tw/exchangeReport/FMTQIK",
-    "historicalSnapshotHash": "8ded7c7d805dde84e5fc6d17cf484fc19ab03b91224b887a4491230b6793d496",
+    "historicalSnapshotHash": "c540097c336408d4fdf17b60fbe4559af97e3ef5118fb0370c28608b1701aba1",
     "annualSourceStatus": "VERIFIED_SAME_YEAR_CACHE",
     "officialEndpointCoverageYear": "2027",
-    "end": "2026-11-20",
+    "end": "2026-11-23",
     "independentIndexCalendar": true
   },
   "sourceReceipt": {
     "url": "https://shitou-taiwanmarket-api.d318426.workers.dev/?market=TAIEX",
     "officialRecovery": null,
-    "retrievedAt": "2026-11-20T10:37:37.397Z",
-    "sha256": "a3cf1b5649d9235bf96a109ba5dae3afcae3a7df0b398db4073d99f9e24433a4",
-    "officialChecks": [
-      {
-        "month": "2026-11",
-        "url": "https://www.twse.com.tw/exchangeReport/FMTQIK?response=json&date=20261101",
-        "sha256": "f9656767f8e906c43a2e465b2db7d677821348f04d0bb6771e3d85524cbaf831"
-      }
-    ],
-    "expectedCompletedDate": "2026-11-20",
-    "shareChecks": [
-      {
-        "url": "https://www.twse.com.tw/exchangeReport/FMTQIK?response=json&date=20260901",
-        "sha256": "dc712c7f16a9d732d9d4e21606e8927cd4d78039505c3256d697a005b17394d5"
-      },
-      {
-        "url": "https://www.twse.com.tw/exchangeReport/FMTQIK?response=json&date=20261001",
-        "sha256": "23c2920bfdb3f891c6d5aed655262b5ea6d9c289752a7b0e2a434ac8d272bab9"
-      },
-      {
-        "url": "https://www.twse.com.tw/exchangeReport/FMTQIK?response=json&date=20261101",
-        "sha256": "f9656767f8e906c43a2e465b2db7d677821348f04d0bb6771e3d85524cbaf831"
-      }
-    ],
+    "retrievedAt": "2026-11-23T11:22:49.996Z",
+    "sha256": "59563bab274bea00ca697b93126366b19d1a00e89109354d4ddd2f2d1df2c74e",
     "confirmedShares": {
-      "2026-09-30": 10656764192,
       "2026-10-01": 10691867330,
       "2026-10-02": 11017717304,
       "2026-10-05": 14490437804,
@@ -1313,7 +1290,27 @@
       "2026-11-17": 14661802735,
       "2026-11-18": 13560477251,
       "2026-11-19": 15301049840,
-      "2026-11-20": 17086212904
-    }
+      "2026-11-20": 17086212904,
+      "2026-11-23": 15947613387
+    },
+    "officialChecks": [
+      {
+        "month": "2026-11",
+        "url": "https://www.twse.com.tw/exchangeReport/FMTQIK?response=json&date=20261101",
+        "sha256": "9303bf3ea5509015e746a780f0af2db9c2652fd80da015feb6c2c43388dc8a42"
+      }
+    ],
+    "expectedCompletedDate": "2026-11-23",
+    "shareChecks": [
+      {
+        "url": "https://www.twse.com.tw/exchangeReport/FMTQIK?response=json&date=20261001",
+        "sha256": "23c2920bfdb3f891c6d5aed655262b5ea6d9c289752a7b0e2a434ac8d272bab9"
+      },
+      {
+        "month": "2026-11",
+        "url": "https://www.twse.com.tw/exchangeReport/FMTQIK?response=json&date=20261101",
+        "sha256": "9303bf3ea5509015e746a780f0af2db9c2652fd80da015feb6c2c43388dc8a42"
+      }
+    ]
   }
 }
