@@ -122,7 +122,8 @@
   function textReport(result) {
     return [
       '石頭少爺 ' + C.VERSION + '｜' + C.TITLE, result.date + '｜' + C.summary(result),
-      ...C.RULES, 'Top 8 按規則排序，供隔日到 5 個交易日研究參考。',
+      ...C.RULES, '回測資料不足｜尚無可驗證的歷史報酬樣本。',
+      'Top 8 按規則排序，供隔日到 5 個交易日研究參考。',
       ...(result.complete ? result.top8 : []).flatMap(row => [row.name + '（' + row.code + '）', ...detailLines(row)]),
       ...result.errors, ...result.incomplete.map(row => row.name + '（' + row.code + '）｜' + row.reason),
       ...result.sources.map(feed => [feed.label, feed.date, feed.source, feed.retrievedAt].filter(Boolean).join('｜'))
@@ -290,6 +291,7 @@
       <div class="filter-unified">
         <h2 class="section-title">${C.TITLE}</h2>
         <p class="section-subtitle">${C.SUBTITLE}</p>
+        <p>回測資料不足｜尚無可驗證的歷史報酬樣本。</p>
         <details class="enhanced-macd-rules">
           <summary>入選條件與資料口徑</summary>
           <ol>${C.RULES.map(rule => '<li>' + rule + '</li>').join('')}</ol>
