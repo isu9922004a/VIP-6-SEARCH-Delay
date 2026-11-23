@@ -102,6 +102,24 @@
       if (result.incomplete.length) detail.append(list(result.incomplete));
       host.append(detail);
     }
+    if (Array.isArray(result.comparison) && result.comparison.length) {
+      const diagnostic = element('details');
+      diagnostic.open = true;
+      diagnostic.append(element('summary', '7788／2451 入選條件逐項查核'));
+      for (const row of result.comparison) {
+        const gates = row.gates || {};
+        const label = value => value === true ? '通過' : value === false ? '未通過' : '資料未驗證';
+        const entry = element('p', [
+          (row.name || row.code) + '（' + row.code + '）｜' + row.status,
+          'MACD 黃金交叉：' + label(gates.cross),
+          '成交量：' + label(gates.volume) + (Number.isFinite(row.volume) ? '（' + lots(row.volume) + '）' : ''),
+          '股本：' + label(gates.capital) + (Number.isFinite(row.capital) ? '（' + number(row.capital / 100000000) + ' 億元）' : ''),
+          ...(row.reasons || [])
+        ].join('｜'));
+        diagnostic.append(entry);
+      }
+      host.append(diagnostic);
+    }
     const sources = element('details');
     sources.append(element('summary', '資料來源與日期'));
     for (const feed of result.sources) {
