@@ -12,6 +12,9 @@ concurrency:
   cancel-in-progress: false
 jobs:
   collect:
+    if: github.ref == 'refs/heads/main'
+    outputs:
+      scan_sha256: ${{ steps.publish.outputs.scan_sha256 }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -20,13 +23,31 @@ jobs:
         with:
           node-version: '24'
       - name: Save current scan and point-in-time company inputs
-        run: node scripts/collect-enhanced-macd-v923.mjs /tmp/enhanced-macd/latest.json /tmp/enhanced-macd/archive.json
-      - name: Publish only complete, same-day verified MACD scan
+        shell: bash
+        run: |
+          mkdir -p /tmp/enhanced-macd
+          node scripts/collect-enhanced-macd-v923.mjs /tmp/enhanced-macd/latest.json /tmp/enhanced-macd/archive.json 2>&1 | tee /tmp/enhanced-macd/collect.log
+      - name: Publish only the complete scan for the verified market snapshot
+        id: publish
         if: success()
         shell: bash
         run: |
           set -euo pipefail
-          node -e 'const fs=require("fs");const x=JSON.parse(fs.readFileSync("/tmp/enhanced-macd/latest.json","utf8"));if(x.result?.complete!==true||x.result.errors?.length||x.result.incomplete?.length||x.result.date!==x.date||!x.snapshotHash)process.exit(1)'
+          node - <<'NODE'
+          const assert = require('node:assert/strict');
+          const scan = require('/tmp/enhanced-macd/latest.json');
+          const market = require('./data/market/latest.json');
+          const prior = require('./data/enhanced-macd/latest.json');
+          assert.equal(scan.schema, 'ENHANCED_MACD_SCAN_V2');
+          assert.equal(scan.version, 'V9.23');
+          assert.equal(scan.result.complete, true);
+          assert.deepEqual(scan.result.errors, []);
+          assert.deepEqual(scan.result.incomplete, []);
+          assert.equal(scan.result.date, scan.date);
+          assert.equal(scan.date, market.tradeDateIso);
+          assert.equal(scan.snapshotHash, market.contentSha256);
+          assert.ok(scan.date >= prior.date, 'Refuse to replace a newer scan');
+          NODE
           git fetch origin main
           test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" || { echo "Main moved during scan; refuse stale publication"; exit 1; }
           cp /tmp/enhanced-macd/latest.json data/enhanced-macd/latest.json
@@ -37,10 +58,43 @@ jobs:
             git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "data(v9.23): publish complete official MACD scan"
             git push origin HEAD:main
           fi
+          digest=$(sha256sum data/enhanced-macd/latest.json | cut -d ' ' -f 1)
+          echo "scan_sha256=$digest" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: enhanced-macd-evidence
-          path: /tmp/enhanced-macd/*.json
+          path: /tmp/enhanced-macd/
           if-no-files-found: warn
           retention-days: 90
+
+  deploy:
+    needs: collect
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy-data-pages.yml
+    with:
+      artifact-name: enhanced-macd-pages
+
+  verify-live:
+    needs: [collect, deploy]
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify the exact scan served by Pages
+        env:
+          EXPECTED_SHA256: ${{ needs.collect.outputs.scan_sha256 }}
+        run: |
+          url="https://isu9922004a.github.io/VIP-6-SEARCH-Delay/data/enhanced-macd/latest.json"
+          for attempt in {1..12}; do
+            if curl --fail --silent --show-error --max-time 10 "$url?run=$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT-$attempt" -o /tmp/live-macd.json &&
+              echo "$EXPECTED_SHA256  /tmp/live-macd.json" | sha256sum --check; then
+              exit 0
+            fi
+            sleep 10
+          done
+          exit 1

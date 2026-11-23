@@ -11,6 +11,7 @@ import {
 } from './update-market-snapshot.mjs';
 
 const markets = ['TWSE', 'TPEX'];
+const comparisonCodes = new Set(['7788', '2451']);
 const json = async file => JSON.parse(await fs.readFile(file, 'utf8'));
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const hash = /^[a-f\d]{64}$/;
@@ -19,7 +20,13 @@ const iso = raw => {
   const date = normalizeMarketDate(raw);
   return date && date.slice(0, 4) + '-' + date.slice(4, 6) + '-' + date.slice(6);
 };
-const taipeiDay = now => new Date(now.getTime() + 8 * 3_600_000).toISOString().slice(0, 10);
+export function withinCollectionWindow(date, now) {
+  const local = new Date(now.getTime() + 8 * 3_600_000).toISOString();
+  const day = local.slice(0, 10);
+  const time = local.slice(11, 16);
+  const yesterday = new Date(Date.parse(day) - 86_400_000).toISOString().slice(0, 10);
+  return (date === day && time >= '17:35') || (date === yesterday && time < '09:00');
+}
 const stockCode = value => String(value ?? '').trim();
 const equityCode = /^[1-9]\d{3}$/;
 const tdrCode = /^91\d{2}(?:\d{2})?$/;
@@ -49,28 +56,46 @@ function indexBy(rows, key) {
 export async function readOfficial(source, fetcher) {
   // Earlier TPEx Worker requests could loop on redirects. Preserve the
   // official origin and fail immediately on any redirect.
+  const attempts = [];
   for (let attempt = 0; attempt < 3; attempt++) {
+    const evidence = { source, retrievedAt: new Date().toISOString() };
     try {
       const response = await fetcher(source, {
         redirect: 'manual', headers: { accept: 'application/json' }, signal: AbortSignal.timeout(30_000)
       });
+      evidence.status = response.status;
+      evidence.contentType = response.headers.get('content-type');
+      const retryAfter = response.headers.get('retry-after');
       if (!response.ok) {
         const error = Error('官方資料 HTTP ' + response.status + ' ' + source);
         error.retryable = response.status >= 500 || [408, 429].includes(response.status);
+        if (retryAfter) {
+          const seconds = /^\d+$/.test(retryAfter) ? Number(retryAfter) :
+            (Date.parse(retryAfter) - Date.now()) / 1000;
+          if (Number.isFinite(seconds)) error.retryAfterMs = Math.max(0, seconds * 1000);
+        }
         throw error;
       }
       if (response.url && response.url !== source) throw Error('官方資料網址不符 ' + source);
       const bytes = Buffer.from(await response.arrayBuffer());
+      evidence.sha256 = sha(bytes);
       let rows;
       try {
         rows = JSON.parse(bytes);
       } catch {
-        throw Error('官方來源回傳非 JSON ' + source);
+        const error = Error('官方來源回傳非 JSON ' + source);
+        error.retryable = true;
+        throw error;
       }
-      return { rows, receipt: { source, sha256: sha(bytes), retrievedAt: new Date().toISOString() } };
+      return { rows, receipt: { ...evidence, retrievedAt: new Date().toISOString(),
+        ...(attempts.length ? { attempts } : {}) } };
     } catch (error) {
-      if (attempt === 2 || !(error.retryable || ['TimeoutError', 'TypeError'].includes(error.name))) throw error;
-      await delay(800 * (attempt + 1));
+      attempts.push({ ...evidence, error: error.message });
+      const retryable = error.retryable || ['TimeoutError', 'TypeError'].includes(error.name);
+      if (attempt === 2 || !retryable || error.retryAfterMs > 15_000) {
+        throw Error(error.message + '｜' + JSON.stringify(attempts), { cause: error });
+      }
+      await delay(Math.max(800 * 2 ** attempt, error.retryAfterMs ?? 0));
     }
   }
 }
@@ -102,7 +127,7 @@ function parseCompanies(rows, market, sessions) {
 }
 
 function parseHalts(rows, market, date, retrievedAt) {
-  if (!Array.isArray(rows) || taipeiDay(new Date(retrievedAt)) !== date) throw Error('官方停牌資料時間未對齊');
+  if (!Array.isArray(rows) || !withinCollectionWindow(date, new Date(retrievedAt))) throw Error('官方停牌資料時間未對齊');
   if (market === 'TPEX') {
     if (!rows.length || rows.some(row => iso(row.Date) !== date || !Object.hasOwn(row, 'SuspensionOfTrading'))) {
       throw Error('櫃買停牌資料日期或欄位缺漏');
@@ -182,7 +207,7 @@ async function reconcileMissingHistory(stocks, sessions, histories, fetcher) {
             if ([...histories[market].get(date).rows.keys()].some(code => !quotes.has(code))) {
               throw Error('指定日官方行情未涵蓋已核對的歷史代號');
             }
-            receipts.push({ ...receipt, market, date });
+            receipts.push({ ...receipt, market, date, ...(errors.length ? { fallbackErrors: errors } : {}) });
             return quotes;
           } catch (error) {
             errors.push(error.message);
@@ -216,7 +241,8 @@ async function reconcileMissingHistory(stocks, sessions, histories, fetcher) {
               const archived = histories.TWSE.get(day).rows.get(stock.code);
               return !bar || ['open', 'high', 'low', 'close', 'volume'].some(field => bar[field] !== archived[field]);
             })) throw Error('證交所個股月報與指定日歷史行情不符');
-            receipts.push({ ...receipt, market: 'TWSE', month, code: stock.code });
+            receipts.push({ ...receipt, market: 'TWSE', month, code: stock.code,
+              ...(errors.length ? { fallbackErrors: errors } : {}) });
             return quotes;
           } catch (error) {
             errors.push(error.message);
@@ -242,17 +268,6 @@ async function reconcileMissingHistory(stocks, sessions, histories, fetcher) {
         raw = monthly.get(date);
         if (!raw) throw Error('證交所個股月報缺少指定日期');
       } catch (monthlyError) {
-        // The verified full-market official daily archive is itself evidence
-        // that this code was absent from the published daily rows. It is NOT
-        // evidence of zero shares or of any OHLC price. Preserve that distinction.
-        const archive = histories[stock.market].get(date);
-        if (archive && !archive.rows.has(stock.code)) {
-          (stock.historyGaps ??= []).push({
-            date, volume: null, type: 'OFFICIAL_ABSENT',
-            evidence: 'VERIFIED_OFFICIAL_DAILY_ARCHIVE_ABSENCE'
-          });
-          return;
-        }
         throw Error(error.message + '／' + monthlyError.message);
       }
     }
@@ -273,7 +288,8 @@ async function reconcileMissingHistory(stocks, sessions, histories, fetcher) {
   }
 
   await Promise.all(stocks.map(async stock => {
-    let row = Core.evaluate(stock, sessions);
+    const options = { inspectRejected: comparisonCodes.has(stock.code) };
+    let row = Core.evaluate(stock, sessions, options);
     if (!row.missingHistoryDate) return;
     const failures = new Map();
     const dates = sessions.slice(-Core.WINDOW, -2).filter(date => {
@@ -292,10 +308,10 @@ async function reconcileMissingHistory(stocks, sessions, histories, fetcher) {
       }
     };
     for (const date of dates) await attempt(date);
-    row = Core.evaluate(stock, sessions);
+    row = Core.evaluate(stock, sessions, options);
     while (row.missingHistoryDate && !attempted.has(row.missingHistoryDate)) {
       await attempt(row.missingHistoryDate);
-      row = Core.evaluate(stock, sessions);
+      row = Core.evaluate(stock, sessions, options);
     }
     const failure = failures.get(row.missingHistoryDate);
     if (failure) stock.historyError = row.missingHistoryDate + '：' + failure;
@@ -311,13 +327,12 @@ export async function collect(root, fetcher = fetch, now = new Date()) {
   ]);
   const date = snapshot.tradeDateIso;
   const sessions = calendar.dates?.slice(-Core.HISTORY_SESSIONS) ?? [];
-  const taipeiTime = new Date(now.getTime() + 8 * 3_600_000).toISOString();
   if (!Core.validDate(date) || snapshot.marketCoverageReady !== true || calendar.verified !== true ||
       calendar.source !== 'https://www.twse.com.tw/exchangeReport/FMTQIK' ||
       calendar.sourceSnapshotHash !== snapshot.contentSha256 ||
       calendar.sourceSnapshotDate !== date || sessions.at(-1) !== date ||
-      date !== taipeiTime.slice(0, 10) || taipeiTime.slice(11, 16) < '17:35') {
-    throw Error('等候同日 17:35 後已完成的上市櫃官方快照與交易日曆');
+      !withinCollectionWindow(date, now)) {
+    throw Error('等候已完成且仍在盤後收集時段的上市櫃官方快照與交易日曆');
   }
 
   const errors = [];
@@ -339,7 +354,7 @@ export async function collect(root, fetcher = fetch, now = new Date()) {
     try {
       const { quotes, companies: companyFeed, status } = feeds[market];
       if (!quotes || !companyFeed || !status) continue;
-      if ([quotes, companyFeed, status].some(feed => taipeiDay(new Date(feed.receipt.retrievedAt)) !== date)) {
+      if ([quotes, companyFeed, status].some(feed => !withinCollectionWindow(date, new Date(feed.receipt.retrievedAt)))) {
         throw Error('官方資料未於訊號日取得');
       }
       const { companies, reportDate } = parseCompanies(companyFeed.rows, market, sessions);
@@ -391,23 +406,25 @@ export async function collect(root, fetcher = fetch, now = new Date()) {
   }
   // Preserve independently auditable gate outcomes for known comparison cases.
   // A missing/invalid MACD history must never be presented as a failed signal.
-  const comparisonCodes = new Set(['7788', '2451']);
   const comparison = result.rows.filter(row => comparisonCodes.has(row.code)).map(row => {
     const stock = universe.find(item => item.market === row.market && item.code === row.code);
-    const gates = row.gates ?? {};
+    const audit = Core.evaluate(stock, sessions, { inspectRejected: true });
+    const gates = audit.gates ?? row.gates ?? {};
     const reasons = row.status === 'DATA' ? [row.reason] :
       row.status === 'EXCLUDED' || row.status === 'NO_TRADE' ? [row.reason] :
       [
         gates.capital === false ? '實收資本額不符合 0～50 億元' : null,
         gates.volume === false ? '成交量不符合 2,000～10,000 張' : null,
-        gates.cross === false ? '最新完成交易日 MACD 未黃金交叉' : null
+        gates.cross === false ? '最新完成交易日 MACD 未黃金交叉' : null,
+        audit.status === 'DATA' ? stock.historyError ?? audit.reason : null
       ].filter(Boolean);
     return {
       code: row.code, name: row.name, market: row.market, date: row.date,
       status: row.status, reasons, gates,
       capital: row.capital ?? stock?.capital ?? null,
       volume: row.volume ?? stock?.quoteVolume ?? null,
-      macd: row.macd ?? null, previousMacd: row.previousMacd ?? null
+      product: stock.product, industry: stock.industry, historyBars: audit.historyBars ?? null,
+      macd: audit.macd ?? null, previousMacd: audit.previousMacd ?? null
     };
   });
   for (const code of comparisonCodes) {
@@ -416,6 +433,10 @@ export async function collect(root, fetcher = fetch, now = new Date()) {
     }
   }
   result.comparison = comparison;
+  result.pool = Object.fromEntries(markets.map(market => {
+    const stocks = universe.filter(stock => stock.market === market);
+    return [market, { total: stocks.length, common: stocks.filter(stock => stock.product === 'COMMON').length }];
+  }));
   const historySources = markets.flatMap(market => [...histories[market].values()].map(({ rows, ...receipt }) => ({ ...receipt, market })))
     .sort((a, b) => a.date.localeCompare(b.date) || a.market.localeCompare(b.market));
   const generatedAt = new Date().toISOString();
@@ -441,7 +462,10 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   try {
     const { artifact, universe } = await collect(process.cwd());
     const { result } = artifact;
-    await writeAtomic(target, { ...artifact, result: { ...result, rows: undefined } });
+    const productionTarget = path.resolve(target) === path.resolve('data/enhanced-macd/latest.json');
+    if (result.complete || !productionTarget) {
+      await writeAtomic(target, { ...artifact, result: { ...result, rows: undefined } });
+    }
     if (archive) await writeAtomic(archive, { ...artifact, universe: universe.map(({ bars, ...stock }) => stock) });
     console.log(JSON.stringify({
       date: artifact.date, complete: result.complete, universe: result.total,
