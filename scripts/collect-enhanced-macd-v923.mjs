@@ -237,9 +237,24 @@ async function reconcileMissingHistory(stocks, sessions, histories, fetcher) {
       raw = (await read(stock.market, date)).get(stock.code);
     } catch (error) {
       if (stock.market !== 'TWSE') throw error;
-      const monthly = await readStockMonth(stock, date);
-      raw = monthly.get(date);
-      if (!raw) throw Error('證交所個股月報缺少指定日期');
+      try {
+        const monthly = await readStockMonth(stock, date);
+        raw = monthly.get(date);
+        if (!raw) throw Error('證交所個股月報缺少指定日期');
+      } catch (monthlyError) {
+        // The verified full-market official daily archive is itself evidence
+        // that this code was absent from the published daily rows. It is NOT
+        // evidence of zero shares or of any OHLC price. Preserve that distinction.
+        const archive = histories[stock.market].get(date);
+        if (archive && !archive.rows.has(stock.code)) {
+          (stock.historyGaps ??= []).push({
+            date, volume: null, type: 'OFFICIAL_ABSENT',
+            evidence: 'VERIFIED_OFFICIAL_DAILY_ARCHIVE_ABSENCE'
+          });
+          return;
+        }
+        throw Error(error.message + '／' + monthlyError.message);
+      }
     }
     const volume = Core.shares(raw?.成交股數, 'shares');
     const normalized = raw && normalizeQuote(raw, stock.market, compact(date), new Map());
