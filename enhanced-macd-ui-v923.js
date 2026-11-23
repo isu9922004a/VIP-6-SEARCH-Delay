@@ -88,6 +88,11 @@
     if (result.complete) {
       host.append(element('h3', 'Top 8 研究候選股'));
       host.append(result.top8.length ? list(result.top8, true) : element('p', '本交易日合格 0 檔。'));
+    } else {
+      host.append(element('h3', '已核驗候選（非正式 Top 8）'));
+      host.append(element('p', '全市場尚有資料待核對；下列只列出已通過三條件的股票，不代表全市場排名或掃描完成。'));
+      host.append(result.qualified.length ? list(result.qualified.slice(0, 8), true) :
+        element('p', '目前已核驗的合格股為 0 檔；仍有未完成資料，不能判定全市場沒有合格股。'));
     }
     if (result.qualified.length) {
       const known = element('details');
@@ -95,12 +100,48 @@
         list(result.complete ? result.qualified : result.qualified.slice().sort((a, b) => a.code.localeCompare(b.code))));
       host.append(known);
     }
+    if (Array.isArray(result.comparison) && result.comparison.length) {
+      const diagnostics = element('details');
+      diagnostics.open = true;
+      diagnostics.append(element('summary', '7788／2451 為何未入選（逐條診斷）'));
+      for (const row of result.comparison) {
+        const item = element('p');
+        const capital = Number.isFinite(row.capital) ? number(row.capital / 100000000) + ' 億元' : '未驗證';
+        const volume = Number.isFinite(row.volume) ? lots(row.volume) : '未驗證';
+        const gate = key => row.gates?.[key] === true ? '通過' :
+          row.gates?.[key] === false ? '未通過' : '尚未驗證';
+        item.textContent = (row.name || row.code) + '（' + row.code + '）｜' +
+          'MACD交叉：' + gate('cross') + '｜成交量：' + gate('volume') +
+          '（' + volume + '）｜股本：' + gate('capital') + '（' + capital + '）｜' +
+          (row.reasons?.length ? row.reasons.join('；') : '符合三項基本條件');
+        diagnostics.append(item);
+      }
+      host.append(diagnostics);
+    }
     if (result.errors.length || result.incomplete.length) {
       const detail = element('details');
       detail.append(element('summary', '資料不足原因'));
       for (const error of result.errors) detail.append(element('p', error));
       if (result.incomplete.length) detail.append(list(result.incomplete));
       host.append(detail);
+    }
+    if (Array.isArray(result.comparison) && result.comparison.length) {
+      const diagnostic = element('details');
+      diagnostic.open = true;
+      diagnostic.append(element('summary', '7788／2451 入選條件逐項查核'));
+      for (const row of result.comparison) {
+        const gates = row.gates || {};
+        const label = value => value === true ? '通過' : value === false ? '未通過' : '資料未驗證';
+        const entry = element('p', [
+          (row.name || row.code) + '（' + row.code + '）｜' + row.status,
+          'MACD 黃金交叉：' + label(gates.cross),
+          '成交量：' + label(gates.volume) + (Number.isFinite(row.volume) ? '（' + lots(row.volume) + '）' : ''),
+          '股本：' + label(gates.capital) + (Number.isFinite(row.capital) ? '（' + number(row.capital / 100000000) + ' 億元）' : ''),
+          ...(row.reasons || [])
+        ].join('｜'));
+        diagnostic.append(entry);
+      }
+      host.append(diagnostic);
     }
     const sources = element('details');
     sources.append(element('summary', '資料來源與日期'));

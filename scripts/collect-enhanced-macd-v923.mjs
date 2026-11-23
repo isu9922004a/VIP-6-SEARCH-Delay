@@ -237,9 +237,24 @@ async function reconcileMissingHistory(stocks, sessions, histories, fetcher) {
       raw = (await read(stock.market, date)).get(stock.code);
     } catch (error) {
       if (stock.market !== 'TWSE') throw error;
-      const monthly = await readStockMonth(stock, date);
-      raw = monthly.get(date);
-      if (!raw) throw Error('證交所個股月報缺少指定日期');
+      try {
+        const monthly = await readStockMonth(stock, date);
+        raw = monthly.get(date);
+        if (!raw) throw Error('證交所個股月報缺少指定日期');
+      } catch (monthlyError) {
+        // The verified full-market official daily archive is itself evidence
+        // that this code was absent from the published daily rows. It is NOT
+        // evidence of zero shares or of any OHLC price. Preserve that distinction.
+        const archive = histories[stock.market].get(date);
+        if (archive && !archive.rows.has(stock.code)) {
+          (stock.historyGaps ??= []).push({
+            date, volume: null, type: 'OFFICIAL_ABSENT',
+            evidence: 'VERIFIED_OFFICIAL_DAILY_ARCHIVE_ABSENCE'
+          });
+          return;
+        }
+        throw Error(error.message + '／' + monthlyError.message);
+      }
     }
     const volume = Core.shares(raw?.成交股數, 'shares');
     const normalized = raw && normalizeQuote(raw, stock.market, compact(date), new Map());
@@ -374,6 +389,33 @@ export async function collect(root, fetcher = fetch, now = new Date()) {
     const detail = diagnostics.get(row.market + ':' + row.code);
     if (detail) row.reason += '｜' + detail;
   }
+  // Preserve independently auditable gate outcomes for known comparison cases.
+  // A missing/invalid MACD history must never be presented as a failed signal.
+  const comparisonCodes = new Set(['7788', '2451']);
+  const comparison = result.rows.filter(row => comparisonCodes.has(row.code)).map(row => {
+    const stock = universe.find(item => item.market === row.market && item.code === row.code);
+    const gates = row.gates ?? {};
+    const reasons = row.status === 'DATA' ? [row.reason] :
+      row.status === 'EXCLUDED' || row.status === 'NO_TRADE' ? [row.reason] :
+      [
+        gates.capital === false ? '實收資本額不符合 0～50 億元' : null,
+        gates.volume === false ? '成交量不符合 2,000～10,000 張' : null,
+        gates.cross === false ? '最新完成交易日 MACD 未黃金交叉' : null
+      ].filter(Boolean);
+    return {
+      code: row.code, name: row.name, market: row.market, date: row.date,
+      status: row.status, reasons, gates,
+      capital: row.capital ?? stock?.capital ?? null,
+      volume: row.volume ?? stock?.quoteVolume ?? null,
+      macd: row.macd ?? null, previousMacd: row.previousMacd ?? null
+    };
+  });
+  for (const code of comparisonCodes) {
+    if (!comparison.some(row => row.code === code)) {
+      comparison.push({ code, status: 'DATA', reasons: ['官方股票池未涵蓋此代號，不能判定不符合'] });
+    }
+  }
+  result.comparison = comparison;
   const historySources = markets.flatMap(market => [...histories[market].values()].map(({ rows, ...receipt }) => ({ ...receipt, market })))
     .sort((a, b) => a.date.localeCompare(b.date) || a.market.localeCompare(b.market));
   const generatedAt = new Date().toISOString();
