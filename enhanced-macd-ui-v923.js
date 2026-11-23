@@ -88,6 +88,11 @@
     if (result.complete) {
       host.append(element('h3', 'Top 8 研究候選股'));
       host.append(result.top8.length ? list(result.top8, true) : element('p', '本交易日合格 0 檔。'));
+    } else {
+      host.append(element('h3', '已核驗候選（非正式 Top 8）'));
+      host.append(element('p', '全市場尚有資料待核對；下列只列出已通過三條件的股票，不代表全市場排名或掃描完成。'));
+      host.append(result.qualified.length ? list(result.qualified.slice(0, 8), true) :
+        element('p', '目前已核驗的合格股為 0 檔；仍有未完成資料，不能判定全市場沒有合格股。'));
     }
     if (result.qualified.length) {
       const known = element('details');
