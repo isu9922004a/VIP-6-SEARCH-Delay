@@ -57,13 +57,13 @@
       row.date + '｜' + metrics(row),
       '當日剛黃金交叉（' + row.axis + '）｜DIF ' + number(row.macd.dif, 6) +
         '、Signal ' + number(row.macd.signal, 6) + '、MACD 柱 ' + number(row.macd.histogram, 6),
-      '成交量 ' + lots(row.volume) + '｜前 5 日均量 ' + lots(row.averageVolume) +
-        '（' + number(row.volumeRatio) + ' 倍）',
+      '成交量 ' + lots(row.volume) + '｜前 5 日均量 ' + (row.averageVolume === null ? '資料不足' : lots(row.averageVolume)) +
+        (row.volumeRatio === null ? '' : '（' + number(row.volumeRatio) + ' 倍）'),
       '實收資本額 ' + number(row.capital, 0) + ' 元（' + row.companyDate + ' 出表）',
       'MA20 ' + number(row.ma20) + ' 元｜距月線 ' + percent(row.gap) + '｜近 20 日 ' + percent(row.gain20),
       '追高與假突破風險｜' + risk,
       ...(levels.length ? ['前 20 日區間｜' + levels.join(' 元／') + ' 元'] : []),
-      'MACD 今天剛黃金交叉，短線動能可能開始轉強。收盤站上月線，成交量高於前 5 日平均。' +
+      'MACD 今天剛黃金交叉，短線動能可能開始轉強。成交量與實收資本額皆在入選範圍內。' +
         (row.riskFlags.length ? '隔日追價仍可能遇到回檔，先留意上方風險。' : '')
     ];
   }
@@ -75,7 +75,7 @@
       const entry = element('li');
       const identity = row.name + '（' + row.code + '）';
       entry.append(element('strong', identity));
-      for (const line of row.qualifiesB ? detailLines(row) : [row.reason]) entry.append(element('span', line));
+      for (const line of row.qualifiesA ? detailLines(row) : [row.reason]) entry.append(element('span', line));
       out.append(entry);
     }
     return out;
@@ -156,7 +156,7 @@
       }
       progress(1, 2, '載入 ' + date + ' 最新盤後策略資料…');
       const data = await request(null, signal);
-      if (data?.schema !== 'ENHANCED_MACD_SCAN_V1' || data.version !== C.VERSION ||
+      if (data?.schema !== 'ENHANCED_MACD_SCAN_V2' || data.version !== C.VERSION ||
           data.date !== date || data.result?.date !== date || typeof data.result?.complete !== 'boolean' ||
           data.snapshotHash !== snapshot.meta.snapshotContentSha256 ||
           data.volumeUnit !== 'shares' || data.capitalUnit !== 'NTD' ||
@@ -178,8 +178,8 @@
           data.sessions.length > C.HISTORY_SESSIONS || data.historySources?.length !== data.sessions.length * 2 || result.errors.length ||
           result.incomplete.length || result.total < snapshot.rows.length ||
           result.sources.length !== 7 || result.qualified.some(row => row.date !== date ||
-            row.qualifiesB !== true || !Number.isFinite(row.score?.total) ||
-            ['cross', 'volume', 'capital', 'aboveMa20', 'strongerVolume'].some(key => row.gates?.[key] !== true)) ||
+            row.qualifiesA !== true || !Number.isFinite(row.score?.total) ||
+            ['cross', 'volume', 'capital'].some(key => row.gates?.[key] !== true)) ||
           JSON.stringify(result.top8) !== JSON.stringify(result.qualified.slice(0, 8)))) {
         throw Error('第六套全市場掃描或 Top 8 核對失敗');
       }
@@ -295,7 +295,7 @@
           <ol>${C.RULES.map(rule => '<li>' + rule + '</li>').join('')}</ol>
           <p>採交易所未還原收盤價。MACD 使用最近 100 根有效日 K，已核對的無收盤日不補價。新掛牌股至少有 50 根且自掛牌日完整核對才計算。黃金交叉仍須比較最近兩個市場交易日。除權息或拆併股可能影響訊號。</p>
           <p>排除生技醫療、金融保險、建材營造及非一般普通股商品。</p>
-          <p>排名權重為 MACD 動能 35%、月線趨勢 25%、成交量增強 25%、突破與追高風險 15%。Top 8 供隔日到 5 個交易日研究參考。</p>
+          <p>MA20 取最近 20 根有效日 K，並與前 5 個交易日均量一同供解讀與排名。均量資料不足時量能項目計 0 分。排名權重為 MACD 動能 35%、月線趨勢 25%、成交量增強 25%、突破與追高風險 15%。Top 8 供隔日到 5 個交易日研究參考。</p>
         </details>
         <div class="filter-actions">
           <button type="button" class="btn" id="structureRun">開始掃描</button>

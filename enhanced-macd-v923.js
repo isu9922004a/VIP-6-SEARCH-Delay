@@ -7,7 +7,7 @@
 
   const VERSION = 'V9.23';
   const TITLE = '⑥ 強化 MACD+';
-  const SUBTITLE = '尋找 MACD 剛黃金交叉、股價站上月線、成交量開始增強的短線轉強股。';
+  const SUBTITLE = '尋找 MACD 剛黃金交叉、成交量適中且股本低於 50 億元的短線候選股。';
   const WINDOW = 100;
   const HISTORY_SESSIONS = 120;
   const MIN_LISTING_BARS = 50;
@@ -19,9 +19,7 @@
   const RULES = [
     'MACD（12、26、9）在最新完成交易日剛黃金交叉',
     '成交量 2,000 至 10,000 張，含上下限（1 張 = 1,000 股）',
-    '官方實收資本額大於 0 元且小於 50 億元',
-    '收盤價高於最近 20 個完成交易日的平均收盤價',
-    'V9.23 新增風控：當日成交量高於前 5 個交易日均量，均量不含訊號日'
+    '官方實收資本額大於 0 元且小於 50 億元'
   ];
 
   const sum = values => values.reduce((total, value) => total + value, 0);
@@ -91,7 +89,7 @@
     const momentum = 60 * clamp(histogram / close / 0.004) +
       40 * clamp((histogram - previousHistogram) / close / 0.008);
     const trend = 70 * clamp(1 - Math.abs(gap - 3) / 12) + 30 * clamp(slope / 3);
-    const volume = 100 * clamp(1 - Math.abs(volumeRatio - 1.6) / 1.6);
+    const volume = volumeRatio === null ? 0 : 100 * clamp(1 - Math.abs(volumeRatio - 1.6) / 1.6);
     const breakout = 100 * clamp(0.7 + 0.3 * closePosition - 0.16 * riskCount);
     return {
       momentum: rounded(momentum), trend: rounded(trend), volume: rounded(volume), breakout: rounded(breakout),
@@ -108,8 +106,9 @@
     const prior = series.at(-2);
     // Compare share counts as integers. This preserves strict equality at the
     // five-day mean without introducing an intermediate rounding step.
-    const priorVolumeTotal = precedingVolumes.reduce((total, volume) => total + BigInt(volume), 0n);
-    const averageVolume = Number(priorVolumeTotal) / 5;
+    const priorVolumeTotal = precedingVolumes.every(volume => Number.isSafeInteger(volume) && volume >= 0) ?
+      precedingVolumes.reduce((total, volume) => total + BigInt(volume), 0n) : null;
+    const averageVolume = priorVolumeTotal === null ? null : Number(priorVolumeTotal) / 5;
     const ma20Ticks = sum(closes.slice(-20).map(ticks));
     const ma20 = ma20Ticks / 20 / 10_000;
     const gap = pct(today.close, ma20);
@@ -142,14 +141,14 @@
       cross: crosses(prior, current),
       volume: today.volume >= MIN_VOLUME && today.volume <= MAX_VOLUME,
       aboveMa20: 20 * ticks(today.close) > ma20Ticks,
-      strongerVolume: 5n * BigInt(today.volume) > priorVolumeTotal
+      strongerVolume: priorVolumeTotal === null ? null : 5n * BigInt(today.volume) > priorVolumeTotal
     };
     return {
       gates, close: today.close, change, macd: current, previousMacd: prior, axis,
       volume: today.volume, averageVolume, volumeRatio, ma20, gap, slope, gain20,
       closePosition, upperWick, riskFlags, priorHigh: high20,
       support: low20 < today.close ? low20 : null, resistance: high20 >= today.close ? high20 : null,
-      score: volumeRatio === null ? null : quality({
+      score: quality({
         close: today.close, histogram: current.histogram, previousHistogram: prior.histogram,
         gap, slope, volumeRatio, riskCount: riskFlags.length, closePosition
       })
@@ -213,26 +212,21 @@
       const bar = stock.bars[sessions.length - 6 + offset];
       return validBar(bar, day) ? bar.volume : gaps.get(day)?.volume;
     });
-    if (!precedingVolumes.every(volume => Number.isSafeInteger(volume) && volume >= 0)) {
-      return data('前 5 個交易日成交股數尚待核對');
-    }
     const metrics = analyze(valid.reverse(), precedingVolumes);
-    if (metrics.gates.cross && metrics.gates.strongerVolume &&
-        !sessions.slice(-20).every((day, offset) => {
-          const bar = stock.bars[sessions.length - 20 + offset];
-          return validBar(bar, day) && bar.volume > 0;
-        })) {
-      return data('最近 20 個交易日缺少有效收盤，無法核對 MA20');
-    }
     const gates = { ...metrics.gates, capital: capitalOk };
-    // The A definition reuses exactly the first three core checks; risk
-    // labels and scores cannot disqualify a stock under either strategy.
     const qualifiesA = gates.cross && gates.volume && gates.capital;
-    const qualifiesB = qualifiesA && gates.aboveMa20 && gates.strongerVolume;
+    // Keep the former five-condition comparison for the historical backtest.
+    const verifiedMa20 = sessions.slice(-20).every((day, offset) => {
+      const bar = stock.bars[sessions.length - 20 + offset];
+      return validBar(bar, day) && bar.volume > 0;
+    });
+    const failsFormerGate = gates.strongerVolume === false || (verifiedMa20 && !gates.aboveMa20);
+    const formerGatesKnown = verifiedMa20 && gates.strongerVolume !== null;
+    const qualifiesB = !qualifiesA || failsFormerGate ? false : formerGatesKnown ? true : null;
     return {
       ...base, ...metrics, gates, qualifiesA, qualifiesB, industry: stock.industry,
       capital: stock.capital, companyDate: stock.companyDate, historyBars: valid.length,
-      status: qualifiesB ? 'QUALIFIED' : 'REJECTED'
+      status: qualifiesA ? 'QUALIFIED' : 'REJECTED'
     };
   }
 
@@ -242,7 +236,7 @@
     const keys = new Set(stocks.map(stock => stock.market + ':' + stock.code));
     if (keys.size !== stocks.length) throw Error('股票池含重複代號');
     const rows = stocks.map(stock => evaluate(stock, sessions));
-    const qualified = rows.filter(row => row.qualifiesB).sort((a, b) =>
+    const qualified = rows.filter(row => row.qualifiesA).sort((a, b) =>
       b.score.total - a.score.total || a.code.localeCompare(b.code, 'en') || a.market.localeCompare(b.market, 'en'));
     const incomplete = rows.filter(row => row.status === 'DATA');
     const complete = stocks.length > 0 && !errors.length && !incomplete.length;

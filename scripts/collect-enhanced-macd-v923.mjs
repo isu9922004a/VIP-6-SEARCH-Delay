@@ -378,7 +378,7 @@ export async function collect(root, fetcher = fetch, now = new Date()) {
     .sort((a, b) => a.date.localeCompare(b.date) || a.market.localeCompare(b.market));
   const generatedAt = new Date().toISOString();
   const artifact = {
-    schema: 'ENHANCED_MACD_SCAN_V1', version: Core.VERSION, generatedAt, date,
+    schema: 'ENHANCED_MACD_SCAN_V2', version: Core.VERSION, generatedAt, date,
     snapshotHash: snapshot.contentSha256, calendarSource: calendar.source, sessions,
     priceBasis: 'UNADJUSTED_OFFICIAL_OHLC', volumeUnit: 'shares', capitalUnit: 'NTD',
     sources: receipts.sort((a, b) => a.market.localeCompare(b.market) || a.dataset.localeCompare(b.dataset)),

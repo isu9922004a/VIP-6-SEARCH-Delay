@@ -57,7 +57,7 @@ test('exact capital and dated official company, industry and product boundaries'
   for (const industry of ['01', '24', '31']) assert.equal(evaluate({ ...stock(), industry }).status, 'QUALIFIED');
 });
 
-test('all five gates, previous-five volume equality, and MA20 window', () => {
+test('three entry gates, previous-five volume equality, and MA20 window', () => {
   const row = stock();
   const pass = evaluate(row);
   assert.equal(pass.ma20, 100.15);
@@ -70,18 +70,19 @@ test('all five gates, previous-five volume equality, and MA20 window', () => {
   assert.equal(equalVolume.gates.strongerVolume, false);
   assert.equal(equalVolume.qualifiesA, true);
   assert.equal(equalVolume.qualifiesB, false);
+  assert.equal(equalVolume.status, 'QUALIFIED');
   row.bars.at(-1).volume++;
   assert.equal(evaluate(row).qualifiesB, true);
 
   const weak = stock();
-  for (let index = 79; index <= 98; index++) {
-    const close = index < 93 ? 130 : 90;
+  for (let index = 0; index < weak.bars.length; index++) {
+    const close = index === 99 ? 58 : 100 - Math.max(0, Math.min(96, index) - 55);
     Object.assign(weak.bars[index], { close, open: close, high: close, low: close });
   }
-  Object.assign(weak.bars[99], { close: 110, open: 110, high: 110, low: 110 });
   const below = evaluate(weak);
   assert.equal(below.gates.aboveMa20, false);
   assert.equal(below.qualifiesB, false);
+  assert.equal(below.status, 'QUALIFIED');
 });
 
 test('history continuity and malformed current bars fail closed', () => {
@@ -169,7 +170,11 @@ test('five-day volume stays in exchange-date order and missing recent closes nev
   row.bars[gap] = null;
   row.historyGaps = [{ date: days[gap], volume: 10_000_000, type: 'OFFICIAL_NO_OHLC' }];
   assert.equal(C.evaluate(row, days).gates.strongerVolume, false);
-  assert.equal(C.evaluate(row, days).status, 'REJECTED');
+  assert.equal(C.evaluate(row, days).status, 'QUALIFIED');
   row.historyGaps[0].volume = 0;
-  assert.match(C.evaluate(row, days).reason, /MA20/);
+  assert.equal(C.evaluate(row, days).status, 'QUALIFIED');
+  row.historyGaps[0].volume = null;
+  assert.equal(C.evaluate(row, days).status, 'QUALIFIED');
+  assert.equal(C.evaluate(row, days).score.volume, 0);
+  assert.equal(C.evaluate(row, days).qualifiesB, null);
 });

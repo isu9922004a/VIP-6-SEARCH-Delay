@@ -83,7 +83,7 @@ jobs:
           const market = require('./data/market/latest.json');
           const scan = require('./data/enhanced-macd/latest.json');
           const core = require('./enhanced-macd-v923.js');
-          assert.equal(scan.schema, 'ENHANCED_MACD_SCAN_V1');
+          assert.equal(scan.schema, 'ENHANCED_MACD_SCAN_V2');
           assert.equal(scan.version, release.displayCode);
           assert.equal(scan.date, market.tradeDateIso);
           assert.equal(scan.snapshotHash, market.contentSha256);
@@ -97,7 +97,7 @@ jobs:
           assert.deepEqual(scan.result.top8, scan.result.qualified.slice(0, 8));
           for (const row of scan.result.qualified) {
             assert.equal(row.date, scan.date);
-            for (const gate of ['cross', 'volume', 'capital', 'aboveMa20', 'strongerVolume']) {
+            for (const gate of ['cross', 'volume', 'capital']) {
               assert.equal(row.gates[gate], true, row.code + ' ' + gate);
             }
           }

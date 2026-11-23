@@ -72,7 +72,7 @@ async function main() {
     assert.match(await page.locator('#structureResult').innerText(), /交易日 2026-11-23｜版本 V9\.23[\s\S]*當日剛黃金交叉[\s\S]*成交量 3,000 張/);
     assert.match(await page.locator('.enhanced-macd-list strong').first().innerText(), /^測試普通股（1200）$/);
     await page.locator('.enhanced-macd-rules summary').click();
-    assert.match(await page.locator('.enhanced-macd-rules').innerText(), /新增風控/);
+    assert.match(await page.locator('.enhanced-macd-rules').innerText(), /供解讀與排名/);
     for (const width of [360, 390, 428, 1440]) {
       await page.setViewportSize({ width, height: 844 });
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));

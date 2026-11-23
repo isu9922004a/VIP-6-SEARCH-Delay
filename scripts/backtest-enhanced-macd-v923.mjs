@@ -93,7 +93,7 @@ export async function backtest(root, files) {
     if (seen.has(date)) throw Error('重複的訊號日期 ' + date);
     seen.add(date);
     const day = calendarDays.indexOf(date);
-    if (archive.schema !== 'ENHANCED_MACD_SCAN_V1' || archive.version !== Core.VERSION || result?.complete !== true ||
+    if (!['ENHANCED_MACD_SCAN_V1', 'ENHANCED_MACD_SCAN_V2'].includes(archive.schema) || archive.version !== Core.VERSION || result?.complete !== true ||
         !Array.isArray(universe) || result.total !== universe.length || day < Core.WINDOW - 1 ||
         !Array.isArray(archive.recoverySources) || archive.recoverySources.some(receipt => !receiptValid(receipt, date)) ||
         ['TWSE', 'TPEX'].some(market => ['quotes', 'companies', 'status'].some(dataset =>
@@ -117,7 +117,8 @@ export async function backtest(root, files) {
     const idx = indexBars.findIndex(bar => bar.date === date);
     const regime = idx >= 19 && indexBars[idx].close > 0 ?
       (indexBars[idx].close >= average(indexBars.slice(idx - 19, idx + 1).map(bar => bar.close)) ? '大盤在月線上' : '大盤在月線下') : '大盤資料不足';
-    const rank = new Set(scan.top8.map(row => row.market + ':' + row.code));
+    const fiveConditionUnverified = scan.qualified.filter(row => row.qualifiesB === null).length;
+    const rank = new Set((fiveConditionUnverified ? [] : scan.qualified).filter(row => row.qualifiesB).slice(0, 8).map(row => row.market + ':' + row.code));
     for (const signal of scan.rows.filter(row => row.qualifiesA)) {
       const bars = future.map(session => forward[signal.market].get(session)?.rows.get(signal.code) ?? null);
       const stats = outcomes(signal, bars);
@@ -131,7 +132,7 @@ export async function backtest(root, files) {
       if (signal.qualifiesB) b.push(entry);
       if (rank.has(signal.market + ':' + signal.code)) bTop8.push(entry);
     }
-    audited.push({ date, universe: scan.total, forwardSessions: future.length, forwardErrors });
+    audited.push({ date, universe: scan.total, fiveConditionUnverified, forwardSessions: future.length, forwardErrors });
   }
 
   return {
