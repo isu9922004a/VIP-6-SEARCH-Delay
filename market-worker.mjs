@@ -557,9 +557,19 @@ async function handleHighVolatilityInputs(url, corsHeaders, env) {
   const twseQuotes = `https://www.twse.com.tw/rwd/zh/afterTrading/MI_INDEX?date=${compact}&type=ALLBUT0999&response=json`;
   const twseMargin = `https://www.twse.com.tw/rwd/zh/marginTrading/MI_MARGN?date=${compact}&selectType=ALL&response=json`;
   const twseStatus = `https://www.twse.com.tw/exchangeReport/TWT85U?date=${compact}&response=json`;
-  const read = async (source, parse) => {
+  const read = async (source, parse, { stopOnRedirect = false } = {}) => {
     try {
-      const response = await fetch(source, { signal: AbortSignal.timeout(12000) });
+      // TPEx OpenAPI can redirect Cloudflare edge requests repeatedly.  Redirect
+      // chains consume subrequests and can exhaust the entire Worker invocation.
+      // Never auto-follow redirects for these official feeds: fail closed.
+      const response = await fetch(source, {
+        signal: AbortSignal.timeout(12000),
+        redirect: stopOnRedirect ? "manual" : "follow"
+      });
+      if (stopOnRedirect && response.status >= 300 && response.status < 400) {
+        throw Error("TPEx 官方來源回傳 HTTP " + response.status +
+          " 重新導向，疑似限制 Cloudflare 出口；禁止追隨重新導向");
+      }
       if (!response.ok) throw Error("HTTP " + response.status);
       return { source, date, rows: parse(await response.json()) };
     } catch (error) {
@@ -585,7 +595,11 @@ async function handleHighVolatilityInputs(url, corsHeaders, env) {
   };
   const ordinary = code => /^[1-9]\d{3}$/.test(String(code));
   const flagged = value => /^(Y|YES|TRUE|1|是)$/i.test(String(value ?? "").normalize("NFKC").trim());
-  const [listedQuotes, listedMargin, listedStatus, otcQuotes, otcMargin, otcStatus, outstanding] =
+  // V9.22 optional verified GitHub Pages receipt. The three direct TPEx URLs
+  // remain as fail-closed fallbacks until the published source is configured.
+  const tpexSnapshot = env?.HIGH_VOLATILITY_TPEX_SNAPSHOT_BASE_URL
+    ? loadV922TpexSnapshot(env.HIGH_VOLATILITY_TPEX_SNAPSHOT_BASE_URL, date) : null;
+  const [listedQuotes, listedMargin, listedStatus, otcQuotes, otcMargin, otcStatus, outstanding, listedShares] =
     await Promise.all([
       read(twseQuotes, raw => {
         const table = twseReport(raw, fields => fields[0] === "證券代號" && fields.includes("成交股數"));
@@ -602,19 +616,20 @@ async function handleHighVolatilityInputs(url, corsHeaders, env) {
         .data.filter(row => ordinary(row[0])).map(row => row[0])),
       // The exchange reports total traded shares here. Its Capitalization field
       // is issued shares and must never be used as the outstanding denominator.
-      read(tpex + "tpex_daily_turnover", raw => tpexReport(raw, ["SecuritiesCompanyCode", "TradingShares"])
+      tpexSnapshot ? tpexSnapshot.then(x => x.volume) : read(tpex + "tpex_daily_turnover", raw => tpexReport(raw, ["SecuritiesCompanyCode", "TradingShares"])
         .filter(row => ordinary(row.SecuritiesCompanyCode))
-        .map(row => [row.SecuritiesCompanyCode, row.TradingShares])),
-      read(tpex + "tpex_mainboard_margin_balance", raw => tpexReport(raw,
+        .map(row => [row.SecuritiesCompanyCode, row.TradingShares]), { stopOnRedirect: true }),
+      tpexSnapshot ? tpexSnapshot.then(x => x.margin) : read(tpex + "tpex_mainboard_margin_balance", raw => tpexReport(raw,
         ["SecuritiesCompanyCode", "MarginPurchaseBalance", "ShortSaleBalance"])
         .filter(row => ordinary(row.SecuritiesCompanyCode))
-        .map(row => [row.SecuritiesCompanyCode, row.MarginPurchaseBalance, row.ShortSaleBalance])),
-      read(tpex + "tpex_cmode", raw => tpexReport(raw,
+        .map(row => [row.SecuritiesCompanyCode, row.MarginPurchaseBalance, row.ShortSaleBalance]), { stopOnRedirect: true }),
+      tpexSnapshot ? tpexSnapshot.then(x => x.status) : read(tpex + "tpex_cmode", raw => tpexReport(raw,
         ["SecuritiesCompanyCode", "AlteredTrading", "ManagedStock", "SuspensionOfTrading"])
         .filter(row => ordinary(row.SecuritiesCompanyCode) &&
           [row.AlteredTrading, row.ManagedStock, row.SuspensionOfTrading].some(flagged))
-        .map(row => row.SecuritiesCompanyCode)),
-      readHighVolatilityOutstanding(env, date)
+        .map(row => row.SecuritiesCompanyCode), { stopOnRedirect: true }),
+      readHighVolatilityOutstanding(env, date),
+      readOfficialTwseListedShares(env, date)
     ]);
   return jsonResponse({
     type: "HIGH_VOLATILITY_INPUTS", date,
@@ -622,8 +637,120 @@ async function handleHighVolatilityInputs(url, corsHeaders, env) {
       TWSE: { volume: { ...listedQuotes, unit: "shares" }, margin: { ...listedMargin, unit: "lots" }, status: listedStatus },
       TPEX: { volume: { ...otcQuotes, unit: "shares" }, margin: { ...otcMargin, unit: "lots" }, status: otcStatus }
     },
-    outstanding
+    outstanding, listedShares
   }, 200, corsHeaders);
+}
+
+
+async function loadV922TpexSnapshot(baseUrl, date) {
+  const errorFeeds = message => Object.fromEntries(['volume', 'margin', 'status'].map(name =>
+    [name, { source: String(baseUrl), date: null, rows: [], error: message }]));
+  try {
+    const approved = 'https://isu9922004a.github.io/VIP-6-SEARCH-Delay/data/high-volatility/tpex/';
+    const base = new URL(String(baseUrl).replace(/\/?$/, '/'));
+    if (base.href !== approved) throw Error('未核准的上櫃快照網址');
+    const get = async file => {
+      const response = await fetch(new URL(file, base).href, {
+        redirect: 'manual', signal: AbortSignal.timeout(12000)
+      });
+      if (response.status !== 200) throw Error('上櫃快照 HTTP ' + response.status);
+      return response.text();
+    };
+    const manifest = JSON.parse(await get('manifest.json'));
+    if (manifest?.schema !== 'V922_TPEX_OFFICIAL_MANIFEST_V2' ||
+        manifest.date !== date || manifest.file !== date + '.json' ||
+        manifest.verification !== 'OFFICIAL_DATE_FIELDS_COUNTS_AND_UNITS_AND_ISSUED_TURNOVER' ||
+        manifest.officialCalendarSource !== 'https://www.twse.com.tw/exchangeReport/FMTQIK' ||
+        !/^[0-9a-f]{64}$/.test(manifest.sha256 || '') ||
+        !/^[0-9a-f]{64}$/.test(manifest.completedMarketSnapshot || '')) {
+      throw Error('上櫃快照日期或清冊未驗證');
+    }
+    const raw = await get(manifest.file);
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
+    const hash = Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, '0')).join('');
+    if (hash !== manifest.sha256) throw Error('上櫃快照內容與 SHA-256 收據不符');
+    const snapshot = JSON.parse(raw);
+    if (snapshot.schema !== 'V922_TPEX_OFFICIAL_INPUTS_V2' ||
+        snapshot.date !== date || snapshot.verification !== manifest.verification) {
+      throw Error('上櫃快照內容日期或驗證契約不一致');
+    }
+    const endpoints = {
+      volume: 'https://www.tpex.org.tw/openapi/v1/tpex_daily_turnover',
+      margin: 'https://www.tpex.org.tw/openapi/v1/tpex_mainboard_margin_balance',
+      status: 'https://www.tpex.org.tw/openapi/v1/tpex_cmode'
+    };
+    const outputs = {};
+    for (const [key, source] of Object.entries(endpoints)) {
+      const feed = snapshot.markets?.TPEX?.[key], meta = manifest.sources?.[key];
+      const rows = feed?.rows;
+      const unit = key === 'volume' ? 'shares' : key === 'margin' ? 'lots' : undefined;
+      if (feed?.date !== date || feed.source !== source || meta?.url !== source ||
+          feed.unit !== unit || meta.unit !== (unit ?? null) ||
+          !/^[0-9a-f]{64}$/.test(feed.rawResponseSha256 || '') ||
+          feed.rawResponseSha256 !== meta.sha256 || feed.invalidNumbers !== 0 ||
+          !Array.isArray(rows) || !Number.isInteger(feed.sourceRecords) ||
+          feed.sourceRecords < rows.length || feed.ordinaryRows !== rows.length ||
+          meta.ordinaryRows !== rows.length || meta.records !== feed.sourceRecords ||
+          (key !== 'status' && rows.length < 500)) {
+        throw Error('上櫃 ' + key + ' 來源、數值或覆蓋率未驗證');
+      }
+      const seen = new Set();
+      for (const row of rows) {
+        const code = key === 'status' ? row : row?.[0];
+        if (!/^[1-9]\d{3}$/.test(String(code)) || seen.has(code)) {
+          throw Error('上櫃 ' + key + ' 股票代號無效或重複');
+        }
+        seen.add(code);
+        if (key !== 'status' && (row.length !== (key === 'volume' ? 4 : 3) ||
+            !row.slice(1, key === 'volume' ? 3 : undefined)
+              .every(v => Number.isSafeInteger(v) && v >= 0) ||
+            (key === 'volume' && !(row[2] > 0 && Number.isFinite(row[3]) &&
+                row[3] >= 0 && Math.abs(row[1] / row[2] * 100 - row[3]) <= 0.011)))) {
+          throw Error('上櫃 ' + key + ' 股數格式不正確');
+        }
+      }
+      outputs[key] = { source, date, rows, ...(unit ? { unit } : {}) };
+    }
+    return outputs;
+  } catch (error) {
+    return errorFeeds(error.message || String(error));
+  }
+}
+
+async function readOfficialTwseListedShares(env, date) {
+  // Official TWSE turnover is traded shares / shares LISTED, not merely issued.
+  // No substitute from public company-profile issued shares or market cap.
+  const source = env?.HIGH_VOLATILITY_TWSE_LISTED_SOURCE;
+  const binding = env?.HIGH_VOLATILITY_TWSE_LISTED_KV;
+  if (!source || !binding?.get) {
+    return { date: null, rows: [], error: 'TWSE 同日上市股數官方來源未設定（不得使用發行股數代替）' };
+  }
+  try {
+    const official = new URL(source);
+    if (official.protocol !== 'https:' ||
+        !['www.twse.com.tw', 'eshop.twse.com.tw'].includes(official.hostname)) {
+      throw Error('非核准 TWSE 上市股數來源');
+    }
+    const receipt = await binding.get(date, 'json');
+    if (receipt?.date !== date || receipt.reportDate !== date ||
+        receipt.source !== source || receipt.scope !== 'OFFICIAL_TWSE_LISTED_SHARES' ||
+        receipt.unit !== 'shares' || !/^[a-f0-9]{64}$/.test(receipt.rawSha256 || '') ||
+        !Array.isArray(receipt.rows) || receipt.rows.length < 800) {
+      throw Error('同日 TWSE 上市股數來源、覆蓋率或原始收據未驗證');
+    }
+    const seen = new Set();
+    for (const row of receipt.rows) {
+      const [code, shares] = Array.isArray(row) ? row : [];
+      if (!/^[1-9]\d{3}$/.test(String(code)) || seen.has(code) ||
+          !Number.isSafeInteger(shares) || shares <= 0) {
+        throw Error('TWSE 上市股數代碼重複、缺值或數量錯誤');
+      }
+      seen.add(code);
+    }
+    return { date, source, scope: receipt.scope, unit: receipt.unit, rows: receipt.rows };
+  } catch (error) {
+    return { date: null, rows: [], error: error.message || String(error) };
+  }
 }
 
 async function readHighVolatilityOutstanding(env, date) {

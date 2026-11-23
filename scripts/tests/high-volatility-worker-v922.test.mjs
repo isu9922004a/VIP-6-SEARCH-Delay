@@ -14,7 +14,7 @@ const twseMarginFields = ['代號', '名稱', '買進', '賣出', '現金償還'
 test('the added route leaves all existing Market Worker handlers byte-identical', () => {
   const legacy = readFileSync(new URL('../../market-worker.mjs', import.meta.url), 'utf8')
     .replace(/\n    if \(market === "HIGH_VOLATILITY_INPUTS"\) \{\n      return handleHighVolatilityInputs\(url, corsHeaders, env\);\n    \}\n/, '')
-    .replace(/\nasync function handleHighVolatilityInputs\([\s\S]*?\n\}\n(?=\n\/\/ =)/, '');
+    .replace(/\nasync function handleHighVolatilityInputs\([\s\S]*?(?=\n\/\/ =+\n\/\/ 路由 A)/, '');
   assert.equal(createHash('sha256').update(legacy).digest('hex'),
     '7811eccb157d76fc5a70df5016fff8154058849a343963924e65e519e3b4eb53');
 });
@@ -70,4 +70,88 @@ test('Worker projects only official same-day volume, current balance and status 
   const unconfigured = await (await Worker.fetch(new Request(url), {})).json();
   assert.match(unconfigured.outstanding.error, /尚未設定/);
   assert.equal((await Worker.fetch(new Request(url.replace(date, '2026-02-30')), env)).status, 400);
+});
+
+test('TPEx redirects fail closed without burning the full Worker subrequest budget', async t => {
+  const requests = [];
+  t.mock.method(globalThis, 'fetch', async (address, options) => {
+    requests.push({ url: String(address), redirect: options?.redirect });
+    if (String(address).startsWith('https://www.tpex.org.tw/')) {
+      return new Response(null, {
+        status: 302,
+        headers: { Location: 'https://www.tpex.org.tw/errors' }
+      });
+    }
+    return Response.json({ stat: 'UNAVAILABLE', date: compact });
+  });
+  const response = await Worker.fetch(new Request(url), {});
+  assert.equal(response.status, 200);
+  const result = await response.json();
+  const tpexRequests = requests.filter(row => row.url.startsWith('https://www.tpex.org.tw/'));
+  assert.equal(tpexRequests.length, 3, 'each of three TPEx feeds makes exactly one attempt');
+  assert.ok(tpexRequests.every(row => row.redirect === 'manual'));
+  for (const feed of Object.values(result.markets.TPEX)) {
+    assert.equal(feed.date, null);
+    assert.deepEqual(feed.rows, []);
+    assert.match(feed.error, /TPEx 官方來源回傳 HTTP 302 重新導向/);
+  }
+  assert.match(result.outstanding.error, /尚未設定/);
+});
+
+test('opt-in official Pages snapshot verifies byte SHA and never requests TPEx from Cloudflare', async t => {
+  const base = 'https://isu9922004a.github.io/VIP-6-SEARCH-Delay/data/high-volatility/tpex/';
+  const codes = Array.from({ length: 505 }, (_, i) => String(1000 + i));
+  const source = {
+    volume: 'https://www.tpex.org.tw/openapi/v1/tpex_daily_turnover',
+    margin: 'https://www.tpex.org.tw/openapi/v1/tpex_mainboard_margin_balance',
+    status: 'https://www.tpex.org.tw/openapi/v1/tpex_cmode'
+  };
+  const feeds = {
+    volume: { source: source.volume, date, unit: 'shares', rows: codes.map(c => [c, 50000, 100000, 50]) },
+    margin: { source: source.margin, date, unit: 'lots', rows: codes.map(c => [c, 100, 35]) },
+    status: { source: source.status, date, rows: ['1401'] }
+  };
+  for (const feed of Object.values(feeds)) Object.assign(feed, {
+    rawResponseSha256: 'a'.repeat(64), sourceRecords: feed.rows.length,
+    ordinaryRows: feed.rows.length, invalidNumbers: 0
+  });
+  const snapshot = {
+    schema: 'V922_TPEX_OFFICIAL_INPUTS_V2', date,
+    verification: 'OFFICIAL_DATE_FIELDS_COUNTS_AND_UNITS_AND_ISSUED_TURNOVER',
+    markets: { TPEX: feeds }
+  };
+  const payload = JSON.stringify(snapshot) + '\n';
+  const digest = createHash('sha256').update(payload).digest('hex');
+  const manifest = {
+    schema: 'V922_TPEX_OFFICIAL_MANIFEST_V2', date, file: date + '.json',
+    verification: snapshot.verification, sha256: digest,
+    completedMarketSnapshot: 'c'.repeat(64),
+    officialCalendarSource: 'https://www.twse.com.tw/exchangeReport/FMTQIK',
+    sources: Object.fromEntries(Object.entries(feeds).map(([key, feed]) =>
+      [key, {url:feed.source, unit:feed.unit ?? null, sha256:feed.rawResponseSha256,
+        records:feed.sourceRecords, ordinaryRows:feed.ordinaryRows}]))
+  };
+  const urls = [];
+  t.mock.method(globalThis, 'fetch', async address => {
+    urls.push(String(address));
+    if (String(address) === base + 'manifest.json') return Response.json(manifest);
+    if (String(address) === base + date + '.json') return new Response(payload);
+    return Response.json({ stat: 'UNAVAILABLE', date: compact });
+  });
+  const env = { HIGH_VOLATILITY_TPEX_SNAPSHOT_BASE_URL: base };
+  const response = await Worker.fetch(new Request(url), env);
+  assert.equal(response.status, 200);
+  const result = await response.json();
+  assert.equal(result.markets.TPEX.volume.date, date, JSON.stringify(result.markets.TPEX.volume));
+  assert.equal(result.markets.TPEX.volume.rows.length, 505);
+  assert.equal(result.markets.TPEX.margin.rows.length, 505);
+  assert.deepEqual(result.markets.TPEX.status.rows, ['1401']);
+  assert.ok(urls.every(url => !url.startsWith('https://www.tpex.org.tw/')));
+  manifest.sha256 = 'f'.repeat(64);
+  const corrupted = await (await Worker.fetch(new Request(url), env)).json();
+  for (const feed of Object.values(corrupted.markets.TPEX)) {
+    assert.equal(feed.date, null);
+    assert.deepEqual(feed.rows, []);
+    assert.match(feed.error, /SHA-256/);
+  }
 });

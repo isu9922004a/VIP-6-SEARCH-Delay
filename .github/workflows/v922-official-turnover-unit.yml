@@ -1,0 +1,27 @@
+name: V9.22 official turnover exact unit verification
+on:
+  push:
+    branches: ['fix/v922-tpex-redirect-guard']
+    paths:
+      - 'high-volatility-v922.js'
+      - 'market-worker.mjs'
+      - 'scripts/tests/high-volatility-*.test.*'
+      - 'scripts/fixtures/high-volatility-v922.cjs'
+      - 'scripts/verify-tpex-v922.mjs'
+      - 'scripts/tests/v922-tpex-collector.test.mjs'
+      - '.github/workflows/v922-official-turnover-unit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '24'}
+      - run: |
+          node --check market-worker.mjs
+          node --check high-volatility-v922.js
+          node --test scripts/tests/v922-tpex-collector.test.mjs scripts/tests/high-volatility-worker-v922.test.mjs scripts/tests/high-volatility-v922.test.cjs

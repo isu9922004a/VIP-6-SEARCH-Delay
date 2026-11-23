@@ -12,7 +12,7 @@ test('both strict gates, all allowed industries, current safety exclusions and u
   assert.deepEqual(scan.qualified.map(x => x.code), ['1101', '1201', '1240', '1301', '1401', '2002', '2330', '2601', '3030']);
   assert.equal(scan.top8.length, 8);
   assert.deepEqual(scan.top8, scan.qualified.slice(0, 8));
-  assert.deepEqual(scan.qualified[0].shares, { marginShares: 100000, shortShares: 31000, tradedShares: 35000, outstandingShares: 100000 });
+  assert.deepEqual(scan.qualified[0].shares, { marginShares: 100000, shortShares: 31000, tradedShares: 35000, turnoverBaseShares: 100000 });
   const status = code => scan.rows.find(x => x.code === code).status;
   for (const code of ['1305', '1307', '1402', '1403']) assert.equal(status(code), 'NOT_QUALIFIED', code);
   for (const code of ['1701', '2801', '2501', '0050', '9110', '1213', '2314']) assert.equal(status(code), 'EXCLUDED', code);
@@ -39,11 +39,11 @@ test('only verified full scans can conclude zero, including zero short balance',
 
 test('missing, stale, duplicated or issued-share data fails closed, as does unknown trading status', async () => {
   for (const mutate of [
-    data => { delete data.inputs.outstanding; },
-    data => { data.inputs.outstanding.scope = 'ISSUED_SHARES'; },
-    data => { data.inputs.outstanding.date = '2026-11-19'; },
-    data => { data.inputs.outstanding.unit = 'lots'; },
-    data => { data.inputs.outstanding.rows.push(data.inputs.outstanding.rows[0]); },
+    data => { delete data.inputs.listedShares; },
+    data => { data.inputs.listedShares.scope = 'OUTSTANDING_ORDINARY_SHARES'; },
+    data => { data.inputs.listedShares.date = '2026-11-19'; },
+    data => { data.inputs.listedShares.unit = 'lots'; },
+    data => { data.inputs.listedShares.rows.push(data.inputs.listedShares.rows[0]); },
     data => { data.inputs.markets.TWSE.margin.date = '2026-11-19'; },
     data => { data.inputs.markets.TWSE.volume.unit = 'lots'; },
     data => { data.inputs.markets.TWSE.status.date = null; },
@@ -76,4 +76,20 @@ test('production entry loads only the replacement and uses the release version',
   assert.doesNotMatch(html, /<script src="[^"]*structure-reversal/);
   assert.match(html, /high-volatility-v922\.js\?v=V9\.22/);
   assert.equal(C.VERSION, require('../../version-v50.js').displayCode);
+});
+
+test('official TPEx denominator and displayed rate are required, exact >30 cutoff remains', async()=>{
+  const stock = { ...stocks.find(x=>x.code==='1240'),volume:'30001',outstanding:'100000' };
+  const good = await assess(fixture([stock]));
+  assert.equal(good.qualified.length,1);
+  const wrong = fixture([stock]);
+  wrong.inputs.markets.TPEX.volume.rows[0][3]=31;
+  const rejected=await assess(wrong);
+  assert.equal(rejected.qualified.length,0);
+  assert.equal(rejected.unverified.length,1);
+  const missing=fixture([stock]);
+  missing.inputs.markets.TPEX.volume.rows[0]=['1240','30001'];
+  const blocked=await assess(missing);
+  assert.equal(blocked.qualified.length,0);
+  assert.equal(blocked.unverified.length,1);
 });
