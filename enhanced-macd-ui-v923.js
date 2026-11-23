@@ -174,7 +174,8 @@
       result.sources.push({
         source: 'https://www.twse.com.tw/exchangeReport/FMTQIK', date, label: '官方交易日曆與歷史日 K 校對日期'
       });
-      if (result.complete && (data.historySources?.length !== C.WINDOW * 2 || result.errors.length ||
+      if (result.complete && (!Array.isArray(data.sessions) || data.sessions.length < C.WINDOW ||
+          data.sessions.length > C.HISTORY_SESSIONS || data.historySources?.length !== data.sessions.length * 2 || result.errors.length ||
           result.incomplete.length || result.total < snapshot.rows.length ||
           result.sources.length !== 7 || result.qualified.some(row => row.date !== date ||
             row.qualifiesB !== true || !Number.isFinite(row.score?.total) ||
@@ -292,7 +293,7 @@
         <details class="enhanced-macd-rules">
           <summary>入選條件與資料口徑</summary>
           <ol>${C.RULES.map(rule => '<li>' + rule + '</li>').join('')}</ol>
-          <p>採交易所未還原收盤價及最近 100 根連續有效日 K。除權息或拆併股可能影響訊號與區間比較。</p>
+          <p>採交易所未還原收盤價。MACD 使用最近 100 根有效日 K，已核對的無收盤日不補價。新掛牌股至少有 50 根且自掛牌日完整核對才計算。黃金交叉仍須比較最近兩個市場交易日。除權息或拆併股可能影響訊號。</p>
           <p>排除生技醫療、金融保險、建材營造及非一般普通股商品。</p>
           <p>排名權重為 MACD 動能 35%、月線趨勢 25%、成交量增強 25%、突破與追高風險 15%。Top 8 供隔日到 5 個交易日研究參考。</p>
         </details>

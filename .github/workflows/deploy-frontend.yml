@@ -87,7 +87,8 @@ jobs:
           assert.equal(scan.version, release.displayCode);
           assert.equal(scan.date, market.tradeDateIso);
           assert.equal(scan.snapshotHash, market.contentSha256);
-          assert.equal(scan.historySources.length, core.WINDOW * 2);
+          assert.ok(scan.sessions.length >= core.WINDOW && scan.sessions.length <= core.HISTORY_SESSIONS);
+          assert.equal(scan.historySources.length, scan.sessions.length * 2);
           assert.equal(scan.result.date, scan.date);
           assert.equal(scan.result.complete, true);
           assert.equal(scan.result.errors.length, 0);

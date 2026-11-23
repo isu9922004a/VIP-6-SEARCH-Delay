@@ -95,9 +95,10 @@ export async function backtest(root, files) {
     const day = calendarDays.indexOf(date);
     if (archive.schema !== 'ENHANCED_MACD_SCAN_V1' || archive.version !== Core.VERSION || result?.complete !== true ||
         !Array.isArray(universe) || result.total !== universe.length || day < Core.WINDOW - 1 ||
+        !Array.isArray(archive.recoverySources) || archive.recoverySources.some(receipt => !receiptValid(receipt, date)) ||
         ['TWSE', 'TPEX'].some(market => ['quotes', 'companies', 'status'].some(dataset =>
           !receiptValid(sources?.find(receipt => receipt.market === market && receipt.dataset === dataset), date))) ||
-        JSON.stringify(sessions) !== JSON.stringify(calendarDays.slice(day - Core.WINDOW + 1, day + 1))) {
+        JSON.stringify(sessions) !== JSON.stringify(calendarDays.slice(Math.max(0, day - Core.HISTORY_SESSIONS + 1), day + 1))) {
       skipped.push({ date, reason: '缺少訊號當日可查得的完整公司、商品或行情檔案' });
       continue;
     }
@@ -107,7 +108,7 @@ export async function backtest(root, files) {
     const forwardErrors = [];
     const [history, forward] = await Promise.all([readHistory(root, sessions, errors), readHistory(root, future, forwardErrors)]);
     const stocks = universe.map(stock => ({ ...stock, bars: sessions.map(session =>
-      history[stock.market].get(session)?.rows.get(stock.code) ?? null) }));
+      stock.historyRecovered?.find(bar => bar.date === session) ?? history[stock.market].get(session)?.rows.get(stock.code) ?? null) }));
     const scan = Core.scan(stocks, sessions, errors);
     if (!scan.complete) {
       skipped.push({ date, reason: '交易日原始日 K 或交易資格無法重算', errors });

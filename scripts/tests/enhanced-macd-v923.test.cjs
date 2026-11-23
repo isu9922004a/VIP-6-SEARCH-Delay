@@ -132,3 +132,44 @@ test('entry point loads only the current sixth strategy', () => {
   assert.match(html, /enhanced-macd-v923\.js\?v=V9\.23/);
   assert.equal(C.VERSION, require('../../version-v50.js').displayCode);
 });
+
+test('verified older no-close days extend warm-up and never replace the prior exchange session', () => {
+  const row = stock();
+  const earlier = '2026-08-15';
+  const days = [earlier, ...sessions];
+  row.bars.unshift({ ...row.bars[0], date: earlier });
+  row.bars[40] = null;
+  assert.equal(C.evaluate(row, days).status, 'DATA');
+  row.historyGaps = [{ date: days[40], volume: 0, type: 'OFFICIAL_NO_OHLC' }];
+  assert.equal(C.evaluate(row, days).status, 'QUALIFIED');
+  assert.equal(C.evaluate(row, days).historyBars, 100);
+  row.bars[days.length - 2] = null;
+  row.historyGaps.push({ date: days.at(-2), volume: 0, type: 'OFFICIAL_NO_OHLC' });
+  assert.equal(C.evaluate(row, days).status, 'DATA');
+});
+
+test('recent listings must have a complete history since listing to use the shorter warm-up', () => {
+  const row = stock();
+  row.listingDate = sessions[47];
+  row.bars.fill(null, 0, 47);
+  assert.equal(evaluate(row).historyBars, 53);
+  assert.equal(evaluate(row).status, 'QUALIFIED');
+  row.bars[50] = null;
+  assert.equal(evaluate(row).status, 'DATA');
+  row.listingDate = sessions[51];
+  assert.equal(evaluate(row).status, 'DATA');
+});
+
+test('five-day volume stays in exchange-date order and missing recent closes never certify MA20', () => {
+  const row = stock();
+  const earlier = '2026-08-15';
+  const days = [earlier, ...sessions];
+  row.bars.unshift({ ...row.bars[0], date: earlier });
+  const gap = days.length - 5;
+  row.bars[gap] = null;
+  row.historyGaps = [{ date: days[gap], volume: 10_000_000, type: 'OFFICIAL_NO_OHLC' }];
+  assert.equal(C.evaluate(row, days).gates.strongerVolume, false);
+  assert.equal(C.evaluate(row, days).status, 'REJECTED');
+  row.historyGaps[0].volume = 0;
+  assert.match(C.evaluate(row, days).reason, /MA20/);
+});

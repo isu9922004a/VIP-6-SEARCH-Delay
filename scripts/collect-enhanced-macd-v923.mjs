@@ -61,7 +61,13 @@ export async function readOfficial(source, fetcher) {
       }
       if (response.url && response.url !== source) throw Error('官方資料網址不符 ' + source);
       const bytes = Buffer.from(await response.arrayBuffer());
-      return { rows: JSON.parse(bytes), receipt: { source, sha256: sha(bytes), retrievedAt: new Date().toISOString() } };
+      let rows;
+      try {
+        rows = JSON.parse(bytes);
+      } catch {
+        throw Error('官方來源回傳非 JSON ' + source);
+      }
+      return { rows, receipt: { source, sha256: sha(bytes), retrievedAt: new Date().toISOString() } };
     } catch (error) {
       if (attempt === 2 || !(error.retryable || ['TimeoutError', 'TypeError'].includes(error.name))) throw error;
       await delay(800 * (attempt + 1));
@@ -140,13 +146,77 @@ export async function readHistory(root, sessions, errors) {
   return histories;
 }
 
+async function reconcileMissingHistory(stocks, sessions, histories, fetcher) {
+  const reports = new Map();
+  const receipts = [];
+  const pending = { TWSE: Promise.resolve(), TPEX: Promise.resolve() };
+  const read = (market, date) => {
+    const key = market + ':' + date;
+    if (!reports.has(key)) {
+      const request = pending[market].then(async () => {
+        const sources = new Set([archiveSource(market, date), paths[market].quotes(date)]);
+        const errors = [];
+        for (const source of sources) {
+          try {
+            const { rows, receipt } = await readOfficial(source, fetcher);
+            const quotes = parseQuotes(rows, market, date);
+            if ([...histories[market].get(date).rows.keys()].some(code => !quotes.has(code))) {
+              throw Error('指定日官方行情未涵蓋已核對的歷史代號');
+            }
+            receipts.push({ ...receipt, market, date });
+            return quotes;
+          } catch (error) {
+            errors.push(error.message);
+          }
+        }
+        throw Error(errors.join('／'));
+      });
+      reports.set(key, request);
+      pending[market] = request.catch(() => {});
+    }
+    return reports.get(key);
+  };
+
+  await Promise.all(stocks.map(async stock => {
+    let row = Core.evaluate(stock, sessions);
+    while (row.missingHistoryDate) {
+      const date = row.missingHistoryDate;
+      const index = sessions.indexOf(date);
+      if (!histories[stock.market].has(date)) return;
+      try {
+        const quotes = await read(stock.market, date);
+        const raw = quotes.get(stock.code);
+        const volume = Core.shares(raw?.成交股數, 'shares');
+        const normalized = raw && normalizeQuote(raw, stock.market, compact(date), new Map());
+        const bar = normalized && volume !== null ? { ...normalized, date, volume } : null;
+        if (Core.validBar(bar, date) && bar.volume > 0) {
+          const recovered = { date, open: bar.open, high: bar.high, low: bar.low, close: bar.close, volume };
+          stock.bars[index] = recovered;
+          (stock.historyRecovered ??= []).push(recovered);
+        } else {
+          const fields = stock.market === 'TWSE' ? ['開盤價', '最高價', '最低價', '收盤價'] : ['開盤', '最高', '最低', '收盤'];
+          const noPrices = raw && fields.every(field => /^-+$/.test(String(raw[field] ?? '').trim()));
+          if (raw && (volume === null || (!noPrices && volume !== 0))) return;
+          const type = !raw ? 'OFFICIAL_ABSENT' : noPrices ? 'OFFICIAL_NO_OHLC' : 'OFFICIAL_ZERO_VOLUME';
+          (stock.historyGaps ??= []).push({ date, volume, type });
+        }
+        row = Core.evaluate(stock, sessions);
+      } catch (error) {
+        stock.historyError = date + '：' + error.message;
+        return;
+      }
+    }
+  }));
+  return receipts.sort((a, b) => a.date.localeCompare(b.date) || a.market.localeCompare(b.market));
+}
+
 export async function collect(root, fetcher = fetch, now = new Date()) {
   const [calendar, snapshot] = await Promise.all([
     json(path.join(root, 'data/market/research-calendar.json')),
     json(path.join(root, 'data/market/latest.json'))
   ]);
   const date = snapshot.tradeDateIso;
-  const sessions = calendar.dates?.slice(-Core.WINDOW) ?? [];
+  const sessions = calendar.dates?.slice(-Core.HISTORY_SESSIONS) ?? [];
   const taipeiTime = new Date(now.getTime() + 8 * 3_600_000).toISOString();
   if (!Core.validDate(date) || snapshot.marketCoverageReady !== true || calendar.verified !== true ||
       calendar.source !== 'https://www.twse.com.tw/exchangeReport/FMTQIK' ||
@@ -218,7 +288,13 @@ export async function collect(root, fetcher = fetch, now = new Date()) {
         missing.slice(0, 10).map(row => row.code).join('、'));
     }
   }
+  const recoverySources = await reconcileMissingHistory(universe, sessions, histories, fetcher);
   const result = Core.scan(universe, sessions, errors.sort());
+  const diagnostics = new Map(universe.filter(stock => stock.historyError).map(stock => [stock.market + ':' + stock.code, stock.historyError]));
+  for (const row of result.incomplete) {
+    const detail = diagnostics.get(row.market + ':' + row.code);
+    if (detail) row.reason += '｜' + detail;
+  }
   const historySources = markets.flatMap(market => [...histories[market].values()].map(({ rows, ...receipt }) => ({ ...receipt, market })))
     .sort((a, b) => a.date.localeCompare(b.date) || a.market.localeCompare(b.market));
   const generatedAt = new Date().toISOString();
@@ -227,7 +303,7 @@ export async function collect(root, fetcher = fetch, now = new Date()) {
     snapshotHash: snapshot.contentSha256, calendarSource: calendar.source, sessions,
     priceBasis: 'UNADJUSTED_OFFICIAL_OHLC', volumeUnit: 'shares', capitalUnit: 'NTD',
     sources: receipts.sort((a, b) => a.market.localeCompare(b.market) || a.dataset.localeCompare(b.dataset)),
-    historySources, result
+    historySources, recoverySources, result
   };
   return { artifact, universe };
 }

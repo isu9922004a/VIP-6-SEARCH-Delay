@@ -9,6 +9,8 @@
   const TITLE = '⑥ 強化 MACD+';
   const SUBTITLE = '尋找 MACD 剛黃金交叉、股價站上月線、成交量開始增強的短線轉強股。';
   const WINDOW = 100;
+  const HISTORY_SESSIONS = 120;
+  const MIN_LISTING_BARS = 50;
   const CAP_LIMIT = 5_000_000_000;
   const MIN_VOLUME = 2_000_000;
   const MAX_VOLUME = 10_000_000;
@@ -46,7 +48,7 @@
   }
 
   // Seed each EMA with its first full window's SMA. Each evaluation uses the
-  // same 100 raw official closing prices, including the signal bar.
+  // most recent 100 official prices, or the full verified history from a recent listing.
   function ema(values, period) {
     const result = Array(values.length).fill(null);
     if (values.length < period) return result;
@@ -97,7 +99,7 @@
     };
   }
 
-  function analyze(bars) {
+  function analyze(bars, precedingVolumes = bars.slice(-6, -1).map(bar => bar.volume)) {
     const closes = bars.map(bar => bar.close);
     const series = macd(closes);
     const today = bars.at(-1);
@@ -106,7 +108,7 @@
     const prior = series.at(-2);
     // Compare share counts as integers. This preserves strict equality at the
     // five-day mean without introducing an intermediate rounding step.
-    const priorVolumeTotal = bars.slice(-6, -1).reduce((total, bar) => total + BigInt(bar.volume), 0n);
+    const priorVolumeTotal = precedingVolumes.reduce((total, volume) => total + BigInt(volume), 0n);
     const averageVolume = Number(priorVolumeTotal) / 5;
     const ma20Ticks = sum(closes.slice(-20).map(ticks));
     const ma20 = ma20Ticks / 20 / 10_000;
@@ -131,7 +133,7 @@
       [range > 0 && closePosition <= 0.35, '收盤落在當日振幅下段'],
       [pressureDistance >= 0 && pressureDistance <= 3, '距前 20 日高點不超過 3%'],
       [today.close > closes[priorPeakIndex] &&
-        current.dif / today.close < series[priorPeakIndex].dif / closes[priorPeakIndex], '股價創高但標準化 DIF 未同步創高']
+        series[priorPeakIndex] !== null && current.dif / today.close < series[priorPeakIndex].dif / closes[priorPeakIndex], '股價創高但標準化 DIF 未同步創高']
     ].filter(([flag]) => flag).map(([, label]) => label);
     const zeroBand = today.close * 0.002;
     const axis = Math.max(current.dif, current.signal) < -zeroBand ? '零軸下方' :
@@ -183,14 +185,45 @@
     }
     if (!latestBarValid) return result('DATA', '最新完成日 K 缺漏、異常或與指定日行情不符');
 
-    const missingDays = sessions.filter((day, index) => !validBar(stock.bars[index], day) || stock.bars[index].volume === 0);
-    if (stock.bars.length !== WINDOW || missingDays.length) {
-      const preview = missingDays.slice(0, 3).join('、');
-      return result('DATA', '不足 100 根連續有效日 K' +
-        (preview ? '｜缺 ' + missingDays.length + ' 日（' + preview + (missingDays.length > 3 ? ' 等' : '') + '）' : ''));
+    const data = reason => result('DATA', reason);
+    if (stock.bars.length !== sessions.length || !validBar(stock.bars.at(-2), sessions.at(-2)) || stock.bars.at(-2).volume === 0) {
+      return data('前一交易日缺少有效收盤價，無法核對當日交叉');
     }
-
-    const metrics = analyze(stock.bars);
+    const gaps = new Map((stock.historyGaps ?? []).filter(gap => validDate(gap.date) &&
+      ['OFFICIAL_NO_OHLC', 'OFFICIAL_ABSENT', 'OFFICIAL_ZERO_VOLUME'].includes(gap.type)).map(gap => [gap.date, gap]));
+    const valid = [];
+    let fromListing = false;
+    for (let index = sessions.length - 1; index >= 0 && valid.length < WINDOW; index--) {
+      const day = sessions[index];
+      if (validDate(stock.listingDate) && day < stock.listingDate) {
+        fromListing = true;
+        break;
+      }
+      const bar = stock.bars[index];
+      if (validBar(bar, day) && bar.volume > 0) {
+        valid.push(bar);
+      } else if (!gaps.has(day)) {
+        return { ...data('官方歷史日 K 尚待核對｜' + day), missingHistoryDate: day };
+      }
+    }
+    if (valid.length < WINDOW && (!fromListing || valid.length < MIN_LISTING_BARS)) {
+      return data('有效日 K 不足｜已核對 ' + valid.length + ' 根');
+    }
+    const precedingVolumes = sessions.slice(-6, -1).map((day, offset) => {
+      const bar = stock.bars[sessions.length - 6 + offset];
+      return validBar(bar, day) ? bar.volume : gaps.get(day)?.volume;
+    });
+    if (!precedingVolumes.every(volume => Number.isSafeInteger(volume) && volume >= 0)) {
+      return data('前 5 個交易日成交股數尚待核對');
+    }
+    const metrics = analyze(valid.reverse(), precedingVolumes);
+    if (metrics.gates.cross && metrics.gates.strongerVolume &&
+        !sessions.slice(-20).every((day, offset) => {
+          const bar = stock.bars[sessions.length - 20 + offset];
+          return validBar(bar, day) && bar.volume > 0;
+        })) {
+      return data('最近 20 個交易日缺少有效收盤，無法核對 MA20');
+    }
     const gates = { ...metrics.gates, capital: capitalOk };
     // The A definition reuses exactly the first three core checks; risk
     // labels and scores cannot disqualify a stock under either strategy.
@@ -198,13 +231,13 @@
     const qualifiesB = qualifiesA && gates.aboveMa20 && gates.strongerVolume;
     return {
       ...base, ...metrics, gates, qualifiesA, qualifiesB, industry: stock.industry,
-      capital: stock.capital, companyDate: stock.companyDate,
+      capital: stock.capital, companyDate: stock.companyDate, historyBars: valid.length,
       status: qualifiesB ? 'QUALIFIED' : 'REJECTED'
     };
   }
 
   function scan(stocks, sessions, errors = []) {
-    if (sessions.length !== WINDOW || !sessions.every((date, index) =>
+    if ((sessions.length < WINDOW || sessions.length > HISTORY_SESSIONS) || !sessions.every((date, index) =>
       validDate(date) && (!index || date > sessions[index - 1]))) throw Error('共同交易日曆未驗證');
     const keys = new Set(stocks.map(stock => stock.market + ':' + stock.code));
     if (keys.size !== stocks.length) throw Error('股票池含重複代號');
@@ -225,7 +258,7 @@
   }
 
   return Object.freeze({
-    VERSION, TITLE, SUBTITLE, WINDOW, RULES, validDate, wholeNumber, shares, ema, macd, crosses, validBar,
+    VERSION, TITLE, SUBTITLE, WINDOW, HISTORY_SESSIONS, RULES, validDate, wholeNumber, shares, ema, macd, crosses, validBar,
     quality, analyze, evaluate, scan, summary
   });
 });

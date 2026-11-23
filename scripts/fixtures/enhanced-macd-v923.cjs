@@ -28,7 +28,7 @@ function replay() {
       twseQuoteDate: date, tpexQuoteDate: date, marketCoverageReady: true, industryCoverageReady: true,
       snapshotTimelinessReady: true, snapshotContentSha256: 'synthetic' }
   };
-  const artifact = { schema: 'ENHANCED_MACD_SCAN_V1', version: Core.VERSION, date, snapshotHash: 'synthetic',
+  const artifact = { schema: 'ENHANCED_MACD_SCAN_V1', version: Core.VERSION, date, sessions, snapshotHash: 'synthetic',
     priceBasis: 'UNADJUSTED_OFFICIAL_OHLC', volumeUnit: 'shares', capitalUnit: 'NTD',
     historySources: sessions.flatMap(day => ['TWSE', 'TPEX'].map(market => ({ market, date: day }))),
     sources: ['TWSE', 'TPEX'].flatMap(market => ['quotes', 'companies', 'status'].map(dataset => ({

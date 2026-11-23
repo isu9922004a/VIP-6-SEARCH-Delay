@@ -1,0 +1,30 @@
+name: Collect Enhanced MACD official evidence
+on:
+  workflow_dispatch:
+  schedule:
+    # Taipei 21:20 and 22:20. Collection requires a current verified
+    # market snapshot and preserves diagnostics if official data is incomplete.
+    - cron: '20 13,14 * * 1-5'
+permissions:
+  contents: read
+concurrency:
+  group: enhanced-macd-evidence-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Save current scan and point-in-time company inputs
+        run: node scripts/collect-enhanced-macd-v923.mjs /tmp/enhanced-macd/latest.json /tmp/enhanced-macd/archive.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: enhanced-macd-evidence
+          path: /tmp/enhanced-macd/*.json
+          if-no-files-found: warn
+          retention-days: 90
