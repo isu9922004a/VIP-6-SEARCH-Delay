@@ -1,5 +1,11 @@
 name: Deploy verified frontend release
 on:
+  pull_request:
+    branches: ['main']
+    paths:
+      - 'enhanced-macd*v923.js'
+      - 'data/enhanced-macd/latest.json'
+      - '.github/workflows/deploy-frontend.yml'
   push:
     branches: ['main']
     # Release verification must also run for V9.2 implementation changes,
@@ -15,10 +21,10 @@ on:
       - 'assets/shitou-character-original-v972.*'
       - 'version-v50.js'
       - 'index.html'
-      - 'high-volatility-*-v922.js'
-      - 'high-volatility-v922.js'
-      - 'high-volatility-v922.css'
-      - 'scripts/tests/high-volatility*'
+      - 'enhanced-macd*v923.js'
+      - 'enhanced-macd-v923.css'
+      - 'scripts/collect-enhanced-macd-v923.mjs'
+      - 'scripts/tests/enhanced-macd*'
       - 'market-outlook.html'
       - 'kline-life-03-*.js'
       - 'market-life-*.js'
@@ -74,6 +80,39 @@ jobs:
           npm test
           npm run test:contract
           npm run research:validate
+      - name: Validate V9.23 official scan and publication status
+        run: |
+          node - <<'NODE'
+          const assert = require('node:assert/strict');
+          const release = require('./version-v50.js');
+          if (release.displayCode !== 'V9.23') process.exit(0);
+          const market = require('./data/market/latest.json');
+          const scan = require('./data/enhanced-macd/latest.json');
+          const core = require('./enhanced-macd-v923.js');
+          assert.equal(scan.schema, 'ENHANCED_MACD_SCAN_V2');
+          assert.equal(scan.version, release.displayCode);
+          assert.equal(scan.date, market.tradeDateIso);
+          assert.equal(scan.snapshotHash, market.contentSha256);
+          assert.ok(scan.sessions.length >= core.WINDOW && scan.sessions.length <= core.HISTORY_SESSIONS);
+          assert.equal(scan.historySources.length, scan.sessions.length * 2);
+          assert.equal(scan.result.date, scan.date);
+          assert.equal(typeof scan.result.complete, 'boolean');
+          assert.ok(scan.result.total >= market.rows.length);
+          if (scan.result.complete) {
+            assert.equal(scan.result.errors.length, 0);
+            assert.equal(scan.result.incomplete.length, 0);
+            assert.deepEqual(scan.result.top8, scan.result.qualified.slice(0, 8));
+          } else {
+            assert.ok(scan.result.errors.length || scan.result.incomplete.length);
+            assert.deepEqual(scan.result.top8, []);
+          }
+          for (const row of scan.result.qualified) {
+            assert.equal(row.date, scan.date);
+            for (const gate of ['cross', 'volume', 'capital']) {
+              assert.equal(row.gates[gate], true, row.code + ' ' + gate);
+            }
+          }
+          NODE
       - name: Install Chinese fonts for actual release images
         run: |
           sudo apt-get update -qq
@@ -94,7 +133,7 @@ jobs:
           node scripts/tests/wave-postclose-universe-browser.cjs /tmp/v864-browser/postclose-universe
           node scripts/tests/strong-all-memory-browser.cjs /tmp/v864-browser/strong-memory
           node scripts/tests/market-date-browser.cjs /tmp/v864-browser/market-date
-          node scripts/tests/high-volatility-v922-browser.cjs /tmp/v864-browser/high-volatility
+          node scripts/tests/enhanced-macd-v923-browser.cjs /tmp/v864-browser/enhanced-macd
           node scripts/tests/market-v862-browser.cjs /tmp/v864-browser
           node scripts/tests/research-v921-browser.cjs /tmp/v864-browser/v921
           node scripts/tests/life-v94-mobile-browser.cjs /tmp/v864-browser/v94
@@ -106,6 +145,7 @@ jobs:
           name: v864-browser-evidence
           path: /tmp/v864-browser
   deploy:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: verify
     permissions:
       contents: read

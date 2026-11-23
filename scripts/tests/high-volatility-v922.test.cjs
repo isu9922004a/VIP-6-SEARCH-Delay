@@ -2,7 +2,6 @@
 
 const assert = require('node:assert/strict');
 const test = require('node:test');
-const fs = require('node:fs');
 const C = require('../../high-volatility-v922.js');
 const { date, stocks, fixture } = require('../fixtures/high-volatility-v922.cjs');
 const assess = ({ snapshot, inputs }, options) => C.scan(snapshot.rows, snapshot.meta, inputs, date, options);
@@ -69,11 +68,4 @@ test('stop retains completed verification and reports pending rows', async () =>
   assert.equal(scan.pending, 1);
   assert.equal(scan.stopped, true);
   assert.equal(scan.complete, false);
-});
-
-test('production entry loads only the replacement and uses the release version', () => {
-  const html = fs.readFileSync('index.html', 'utf8');
-  assert.doesNotMatch(html, /<script src="[^"]*structure-reversal/);
-  assert.match(html, /high-volatility-v922\.js\?v=V9\.22/);
-  assert.equal(C.VERSION, require('../../version-v50.js').displayCode);
 });

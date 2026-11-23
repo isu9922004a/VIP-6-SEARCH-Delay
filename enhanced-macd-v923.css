@@ -1,0 +1,45 @@
+#structureProgress {
+  display: block;
+  width: 100%;
+  margin: .75rem 0;
+  accent-color: #167569;
+}
+
+#structureReportPanel h3,
+#structureReportPanel details {
+  margin: 1rem 0 .55rem;
+}
+
+.enhanced-macd-list {
+  margin: .4rem 0;
+  padding-inline-start: 1.5rem;
+}
+
+.enhanced-macd-list li {
+  padding: .5rem 0;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.enhanced-macd-list span {
+  display: block;
+}
+
+#structurePanel .enhanced-macd-rules,
+#structureResult {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+#structurePanel .filter-actions {
+  flex-wrap: wrap;
+}
+
+.enhanced-macd-list li:not(:last-child) {
+  border-bottom: 1px solid currentColor;
+}
+
+.enhanced-macd-list strong {
+  display: block;
+  margin-bottom: .25rem;
+}
