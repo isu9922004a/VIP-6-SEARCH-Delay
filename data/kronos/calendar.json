@@ -249,7 +249,7 @@
   "futureSessionPolicy": "官方年度API已更新下一年度；本年度沿用有來源指紋的既有核驗交易日曆，並核對當期實際交易日",
   "sourceSha256": "fb3c71ce62aa4819e58d422fa08be383161a830230f84e9a50560e019eee577c",
   "historicalSource": "https://www.twse.com.tw/exchangeReport/FMTQIK",
-  "historicalSnapshotHash": "2debf4efee69f6b07168afafa16d2bb425c0ac21363866d3ed06d01a26c5cb05",
+  "historicalSnapshotHash": "5d18f53613bf7efd9c545366206ea61e2024ae79822a73abb839d57ac5fa7562",
   "annualSourceStatus": "VERIFIED_SAME_YEAR_CACHE",
   "officialEndpointCoverageYear": "2027"
 }
