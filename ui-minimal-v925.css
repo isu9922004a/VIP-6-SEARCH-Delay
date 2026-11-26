@@ -1,0 +1,32 @@
+/* V9.25: visual hierarchy only; keep analysis and all live warnings intact. */
+body.workspace-v831 #workspaceV831{padding:16px;margin-bottom:16px}
+body.workspace-v831 #workspaceV831 .workspace-v831-header{margin-bottom:12px}
+body.workspace-v831 #workspaceSearchPanel{padding:16px;min-width:0}
+body.workspace-v831 #workspaceSearchPanel>.v925-search-label{display:block;margin:0 0 8px;font-size:15px}
+body.workspace-v831:not([data-workspace-v831="stock"]) #workspaceSearchPanel>.v925-search-label{display:none!important}
+body.workspace-v831 #workspaceSearchPanel>.search-row{gap:10px;align-items:stretch;margin:0}
+body.workspace-v831 #stockInput{min-height:48px;min-width:0;width:100%;box-sizing:border-box}
+body.workspace-v831 #searchButton{min-height:48px;background:#165577;color:#fff;border:1px solid #165577;font-weight:800}
+body.workspace-v831 #workspaceSearchPanel>.quick-actions.v925-toolbar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0 0;padding:0}
+body.workspace-v831 #workspaceSearchPanel>.quick-actions.v925-export-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:16px 0 0;padding:16px 0 0;border-top:1px solid var(--up-border,#cbd5e1)}
+body.workspace-v831 #workspaceSearchPanel>.quick-actions .mini-btn{min-width:0;width:100%;min-height:44px;margin:0;white-space:normal;overflow-wrap:anywhere}
+body.workspace-v831 #workspaceSearchPanel>.v925-toolbar .mini-btn{background:transparent;border:1px solid var(--up-border,#b9cddc);color:var(--up-ink,#245473);font-weight:650;font-size:13px}
+body.workspace-v831 #workspaceSearchPanel>.v925-export-actions .mini-btn{border:1px solid var(--up-border,#b9cddc);background:var(--up-soft,#eff6fb);color:var(--up-ink,#245473);font-size:13px}
+body.workspace-v831:not([data-workspace-v831="stock"]) #workspaceSearchPanel>.quick-actions{display:none!important}
+body.workspace-v831 .market-outlook-entry-copy{min-width:0}
+body.workspace-v831 .market-outlook-entry{align-items:center}
+body.workspace-v831 :is(#momentumDeepLimit,#dayTradeDeepLimit,#strongStockDeepLimit){max-width:100%;min-width:0;min-height:44px}
+body.workspace-v831 :is(#workspaceSearchPanel,#restaurantPanel,#structurePanel,#towerGoldPanel){box-sizing:border-box}
+body.workspace-v831 [data-v925-idle="true"]{display:none!important}
+body.workspace-v831 #simpleStockReportStatus:empty{display:none}
+body.workspace-v831 :is(#searchButton,#workspaceSearchPanel .mini-btn,.workspace-v831-tab,.workspace-v831-filter):focus-visible{outline:3px solid #00a6bf;outline-offset:2px}
+body.dark-mode.workspace-v831 #workspaceSearchPanel>.v925-toolbar .mini-btn{color:#cde4f1;border-color:#52728a}
+body.dark-mode.workspace-v831 #workspaceSearchPanel>.v925-export-actions .mini-btn{color:#d6e9f5;background:#203c50;border-color:#52728a}
+body.dark-mode.workspace-v831 #searchButton{background:#216386;color:#fff;border-color:#619cbd}
+@media(max-width:600px){
+ body.workspace-v831 #workspaceV831,body.workspace-v831 #workspaceSearchPanel{padding:12px;margin-bottom:12px}
+ body.workspace-v831 #workspaceSearchPanel>.v925-toolbar .mini-btn{padding:8px 4px;font-size:12px}
+ body.workspace-v831 #workspaceSearchPanel>.v925-export-actions .mini-btn{padding:10px 6px;font-size:12px}
+ body.workspace-v831 #workspaceSearchPanel>.v925-export-actions{margin-top:14px;padding-top:14px}
+ body.workspace-v831 #workspaceSearchPanel>.search-row{grid-template-columns:minmax(0,1fr)}
+}

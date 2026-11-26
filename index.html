@@ -9,13 +9,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <link rel="stylesheet" href="./tower-design.css?v=V8.7.2">
 
-<title>石頭少爺 V9.24｜策略選股</title>
+<title>石頭少爺 V9.25｜策略選股</title>
 <link rel="stylesheet" href="./enhanced-macd-v923.css?v=V9.23">
 <script src="./scan-exclusions-rsi-v5328.js?v=V8.7.2"></script>
 <script src="./stock-query-runtime-v826.js?v=V8.7.2"></script>
 <script src="./report-watermark-v84.js?v=V8.7.2"></script>
 <link rel="stylesheet" href="./frontend-v84.css?v=V8.7.2">
-<script src="./version-v50.js?v=V9.24-PERF1"></script>
+<script src="./version-v50.js?v=V9.25-UI1"></script>
 <script src="./report-beginner-copy-v88.js?v=V8.8-COPY1"></script>
 
 <style>
@@ -1194,7 +1194,7 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
 
   <div class="container">
 
-    <h1><span class="ui-brand-mark">🪨</span> 石頭少爺 Agent <span class="ui-release-short">V9.24</span></h1>
+    <h1><span class="ui-brand-mark">🪨</span> 石頭少爺 Agent <span class="ui-release-short">V9.25</span></h1>
     <nav aria-label="策略捷徑" class="ui-inline-1"><a id="towerGoldShortcut" href="#towerGoldPanel" class="ui-inline-2" title="盤後新生 K0 全市場掃描">④ 主力生命線成本</a></nav>
 
 
@@ -1208,7 +1208,7 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
 
   <section class="panel">
 
-    <div class="section-title">🔎 輸入股票代號或中文名稱</div>
+    <label class="section-title v925-search-label" for="stockInput">股票代號或名稱</label>
 
     <div class="search-row">
 
@@ -1220,10 +1220,12 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
 
     </div>
 
-    <div class="quick-actions">
+    <div class="quick-actions v925-toolbar" role="group" aria-label="查詢工具">
       <button id="clearInputButton" class="mini-btn" type="button" onclick="clearStockInput()" title="清除股票輸入欄位">✕ 清除輸入</button>
       <button id="themeToggleButton" class="mini-btn" type="button" onclick="toggleDarkMode()" aria-pressed="false" title="切換日間／夜間介面">🌙 夜間模式</button>
       <button id="reloadPageButton" class="mini-btn" type="button" onclick="reloadPage()" title="重新整理目前頁面（類似 F5）">🔄 重新整理</button>
+    </div>
+    <div class="quick-actions v925-export-actions" role="group" aria-label="圖片報告匯出">
       <button id="stockSimpleAnalysisButton" class="mini-btn" type="button" title="產生無浮水印個股精簡分析圖片">Ai模擬明日走勢圖片報告</button>
       <button id="stockSimpleAnalysisWatermarkButton" class="mini-btn" type="button" title="產生含石頭少爺台股分析標題的浮水印版個股報告">浮水印版Ai模擬明日走勢圖片報告</button>
     </div>
@@ -1232,13 +1234,11 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
 
     <div class="market-shortcut">
       <div class="section-title ui-inline-3">📈 台股大盤加權指數</div>
-<p class="ui-strategy-summary">先看大盤方向，再核對支撐、壓力與風險。</p>
       <div class="market-action-row">
         <a class="market-outlook-entry" href="./market-outlook.html" aria-label="開啟獨立大盤趨勢推演">
           <span class="market-outlook-entry-icon" aria-hidden="true">📈</span>
           <span class="market-outlook-entry-copy">
             <strong>獨立大盤趨勢推演</strong>
-            <small>隔日走勢劇本・重要點位・風險提醒</small>
           </span>
           <span class="market-outlook-entry-arrow" aria-hidden="true">↗</span>
         </a>
@@ -1253,10 +1253,9 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
 
     <div class="momentum-shortcut">
       <div class="section-title ui-inline-4">🚀 主動式主升掃描</div>
-<p class="ui-strategy-summary">找出正在轉強的股票，再核對量價與風險。</p>
 
       <div class="rule ui-inline-6">
-        <label for="momentumDeepLimit">主升深入分析範圍：</label>
+        <label for="momentumDeepLimit">分析範圍</label>
         <select id="momentumDeepLimit" class="ui-inline-7">
           <option value="70">主升快篩排序前70檔（較快）</option><option value="140">主升快篩排序前140檔</option><option value="all">全部主升快篩合格股票（較久）</option>
         </select>
@@ -1278,10 +1277,9 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
 
     <div class="daytrade-shortcut">
       <div class="section-title ui-inline-4">⚡ 明日當沖盤前適配（已檢查突破警訊）</div>
-<p class="ui-strategy-summary">挑選下一交易日的觀察股，開盤後仍要確認。</p>
 
       <div class="rule ui-inline-6">
-        <label for="dayTradeDeepLimit">深入分析範圍：</label>
+        <label for="dayTradeDeepLimit">分析範圍</label>
         <select id="dayTradeDeepLimit" class="ui-inline-7">
           <option value="70">快篩排序前 70 檔（較快）</option>
           <option value="140">前140檔（沿用既有安全上限，避免資料服務超載）</option>
@@ -1314,11 +1312,10 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
 
     <div class="strong-stock-shortcut" id="strongStockShortcut">
       <div class="section-title">🔎 第三套｜強勢飆股濾網（獨立策略）</div>
-<p class="ui-strategy-summary">先找強勢候選，再檢查價格、量能與資料日期。</p>
 
 
 
-      <div class="rule ui-inline-8"><label for="strongStockDeepLimit">完整日K深入分析範圍：</label>
+      <div class="rule ui-inline-8"><label for="strongStockDeepLimit">完整日 K 範圍</label>
         <select id="strongStockDeepLimit" class="ui-inline-9">
           <option value="70">快篩前70檔</option><option value="140" selected>快篩前140檔</option><option value="all">全部快篩合格股（可能需較久）</option>
         </select>
@@ -35117,11 +35114,11 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 <script src="./research-v83/forecast-engine.js?v=V8.7.2-NETWORKRECOVERY1"></script>
 <script src="./research-v83/kronos-data.js?v=V8.7.2-NETWORKRECOVERY1"></script>
 <script src="./research-action-guide-v1.js?v=V8.7.2-ENGULFRANGE2"></script>
-<script src="./research-report-v1.js?v=V9.24"></script>
+<script src="./research-report-v1.js?v=V9.25"></script>
 <script src="./engulf-range-report-v1.js?v=V8.8-COPY1"></script>
 <script src="./drax-price-reminder-v1.js?v=V8.7.2"></script>
 <script src="./research-integration-v1.js?v=V9.22-LIFELINE1"></script>
-<script src="./research-v83/stock-simple-report.js?v=V9.24"></script>
+<script src="./research-v83/stock-simple-report.js?v=V9.25"></script>
 <script src="./stock-audit-alert-v82.js?v=V8.7.2"></script>
 <script src="./release-compact-v1.js?v=V8.7.2"></script>
 <link rel="stylesheet" href="./ui-polish-v85.css?v=V8.7.2">
@@ -35143,12 +35140,12 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 
 <script src="./market-research-v1.js?v=V8.7.2-ENGULFRANGE1"></script>
 <script src="./research-market-integration-r13.js?v=V8.7.2"></script>
-<script src="./research-v83/workspace-v831.js?v=V9.24"></script>
+<script src="./research-v83/workspace-v831.js?v=V9.25"></script>
 
 
 <script src="./research-v83/market-freshness.js?v=V8.8-POSTCLOSE1"></script>
-<script src="./market-report-comfort-v864.js?v=V9.24-PERF1"></script>
-<script src="./market-report-refresh-v864.js?v=V9.24-PERF1"></script>
+<script src="./market-report-comfort-v864.js?v=V9.25-UI1"></script>
+<script src="./market-report-refresh-v864.js?v=V9.25-UI1"></script>
 <script src="./stock-professional-v84.js?v=V9.4-LIFE94-2"></script>
 
 
@@ -35160,7 +35157,7 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 
 <script src="./market-life-source-audit-v96.js?v=V9.6-MARKETLIFE1"></script>
 <script src="./market-life-report-v96.js?v=V9.6-MARKETLIFE1"></script>
-<script src="./market-life-ui-v96.js?v=V9.24-PERF1"></script>
+<script src="./market-life-ui-v96.js?v=V9.25-UI1"></script>
 
 <link rel="stylesheet" href="./main-force-lifeline-v97.css?v=V9.18-COST97-CONTRAST1">
 <link rel="stylesheet" href="./ui-feedback-v923.css?v=V9.23-UIFEEDBACK.2">
@@ -35170,3 +35167,5 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 <script src="./main-force-lifeline-report-v97.js?v=V9.7.2-LIFEVIS1"></script>
 <script src="./main-force-lifeline-ui-v97.js?v=V9.7.2-LIFEVIS1"></script>
 <script src="./ui-feedback-v923.js?v=V9.23-UIFEEDBACK.2" defer></script>
+<link rel="stylesheet" href="./ui-minimal-v925.css?v=V9.25-UI1">
+<script src="./ui-minimal-v925.js?v=V9.25-UI1" defer></script>
