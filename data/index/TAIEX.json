@@ -965,7 +965,7 @@
       "high": 39459.95,
       "low": 38435.99,
       "close": 39151.81,
-      "volume": 11731369015
+      "volume": 11760283963
     }
   ],
   "dailySeriesMeta": {
@@ -1252,7 +1252,7 @@
   "sourceReceipt": {
     "url": "https://shitou-taiwanmarket-api.d318426.workers.dev/?market=TAIEX",
     "officialRecovery": null,
-    "retrievedAt": "2026-11-26T09:18:04.545Z",
-    "sha256": "a2fae667a417025ce0f2ed7babe27f9dd6bc40d79b025adfee95694a615ae1bc"
+    "retrievedAt": "2026-11-26T19:39:02.107Z",
+    "sha256": "a79a659107ce331f489516a410efd7c59b6b8714e5790323cef251a83536d3c2"
   }
 }
