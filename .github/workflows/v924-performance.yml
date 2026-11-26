@@ -6,7 +6,7 @@ permissions:
   contents: read
 jobs:
   performance:
-    if: startsWith(github.head_ref, 'feat/v924-perf-')
+    if: startsWith(github.head_ref, 'feat/v924-perf-') || startsWith(github.head_ref, 'feat/v925-ui-')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:

@@ -12,6 +12,35 @@ const keys=['momentum','daytrade','strong','tower','restaurant','structure'],ids
  await page.clock.setFixedTime(new Date('2026-11-13T11:00:00Z'));await page.route('**/*',r=>{const u=new URL(r.request().url());if(u.origin===base){const archive=u.pathname==='/data/market/latest.json'?'/data/market/archive/2026-11-13.json':u.pathname==='/data/research/manifest.json'?'/scripts/fixtures/official-research-manifest-2026-11-13.json':u.pathname;const f=path.resolve(root,'.'+(archive==='/'?'/index.html':archive));if(!f.startsWith(root+path.sep)||!fs.existsSync(f))return r.fulfill({status:404,body:''});return r.fulfill({contentType:f.endsWith('.js')?'text/javascript':f.endsWith('.css')?'text/css':f.endsWith('.html')?'text/html':'application/json',body:fs.readFileSync(f)});}if(u.searchParams.get('market')==='ALL_STOCKS'){marketRequests++;if(holdMarket)return new Promise(resolve=>held.push(async()=>{await r.fulfill({contentType:'application/json',body:JSON.stringify(unavailable)});resolve();}));return r.fulfill({contentType:'application/json',body:JSON.stringify(unavailable)});}if(u.searchParams.get('stock')&&raws[u.searchParams.get('stock')])return r.fulfill({contentType:'application/json',body:JSON.stringify(raws[u.searchParams.get('stock')])});return r.abort();});
  const open=async()=>{await page.goto(base,{waitUntil:'load'});await page.waitForFunction(()=>document.documentElement.dataset.uiSimplifyV95==='ready');};await open();
  assert.equal(await page.locator('.filter-navigation,.up-nav').count(),0);assert.equal(await page.locator('#workspaceV831').count(),1);assert.equal(await page.evaluate(()=>ShitouWorkspaceV831.getState().tab),'stock');checks.push('one workspace; duplicate navigation removed; original default preserved');
+ if(await page.evaluate(()=>ShitouReleaseV50.displayCode==='V9.25')){
+  await page.waitForFunction(()=>document.documentElement.dataset.uiClarityV925==='ready');
+  assert.equal(await page.locator('.workspace-v831-version').isVisible(),false);
+  assert.equal(await page.locator('#workspaceTabIntroduction').isVisible(),false);
+  assert.equal(await page.locator('#workspaceSearchPanel > .quick-actions > button').count(),3);
+  assert.equal(await page.locator('#workspaceSearchPanel > .v925-export-actions > button').count(),2);
+  assert.equal(await page.locator('#searchButton').isVisible(),true);
+  assert.equal(await page.locator('#stockInput').getAttribute('aria-label'),'股票代號或中文名稱');
+  await page.locator('#workspaceTabmarket').click();
+  assert.equal(await page.locator('.market-outlook-entry-copy > small').isVisible(),false);
+  assert.equal(await page.locator('.market-outlook-entry').isVisible(),true);
+  assert.equal(await page.locator('.v925-export-actions').isVisible(),false);
+  for(const [key,id] of [['momentum','momentumProgressText'],['daytrade','dayTradeProgressText'],['strong','strongStockProgressText'],['tower','cost97Status'],['structure','structureMessage']]){
+   await page.locator('#workspaceTabfilters').click();
+   await page.locator('[data-filter="'+key+'"]').click();
+   assert.equal(await page.locator('#'+id).isVisible(),false,key+' idle label hidden');
+  }
+  await page.locator('#workspaceTabstock').click();
+  for(const width of [360,428,1440]){
+   await page.setViewportSize({width,height:926});
+   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'V9.25 overflow at '+width);
+   const input=await page.locator('#stockInput').boundingBox(),tools=await page.locator('.quick-actions').boundingBox(),exports=await page.locator('.v925-export-actions').boundingBox();
+   assert.ok(input.y+input.height<=tools.y&&tools.y+tools.height<=exports.y,'separate control groups');
+   await page.screenshot({path:path.join(out,'v925-home-'+width+'.png')});
+  }
+  await page.setViewportSize({width:428,height:926});
+  await page.locator('#themeToggleButton').click();await page.screenshot({path:path.join(out,'v925-dark.png')});await page.locator('#themeToggleButton').click();
+  checks.push('V9.25: redundant labels hidden, original tools and exports separated, mobile and dark mode');
+ }
  await page.screenshot({path:path.join(out,'phone-home.png')});
  for(let i=0;i<6;i++){
   console.log('UI_SCAN '+keys[i]);if(i)await open();await page.locator('#workspaceTabfilters').click();await page.locator('[data-filter="'+keys[i]+'"]').click();assert.equal(await page.locator('#'+ids[i]).isVisible(),true);for(let j=0;j<6;j++)if(j!==i)assert.equal(await page.locator('#'+ids[j]).isVisible(),false);
