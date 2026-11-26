@@ -199,280 +199,10 @@ const TPEX_EXPECTED_RATIO_V2616 = 0.72;
 
 
 // ============================================================
-// V2.6.20｜關鍵外資券商 Top10 標註資料代理｜Big5＋雙格式解析修正版
-// 修正重點：
-// 1) 富邦舊頁可能是 Big5/CP950，不再使用 Response.text() 直接假設 UTF-8。
-// 2) 以 arrayBuffer + TextDecoder('big5') / UTF-8 雙解碼評分，自動挑選可讀中文版本。
-// 3) 同時支援「桌機10欄詳細表」與「手機4欄精簡表」。
-// 4) 日期同時支援「最後更新日：YYYY/MM/DD」與「更新日期：MM/DD」。
-// 5) parsedRows 未達10或日期無法取得時，一律 available=false，不准誤寫成『並無買進』。
-// 6) 顯示張數採『淨買超／淨賣超張數』；連續天數以每日淨額正負判斷。
-// ============================================================
-const KEY_BROKER_TOP_URLS_V2620 = code => [
-  `https://fubon-ebrokerdj.fbs.com.tw/z/zc/zco/zco_${encodeURIComponent(code)}_2.djhtm`,
-  `https://fubon-ebrokerdj.fbs.com.tw/z/zc/zco/zco.djhtm?a=${encodeURIComponent(code)}`
-];
-const KEY_BROKER_HISTORY_URL_V2620 = (code,bhid) => `https://fubon-ebrokerdj.fbs.com.tw/z/zc/zco/zco0/zco0.djhtm?A=${encodeURIComponent(code)}&BHID=${encodeURIComponent(bhid)}&b=${encodeURIComponent(bhid)}&C=0&ver=V3`;
-const KEY_BROKER_MAX_CODES_V2620 = 10;
-const KEY_BROKER_CONCURRENCY_V2620 = 2;
-const KEY_BROKER_TIMEOUT_MS_V2620 = 12000;
-const KEY_BROKER_CACHE_TTL_V2620 = 600;
-const KEY_BROKERS_V2620 = Object.freeze([
-  {key:"MS", display:"摩根士丹利", bhid:"1470", aliases:["台灣摩根士丹利","臺灣摩根士丹利","摩根士丹利"]},
-  {key:"GS", display:"美商高盛", bhid:"1480", aliases:["美商高盛","高盛"]},
-  {key:"UBS", display:"新加坡商瑞銀", bhid:"1650", aliases:["新加坡商瑞銀","新加坡商瑞銀行","瑞銀"]}
-]);
-
-function keyBrokerDecodeHtmlV2620(v){
-  return String(v??"")
-    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi," ")
-    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi," ")
-    .replace(/<br\s*\/?>/gi," ")
-    .replace(/&nbsp;|&#160;/gi," ")
-    .replace(/&amp;/gi,"&")
-    .replace(/&lt;/gi,"<")
-    .replace(/&gt;/gi,">")
-    .replace(/&quot;/gi,'"')
-    .replace(/&#39;|&apos;/gi,"'")
-    .replace(/&#(\d+);/g,(_,d)=>{try{return String.fromCodePoint(Number(d));}catch{return _;}})
-    .replace(/<[^>]+>/g," ")
-    .replace(/[\u00a0\t\r\n]+/g," ")
-    .replace(/\s+/g," ")
-    .trim();
-}
-function keyBrokerNumV2620(v){
-  const x=Number(String(v??"").replace(/,/g,"").replace(/%/g,"").replace(/\+/g,"").trim());
-  return Number.isFinite(x)?x:null;
-}
-function keyBrokerDateKeyV2620(v){return String(v??"").replace(/[^0-9]/g,"").slice(0,8);}
-function keyBrokerTaipeiTodayV2620(){
-  const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Taipei",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());
-  const get=t=>Number(parts.find(x=>x.type===t)?.value||0);
-  return {year:get("year"),month:get("month"),day:get("day")};
-}
-function keyBrokerNormalizeDateV2620(raw){
-  const s=String(raw??"").trim();
-  let m=s.match(/(20\d{2})[\/-](\d{1,2})[\/-](\d{1,2})/);
-  if(m)return `${m[1]}/${String(m[2]).padStart(2,"0")}/${String(m[3]).padStart(2,"0")}`;
-  m=s.match(/(?:^|\D)(\d{1,2})[\/-](\d{1,2})(?:\D|$)/);
-  if(!m)return null;
-  const now=keyBrokerTaipeiTodayV2620();
-  let y=now.year,mo=Number(m[1]),d=Number(m[2]);
-  if(!(mo>=1&&mo<=12&&d>=1&&d<=31))return null;
-  const candidate=Date.UTC(y,mo-1,d),today=Date.UTC(now.year,now.month-1,now.day);
-  if(candidate-today>45*86400000)y-=1;
-  return `${y}/${String(mo).padStart(2,"0")}/${String(d).padStart(2,"0")}`;
-}
-function keyBrokerAliasV2620(name){
-  const raw=String(name??"").replace(/\s+/g,"").replace(/臺/g,"台");
-  return KEY_BROKERS_V2620.find(k=>k.aliases.some(a=>raw.includes(String(a).replace(/\s+/g,"").replace(/臺/g,"台"))))||null;
-}
-function keyBrokerCellsV2620(rowHtml){
-  return [...String(rowHtml||"").matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi)].map(m=>keyBrokerDecodeHtmlV2620(m[1])).filter(x=>x!=="");
-}
-function keyBrokerLooksNameV2620(v){
-  const s=String(v??"").trim();
-  return !!s && keyBrokerNumV2620(s)===null && /[A-Za-z\u3400-\u9fff]/.test(s) && !/買超|賣超|券商名稱|買進|賣出|成交比重|合計|平均|日期|單位/.test(s);
-}
-function keyBrokerExtractDateV2620(plain){
-  const s=String(plain||"");
-  let m=s.match(/(?:最後更新日|更新日期)[：:]?\s*((?:20\d{2}[\/-])?\d{1,2}[\/-]\d{1,2})/);
-  if(!m)m=s.match(/(?:最後更新|更新)[：:]?\s*((?:20\d{2}[\/-])?\d{1,2}[\/-]\d{1,2})/);
-  return m?keyBrokerNormalizeDateV2620(m[1]):null;
-}
-function keyBrokerParseTopV2620(html){
-  const plain=keyBrokerDecodeHtmlV2620(html);
-  const asOfDate=keyBrokerExtractDateV2620(plain);
-  const buy=[],sell=[];
-  const rows=[...String(html||"").matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)];
-  for(const rm of rows){
-    const cells=keyBrokerCellsV2620(rm[1]);
-    let found=null;
-
-    // 桌機詳細表：買超券商｜買進｜賣出｜買超｜%｜賣超券商｜買進｜賣出｜賣超｜%
-    if(cells.length>=10){
-      for(let o=0;o<=cells.length-10;o++){
-        const bName=cells[o],sName=cells[o+5];
-        const nums=[cells[o+1],cells[o+2],cells[o+3],cells[o+4],cells[o+6],cells[o+7],cells[o+8],cells[o+9]].map(keyBrokerNumV2620);
-        if(keyBrokerLooksNameV2620(bName)&&keyBrokerLooksNameV2620(sName)&&nums.every(x=>x!==null)){
-          found={kind:"DETAIL",bName,sName,bBuy:nums[0],bSell:nums[1],bNet:Math.abs(nums[2]),bPct:nums[3],sBuy:nums[4],sSell:nums[5],sNet:Math.abs(nums[6]),sPct:nums[7]};
-          break;
-        }
-      }
-    }
-
-    // 手機精簡表：買超券商｜買超張數｜賣超張數｜賣超券商
-    if(!found&&cells.length>=4){
-      for(let o=0;o<=cells.length-4;o++){
-        const bName=cells[o],bNet=keyBrokerNumV2620(cells[o+1]),sNet=keyBrokerNumV2620(cells[o+2]),sName=cells[o+3];
-        if(keyBrokerLooksNameV2620(bName)&&keyBrokerLooksNameV2620(sName)&&bNet!==null&&sNet!==null&&bNet>=0&&sNet>=0){
-          found={kind:"COMPACT",bName,sName,bBuy:null,bSell:null,bNet:Math.abs(bNet),bPct:null,sBuy:null,sSell:null,sNet:Math.abs(sNet),sPct:null};
-          break;
-        }
-      }
-    }
-
-    if(!found)continue;
-    buy.push({rank:buy.length+1,name:found.bName,buyLots:found.bBuy,sellLots:found.bSell,netBuyLots:found.bNet,sharePct:found.bPct,layout:found.kind});
-    sell.push({rank:sell.length+1,name:found.sName,buyLots:found.sBuy,sellLots:found.sSell,netSellLots:found.sNet,sharePct:found.sPct,layout:found.kind});
-  }
-  return {asOfDate,buyTop10:buy.slice(0,10),sellTop10:sell.slice(0,10),parsedRows:Math.min(buy.length,sell.length),rawBuyRows:buy.length,rawSellRows:sell.length};
-}
-function keyBrokerParseHistoryV2620(html){
-  const rows=[];
-  for(const rm of [...String(html||"").matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)]){
-    const c=keyBrokerCellsV2620(rm[1]);
-    if(c.length<5)continue;
-    let found=null;
-    for(let o=0;o<=c.length-5;o++){
-      const date=keyBrokerNormalizeDateV2620(c[o]);
-      if(date){
-        const nums=[c[o+1],c[o+2],c[o+3],c[o+4]].map(keyBrokerNumV2620);
-        if(nums.every(x=>x!==null)){found={date,buyLots:nums[0],sellLots:nums[1],totalLots:nums[2],netLots:nums[3]};break;}
-      }
-    }
-    if(found)rows.push(found);
-  }
-  rows.sort((a,b)=>keyBrokerDateKeyV2620(b.date).localeCompare(keyBrokerDateKeyV2620(a.date)));
-  return rows;
-}
-function keyBrokerByteAsciiProbeV2620(buf){
-  const u8=new Uint8Array(buf);let out="";const step=8192;
-  for(let i=0;i<u8.length;i+=step){out+=String.fromCharCode(...u8.subarray(i,Math.min(u8.length,i+step)));}
-  return out;
-}
-function keyBrokerDecodeScoreV2620(text){
-  const s=String(text||"");
-  let score=0;
-  const tokens=["買超券商","賣超券商","券商分點","買進","賣出","最後更新日","更新日期","台灣摩根士丹利","美商高盛","新加坡商瑞銀"];
-  tokens.forEach((t,i)=>{if(s.includes(t))score+=(i<3?600:180);});
-  const cjk=(s.match(/[\u3400-\u9fff]/g)||[]).length;
-  const bad=(s.match(/\uFFFD/g)||[]).length;
-  score+=Math.min(500,cjk/4)-bad*20;
-  return score;
-}
-function keyBrokerDecodeBufferV2620(buf,contentType=""){
-  const ascii=keyBrokerByteAsciiProbeV2620(buf);
-  const declared=(String(contentType).match(/charset\s*=\s*["']?([^;"'\s]+)/i)?.[1]||ascii.match(/charset\s*=\s*["']?([^;"'\s/>]+)/i)?.[1]||"").toLowerCase();
-  const labels=[];
-  const add=x=>{if(x&&!labels.includes(x))labels.push(x);};
-  if(/big5|950|cp950|ms950/.test(declared))add("big5");
-  if(/utf-?8/.test(declared))add("utf-8");
-  add("big5");add("utf-8");
-  let best={text:"",encoding:"unknown",score:-Infinity};
-  for(const label of labels){
-    try{
-      const text=new TextDecoder(label,{fatal:false}).decode(buf);
-      const score=keyBrokerDecodeScoreV2620(text);
-      if(score>best.score)best={text,encoding:label,score};
-    }catch(_){/* 某些舊 compatibility date 若不支援 legacy label，繼續試其他解碼 */}
-  }
-  if(!best.text)best={text:new TextDecoder().decode(buf),encoding:"utf-8-fallback",score:0};
-  return {...best,declaredCharset:declared||null};
-}
-async function keyBrokerFetchDecodedV2620(url,externalSignal=null){
-  const ctl=new AbortController();
-  const timer=setTimeout(()=>ctl.abort(),KEY_BROKER_TIMEOUT_MS_V2620);
-  const abortFromExternal=()=>ctl.abort(externalSignal?.reason);
-  if(externalSignal?.aborted)abortFromExternal();
-  else externalSignal?.addEventListener?.("abort",abortFromExternal,{once:true});
-  try{
-    const res=await fetch(url,{headers:{Accept:"text/html,application/xhtml+xml","User-Agent":"Mozilla/5.0 (compatible; ShitouAgent/2.6.20)"},signal:ctl.signal,cf:{cacheTtl:KEY_BROKER_CACHE_TTL_V2620,cacheEverything:true}});
-    if(!res.ok)throw new Error(`HTTP ${res.status}`);
-    const buf=await res.arrayBuffer();
-    const decoded=keyBrokerDecodeBufferV2620(buf,res.headers.get("content-type")||"");
-    return {...decoded,url,httpStatus:res.status,contentType:res.headers.get("content-type")||null,bytes:buf.byteLength};
-  }finally{clearTimeout(timer);externalSignal?.removeEventListener?.("abort",abortFromExternal);}
-}
-async function keyBrokerFetchTopV2620(code,externalSignal=null){
-  let best=null,lastErr=null;
-  for(const url of KEY_BROKER_TOP_URLS_V2620(code)){
-    try{
-      const fetched=await keyBrokerFetchDecodedV2620(url,externalSignal);
-      const parsed=keyBrokerParseTopV2620(fetched.text);
-      const quality=(parsed.asOfDate?100:0)+Math.min(parsed.parsedRows,10)*10+fetched.score/1000;
-      const candidate={...fetched,parsed,quality};
-      if(!best||candidate.quality>best.quality)best=candidate;
-      if(parsed.asOfDate&&parsed.parsedRows>=10)break;
-    }catch(e){if(externalSignal?.aborted)throw e;lastErr=e;}
-  }
-  if(!best)throw lastErr||new Error("券商Top10頁讀取失敗");
-  return best;
-}
-function keyBrokerCurrentStreakV2620(history,direction,asOfDate){
-  const want=direction==="BUY"?1:-1;
-  const rows=Array.isArray(history)?history:[];
-  const todayKey=keyBrokerDateKeyV2620(asOfDate);
-  let streak=0,i=0;
-  if(!rows.length||keyBrokerDateKeyV2620(rows[0].date)!==todayKey)streak=1;
-  for(;i<rows.length;i++){
-    const sign=rows[i].netLots>0?1:rows[i].netLots<0?-1:0;
-    if(sign===want)streak++;else break;
-  }
-  return {days:Math.max(1,streak),historyAsOfDate:rows[0]?.date||null,historyRows:rows.length};
-}
-async function keyBrokerProfileOneV2620(code,externalSignal=null){
-  const topFetch=await keyBrokerFetchTopV2620(code,externalSignal);
-  const top=topFetch.parsed;
-  if(!top.asOfDate)throw new Error(`券商Top10頁日期解析失敗｜encoding=${topFetch.encoding}`);
-  if(top.parsedRows<10)throw new Error(`券商Top10頁僅解析 ${top.parsedRows} 列，未達Top10完整門檻｜encoding=${topFetch.encoding}`);
-  const keyBuyers=[],keySellers=[];
-  for(const side of ["BUY","SELL"]){
-    const source=side==="BUY"?top.buyTop10:top.sellTop10;
-    for(const row of source){
-      const cfg=keyBrokerAliasV2620(row.name);if(!cfg)continue;
-      let streak={days:1,historyAsOfDate:null,historyRows:0},historyEncoding=null,historyError=null;
-      try{
-        const histFetch=await keyBrokerFetchDecodedV2620(KEY_BROKER_HISTORY_URL_V2620(code,cfg.bhid),externalSignal);
-        historyEncoding=histFetch.encoding;
-        const hist=keyBrokerParseHistoryV2620(histFetch.text);
-        streak=keyBrokerCurrentStreakV2620(hist,side,top.asOfDate);
-      }catch(e){if(externalSignal?.aborted)throw e;historyError=e?.message||String(e);}
-      const signedNet=side==="BUY"?Math.abs(Number(row.netBuyLots)||0):-Math.abs(Number(row.netSellLots)||0);
-      const item={
-        key:cfg.key,name:cfg.display,sourceName:row.name,rank:row.rank,direction:side,
-        buyLots:row.buyLots,sellLots:row.sellLots,netLots:signedNet,
-        netAbsLots:Math.abs(signedNet),sharePct:row.sharePct,streakDays:streak.days,
-        historyAsOfDate:streak.historyAsOfDate,historyRows:streak.historyRows,historyEncoding,historyError
-      };
-      (side==="BUY"?keyBuyers:keySellers).push(item);
-    }
-  }
-  return {
-    code,available:true,asOfDate:top.asOfDate,
-    buyTop10:top.buyTop10,sellTop10:top.sellTop10,
-    keyBuyers,keySellers,keyBuyerCount:keyBuyers.length,keySellerCount:keySellers.length,
-    source:"富邦 eBroker｜券商分點進出明細",sourceUrl:topFetch.url,
-    sourceEncoding:topFetch.encoding,sourceCharsetDeclared:topFetch.declaredCharset,
-    parsedRows:top.parsedRows,
-    rule:"僅認今日買超Top10／賣超Top10；顯示淨買超/淨賣超張數；連續天數以單一券商歷史『買賣超正負』計算"
-  };
-}
-async function handleKeyBrokersV2620(request,corsHeaders,debugMode=false){
-  const u=new URL(request.url);
-  const codes=String(u.searchParams.get("codes")||u.searchParams.get("stock")||"")
-    .split(",").map(x=>x.trim()).filter(x=>/^\d{4}$/.test(x)).slice(0,KEY_BROKER_MAX_CODES_V2620);
-  if(!codes.length)return jsonResponse({version:VERSION,type:"KEY_BROKER_SCAN",error:"請提供 codes，例如 ?market=KEY_BROKERS&codes=2330,2454"},400,corsHeaders);
-  const results=new Array(codes.length);let cursor=0;
-  async function loop(){
-    while(true){
-      const i=cursor++;if(i>=codes.length)break;const code=codes[i];
-      try{results[i]={code,ok:true,data:await keyBrokerProfileOneV2620(code,request.signal)};}
-      catch(e){results[i]={code,ok:false,error:e?.message||String(e),data:{code,available:false,error:e?.message||String(e)}};}
-    }
-  }
-  await Promise.all(Array.from({length:Math.min(KEY_BROKER_CONCURRENCY_V2620,codes.length)},loop));
-  const success=results.filter(x=>x?.ok).length;
-  return jsonResponse({
-    version:VERSION,type:"KEY_BROKER_SCAN",source:`富邦 eBroker 公開券商分點資料｜${VERSION}`,
-    generatedAt:new Date().toISOString(),requested:codes.length,success,failed:codes.length-success,results,
-    ...(debugMode?{config:{top10:true,minParsedRows:10,maxCodes:KEY_BROKER_MAX_CODES_V2620,concurrency:KEY_BROKER_CONCURRENCY_V2620,cacheTtl:KEY_BROKER_CACHE_TTL_V2620,decoder:"arrayBuffer → Big5/UTF-8 scored decode"}}:{})
-  },200,corsHeaders);
-}
-
+// V9.24: retired unreachable unofficial broker scraper; the existing unavailable response is unchanged.
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const corsHeaders = {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET, OPTIONS",
@@ -503,7 +233,7 @@ export default {
 
     // V2.6：全市場掃描快照與第二階段深度分析代理。
     if (["ALL_STOCKS", "SCAN", "MOMENTUM", "MOMENTUM_FAST", "FAST_SCAN", "FAST"].includes(market)) {
-      return handleAllStocksSnapshotV264(request, corsHeaders, debugMode, env);
+      return handleAllStocksSnapshotV264(request, corsHeaders, debugMode, env, ctx);
     }
     if (["DEEP_HEALTH", "DEEP_DIAG", "MOMENTUM_HEALTH"].includes(market)) {
       return handleDeepHealthV265(request, corsHeaders, true, env);
@@ -1276,7 +1006,47 @@ async function fetchMarketSnapshotR13R4(env){
   }finally{clearTimeout(timer);}
 }
 
-async function handleAllStocksSnapshotV264(request, corsHeaders, debugMode = false, env = {}) {
+// V9.24: short-lived raw snapshot cache, never a cache of scan qualification.
+// Preserve the official date, schema, source, coverage and row checks below on
+// EVERY request. Cron, deep bridge, V9.22 inputs, debug and forced reads bypass.
+const MARKET_SNAPSHOT_EDGE_TTL_V924 = 20;
+function marketSnapshotEdgeKeyV924(request, env, debugMode, ctx) {
+  if (debugMode || !ctx?.waitUntil || !globalThis.caches?.default) return null;
+  const inbound = new URL(request.url);
+  if (["debug","nocache","force","replay"].some(k => inbound.searchParams.get(k) === "1")) return null;
+  const source = new URL(marketSnapshotUrlR13R4(env));
+  if (source.protocol !== "https:" || source.hostname !== "raw.githubusercontent.com" ||
+      source.username || source.password || source.search || source.hash ||
+      !source.pathname.endsWith("/data/market/latest.json")) return null;
+  const key = new URL("/__shitou_cache/v924/market-snapshot", inbound.origin);
+  key.searchParams.set("source", source.href);
+  return new Request(key.toString(), {method:"GET"});
+}
+async function readMarketSnapshotEdgeV924(key) {
+  if (!key) return null;
+  try {
+    const hit = await globalThis.caches.default.match(key);
+    if (!hit?.ok) return null;
+    const record = await hit.json();
+    const age = Date.now() - Number(record?.savedAt);
+    const snap = record?.snapshot;
+    if (!Number.isFinite(age) || age < 0 || age >= MARKET_SNAPSHOT_EDGE_TTL_V924*1000 ||
+        snap?.marketCoverageReady !== true || !Array.isArray(snap.rows) ||
+        !marketSnapshotTimelinessR42(normalizeMarketDateV2613(snap.tradeDate||snap.tradeDateIso), snap.marketCalendar).ready) return null;
+    return {ok:true,snapshot:snap,diag:record.diag||{},edgeHit:true};
+  } catch (_) { return null; }
+}
+function writeMarketSnapshotEdgeV924(key, loaded, ctx) {
+  if (!key || !ctx?.waitUntil || loaded.edgeHit || !loaded.ok) return;
+  // Called only after the original full validation and industry readiness.
+  const task = Promise.resolve().then(() => globalThis.caches.default.put(key,new Response(
+    JSON.stringify({savedAt:Date.now(),snapshot:loaded.snapshot,diag:loaded.diag}),
+    {headers:{"Content-Type":"application/json; charset=utf-8","Cache-Control":"public, max-age="+MARKET_SNAPSHOT_EDGE_TTL_V924}}
+  ))).catch(() => {});
+  ctx.waitUntil(task);
+}
+
+async function handleAllStocksSnapshotV264(request, corsHeaders, debugMode = false, env = {}, ctx = null) {
   const requestUrl=new URL(request.url);
   const marketMode=String(requestUrl.searchParams.get("market")||"ALL_STOCKS").toUpperCase();
   const fastMode=["MOMENTUM_FAST","FAST_SCAN","FAST"].includes(marketMode);
@@ -1284,7 +1054,9 @@ async function handleAllStocksSnapshotV264(request, corsHeaders, debugMode = fal
   const fastLimit=Number.isFinite(requestedLimit)?Math.max(20,Math.min(120,Math.round(requestedLimit))):60;
   const startedAt=Date.now();
 
-  const loaded=await fetchMarketSnapshotR13R4(env);
+  let edgeKey=null;
+  try { edgeKey=marketSnapshotEdgeKeyV924(request,env,debugMode,ctx); } catch (_) {}
+  const loaded=(await readMarketSnapshotEdgeV924(edgeKey))||await fetchMarketSnapshotR13R4(env);
   const snap=loaded.snapshot||{};
   const targetDate=normalizeMarketDateV2613(snap.tradeDate||snap.tradeDateIso||"");
   const inputRows=Array.isArray(snap.rows)?snap.rows:[];
@@ -1375,10 +1147,11 @@ async function handleAllStocksSnapshotV264(request, corsHeaders, debugMode = fal
   const responseRows=fastBundle?fastBundle.rows:rows;
   const industryRate=rows.length?rows.filter(r=>r.industryCode).length/rows.length:0;
   const industryReady=rows.length>0&&industryRate>=0.85;
+  if(industryReady)writeMarketSnapshotEdgeV924(edgeKey,loaded,ctx);
   const payload={
     version:VERSION,type:"MARKET_SCAN_SNAPSHOT",
     source:fastMode?`${VERSION}｜.13策略主升快篩｜GitHub官方完整快照`:`${VERSION}｜.13策略｜GitHub官方完整快照`,
-    generatedAt:new Date().toISOString(),cached:false,mode:fastMode?"MOMENTUM_FAST":"ALL_STOCKS",rows:responseRows,
+    generatedAt:new Date().toISOString(),cached:loaded.edgeHit===true,mode:fastMode?"MOMENTUM_FAST":"ALL_STOCKS",rows:responseRows,
     meta:{
       total:rows.length,returnedRows:responseRows.length,targetTradeDate:targetDate,completedTradeDate:targetDate,
       fastFilter:fastMode?{...fastBundle.stats,limit:fastLimit,thresholds:{minTradeValue:MOMENTUM_FAST_MIN_TRADE_VALUE_V268,minVolume:MOMENTUM_FAST_MIN_VOLUME_V268,minClose:MOMENTUM_FAST_MIN_CLOSE_V268,minClosePos:MOMENTUM_FAST_MIN_CLOSE_POS_V268,minPct:MOMENTUM_FAST_MIN_PCT_V268},note:"快篩不計 MA20/RSI/ABC/盈虧比；這些保留給 DeepScan。"}:null,
@@ -1397,12 +1170,13 @@ async function handleAllStocksSnapshotV264(request, corsHeaders, debugMode = fal
       tpexQuoteAttempts:[{label:"GitHub Repo latest.json",ok:true,rows:tpexRows.length,date:targetDate,status:loaded.diag?.status,finalUrl:loaded.diag?.finalUrl,contentType:loaded.diag?.contentType,error:null}],
       snapshotUrl:marketSnapshotUrlR13R4(env),snapshotGeneratedAt:snap.generatedAt||null,snapshotContentSha256:snap.contentSha256||null,
       snapshotAgeDays:roundV25(ageDays,2),subrequestPolicy:"R13R4_ONE_GITHUB_SNAPSHOT_FETCH_NO_DIRECT_TPEX_R492_HOLIDAY_FALLBACK",plannedExternalFetchMax:1,
-      cacheApiCalls:0,kvCalls:0,misShardCalls:0,historicalFallbackCalls:0,directTpexCalls:0,
+      cacheApiCalls:edgeKey?(loaded.edgeHit?1:industryReady?2:1):0,kvCalls:0,misShardCalls:0,historicalFallbackCalls:0,directTpexCalls:0,
       elapsedMs:Date.now()-startedAt,
       ...(debugMode?{snapshotCounts:snap.counts||null,diagnostic:loaded.diag}:{})
     }
   };
-  return jsonResponseV25(payload,200,corsHeaders,industryReady?60:0);
+  const cacheableResponse=industryReady&&!debugMode&&!["debug","nocache","force","replay"].some(k=>requestUrl.searchParams.get(k)==="1");
+  return jsonResponseV25(payload,200,corsHeaders,cacheableResponse?20:0);
 }
 
 async function fetchJsonArrayV25(url) {
@@ -2833,8 +2607,10 @@ async function saveTpexLastGoodV2617(cache, env, request, rows, source, twseQuot
         "Cache-Control": `public, max-age=${TPEX_LAST_GOOD_CACHE_SECONDS_V2613}, s-maxage=${TPEX_LAST_GOOD_CACHE_SECONDS_V2613}`
       }
     });
-    await cache.put(tpexLastGoodCacheKeyDateV2617(request, tpexDate), response.clone());
-    await cache.put(tpexLastGoodCacheKeyDateV2617(request, "latest"), response.clone());
+    await Promise.all([
+      cache.put(tpexLastGoodCacheKeyDateV2617(request, tpexDate), response.clone()),
+      cache.put(tpexLastGoodCacheKeyDateV2617(request, "latest"), response.clone())
+    ]);
     cacheSaved = true;
   } catch (e) {
     errors.push(`CACHE_SAVE_FAILED:${e?.message || e}`);
@@ -4340,80 +4116,7 @@ function compatModeSpecV265(modeKey) {
   }
 }
 
-async function probeStockAnalysisV265(code, mode, env) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), DEEP_SCAN_TIMEOUT_MS_V26);
-  const u = new URL(STOCK_ANALYSIS_API_V26 + "/");
-  u.searchParams.set(mode.param, code);
-  u.searchParams.set("mode", "SCAN_LITE");
 
-  const headers = { Accept: "application/json" };
-  if (mode.browserLike) {
-    headers["User-Agent"] = "Mozilla/5.0";
-    headers["Referer"] = "https://isu9922004a.github.io/";
-    headers["Origin"] = "https://isu9922004a.github.io";
-  }
-
-  try {
-    if (!env?.FIB_API || typeof env.FIB_API.fetch !== "function") {
-      return {
-        code,
-        mode: mode.key,
-        requestUrl: u.toString(),
-        ok: false,
-        httpStatus: null,
-        contentType: null,
-        preview: null,
-        error: "SERVICE_BINDING_MISSING｜找不到 FIB_API Service Binding"
-      };
-    }
-
-    const res = await env.FIB_API.fetch(u.toString(), {
-      method: "GET",
-      headers,
-      redirect: "manual",
-      signal: controller.signal
-    });
-    const text = await res.text();
-    const ct = res.headers.get("content-type") || "";
-    const preview = text.slice(0, DEEP_SCAN_DIAGNOSTIC_PREVIEW_V265);
-    let parsed = null;
-    try { parsed = JSON.parse(text); } catch {}
-
-    const ok = res.ok && parsed && typeof parsed === "object" &&
-      !parsed.error && !parsed.errors;
-
-    return {
-      code,
-      mode: mode.key,
-      requestUrl: u.toString(),
-      ok,
-      httpStatus: res.status,
-      redirected: res.status >= 300 && res.status < 400,
-      location: res.headers.get("location") || null,
-      contentType: ct,
-      preview,
-      payloadKeys: parsed && typeof parsed === "object" ? Object.keys(parsed).slice(0, 20) : [],
-      error: ok ? null : (
-        parsed?.error || parsed?.message ||
-        (res.ok ? "payload rejected by compatibility health check" : `HTTP ${res.status}`)
-      )
-    };
-  } catch (e) {
-    return {
-      code,
-      mode: mode.key,
-      requestUrl: u.toString(),
-      ok: false,
-      httpStatus: null,
-      contentType: null,
-      preview: null,
-      error: e?.name === "AbortError" ? "timeout" : (e?.message || String(e))
-    };
-  } finally {
-    clearTimeout(timer);
-  }
-}
 
 async function fetchStockAnalysisViaProxyV265(code, modeKey, env, scanProfile = "FULL", externalSignal = null, marketHint = null) {
   let lastErr = null;

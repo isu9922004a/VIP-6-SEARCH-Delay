@@ -293,9 +293,15 @@ async function fetchInstitutionDayV47(stock, market, isoDate) {
 }
 async function fetchInstitutionFiveDaysV47(stock, market) {
   const dates = assistantRecentDatesV47(14), rows = [];
-  for (const date of dates) {
-    if (rows.length >= 5) break;
-    try { const row = await fetchInstitutionDayV47(stock, market, date); if (row) rows.push(row); } catch (_) {}
+  // V9.24: bound concurrent official reads to two; keep original newest-first
+  // priority and take exactly the first five verified rows, not the fastest five.
+  for (let offset = 0; offset < dates.length && rows.length < 5; offset += 2) {
+    const batch = await Promise.all(dates.slice(offset, offset + 2).map(async date => {
+      try { return await fetchInstitutionDayV47(stock, market, date); } catch (_) { return null; }
+    }));
+    for (const row of batch) {
+      if (row && rows.length < 5) rows.push(row);
+    }
   }
   return rows.sort((a, b) => a.date.localeCompare(b.date));
 }
@@ -330,10 +336,20 @@ async function fetchTdccSnapshotV47(stock) {
   return { date: String(matched[0]["﻿資料日期"] || matched[0]["資料日期"] || ""), largeHolderPct: ratioFor([12,13,14,15]), smallHolderPct: ratioFor([1,2,3]), largeHolderLevels: "TDCC第12～15級（400張以上）", smallHolderLevels: "TDCC第1～3級（10張以下）", source: "TDCC集保戶股權分散表" };
 }
 async function handleShitoAssistantDataV47(request, env, ctx, corsHeaders, stock, market) {
-  const cache = caches.default;
-  const cacheKey = new Request(`https://shitou-assistant-cache.invalid/v1/${encodeURIComponent(market || "AUTO")}/${stock}`);
-  const hit = await cache.match(cacheKey);
-  if (hit) return new Response(hit.body, { status: hit.status, headers: { ...Object.fromEntries(hit.headers), ...corsHeaders, "X-Shito-Assistant-Cache": "HIT" } });
+  // Public, read-only research inputs. Never let cache failure fail the request.
+  const url = new URL(request.url);
+  const bypass = ["debug", "nocache", "force"].some(k => url.searchParams.get(k) === "1");
+  const key = new URL("/__shitou_cache/v924/assistant", url.origin);
+  key.searchParams.set("market", market || "AUTO");
+  key.searchParams.set("stock", stock);
+  const cacheKey = new Request(key.toString(), { method: "GET" });
+  const cache = !bypass ? globalThis.caches?.default : null;
+  if (cache) {
+    try {
+      const hit = await cache.match(cacheKey);
+      if (hit?.ok) return new Response(hit.body, { status: hit.status, headers: { ...Object.fromEntries(hit.headers), ...corsHeaders, "Cache-Control":"public, max-age=60", "X-Shito-Assistant-Cache": "HIT" } });
+    } catch (_) {}
+  }
   const settled = await Promise.allSettled([
     fetchRevenueSnapshotV47(stock, market),
     fetchGrossMarginSnapshotV47(stock, market),
@@ -344,9 +360,15 @@ async function handleShitoAssistantDataV47(request, env, ctx, corsHeaders, stock
   const errors = settled.map((x, i) => x.status === "rejected" ? ({ source: ["月營收", "財報", "集保", "三大法人"][i], message: x.reason?.message || String(x.reason) }) : null).filter(Boolean);
   const revenue = value(0), gross = value(1), tdcc = value(2), institution = value(3) || [];
   const payload = { version: VERSION, schema: SHITO_ASSISTANT_DATA_VERSION_V47, stock, market, generatedAt: new Date().toISOString(), data: { revenueHistory: revenue ? [revenue] : [], grossMarginHistory: gross ? [gross] : [], tdccHistory: tdcc ? [tdcc] : [], institutionalTrading: institution, sourceStatus: { revenue: revenue ? "available" : "unavailable", grossMargin: gross ? "partial-cumulative-only" : "unavailable", tdcc: tdcc ? "latest-week-only" : "unavailable", institution: institution.length >= 5 ? "available" : "partial" }, errors } };
-  const response = jsonResponse(payload, 200, { ...corsHeaders, "Cache-Control": "public, max-age=900", "X-Shito-Assistant-Cache": "MISS" });
-  const stored = new Response(response.clone().body, { status: 200, headers: { ...Object.fromEntries(response.headers), "Cache-Control": "public, max-age=14400" } });
-  if (ctx?.waitUntil) ctx.waitUntil(cache.put(cacheKey, stored)); else await cache.put(cacheKey, stored);
+  const complete = !!revenue && !!gross && !!tdcc && institution.length >= 5 && !errors.length;
+  const cacheable = complete && !bypass;
+  const response = jsonResponse(payload, 200, { ...corsHeaders, "X-Shito-Assistant-Cache": "MISS" });
+  response.headers.set("Cache-Control", cacheable ? "public, max-age=60" : "no-store");
+  if (cache && cacheable) {
+    const stored = new Response(response.clone().body, { status: 200, headers: { ...Object.fromEntries(response.headers), "Cache-Control": "public, max-age=900" } });
+    const write = Promise.resolve().then(() => cache.put(cacheKey, stored)).catch(() => {});
+    if (ctx?.waitUntil) ctx.waitUntil(write); else await write;
+  }
   return response;
 }
 
@@ -1736,8 +1758,9 @@ function writeJsonCache({ request, env, ctx, kvKey, cacheRequest, payload, ttlSe
     await caches.default.put(cacheRequest, response);
   };
   try {
-    if (ctx?.waitUntil) ctx.waitUntil(write());
-    else return write();
+    const pending = write().catch(() => {});
+    if (ctx?.waitUntil) ctx.waitUntil(pending);
+    else return pending;
   } catch {
     // 效能快取失敗不得影響正式分析。
   }
@@ -5531,18 +5554,7 @@ function findMonthByKey(months, key) {
     : null;
 }
 
-function getMonthKeysBetween(startKey, endKey) {
-  const result = [];
-  let cursor = startKey;
-  let guard = 0;
-  while (cursor <= endKey && guard < 240) {
-    result.push(cursor);
-    if (cursor === endKey) break;
-    cursor = shiftMonthKey(cursor, 1);
-    guard += 1;
-  }
-  return result;
-}
+
 
 async function fetchYahooHistory(symbol, monthsBack, withDebug = false, budget = null) {
   const now = new Date();
@@ -5734,21 +5746,7 @@ function verifyOfficialTransition(monthMap, candidateKey, type) {
   };
 }
 
-function verifyBreakCandidateFromMap(monthMap, candidateKey) {
-  if (!candidateKey) return null;
-  const keys = getMonthKeysEndingAt(candidateKey, CANDIDATE_VERIFY_MONTHS);
-  if (keys.some(key => !hasMonthRows(monthMap.get(key)))) return null;
 
-  const bars = buildMonthlyBarsFromMonthMap(keys, monthMap);
-  attachMonthlyIndicators(bars);
-  const current = bars.find(month => month.key === candidateKey) || null;
-  const prev = bars.find(month => month.key === shiftMonthKey(candidateKey, -1)) || null;
-  if (!current || !prev || current.ma20 === null || prev.ma20 === null) return null;
-
-  return isMonthlyPass(prev.close, prev.ma20) && !isMonthlyPass(current.close, current.ma20)
-    ? current
-    : null;
-}
 
 function attachMonthlyIndicators(months) {
   if (!Array.isArray(months)) return months;
@@ -10045,13 +10043,7 @@ function round(value, digits = 2) {
   return Math.round(number * factor) / factor;
 }
 
-function emptyMarketResult(debug = null) {
-  return {
-    rows: [],
-    name: null,
-    debug: debug || undefined
-  };
-}
+
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -10075,4 +10067,4 @@ function jsonResponse(data, status, corsHeaders) {
 
 export {buildDailySeriesMeta,serializeDailySeriesForFrontend,getCompletedDailyRows,projectScanLitePayloadV29130,jsonResponse};
 
-export {assistantRecentDatesV47};
+export {assistantRecentDatesV47,fetchInstitutionFiveDaysV47};
