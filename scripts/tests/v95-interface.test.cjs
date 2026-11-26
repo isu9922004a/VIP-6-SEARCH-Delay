@@ -10,7 +10,7 @@ test('V9.5 preserves exact scanner, strategy, life report/share dependencies and
   assert.equal(sha(source),require('../fixtures/v924-approved-worker-hashes.cjs').expected(name,expected),name);
  }
 });
-test('research workbench navigation, tools and state handling remain exactly at the main baseline',()=>{
+test('research workbench navigation, tools and state handling match the V9.25 baseline',()=>{
  const s=fs.readFileSync('research-v83/workspace-v831.js','utf8').replace('前往主力生命線成本','前往寶塔線點金術');const parts=[s.slice(s.indexOf('function select('),s.indexOf('function heading(')),s.slice(s.indexOf(" const nav=el('section');nav.id='workspaceV831'"),s.indexOf(' main.insertBefore(nav,first);'))];assert.equal(sha(JSON.stringify(parts)),B.workbenchSha256);
 });
 test('V9.5 entry module is idempotent and cannot replace data, scanner or analysis functions',()=>{
