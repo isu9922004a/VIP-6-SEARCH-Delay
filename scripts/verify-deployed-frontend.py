@@ -35,14 +35,17 @@ def deployment_base(environ=None):
     return f"https://{owner.lower()}.github.io/{name}/"
 
 
-def check(name, base, expected_root):
+def check(name, base, expected_root=None):
     try:
         request = urllib.request.Request(
             base + name + "?verify=" + str(time.time_ns()),
             headers={"User-Agent": "Mozilla/5.0", "Cache-Control": "no-cache"})
         with urllib.request.urlopen(request, timeout=20) as response:
             actual = response.read()
-        return {"path": name, "match": actual == ((expected_root / name) if (expected_root / name).is_file() else (ROOT / name)).read_bytes(),
+        # Staged files must match the built artifact; never fall back to source for them.
+        staged = name == "index.html" or name == "frontend-v924-manifest.json" or name.startswith("index-inline-v924-")
+        reference = (expected_root / name) if expected_root is not None and staged else (ROOT / name)
+        return {"path": name, "match": actual == reference.read_bytes(),
                 "sha256": hashlib.sha256(actual).hexdigest()}
     except Exception as error:
         return {"path": name, "match": False, "error": str(error)}
