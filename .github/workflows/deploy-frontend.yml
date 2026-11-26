@@ -6,6 +6,9 @@ on:
       - 'enhanced-macd*v923.js'
       - 'data/enhanced-macd/latest.json'
       - '.github/workflows/deploy-frontend.yml'
+      - '.github/workflows/deploy-data-pages.yml'
+      - 'scripts/build-frontend-v924.cjs'
+      - 'scripts/verify-deployed-frontend.py'
   push:
     branches: ['main']
     # Release verification must also run for V9.2 implementation changes,
@@ -51,6 +54,9 @@ on:
       - 'scripts/tests/kronos-future-live-browser.cjs'
       - 'scripts/tests/market-comfort-browser.cjs'
       - '.github/workflows/deploy-frontend.yml'
+      - '.github/workflows/deploy-data-pages.yml'
+      - 'scripts/build-frontend-v924.cjs'
+      - 'scripts/verify-deployed-frontend.py'
   workflow_dispatch:
 permissions:
   contents: read

@@ -4,6 +4,8 @@ import hashlib
 import json
 import os
 import pathlib
+import subprocess
+import tempfile
 import time
 import urllib.request
 
@@ -33,25 +35,35 @@ def deployment_base(environ=None):
     return f"https://{owner.lower()}.github.io/{name}/"
 
 
-def check(name, base):
+def check(name, base, expected_root):
     try:
         request = urllib.request.Request(
             base + name + "?verify=" + str(time.time_ns()),
             headers={"User-Agent": "Mozilla/5.0", "Cache-Control": "no-cache"})
         with urllib.request.urlopen(request, timeout=20) as response:
             actual = response.read()
-        return {"path": name, "match": actual == (ROOT / name).read_bytes(),
+        return {"path": name, "match": actual == ((expected_root / name) if (expected_root / name).is_file() else (ROOT / name)).read_bytes(),
                 "sha256": hashlib.sha256(actual).hexdigest()}
     except Exception as error:
         return {"path": name, "match": False, "error": str(error)}
 
 
 def main():
+    # Match the actual deployed artifact, not the pre-build canonical index.
+    with tempfile.TemporaryDirectory(prefix="v924-verify-") as temp:
+        expected = pathlib.Path(temp)
+        subprocess.run(["node", str(ROOT / "scripts/build-frontend-v924.cjs"), temp, "--defer-future"], cwd=ROOT, check=True)
+        manifest = json.loads((expected / "frontend-v924-manifest.json").read_text())
+        assert manifest["originalReconstructionIdentical"] and len(manifest["assets"]) == 15
+        verify(expected, FILES + ["frontend-v924-manifest.json"] + [a["name"] for a in manifest["assets"]])
+
+
+def verify(expected_root, files):
     base = deployment_base()
     deadline = time.monotonic() + 480
     while True:
         with concurrent.futures.ThreadPoolExecutor(max_workers=6) as executor:
-            results = list(executor.map(lambda name: check(name, base), FILES))
+            results = list(executor.map(lambda name: check(name, base, expected_root), files))
         evidence = {"status": "PASS" if all(x["match"] for x in results) else "WAIT",
                     "site": base, "files": results}
         pathlib.Path("/tmp/deployed-frontend-verification.json").write_text(
