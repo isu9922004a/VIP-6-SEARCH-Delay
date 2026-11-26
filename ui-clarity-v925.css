@@ -1,0 +1,35 @@
+/* V9.25 visual hierarchy: no rule, risk, source, or disclaimer is suppressed. */
+html[data-ui-clarity-v925="ready"] #workspaceV831 .workspace-v831-version,
+html[data-ui-clarity-v925="ready"] #workspaceTabIntroduction,
+html[data-ui-clarity-v925="ready"] #workspaceSearchPanel > :is(.market-shortcut,.momentum-shortcut,.daytrade-shortcut,.strong-stock-shortcut) > .ui-strategy-summary,
+html[data-ui-clarity-v925="ready"] .market-outlook-entry-copy > small,
+html[data-ui-clarity-v925="ready"] #restaurantPanel .section-subtitle:not(details *),
+html[data-ui-clarity-v925="ready"] #structurePanel .section-subtitle:not(details *),
+html[data-ui-clarity-v925="ready"] [data-v925-idle="true"]{display:none!important}
+html[data-ui-clarity-v925="ready"] #workspaceV831 .workspace-v831-header{justify-content:flex-start;margin-bottom:12px}
+html[data-ui-clarity-v925="ready"] #workspaceSearchPanel{--v925-primary:#195d83;--v925-line:#c7d7e2;--v925-ink:#24465d;--v925-surface:#f6fafc}
+html[data-ui-clarity-v925="ready"] body.dark-mode #workspaceSearchPanel{--v925-primary:#236d91;--v925-line:#3d627c;--v925-ink:#e1f2fa;--v925-surface:#18384e}
+html[data-ui-clarity-v925="ready"] #workspaceSearchPanel > .search-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(124px,auto);align-items:stretch;gap:10px;margin:12px 0}
+html[data-ui-clarity-v925="ready"] #workspaceSearchPanel #stockInput{min-width:0;width:100%;box-sizing:border-box;min-height:48px}
+html[data-ui-clarity-v925="ready"] #workspaceSearchPanel #searchButton{background:var(--v925-primary);color:#fff;border:1px solid var(--v925-primary);min-height:48px;font-weight:800;box-shadow:none}
+html[data-ui-clarity-v925="ready"] #workspaceSearchPanel > .quick-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:16px 0 0;padding:0 0 16px;border-bottom:1px solid var(--v925-line)}
+html[data-ui-clarity-v925="ready"] #workspaceSearchPanel > .v925-export-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:16px 0 0}
+html[data-ui-clarity-v925="ready"] #workspaceSearchPanel > :is(.quick-actions,.v925-export-actions) > button{min-width:0;width:100%;min-height:44px;white-space:normal;overflow-wrap:anywhere;box-sizing:border-box;font-size:14px;line-height:1.35;padding:10px 8px;border-radius:10px;box-shadow:none}
+html[data-ui-clarity-v925="ready"] #workspaceSearchPanel > .quick-actions > button{background:transparent!important;border:1px solid transparent!important;color:var(--v925-ink)!important;font-weight:650}
+html[data-ui-clarity-v925="ready"] #workspaceSearchPanel > .v925-export-actions > button{background:var(--v925-surface)!important;border:1px solid var(--v925-line)!important;color:var(--v925-ink)!important;font-weight:700}
+html[data-ui-clarity-v925="ready"] body.workspace-v831:not([data-workspace-v831="stock"]) #workspaceSearchPanel > :is(.quick-actions,.v925-export-actions,.search-row){display:none!important}
+html[data-ui-clarity-v925="ready"] #workspaceSearchPanel :is(button,input,select):focus-visible{outline:3px solid #1397b1;outline-offset:2px}
+html[data-ui-clarity-v925="ready"] :is(#workspaceSearchPanel,#towerGoldPanel,#restaurantPanel,#structurePanel) :is(button,select){min-width:0}
+html[data-ui-clarity-v925="ready"] #workspaceSearchPanel :is(.momentum-action-row,.daytrade-action-row,.strong-stock-actions,.market-action-row){gap:10px}
+html[data-ui-clarity-v925="ready"] #workspaceSearchPanel :is(.momentum-shortcut,.daytrade-shortcut,.strong-stock-shortcut,.market-shortcut){padding:16px;min-width:0;box-sizing:border-box}
+html[data-ui-clarity-v925="ready"] #workspaceSearchPanel .market-outlook-entry-copy{align-self:center}
+html[data-ui-clarity-v925="ready"] :is(#workspaceSearchPanel,#restaurantPanel,#structurePanel) :is(.rule,.restaurant-settings) select{max-width:100%;box-sizing:border-box}
+html[data-ui-clarity-v925="ready"] #workspaceSearchPanel .momentum-progress:has([data-v925-idle="true"]){display:none!important}
+html[data-ui-clarity-v925="ready"] #strongStockShortcut:has(#strongStockProgressText[data-v925-idle="true"]) > .strong-stock-progress,
+html[data-ui-clarity-v925="ready"] #structurePanel:has(#structureMessage[data-v925-idle="true"]) #structureProgress{display:none!important}
+@media(max-width:600px){
+ html[data-ui-clarity-v925="ready"] #workspaceSearchPanel > .search-row{grid-template-columns:minmax(0,1fr)}
+ html[data-ui-clarity-v925="ready"] #workspaceSearchPanel > .v925-export-actions{grid-template-columns:minmax(0,1fr)}
+ html[data-ui-clarity-v925="ready"] #workspaceSearchPanel > .quick-actions{gap:4px}
+ html[data-ui-clarity-v925="ready"] #workspaceSearchPanel :is(.momentum-shortcut,.daytrade-shortcut,.strong-stock-shortcut,.market-shortcut){padding:12px}
+}
