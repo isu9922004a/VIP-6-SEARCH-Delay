@@ -6,6 +6,9 @@ on:
       - 'enhanced-macd*v923.js'
       - 'data/enhanced-macd/latest.json'
       - '.github/workflows/deploy-frontend.yml'
+      - '.github/workflows/deploy-data-pages.yml'
+      - 'scripts/build-frontend-v924.cjs'
+      - 'scripts/verify-deployed-frontend.py'
   push:
     branches: ['main']
     # Release verification must also run for V9.2 implementation changes,
@@ -51,6 +54,9 @@ on:
       - 'scripts/tests/kronos-future-live-browser.cjs'
       - 'scripts/tests/market-comfort-browser.cjs'
       - '.github/workflows/deploy-frontend.yml'
+      - '.github/workflows/deploy-data-pages.yml'
+      - 'scripts/build-frontend-v924.cjs'
+      - 'scripts/verify-deployed-frontend.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -85,12 +91,13 @@ jobs:
           node - <<'NODE'
           const assert = require('node:assert/strict');
           const release = require('./version-v50.js');
-          if (release.displayCode !== 'V9.23') process.exit(0);
+          assert.equal(release.sixthStrategyDataVersion, 'V9.23');
           const market = require('./data/market/latest.json');
           const scan = require('./data/enhanced-macd/latest.json');
           const core = require('./enhanced-macd-v923.js');
           assert.equal(scan.schema, 'ENHANCED_MACD_SCAN_V2');
-          assert.equal(scan.version, release.displayCode);
+          assert.equal(scan.version, release.sixthStrategyDataVersion);
+          assert.equal(core.VERSION, release.sixthStrategyDataVersion);
           assert.equal(scan.date, market.tradeDateIso);
           assert.equal(scan.snapshotHash, market.contentSha256);
           assert.ok(scan.sessions.length >= core.WINDOW && scan.sessions.length <= core.HISTORY_SESSIONS);

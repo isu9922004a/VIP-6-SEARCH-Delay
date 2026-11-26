@@ -131,7 +131,9 @@ test('entry point loads only the current sixth strategy', () => {
   const html = fs.readFileSync('index.html', 'utf8');
   assert.doesNotMatch(html, /<script src="[^"]*(?:structure-reversal|high-volatility)/);
   assert.match(html, /enhanced-macd-v923\.js\?v=V9\.23/);
-  assert.equal(C.VERSION, require('../../version-v50.js').displayCode);
+  const release = require('../../version-v50.js');
+  assert.equal(C.VERSION, release.sixthStrategyDataVersion);
+  assert.equal(release.displayCode, 'V9.24');
 });
 
 test('verified older no-close days extend warm-up and never replace the prior exchange session', () => {

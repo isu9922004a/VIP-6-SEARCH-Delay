@@ -3,7 +3,7 @@ const {test}=require('node:test'),assert=require('node:assert/strict'),fs=requir
 const L=require('../../research-chart-layout-v921.js'),C=require('../../four-models-research-v1.js'),Core=require('../../kline-life-03-core-v1.js'),R=require('../../kline-life-03-report-v1.js'),B=require('../fixtures/v921-protected-baseline.json');
 const sha=s=>crypto.createHash('sha256').update(s).digest('hex');
 test('protected calculators and five existing scanners remain identical to the release baseline',()=>{
- for(const [name,oldExpected]of Object.entries(B.sources)){if(['strategy-2560-v1.js','strategy-2560-config-v90.js','strategy-2560-scanner-v1.js'].includes(name))continue;const expected=name==='kline-life-03-core-v1.js'?require('../fixtures/v932-life-baseline.json').coreSha256:oldExpected;assert.equal(sha(fs.readFileSync(name,'utf8').replaceAll('\r\n','\n')),expected,name);}
+ for(const [name,oldExpected]of Object.entries(B.sources)){if(['strategy-2560-v1.js','strategy-2560-config-v90.js','strategy-2560-scanner-v1.js'].includes(name))continue;const expected=name==='kline-life-03-core-v1.js'?require('../fixtures/v932-life-baseline.json').coreSha256:oldExpected;assert.equal(sha(fs.readFileSync(name,'utf8').replaceAll('\r\n','\n')),require('../fixtures/v924-approved-worker-hashes.cjs').expected(name,expected),name);}
  // The sixth strategy keeps its name and indicator labels in the original format.
  const html=fs.readFileSync('index.html','utf8').replaceAll('\r\n','\n').replace(",[data-enhanced-macd-copy],[data-filter='structure']",''),inline=[...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]);assert.equal(sha(JSON.stringify(inline)),B.inlineSha256);
 });

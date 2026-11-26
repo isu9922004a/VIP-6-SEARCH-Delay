@@ -42,3 +42,29 @@ with patch('pathlib.Path.read_bytes',return_value=b'expected'):
         assert m.check('index.html',base)['match'] is False
 `);
 });
+
+test('V9.24 deployed index and split assets must match staged bytes, not the canonical source',()=>{
+ python(`
+from unittest.mock import patch
+import tempfile
+import pathlib
+with tempfile.TemporaryDirectory() as directory:
+    staged=pathlib.Path(directory)
+    (staged/'index.html').write_bytes(b'split-html')
+    (staged/'index-inline-v924-js-01.js').write_bytes(b'original-inline')
+    class Response:
+        def __init__(self, raw): self.raw=raw
+        def __enter__(self): return self
+        def __exit__(self, *args): return False
+        def read(self): return self.raw
+    base='https://preview.example/site/'
+    with patch.object(m.urllib.request,'urlopen',return_value=Response(b'split-html')):
+        assert m.check('index.html',base,staged)['match'] is True
+        assert m.check('index.html',base)['match'] is False
+    with patch.object(m.urllib.request,'urlopen',return_value=Response(b'original-inline')):
+        assert m.check('index-inline-v924-js-01.js',base,staged)['match'] is True
+    (staged/'index.html').unlink()
+    with patch.object(m.urllib.request,'urlopen',return_value=Response((m.ROOT/'index.html').read_bytes())):
+        assert m.check('index.html',base,staged)['match'] is False
+`);
+});

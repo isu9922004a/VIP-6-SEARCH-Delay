@@ -36,12 +36,22 @@ const out=path.resolve(process.argv[2]||path.join(root,'../worker-browser')),bef
    assert.equal(current.analysis.models.D.verification.overall,'PARTIALLY_VERIFIED');
    const images=await page.evaluate(()=>{const a=ShitouResearchIntegration.getCurrentStock().analysis,result=[];for(const stockMode of [true,false])for(const [i,p] of ShitouResearchReport.pages(a,{displayCode:ShitouReleaseV50.displayCode,stockMode}).entries()){const c=p.renderExportRegion(),ctx=c.getContext('2d');ctx.font='bold 32px "Microsoft JhengHei"';ctx.fillStyle='#ffdf93';ctx.fillText('2026-10-22 API回應重播｜非即時行情',54,580);result.push({mode:stockMode?'stock':'filter',index:i+1,url:c.toDataURL('image/png'),audit:JSON.parse(p.dataset.researchAudit)});c.width=c.height=1;}return result;});
    for(const img of images){assert.equal(img.audit.width,1284);assert.equal(img.audit.height,2778);assert.ok(img.audit.noClipping);fs.writeFileSync(path.join(out,`9933-RECORDED-${img.mode}-${img.index}.png`),Buffer.from(img.url.split(',')[1],'base64'));}
-   assert.deepEqual(images.filter(x=>x.mode==='stock').map(x=>x.audit.summary),images.filter(x=>x.mode==='filter').map(x=>x.audit.summary));
+   assert.ok(images.every(x=>Array.isArray(x.audit.fields)&&x.audit.fields.length>0));assert.deepEqual(images.filter(x=>x.mode==='stock').map(x=>x.audit.fields),images.filter(x=>x.mode==='filter').map(x=>x.audit.fields));
   }
   let clicked;
   await page.evaluate(()=>{globalThis.__capturedResearchPreview=null;globalThis.strongStockShowPagesV47=(pages,options)=>{globalThis.__capturedResearchPreview={title:options.title,audits:pages.map(p=>JSON.parse(p.dataset.researchAudit))};};});
-  await page.locator('#researchStock .research-card-actions>button').first().click();await page.waitForFunction(()=>!!globalThis.__capturedResearchPreview);clicked=await page.evaluate(()=>globalThis.__capturedResearchPreview);
-  assert.equal(clicked.title,'四策略研究｜個股查詢摘要');assert.equal(clicked.audits[0].mode,'SINGLE_STOCK');assert.deepEqual(clicked.audits[0].summary,current.summary);assert.deepEqual(errors,[]);
+  // Current workbench keeps the research card collapsed until the user opens it.
+  const front=page.locator('#workspaceFourReportButton');
+  if(await front.count()){
+   await front.click();
+   assert.equal(await page.locator('#researchStock').isVisible(),true);
+   const card=page.locator('#researchStock .research-stock-card');
+   if(!(await card.evaluate(e=>e.open)))await card.locator('>summary').click();
+  }
+  const previewButton=page.locator('#researchStock .research-card-actions>button').first();
+  assert.equal(await previewButton.isVisible(),true);
+  await previewButton.click();await page.waitForFunction(()=>!!globalThis.__capturedResearchPreview);clicked=await page.evaluate(()=>globalThis.__capturedResearchPreview);
+  assert.equal(clicked.title,'四策略研究｜白話行動指南');assert.equal(clicked.audits[0].mode,'SINGLE_STOCK');assert.equal(clicked.audits[0].code,'9933');assert.equal(clicked.audits[0].date,current.analysis.date);assert.ok(clicked.audits[0].noClipping);const expectedFields=await page.evaluate(()=>ShitouResearchReport.view(ShitouResearchIntegration.getCurrentStock().analysis).actionGuide.summary);assert.ok(expectedFields.length>0);assert.deepEqual(clicked.audits[0].fields,expectedFields);assert.deepEqual(errors,[]);
   assert.ok(requests.some(url=>url.includes('profile=DAILY_ONLY')));assert.ok(requests.some(url=>url.includes('market=ALL_STOCKS')));
   fs.writeFileSync(path.join(out,'recorded-worker-results.json'),JSON.stringify({status:'PASS',before,live,scope:live?'Actual UI search / live project Worker network, desktop Chromium, not physical Safari':'Actual UI search / captured real Worker responses, not a physical Safari or live browser API call',capturedAt:live?new Date().toISOString():fixture.capturedAt,current,requests,errors,clicked},null,2));
   console.log(JSON.stringify({status:'PASS',before,version:current.version,state:current.analysis.state,barCount:current.analysis.validation.historyBarCount,breakout:current.analysis.researchBreakoutPrice,invalidation:current.analysis.researchInvalidation,reason:current.analysis.reason,requests:requests.length,errors}));
