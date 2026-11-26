@@ -102,11 +102,10 @@ function select(tab,filter){
  for(const b of tabs){const yes=b.dataset.target===tab;b.setAttribute('aria-selected',String(yes));b.tabIndex=yes?0:-1;}
  for(const b of filterButtons)b.setAttribute('aria-pressed',String(b.dataset.filter===currentFilter));
  setHidden($('workspaceFilterPicker'),tab!=='filters');
- $('workspaceTabIntroduction').textContent=tab==='stock'?'輸入股票代號或名稱，完成查詢後即可查看研究、下載或分享圖片報告。':tab==='market'?'保留原本大盤行情與趨勢研究，僅顯示大盤相關入口。':'一次顯示一套選股工具；候選排行、停止及圖片匯出均保留。';
  if(tab==='stock')renderSummary();
  if(tab==='filters'&&currentFilter==='tower')$('towerGoldPanel')?.scrollIntoView({block:'nearest'});
 }
-function heading(title){const div=el('div','workspace-v831-header');div.append(el('span','workspace-v831-title',title),el('span','workspace-v831-version',(root.ShitouReleaseV50?.displayCode||'V8.8')+'｜研究工作台'));return div;}
+function heading(title){const div=el('div','workspace-v831-header');div.append(el('span','workspace-v831-title',title));return div;}
 function build(){
  const main=doc.querySelector('main.container'),first=main?.querySelector(':scope > section.panel');
  if(!first||$('workspaceV831'))return;
@@ -122,7 +121,6 @@ function build(){
  const picker=el('div','workspace-v831-filter-tabs');picker.id='workspaceFilterPicker';picker.setAttribute('role','group');picker.setAttribute('aria-label','六套選股策略');
  for(const f of filters){const b=el('button','workspace-v831-filter',f.label);b.type='button';b.dataset.filter=f.key;b.addEventListener('click',()=>select('filters',f.key));filterButtons.push(b);picker.append(b);}
  nav.append(picker);
- const intro=el('p','workspace-v831-intro');intro.id='workspaceTabIntroduction';nav.append(intro);
  const advanced=el('details','workspace-v831-advanced'),summary=el('summary',null,'進階工具及版本資訊'),details=el('div','workspace-v831-advanced-content');
  const source=doc.querySelector('.header .version-pill');if(source)details.append(el('div',null,source.textContent||''));
  const tower=el('a',null,'前往主力生命線成本');tower.href='#towerGoldPanel';tower.addEventListener('click',event=>{event.preventDefault();select('filters','tower');$('towerGoldPanel')?.scrollIntoView({block:'start'});});

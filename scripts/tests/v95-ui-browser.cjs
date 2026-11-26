@@ -12,6 +12,18 @@ const keys=['momentum','daytrade','strong','tower','restaurant','structure'],ids
  await page.clock.setFixedTime(new Date('2026-11-13T11:00:00Z'));await page.route('**/*',r=>{const u=new URL(r.request().url());if(u.origin===base){const archive=u.pathname==='/data/market/latest.json'?'/data/market/archive/2026-11-13.json':u.pathname==='/data/research/manifest.json'?'/scripts/fixtures/official-research-manifest-2026-11-13.json':u.pathname;const f=path.resolve(root,'.'+(archive==='/'?'/index.html':archive));if(!f.startsWith(root+path.sep)||!fs.existsSync(f))return r.fulfill({status:404,body:''});return r.fulfill({contentType:f.endsWith('.js')?'text/javascript':f.endsWith('.css')?'text/css':f.endsWith('.html')?'text/html':'application/json',body:fs.readFileSync(f)});}if(u.searchParams.get('market')==='ALL_STOCKS'){marketRequests++;if(holdMarket)return new Promise(resolve=>held.push(async()=>{await r.fulfill({contentType:'application/json',body:JSON.stringify(unavailable)});resolve();}));return r.fulfill({contentType:'application/json',body:JSON.stringify(unavailable)});}if(u.searchParams.get('stock')&&raws[u.searchParams.get('stock')])return r.fulfill({contentType:'application/json',body:JSON.stringify(raws[u.searchParams.get('stock')])});return r.abort();});
  const open=async()=>{await page.goto(base,{waitUntil:'load'});await page.waitForFunction(()=>document.documentElement.dataset.uiSimplifyV95==='ready');};await open();
  assert.equal(await page.locator('.filter-navigation,.up-nav').count(),0);assert.equal(await page.locator('#workspaceV831').count(),1);assert.equal(await page.evaluate(()=>ShitouWorkspaceV831.getState().tab),'stock');checks.push('one workspace; duplicate navigation removed; original default preserved');
+ if((await page.evaluate(()=>ShitouReleaseV50.displayCode))==='V9.25'){
+  await page.waitForFunction(()=>document.documentElement.dataset.uiMinimalV925==='ready');
+  assert.equal(await page.locator('.workspace-v831-version,#workspaceTabIntroduction,.market-outlook-entry-copy small').count(),0);
+  assert.equal(await page.locator('#workspaceSearchPanel>.v925-toolbar button').count(),3);
+  assert.equal(await page.locator('#workspaceSearchPanel>.v925-export-actions button').count(),2);
+  const groups=await page.evaluate(()=>['.search-row','.v925-toolbar','.v925-export-actions'].map(sel=>{const r=document.querySelector('#workspaceSearchPanel>'+sel).getBoundingClientRect();return {y:r.y,bottom:r.bottom};}));
+  assert.ok(groups[0].bottom<groups[1].y&&groups[1].bottom<groups[2].y,'distinct query, tools and export groups');
+  await page.locator('#workspaceTabmarket').click();assert.equal(await page.locator('.v925-toolbar').isVisible(),false);assert.equal(await page.locator('.v925-export-actions').isVisible(),false);
+  await page.locator('#workspaceTabfilters').click();await page.locator('[data-filter="tower"]').click();assert.equal(await page.locator('#cost971Date').isVisible(),false);assert.equal(await page.locator('#cost97Status').isVisible(),false);
+  await page.locator('[data-filter="structure"]').click();assert.equal(await page.locator('#structureMessage').isVisible(),false);
+  await page.locator('#workspaceTabstock').click();
+ }
  await page.screenshot({path:path.join(out,'phone-home.png')});
  for(let i=0;i<6;i++){
   console.log('UI_SCAN '+keys[i]);if(i)await open();await page.locator('#workspaceTabfilters').click();await page.locator('[data-filter="'+keys[i]+'"]').click();assert.equal(await page.locator('#'+ids[i]).isVisible(),true);for(let j=0;j<6;j++)if(j!==i)assert.equal(await page.locator('#'+ids[j]).isVisible(),false);

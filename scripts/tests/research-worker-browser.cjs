@@ -10,8 +10,17 @@ const out=path.resolve(process.argv[2]||path.join(root,'../worker-browser')),bef
  try{
   browser=await chromium.launch({executablePath:process.env.CHROME_BIN||'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
   const page=await browser.newPage({viewport:{width:428,height:926},deviceScaleFactor:3,isMobile:true,hasTouch:true});page.on('pageerror',e=>errors.push(e.message));
+  if(!live)await page.clock.setFixedTime(new Date(fixture.stock.closeDate+'T10:00:00Z'));
   await page.route('**/*',route=>{
-   const url=new URL(route.request().url());if(url.hostname==='127.0.0.1')return route.continue();requests.push(url.href);
+   const url=new URL(route.request().url());
+   if(url.hostname==='127.0.0.1'){
+    // Keep the recorded Worker replay on its original trade date.
+    if(!live&&url.pathname==='/data/market/latest.json'){
+     return route.fulfill({path:path.join(root,'data/market/archive',fixture.stock.closeDate+'.json'),contentType:'application/json'});
+    }
+    return route.continue();
+   }
+   requests.push(url.href);
    const respond=data=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(data)});
    if(url.hostname==='shitou-agent-fib-api.d318426.workers.dev'&&url.searchParams.get('stock')==='9933')return live?route.continue():respond(fixture.stock);
    if(url.hostname==='shitou-taiwanmarket-api.d318426.workers.dev'){
