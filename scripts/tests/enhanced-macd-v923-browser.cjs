@@ -88,7 +88,7 @@ async function main() {
       assert.equal(await img.evaluate(node => node.naturalHeight), 2778);
       assert.ok(await img.evaluate(node => node.getBoundingClientRect().width <= innerWidth));
       const [download] = await Promise.all([page.waitForEvent('download'), page.locator('#imageDownloadLink').click()]);
-      assert.match(download.suggestedFilename(), /V9\.23\.png$/);
+      assert.match(download.suggestedFilename(), /V9\.24\.png$/);
       await download.saveAs(path.join(out, file));
       const png = fs.readFileSync(path.join(out, file));
       assert.equal(png.subarray(1, 4).toString(), 'PNG');

@@ -11,12 +11,16 @@ const source = 'https://example.test/exchange-receipt';
 const twseMarginFields = ['代號', '名稱', '買進', '賣出', '現金償還', '前日餘額', '今日餘額', '次一營業日限額',
   '買進', '賣出', '現券償還', '前日餘額', '今日餘額', '次一營業日限額', '資券互抵', '註記'];
 
-test('the added route leaves all existing Market Worker handlers byte-identical', () => {
-  const legacy = readFileSync(new URL('../../market-worker.mjs', import.meta.url), 'utf8')
-    .replace(/\n    if \(market === "HIGH_VOLATILITY_INPUTS"\) \{\n      return handleHighVolatilityInputs\(url, corsHeaders, env\);\n    \}\n/, '')
-    .replace(/\nasync function handleHighVolatilityInputs\([\s\S]*?\n\}\n(?=\n\/\/ =)/, '');
-  assert.equal(createHash('sha256').update(legacy).digest('hex'),
-    '7811eccb157d76fc5a70df5016fff8154058849a343963924e65e519e3b4eb53');
+test('V9.24 preserves the V9.22 daily verification implementation and approved Worker bytes', () => {
+  const worker = readFileSync(new URL('../../market-worker.mjs', import.meta.url), 'utf8');
+  const baseline = JSON.parse(readFileSync(new URL('../fixtures/v924-protected-daily-bridge.json', import.meta.url), 'utf8'));
+  assert.equal(createHash('sha256').update(worker).digest('hex'), '620a2b459df6c142e69fd48d5d9964632f2961f63610e713b8a51e393904fd00');
+  for (const [name, expected] of Object.entries(baseline.sections)) {
+    const start = worker.search(new RegExp('^(?:export )?(?:async )?function '+name+'\\(', 'm'));
+    assert.ok(start >= 0, name);
+    assert.equal(worker.slice(start, worker.indexOf('\n}', start)+2), expected, name);
+  }
+  assert.ok(worker.includes('return handleHighVolatilityInputs(url, corsHeaders, env);'));
 });
 
 test('Worker projects only official same-day volume, current balance and status fields', async t => {
