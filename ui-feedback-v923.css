@@ -1,0 +1,197 @@
+/* V9.23 presentation-only layer. Keep the original cascade, data, charts and report generators. */
+@media screen {
+  body.workspace-v831 {
+    --ui923-radius: 14px;
+    --ui923-control-radius: 10px;
+    --ui923-gap: 12px;
+    --ui923-padding: clamp(12px, 2.2vw, 22px);
+    --ui923-focus: #087b81;
+    --ui923-track: #d9e6ec;
+    --ui923-progress: #087b81;
+    font-size: 16px;
+    line-height: 1.65;
+    font-variant-numeric: tabular-nums;
+  }
+  body.workspace-v831.dark-mode {
+    --ui923-focus: #83e7dd;
+    --ui923-track: #344f66;
+    --ui923-progress: #83e7dd;
+  }
+  body.workspace-v831 main.container {
+    width: min(100%, 1180px);
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  body.workspace-v831 :is(#workspaceV831,#workspaceSearchPanel,#workspaceStockSummary) {
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 100%;
+    padding: var(--ui923-padding);
+    border-radius: var(--ui923-radius);
+  }
+  body.workspace-v831 :is(.filter-unified,.filter-stock-card,.research-stock-card,.cost97-card) {
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 100%;
+    border-radius: var(--ui923-radius);
+  }
+  body.workspace-v831 .filter-unified { border-radius: var(--ui923-radius) !important; }
+  body.workspace-v831 :is(#workspaceV831 .workspace-v831-title,.section-title,.research-inline h3) {
+    font-size: clamp(20px, 2.1vw, 24px);
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+  body.workspace-v831 .filter-unified .section-title {
+    font-size: clamp(20px, 2.1vw, 24px) !important;
+  }
+  body.workspace-v831 :is(.research-card-name,.research-card-heading,.stock-name) {
+    line-height: 1.4;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  body.workspace-v831 :is(.filter-result,.research-card-body,.research-card-glance,.research-life03-field) {
+    font-size: 16px;
+    line-height: 1.7;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  /* These research cards intentionally remain dark in BOTH global themes. */
+  body.workspace-v831 .research-inline :is(.research-card-code,.research-card-date) { color: #b5ccdf; }
+  body.workspace-v831 .research-inline .research-card-risk { color: #f3e1b8; }
+  body.workspace-v831 :is(#workspaceV831 .workspace-v831-tabs,#workspaceV831 .workspace-v831-filter-tabs,.research-card-actions,.filter-actions,.copy-actions) {
+    gap: var(--ui923-gap);
+    min-width: 0;
+  }
+  body.workspace-v831 :is(#workspaceV831,#workspaceSearchPanel,#workspaceStockSummary,.filter-unified,.filter-result,.research-inline,#stockReportActionsPanel,#workspaceReportToolbar) :is(button,select) {
+    min-height: 44px;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    border-radius: var(--ui923-control-radius);
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.5;
+  }
+  body.workspace-v831 :is(button,a,input,select,summary):focus-visible {
+    outline: 3px solid var(--ui923-focus);
+    outline-offset: 2px;
+  }
+  body.workspace-v831 #stockInput { font-size: 16px; min-width: 0; max-width: 100%; }
+  body.workspace-v831 #workspaceV831 .workspace-v831-version {
+    white-space: normal;
+    text-overflow: clip;
+    overflow-wrap: anywhere;
+    min-width: 0;
+  }
+  body.workspace-v831 :is(.release-details,.filter-result,.research-inline) :is(pre,code) {
+    max-width: 100%;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: normal;
+  }
+  body.workspace-v831 :is(.filter-result,.research-inline,#structureResult,#cost97Results) :is(th,td) {
+    overflow-wrap: anywhere;
+  }
+  body.workspace-v831 :is(.filter-result,.research-inline,#structureResult,#cost97Results) table:not(.filter-mobile-table) {
+    max-width: 100%;
+  }
+
+  /* Respect native visibility and real progress; don't set display on loading panels. */
+  body.workspace-v831 :is(#loading,#marketLoading) {
+    color: var(--text);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--ui923-radius);
+    padding: 14px;
+    margin-top: 12px;
+    overflow-wrap: anywhere;
+  }
+  body.workspace-v831 :is(#loading,#marketLoading)::before {
+    content: "";
+    display: block;
+    height: 8px;
+    width: 100%;
+    margin-bottom: 12px;
+    border-radius: 999px;
+    background: linear-gradient(90deg,var(--ui923-track) 20%,var(--ui923-progress) 50%,var(--ui923-track) 80%);
+    background-size: 200% 100%;
+    animation: ui923-indeterminate 1.6s linear infinite;
+  }
+  body.workspace-v831 button:is([aria-busy="true"],[data-ui923-busy="true"]) {
+    cursor: progress;
+    opacity: 1;
+  }
+  body.workspace-v831 button:is([aria-busy="true"],[data-ui923-busy="true"])::before {
+    content: "";
+    display: inline-block;
+    box-sizing: border-box;
+    width: 1em;
+    height: 1em;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    vertical-align: -.12em;
+    margin-inline-end: .45em;
+    animation: ui923-spin .85s linear infinite;
+  }
+  body.workspace-v831 :is(.momentum-progress-track,.strong-stock-progress) {
+    min-width: 0;
+    max-width: 100%;
+    border-radius: 999px;
+  }
+  body.workspace-v831 :is(.momentum-progress-text,#strongStockProgressText,.market-life-status) {
+    overflow-wrap: anywhere;
+    line-height: 1.6;
+  }
+  body.workspace-v831 #structureProgress { max-width: 100%; accent-color: var(--ui923-progress); }
+
+  @media (max-width: 640px) {
+    body.workspace-v831 main.container {
+      width: 100% !important;
+      padding-inline-start: max(8px, env(safe-area-inset-left, 0px)) !important;
+      padding-inline-end: max(8px, env(safe-area-inset-right, 0px)) !important;
+    }
+    body.workspace-v831 :is(#workspaceV831,#workspaceSearchPanel,#workspaceStockSummary) {
+      padding: 14px;
+    }
+    body.workspace-v831 #workspaceV831 .workspace-v831-filter-tabs {
+      grid-template-columns: repeat(2,minmax(0,1fr));
+      gap: 8px;
+    }
+    body.workspace-v831 #workspaceV831 .workspace-v831-tabs { gap: 8px; }
+    body.workspace-v831 #workspaceV831 :is(.workspace-v831-tab,.workspace-v831-filter) {
+      min-height: 48px;
+      font-size: 14px;
+      overflow-wrap: anywhere;
+    }
+    body.workspace-v831 #workspaceSearchPanel .search-row { flex-wrap: wrap; gap: 10px; }
+    body.workspace-v831 #workspaceSearchPanel .search-row :is(input,button) {
+      width: 100%;
+      min-width: 0;
+    }
+    body.workspace-v831 :is(.research-card-grid,.cost97-grid,.research-card-actions,.research-stock-metrics) {
+      grid-template-columns: minmax(0,1fr);
+    }
+    body.workspace-v831 .filter-result :is(.momentum-summary-grid,.daytrade-summary-grid) {
+      grid-template-columns: minmax(0,1fr) !important;
+    }
+    body.workspace-v831 :is(.filter-result,.research-inline,#structureResult,#cost97Results) table:not(.filter-mobile-table) {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      overflow-x: auto;
+      overscroll-behavior-inline: contain;
+    }
+    body.workspace-v831 :is(.filter-result,.research-inline,#structureResult,#cost97Results) table:not(.filter-mobile-table) :is(th,td) {
+      min-width: 5rem;
+      white-space: normal;
+    }
+    body.workspace-v831 #workspaceReportToolbar button { min-width: 0; overflow-wrap: anywhere; }
+  }
+}
+@keyframes ui923-spin { to { transform: rotate(360deg); } }
+@keyframes ui923-indeterminate { to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) {
+  body.workspace-v831 button:is([aria-busy="true"],[data-ui923-busy="true"])::before,
+  body.workspace-v831 :is(#loading,#marketLoading)::before { animation: none; }
+}
