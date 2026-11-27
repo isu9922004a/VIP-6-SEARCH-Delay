@@ -1,11 +1,11 @@
 {
   "schema": "KRONOS_AUTOMATION_V1",
-  "identity": "48e1caf5b3d363b91469898391209c46b96e9d82f9a49d1fbaa62691c528ab5e",
-  "asOf": "2026-11-26",
-  "targetDate": "2026-11-27",
-  "generatedAt": "2026-11-26T19:51:10.527Z",
-  "successCount": 1713,
+  "identity": "878e0cea6a3b1c6016262c01e48f60950d49f68c27e8cea454129056f21d6d1c",
+  "asOf": "2026-11-27",
+  "targetDate": "2026-11-30",
+  "generatedAt": "2026-11-27T11:32:33.970Z",
+  "successCount": 1714,
   "unavailable": {
-    "6669": "2026-09-02 價格基準斷點後只有57根日線，尚需6根；不混用斷點前價格"
+    "6669": "2026-09-02 價格基準斷點後只有58根日線，尚需5根；不混用斷點前價格"
   }
 }
