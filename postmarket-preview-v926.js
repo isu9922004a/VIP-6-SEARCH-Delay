@@ -3,6 +3,12 @@ const root = globalThis;
 const version = 'V9.26-RESEARCH-2A';
 let pending;
 
+// V9.26 staged release: unvalidated research is restricted to the intercepted QA origin.
+// No public URL parameter can activate this research on GitHub Pages.
+export function studyPreviewAllowed(origin = root.location?.origin) {
+  return origin === 'https://v926.test';
+}
+
 function loadScripts() {
   if (!pending) {
     pending = (async () => {
@@ -91,6 +97,7 @@ export function originalStockAnchors(input, analysis) {
 }
 
 export async function makeStudyReport({source, study, analysis, benchmark, marketRisk, quality, dataAsOf, index = false}) {
+  if (!studyPreviewAllowed()) return null;
   await loadScripts();
   const report = root.ShitouPostmarketReport926;
   const input = report.archiveInput(source,{index,dataAsOf});
@@ -126,6 +133,7 @@ export async function makeStudyPage({watermark = false, ...inputs}) {
 }
 
 export async function modelPreviewReading(source, {index = false, analysis, document = root.document} = {}) {
+  if (!studyPreviewAllowed()) return null;
   const study=index ? root.ShitouMarketLife96?.evaluate(source) : root.ShitouKlineLife03Report?.inspect(analysis);
   if (!study || (index && study.sourceVerified !== true)) return null;
   const proof=index ? null : root.ShitouOfficialResearchHistory?.proof(source);
