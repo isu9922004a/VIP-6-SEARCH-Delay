@@ -22,7 +22,7 @@
 - `report-preview-v926.css` 三區式預覽、動態視窗安全區、直橫向操作。原獨立大盤、個股精簡和市場文字閱讀可使用同樣的版面約束。報告模板保留原始圖面。
 - `postmarket-patterns-v926.js` 以正式交易日曆限定輸入，建構突破、鈍化、長紅十字與隔日防線、傳統日 K 跳空和 FVG。一般十字 10%，高檔轉折十字 15% 或開盤比例 0.5%。止漲最近四日收盤不得超過前十日最高收盤，最近三日振幅及均量比較自身前十日。FVG 以最近 10 個正式交易日的三根連續 K 棒確認，後續最多追蹤 8 個交易日。觸邊、回補及收盤失效個別記錄。2R/3R 用區間中點附近合法價，防守與目標向遠離參考價的方向取整。正式股票的 0.5% 防守與 0.1 ATR 緩衝分列。
 - `postmarket-trend-v926.js` 共用日 K 推導趨勢、動能證據、影子鈍化研究、大盤防禦、同日市場廣度、同區間相對強弱與次日收盤情境。廣度分市場，以時間相符的官方普通股母體為起點，另報有核對的報價與歷史家數，已核實停牌及零成交可排除，缺報價時不出全市場比例。衰竭最多五組、單組相關訊號取最高，所有正式評分欄維持關閉。
-- `postmarket-report-v926.js` 和 `postmarket-preview-v926.js` 由同一結構化結果產生研究文字與 1284×2778 PNG。試行路徑為 `?postmarket-study=1` 再開生命線，所需模組在操作時以現有本站資產載入。行情來源與日期不足時標示資料不足。無 opt-in 時沒有這些模組的額外載入。研究 PNG 透過既有預覽、分頁及分享，圖片及手機可展開的閱讀文字使用同一份資料。
+- `postmarket-report-v926.js` 和 `postmarket-preview-v926.js` 由同一結構化結果產生研究文字與 1284×2778 PNG。候選研究限定 QA 來源 `https://v926.test`，QA 路徑使用 `?postmarket-study=1` 再開生命線。正式站的網址參數保持關閉。QA 頁面，所需模組在操作時以現有本站資產載入。行情來源與日期不足時標示資料不足。無 opt-in 時沒有這些模組的額外載入。研究 PNG 透過既有預覽、分頁及分享，圖片及手機可展開的閱讀文字使用同一份資料。
 - Worker 與 `worker-data-contract-v1.js` 在兩版間逐位元相同。研究沒有外部行情請求、輪詢或對正式排名的寫入。
 - Pages 維持 13 個 inline JS 與兩個 inline CSS 的拆分，帶入資產內容指紋供瀏覽器快取識別。建置驗證可還原原始 HTML。
 
@@ -56,7 +56,7 @@
 
 ## 11 月 27 日主線資料同步
 
-候選分支已正常合入 V9.25 主線 `7de15ca006ff99fb3b178d07de35a2640d3a4648` 的資料更新。市場快照、台積電與加權指數都已是 11/27。此主線提交的正式強化 MACD+ 仍為 11/26，同日部署檢查依既有規則阻擋。V9.26 仍在候選分支。
+候選分支已正常合入 V9.25 主線 `7de15ca006ff99fb3b178d07de35a2640d3a4648` 的資料更新，並保留 PR 分支 `d2f419e3` 的錨點來源查核及正式研究關閉護欄。市場快照、台積電與加權指數都已是 11/27。此主線提交的正式強化 MACD+ 仍為 11/26，同日部署檢查依既有規則阻擋。V9.26 仍在候選分支。
 
 11/27 真實封存報告已在來源頁與實際 Pages 打包版驗證。加權指數收盤 39,308.08 點，台積電收盤 2,180 元。廣度的正向顯示和缺漏分母使用獨立瀏覽器測試資料，和真實封存報告分開。
 
@@ -109,7 +109,7 @@
 
 ## 重跑與交接
 
-- Node v24.22.3。 `npm run build:worker-contract` 0，`npm run test:contract` 0（50 通過），`npm test` 0（1,267 通過），`npm run research:validate` 0（保留未驗證效用結果），`npm run test:worker-browser` 0（來源與 Pages，封存 Worker 回應）。
+- Node v24.22.3。 `npm run build:worker-contract` 0，`npm run test:contract` 0（50 通過），`npm test` 0（1,269 通過），`npm run research:validate` 0（保留未驗證效用結果），`npm run test:worker-browser` 0（來源與 Pages，封存 Worker 回應）。
 - `node scripts/build-frontend-v924.cjs <stage> --defer-future` 搭配 `node scripts/prepare-pages-runtime-data.cjs <stage>`。先依 `.github/workflows/deploy-data-pages.yml` 的 tar 配方放完整資產，15 支拆分檔語法檢查 exit 0。
 - `node scripts/tests/report-preview-v926-browser.cjs <evidence>` 在 `REPORT_PAGES_STAGE` 指定產物或省略時的來源頁執行。 `--webkit` 走相同斷言。實際手機及 LINE Apps 另外驗收。
 - `node scripts/backtest-postmarket-v926.cjs <output.json>` 產生封存回放結論。 `node scripts/tests/postmarket-reports-v926-browser.cjs <evidence>` 產生加權及個股一般／浮水印 PNG，設定 `REPORT_PAGES_STAGE` 可重跑打包版。`node scripts/catalog-postmarket-v926.cjs <output.json>` 從官方封存資料重建實例。

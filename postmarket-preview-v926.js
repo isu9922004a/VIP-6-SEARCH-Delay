@@ -21,6 +21,12 @@ function loadSchedule() {
     .then(response=>response.ok?response.json():null).catch(()=>null);
 }
 
+// V9.26 staged release: unvalidated research is restricted to the intercepted QA origin.
+// No public URL parameter can activate this research on GitHub Pages.
+export function studyPreviewAllowed(origin = root.location?.origin) {
+  return origin === 'https://v926.test';
+}
+
 function loadScripts() {
   if (!pending) {
     pending = (async () => {
@@ -46,44 +52,70 @@ function loadScripts() {
   return pending;
 }
 
-function originalStockAnchors(input, analysis) {
-  const archived=input.bars;
+export function originalStockAnchors(input, analysis) {
+  const archived=input?.bars;
   const sourceBars=analysis?.sourceBars;
-  if (!input.complete || analysis?.date!==input.analysisDate ||
-      String(analysis.code)!==String(input.instrument.code) || !Array.isArray(sourceBars) ||
-      !sourceBars.length || sourceBars.length>archived.length) return [];
+  if (!input?.complete || !Array.isArray(archived) || !input.instrument ||
+      analysis?.date!==input.analysisDate ||
+      String(analysis.code)!==String(input.instrument.code)) return [];
   const columns=['date','open','high','low','close','volume'];
-  const lastArchive=archived.slice(-sourceBars.length);
-  const aligned=sourceBars.every((row,i)=>columns.every(key=>row[key]===lastArchive[i][key]));
-  if (!aligned) return [];
+  const matchesSuffix=rows=>{
+    if (!Array.isArray(rows)||!rows.length||rows.length>archived.length) return false;
+    const tail=archived.slice(-rows.length);
+    return rows.every((row,i)=>row && tail[i] &&
+      columns.every(key=>row[key]===tail[i][key]));
+  };
+  if (!matchesSuffix(sourceBars)) return [];
   const {code,market,basis}=input.instrument, out=[];
+  const verifiedChart=study=>study?.state==='RESEARCH_ONLY' &&
+    String(study.code)===String(code) && study.date===input.analysisDate &&
+    study.chart?.basisVerified===true && study.chart?.calendarVerified===true &&
+    study.chart.priceBasis===basis && matchesSuffix(study.chart.bars);
   const add=(kind,price,knownDate,source,invalidatedDate=null)=>{
-    if (Number.isFinite(price)&&price>0&&knownDate) out.push({
+    if (Number.isFinite(price)&&price>0&&knownDate&&source) out.push({
       kind,price,knownDate,source,invalidatedDate,code,market,basis,verified:true,
       availability:'DERIVED_FROM_COMPLETED_SESSION'
     });
   };
   const unified=analysis.unifiedResearch;
-  if (unified?.state==='RESEARCH_ONLY' && unified.chart?.basisVerified && unified.chart?.calendarVerified) {
+  if (verifiedChart(unified)) {
+    const dates=new Set(unified.chart.bars.map(row=>row.date));
     for (const level of unified.levels || []) {
       const kind={PIVOT_HIGH:'RESISTANCE',PIVOT_LOW:'SUPPORT',RANGE_HIGH:'NH'}[level.kind];
-      if (kind&&level.confirmationStatus==='CONFIRMED_REFERENCE') add(kind,level.price,level.confirmedAt,level.source);
+      if (kind&&level.confirmationStatus==='CONFIRMED_REFERENCE'&&dates.has(level.confirmedAt))
+        add(kind,level.price,level.confirmedAt,level.source);
     }
     for (const pattern of unified.chart.patterns || []) {
-      if (pattern.type==='DOUBLE_BOTTOM') add('NECKLINE',pattern.neckline,pattern.formedAt,'原已確認雙底頸線');
+      if (pattern.type==='DOUBLE_BOTTOM'&&dates.has(pattern.formedAt))
+        add('NECKLINE',pattern.neckline,pattern.formedAt,'原已確認雙底頸線');
     }
   }
   const n=analysis.nContinuation;
-  if (n?.state==='RESEARCH_ONLY' && n.gates?.priceBasisVerified && n.gates?.calendarVerified) {
+  if (verifiedChart(n) && n.gates?.priceBasisVerified===true && n.gates?.calendarVerified===true) {
+    const byDate=new Map(n.chart.bars.map(row=>[row.date,row]));
+    const confirmedPivot=(point,type)=>{
+      const bar=byDate.get(point?.pivotDate);
+      return point?.type===type && !!bar && byDate.has(point.knownAt) &&
+        point.pivotDate<point.knownAt && point.knownAt<=input.analysisDate &&
+        Number.isFinite(point.price) && point.price===bar[type==='HIGH'?'high':'low'];
+    };
     for (const event of n.history || []) {
-      add('N_B',event.B?.price,event.knownAt,'原 N 字 B 點',event.invalidatedAt);
-      add('N_C',event.C?.price,event.knownAt,'原 N 字 C 點',event.invalidatedAt);
+      const {A,B,C,knownAt,invalidatedAt}=event;
+      if (!confirmedPivot(A,'LOW')||!confirmedPivot(B,'HIGH')||!confirmedPivot(C,'LOW')||
+          !(A.pivotDate<B.pivotDate&&B.pivotDate<C.pivotDate&&A.price<C.price&&C.price<B.price)||
+          knownAt!==C.knownAt||A.knownAt>knownAt||B.knownAt>knownAt||
+          (invalidatedAt!=null&&(!byDate.has(invalidatedAt)||invalidatedAt<knownAt))) continue;
+      add('N_B',B.price,knownAt,'原 N 字 B 點',invalidatedAt);
+      add('N_C',C.price,knownAt,'原 N 字 C 點',invalidatedAt);
     }
   }
+  // The legacy ABC report exposes prices but not a verified historical confirmation
+  // timestamp. Never relabel N pivots or infer an ABC knownDate from a price match.
   return out;
 }
 
 export async function makeStudyReport({source, study, analysis, benchmark, marketRisk, quality, dataAsOf, index = false}) {
+  if (!studyPreviewAllowed()) return null;
   await loadScripts();
   const report = root.ShitouPostmarketReport926;
   const input = report.archiveInput(source,{index,dataAsOf});
@@ -124,6 +156,7 @@ export async function makeStudyPage({watermark = false, ...inputs}) {
 }
 
 export async function modelPreviewReading(source, {index = false, analysis, document = root.document} = {}) {
+  if (!studyPreviewAllowed()) return null;
   const study=index ? root.ShitouMarketLife96?.evaluate(source) : root.ShitouKlineLife03Report?.inspect(analysis);
   if (!study || (index && study.sourceVerified !== true)) return null;
   const proof=index ? null : root.ShitouOfficialResearchHistory?.proof(source);
