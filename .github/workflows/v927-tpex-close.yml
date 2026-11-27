@@ -1,0 +1,30 @@
+name: V9.27 official TPEX closing-index evidence
+on:
+  push:
+    branches: [feat/v927-tpex-close-evidence]
+  pull_request:
+    branches: [feat/v927-release-candidate, main]
+    paths:
+      - 'scripts/collect-v927-tpex-close.cjs'
+      - 'scripts/tests/v927-tpex-close.test.cjs'
+      - '.github/workflows/v927-tpex-close.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test scripts/tests/v927-tpex-close.test.cjs
+      - name: Capture official monthly closes with source receipts
+        run: node scripts/collect-v927-tpex-close.cjs "$RUNNER_TEMP/tpex-close" 2023-01 2026-11 2026-11-27
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v927-tpex-close-receipts
+          path: ${{ runner.temp }}/tpex-close
