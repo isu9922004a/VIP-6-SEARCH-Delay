@@ -54,6 +54,14 @@
 
 [修正後前端量測](../evidence/v926/preview-benchmark-optimized.json) 使用同一 Chromium、428×926、本機快取伺服器與 1284×6800 測試圖。兩版本各跑 5 組冷、暖快取，統計從載入及開始預覽至 PNG 解碼、分享 JPG 準備完成的時間。冷快取頁面載入 P50/P95 由 1801/4019ms 至 2019/2595ms，圖片由 511/1374ms 至 534/922ms。暖快取圖片 P50/P95 由 390/906ms 至 595/800ms。冷快取多一個本站 CSS 傳輸，暖快取兩版均無資產網路傳輸。樣本量小且同機另有測試並行，保留原始測量供重跑。
 
+## 11 月 27 日主線資料同步
+
+候選分支已正常合入 V9.25 主線 `7de15ca006ff99fb3b178d07de35a2640d3a4648` 的資料更新。市場快照、台積電與加權指數都已是 11/27。此主線提交的正式強化 MACD+ 仍為 11/26，同日部署檢查依既有規則阻擋。V9.26 仍在候選分支。
+
+11/27 真實封存報告已在來源頁與實際 Pages 打包版驗證。加權指數收盤 39,308.08 點，台積電收盤 2,180 元。廣度的正向顯示和缺漏分母使用獨立瀏覽器測試資料，和真實封存報告分開。
+
+[11/27 加權 PNG](../evidence/v926/TAIEX-2026-11-27.png)｜[11/27 台積電 PNG](../evidence/v926/2330-2026-11-27.png)｜[來源、座標與浮水印稽核](../evidence/v926/archive-2026-11-27.json)
+
 ## 階段及驗收
 
 | Phase | 結果 | 證據與待核對事項 |
@@ -101,7 +109,7 @@
 
 ## 重跑與交接
 
-- Node v24.22.3。 `npm run build:worker-contract` 0，`npm run test:contract` 0（50 通過），`npm test` 0（1,263 通過），`npm run research:validate` 0（保留未驗證效用結果），`npm run test:worker-browser` 0（來源與 Pages，封存 Worker 回應）。
+- Node v24.22.3。 `npm run build:worker-contract` 0，`npm run test:contract` 0（50 通過），`npm test` 0（1,267 通過），`npm run research:validate` 0（保留未驗證效用結果），`npm run test:worker-browser` 0（來源與 Pages，封存 Worker 回應）。
 - `node scripts/build-frontend-v924.cjs <stage> --defer-future` 搭配 `node scripts/prepare-pages-runtime-data.cjs <stage>`。先依 `.github/workflows/deploy-data-pages.yml` 的 tar 配方放完整資產，15 支拆分檔語法檢查 exit 0。
 - `node scripts/tests/report-preview-v926-browser.cjs <evidence>` 在 `REPORT_PAGES_STAGE` 指定產物或省略時的來源頁執行。 `--webkit` 走相同斷言。實際手機及 LINE Apps 另外驗收。
 - `node scripts/backtest-postmarket-v926.cjs <output.json>` 產生封存回放結論。 `node scripts/tests/postmarket-reports-v926-browser.cjs <evidence>` 產生加權及個股一般／浮水印 PNG，設定 `REPORT_PAGES_STAGE` 可重跑打包版。`node scripts/catalog-postmarket-v926.cjs <output.json>` 從官方封存資料重建實例。
