@@ -141,8 +141,38 @@ async function run() {
     assert.match(projected[0],/上市 1 漲 25%、2 跌 50%、1 平 25%.*4\/4 家已核對/);
     assert.match(projected[0],/上櫃廣度資料不足｜1\/4 家已核對/);
     assert.deepEqual(errors,[]);
+    const publicPage=await browser.newPage({viewport:{width:428,height:926},isMobile:true,hasTouch:true});
+    const unexpectedResearch=[], publicErrors=[];
+    publicPage.on('pageerror',error=>publicErrors.push(error.message));
+    await publicPage.clock.setFixedTime(new Date(market.sourceReceipt.retrievedAt));
+    const publicBase='https://isu9922004a.github.io/VIP-6-SEARCH-Delay/';
+    await publicPage.route('**/*',route=>{
+      const url=new URL(route.request().url());
+      if(!url.href.startsWith(publicBase))return route.abort();
+      const relative=url.pathname.slice(new URL(publicBase).pathname.length);
+      if(/postmarket-(?:trend|patterns|report|breadth)-v926|data\/postmarket-breadth/.test(relative))unexpectedResearch.push(relative);
+      const filename=path.resolve(site,relative);
+      return filename.startsWith(site+path.sep)&&fs.existsSync(filename)
+        ? route.fulfill({path:filename,contentType:mime[path.extname(filename)]})
+        : route.fulfill({status:404});
+    });
+    await publicPage.goto(publicBase+'market-outlook.html?postmarket-study=1');
+    await publicPage.locator('#futureMarketCleanButton').click();
+    const publicModel=publicPage.locator('#simpleMarketReportDialog');
+    await publicModel.locator('img').waitFor({state:'visible',timeout:30000});
+    assert.equal(await publicModel.locator('#postmarketPreviewText').count(),0);
+    await publicModel.locator('.compact-preview-head button').click();
+    await publicPage.locator('#marketLifeReportButton').click();
+    await publicPage.locator('#imagePreviewImg[src]').waitFor({state:'visible',timeout:30000});
+    await publicPage.waitForFunction(()=>!document.getElementById('marketLifeReportButton').disabled);
+    const legacyPages=await publicPage.evaluate(()=>ShitouLifeViewer94.getState().pages.map(p=>({
+      market:!!p.dataset.marketLifeAudit,research:!!p.dataset.postmarket926Audit
+    })));
+    assert.ok(legacyPages.length>0&&legacyPages.every(page=>page.market&&!page.research));
+    assert.deepEqual(unexpectedResearch,[]);
+    assert.deepEqual(publicErrors,[]);
     fs.writeFileSync(path.join(out,'archive-reports.json'),JSON.stringify({source:'committed official OHLCV archives',loadMs,media,
-      independentMarketStudyPage:true,modelReadingMatchesStudy:true,breadthBrowserFixture:true,errors},null,2));
+      independentMarketStudyPage:true,modelReadingMatchesStudy:true,breadthBrowserFixture:true,publicOriginGate:true,errors},null,2));
     console.log(JSON.stringify({status:'PASS',loadMs,reports:media.map(({symbol,close,watermark,renderTime,encodeTime})=>
       ({symbol,close,watermark,renderTime,encodeTime}))}));
   } finally {await browser.close();}

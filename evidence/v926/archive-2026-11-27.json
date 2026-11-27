@@ -358,5 +358,6 @@
   "independentMarketStudyPage": true,
   "modelReadingMatchesStudy": true,
   "breadthBrowserFixture": true,
-  "errors": []
+  "errors": [],
+  "publicOriginGate": true
 }
