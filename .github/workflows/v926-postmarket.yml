@@ -3,7 +3,7 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [feat/v926-postmarket-trend-lifeline]
+    branches: [feat/v926-postmarket-trend-lifeline, feat/v927-release-candidate]
 permissions:
   contents: read
 concurrency:
@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   release-candidate:
-    if: github.event_name == 'push' || startsWith(github.head_ref, 'feat/v926-')
+    if: github.event_name == 'push' || (startsWith(github.head_ref, 'feat/v926-') || startsWith(github.head_ref, 'feat/v927-'))
     # Playwright 1.56 supports WebKit on Ubuntu 24.04.
     runs-on: ubuntu-24.04
     timeout-minutes: 35
@@ -76,7 +76,7 @@ jobs:
           path: ${{ runner.temp }}/v926
 
   formal-strategy-regression:
-    if: github.event_name == 'push' || startsWith(github.head_ref, 'feat/v926-')
+    if: github.event_name == 'push' || (startsWith(github.head_ref, 'feat/v926-') || startsWith(github.head_ref, 'feat/v927-'))
     runs-on: ubuntu-latest
     timeout-minutes: 35
     env:
@@ -122,7 +122,7 @@ jobs:
           path: ${{ runner.temp }}/v926-formal
 
   production-baseline:
-    if: github.event_name == 'pull_request' && startsWith(github.head_ref, 'feat/v926-')
+    if: github.event_name == 'pull_request' && (startsWith(github.head_ref, 'feat/v926-') || startsWith(github.head_ref, 'feat/v927-'))
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
