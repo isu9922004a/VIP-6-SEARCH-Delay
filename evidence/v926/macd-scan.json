@@ -1,0 +1,264 @@
+{
+  "date": "2026-11-26",
+  "marketSha256": "576ea2dce132cb24f4d0025244d93801c5d513b42134ac18e51358b99f3d5e6c",
+  "results": [
+    {
+      "key": "structure",
+      "date": "2026-11-26",
+      "total": 1997,
+      "done": null,
+      "data": null,
+      "failed": null,
+      "groups": {
+        "qualified": [
+          {
+            "code": "1708",
+            "eligible": null,
+            "status": "QUALIFIED",
+            "label": null,
+            "score": {
+              "momentum": 90.1491,
+              "trend": 67.2086,
+              "volume": 92.339,
+              "breakout": 97.8571,
+              "total": 86.1176
+            },
+            "close": 46.25
+          },
+          {
+            "code": "8299",
+            "eligible": null,
+            "status": "QUALIFIED",
+            "label": null,
+            "score": {
+              "momentum": 98.59,
+              "trend": 61.5862,
+              "volume": 57.9534,
+              "breakout": 100,
+              "total": 79.3914
+            },
+            "close": 1630
+          },
+          {
+            "code": "3017",
+            "eligible": null,
+            "status": "QUALIFIED",
+            "label": null,
+            "score": {
+              "momentum": 100,
+              "trend": 65.2933,
+              "volume": 37.3506,
+              "breakout": 100,
+              "total": 75.661
+            },
+            "close": 2795
+          },
+          {
+            "code": "5469",
+            "eligible": null,
+            "status": "QUALIFIED",
+            "label": null,
+            "score": {
+              "momentum": 70.4685,
+              "trend": 62.0795,
+              "volume": 26.3524,
+              "breakout": 98.2353,
+              "total": 61.5073
+            },
+            "close": 72.8
+          },
+          {
+            "code": "2413",
+            "eligible": null,
+            "status": "QUALIFIED",
+            "label": null,
+            "score": {
+              "momentum": 43.8269,
+              "trend": 64.3717,
+              "volume": 52.5055,
+              "breakout": 100,
+              "total": 59.5587
+            },
+            "close": 49.1
+          },
+          {
+            "code": "2360",
+            "eligible": null,
+            "status": "QUALIFIED",
+            "label": null,
+            "score": {
+              "momentum": 54.1263,
+              "trend": 0,
+              "volume": 93.6831,
+              "breakout": 94,
+              "total": 56.465
+            },
+            "close": 1095
+          },
+          {
+            "code": "2464",
+            "eligible": null,
+            "status": "QUALIFIED",
+            "label": null,
+            "score": {
+              "momentum": 49.9206,
+              "trend": 36.324,
+              "volume": 45.2958,
+              "breakout": 100,
+              "total": 52.8772
+            },
+            "close": 142
+          },
+          {
+            "code": "3042",
+            "eligible": null,
+            "status": "QUALIFIED",
+            "label": null,
+            "score": {
+              "momentum": 57.9798,
+              "trend": 9.6563,
+              "volume": 54.8954,
+              "breakout": 97.6923,
+              "total": 51.0847
+            },
+            "close": 123
+          }
+        ],
+        "top8": [
+          {
+            "code": "1708",
+            "eligible": null,
+            "status": "QUALIFIED",
+            "label": null,
+            "score": {
+              "momentum": 90.1491,
+              "trend": 67.2086,
+              "volume": 92.339,
+              "breakout": 97.8571,
+              "total": 86.1176
+            },
+            "close": 46.25
+          },
+          {
+            "code": "8299",
+            "eligible": null,
+            "status": "QUALIFIED",
+            "label": null,
+            "score": {
+              "momentum": 98.59,
+              "trend": 61.5862,
+              "volume": 57.9534,
+              "breakout": 100,
+              "total": 79.3914
+            },
+            "close": 1630
+          },
+          {
+            "code": "3017",
+            "eligible": null,
+            "status": "QUALIFIED",
+            "label": null,
+            "score": {
+              "momentum": 100,
+              "trend": 65.2933,
+              "volume": 37.3506,
+              "breakout": 100,
+              "total": 75.661
+            },
+            "close": 2795
+          },
+          {
+            "code": "5469",
+            "eligible": null,
+            "status": "QUALIFIED",
+            "label": null,
+            "score": {
+              "momentum": 70.4685,
+              "trend": 62.0795,
+              "volume": 26.3524,
+              "breakout": 98.2353,
+              "total": 61.5073
+            },
+            "close": 72.8
+          },
+          {
+            "code": "2413",
+            "eligible": null,
+            "status": "QUALIFIED",
+            "label": null,
+            "score": {
+              "momentum": 43.8269,
+              "trend": 64.3717,
+              "volume": 52.5055,
+              "breakout": 100,
+              "total": 59.5587
+            },
+            "close": 49.1
+          },
+          {
+            "code": "2360",
+            "eligible": null,
+            "status": "QUALIFIED",
+            "label": null,
+            "score": {
+              "momentum": 54.1263,
+              "trend": 0,
+              "volume": 93.6831,
+              "breakout": 94,
+              "total": 56.465
+            },
+            "close": 1095
+          },
+          {
+            "code": "2464",
+            "eligible": null,
+            "status": "QUALIFIED",
+            "label": null,
+            "score": {
+              "momentum": 49.9206,
+              "trend": 36.324,
+              "volume": 45.2958,
+              "breakout": 100,
+              "total": 52.8772
+            },
+            "close": 142
+          },
+          {
+            "code": "3042",
+            "eligible": null,
+            "status": "QUALIFIED",
+            "label": null,
+            "score": {
+              "momentum": 57.9798,
+              "trend": 9.6563,
+              "volume": 54.8954,
+              "breakout": 97.6923,
+              "total": 51.0847
+            },
+            "close": 123
+          }
+        ],
+        "comparison": [
+          {
+            "code": "2451",
+            "eligible": null,
+            "status": "REJECTED",
+            "label": null,
+            "score": null,
+            "close": null
+          },
+          {
+            "code": "7788",
+            "eligible": null,
+            "status": "REJECTED",
+            "label": null,
+            "score": null,
+            "close": null
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [],
+  "deepCalls": 0
+}

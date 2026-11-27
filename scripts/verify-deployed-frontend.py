@@ -19,7 +19,9 @@ FILES = ["ui-minimal-v925.css", "ui-minimal-v925.js", "ui-feedback-v923.css", "u
          "research-v83/forecast-engine.js", "research-v83/kronos-data.js", "research-v83/stock-fifth-module.js",
          "research-v83/iphone-summary-renderer.js", "research-v83/stock-simple-report.js", "research-v83/stock-simple-report.css",
          "research-v83/stock-fifth-module.css", "research-v83/market.js", "research-v83/market-engine.js",
-         "research-v83/market-base.css", "research-v83/market.css"]
+         "research-v83/market-base.css", "research-v83/market.css",
+         "mobile-image-share-v1.js", "report-preview-v926.css", "market-report-comfort-v864.js", "release-compact-v1.js",
+         "postmarket-patterns-v926.js", "postmarket-trend-v926.js", "postmarket-report-v926.js", "postmarket-preview-v926.js"]
 
 
 def deployment_base(environ=None):

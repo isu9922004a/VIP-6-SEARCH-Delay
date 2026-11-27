@@ -1,0 +1,556 @@
+{
+  "status": "PASS_ARCHIVE_REPLAY_ONLY",
+  "date": "2026-11-26",
+  "marketSha256": "576ea2dce132cb24f4d0025244d93801c5d513b42134ac18e51358b99f3d5e6c",
+  "baseline": "582a0decfb1cf727287d3c4efbe3874469c248a2",
+  "scope": "Official archived market and stock responses; identical UI replay. Full production traffic is outside this run.",
+  "requests": {
+    "baseline": 622,
+    "candidate": 622,
+    "positiveMacdBaseline": 0,
+    "positiveMacdCandidate": 0
+  },
+  "results": [
+    {
+      "strategy": "momentum",
+      "rows": 493,
+      "counts": null,
+      "processed": 493,
+      "dataInsufficient": null,
+      "failed": 0,
+      "resultSha256": "d62350d5732d2626a2dde45c0006b5b7c1464f18cf74468e1cf0a5ee3c0fb9b4",
+      "candidateCount": 0,
+      "top8": null,
+      "groups": {
+        "candidates": 0,
+        "dataSkipped": 493,
+        "auditRows": 493,
+        "prefilterRejected": 1477,
+        "launchCandidates": 0,
+        "strengthCandidates": 0,
+        "safeCandidates": 0,
+        "formalLaunchCandidates": 0,
+        "lifecycleWaitingCandidates": 0
+      },
+      "firstCandidates": []
+    },
+    {
+      "strategy": "daytrade",
+      "rows": 70,
+      "counts": null,
+      "processed": 70,
+      "dataInsufficient": null,
+      "failed": 0,
+      "resultSha256": "268acf6312e473010c69cdb5d768c79b157838e0e623deea0bc9c06f6b7d0a46",
+      "candidateCount": 4,
+      "top8": null,
+      "groups": {
+        "candidates": 4,
+        "auditRows": 70
+      },
+      "firstCandidates": [
+        {
+          "code": "1477",
+          "eligible": true,
+          "status": null,
+          "label": null,
+          "score": {
+            "final": 70,
+            "base": 67,
+            "trend": 15,
+            "position": 13,
+            "volume": 12,
+            "breakout": 11,
+            "money": 16,
+            "signalBonus": 3,
+            "chipBonus": 0,
+            "evidence": [
+              "收盤站上20MA",
+              "20MA上彎",
+              "價格突破20日高/B點"
+            ],
+            "signalEvidence": [
+              "KD黃金交叉",
+              "SAR連續上升"
+            ],
+            "moneyFlowRole": "SECONDARY_CONFIRMATION",
+            "priceVolumeEfficiency": {
+              "modelId": "PRICE_VOLUME_EFFICIENCY_V53246",
+              "key": "NEUTRAL",
+              "label": "量價效率中性",
+              "severity": "EVIDENCE",
+              "effective": false,
+              "reasons": [],
+              "volumeRatio": 1.157946850106824,
+              "dayPct": 4.484304932735426,
+              "closePos": 1,
+              "upperRangeRatio": 0,
+              "dataTiming": "POST_CLOSE"
+            },
+            "dataTiming": "POST_CLOSE",
+            "model": "DAYTRADE_COMPONENTS_V1",
+            "modelId": "DAYTRADE_COMPONENTS_V1",
+            "purpose": "SCAN_RANKING",
+            "scoreSemantic": "RANKING_SCORE_NOT_WIN_RATE",
+            "mergePolicy": "DO_NOT_AVERAGE_WITH_THREE_HORIZON_FIT",
+            "riskPenalty": 0,
+            "riskPenaltyBreakdown": {
+              "overheat": 0,
+              "distribution": 0,
+              "volume": 0,
+              "trend": 0,
+              "fakeBreakout": 0
+            },
+            "preRiskScore": 70
+          },
+          "close": 233
+        },
+        {
+          "code": "2254",
+          "eligible": true,
+          "status": null,
+          "label": null,
+          "score": {
+            "final": 64.5,
+            "base": 66,
+            "trend": 20,
+            "position": 20,
+            "volume": 11,
+            "breakout": 8,
+            "money": 7,
+            "signalBonus": 1.5,
+            "chipBonus": 0,
+            "evidence": [
+              "收盤站上20MA",
+              "20MA上彎",
+              "5>10>20多頭排列"
+            ],
+            "signalEvidence": [
+              "KD黃金交叉"
+            ],
+            "moneyFlowRole": "SECONDARY_CONFIRMATION",
+            "priceVolumeEfficiency": {
+              "modelId": "PRICE_VOLUME_EFFICIENCY_V53246",
+              "key": "NEUTRAL",
+              "label": "量價效率中性",
+              "severity": "EVIDENCE",
+              "effective": false,
+              "reasons": [],
+              "volumeRatio": 0.8838871950619082,
+              "dayPct": 0.91324200913242,
+              "closePos": 1,
+              "upperRangeRatio": 0,
+              "dataTiming": "POST_CLOSE"
+            },
+            "dataTiming": "POST_CLOSE",
+            "model": "DAYTRADE_COMPONENTS_V1",
+            "modelId": "DAYTRADE_COMPONENTS_V1",
+            "purpose": "SCAN_RANKING",
+            "scoreSemantic": "RANKING_SCORE_NOT_WIN_RATE",
+            "mergePolicy": "DO_NOT_AVERAGE_WITH_THREE_HORIZON_FIT",
+            "riskPenalty": 3,
+            "riskPenaltyBreakdown": {
+              "overheat": 0,
+              "distribution": 0,
+              "volume": 3,
+              "trend": 0,
+              "fakeBreakout": 0
+            },
+            "preRiskScore": 67.5
+          },
+          "close": 110.5
+        },
+        {
+          "code": "6199",
+          "eligible": true,
+          "status": null,
+          "label": null,
+          "score": {
+            "final": 54.5,
+            "base": 60,
+            "trend": 20,
+            "position": 20,
+            "volume": 8,
+            "breakout": 5,
+            "money": 7,
+            "signalBonus": 1.5,
+            "chipBonus": 0,
+            "evidence": [
+              "收盤站上20MA",
+              "20MA上彎",
+              "5>10>20多頭排列"
+            ],
+            "signalEvidence": [
+              "SAR連續上升"
+            ],
+            "moneyFlowRole": "SECONDARY_CONFIRMATION",
+            "priceVolumeEfficiency": {
+              "modelId": "PRICE_VOLUME_EFFICIENCY_V53246",
+              "key": "NEUTRAL",
+              "label": "量價效率中性",
+              "severity": "EVIDENCE",
+              "effective": false,
+              "reasons": [],
+              "volumeRatio": 0.9558991088403193,
+              "dayPct": 0.2898550724637681,
+              "closePos": 0.5,
+              "upperRangeRatio": 0.5,
+              "dataTiming": "POST_CLOSE"
+            },
+            "dataTiming": "POST_CLOSE",
+            "model": "DAYTRADE_COMPONENTS_V1",
+            "modelId": "DAYTRADE_COMPONENTS_V1",
+            "purpose": "SCAN_RANKING",
+            "scoreSemantic": "RANKING_SCORE_NOT_WIN_RATE",
+            "mergePolicy": "DO_NOT_AVERAGE_WITH_THREE_HORIZON_FIT",
+            "riskPenalty": 7,
+            "riskPenaltyBreakdown": {
+              "overheat": 0,
+              "distribution": 4,
+              "volume": 3,
+              "trend": 0,
+              "fakeBreakout": 0
+            },
+            "preRiskScore": 61.5
+          },
+          "close": 173
+        },
+        {
+          "code": "2471",
+          "eligible": true,
+          "status": null,
+          "label": null,
+          "score": {
+            "final": 45,
+            "base": 53,
+            "trend": 15,
+            "position": 12,
+            "volume": 9,
+            "breakout": 5,
+            "money": 12,
+            "signalBonus": 0,
+            "chipBonus": 0,
+            "evidence": [
+              "收盤站上20MA",
+              "20MA上彎"
+            ],
+            "signalEvidence": [],
+            "moneyFlowRole": "SECONDARY_CONFIRMATION",
+            "priceVolumeEfficiency": {
+              "modelId": "PRICE_VOLUME_EFFICIENCY_V53246",
+              "key": "NEUTRAL",
+              "label": "量價效率中性",
+              "severity": "EVIDENCE",
+              "effective": false,
+              "reasons": [],
+              "volumeRatio": 1.048410951975637,
+              "dayPct": -0.7507507507507508,
+              "closePos": 0.6590909090909084,
+              "upperRangeRatio": 0.34090909090909155,
+              "dataTiming": "POST_CLOSE"
+            },
+            "dataTiming": "POST_CLOSE",
+            "model": "DAYTRADE_COMPONENTS_V1",
+            "modelId": "DAYTRADE_COMPONENTS_V1",
+            "purpose": "SCAN_RANKING",
+            "scoreSemantic": "RANKING_SCORE_NOT_WIN_RATE",
+            "mergePolicy": "DO_NOT_AVERAGE_WITH_THREE_HORIZON_FIT",
+            "riskPenalty": 8,
+            "riskPenaltyBreakdown": {
+              "overheat": 4,
+              "distribution": 4,
+              "volume": 0,
+              "trend": 0,
+              "fakeBreakout": 0
+            },
+            "preRiskScore": 53
+          },
+          "close": 66.1
+        }
+      ]
+    },
+    {
+      "strategy": "strong",
+      "rows": 636,
+      "counts": null,
+      "processed": 636,
+      "dataInsufficient": 9,
+      "failed": 0,
+      "resultSha256": "5e1f5e471a8feaa791cdbdefce17911efe741f1505f3edd7c714fed211e783d5",
+      "candidateCount": 3,
+      "top8": null,
+      "groups": {
+        "candidates": 3,
+        "issues": 9
+      },
+      "firstCandidates": [
+        {
+          "code": "7765",
+          "eligible": true,
+          "status": "S",
+          "label": "強中強",
+          "score": 100,
+          "close": 297
+        },
+        {
+          "code": "6614",
+          "eligible": true,
+          "status": "S",
+          "label": "強中強",
+          "score": 83,
+          "close": 46.8
+        },
+        {
+          "code": "1477",
+          "eligible": true,
+          "status": "A",
+          "label": "量價波段條件通過",
+          "score": 100,
+          "close": 233
+        }
+      ]
+    },
+    {
+      "strategy": "tower",
+      "rows": 1970,
+      "counts": {
+        "total": 1970,
+        "parsed": 1970,
+        "excluded": 1036,
+        "industryQualified": 949,
+        "deepScanned": 1970,
+        "successful": 1900,
+        "insufficient": 81,
+        "serviceFailed": 0,
+        "unfinished": 0,
+        "newborn": 245,
+        "A": 0,
+        "B": 0,
+        "C": 245,
+        "formal": 0,
+        "top8": 0
+      },
+      "processed": null,
+      "dataInsufficient": null,
+      "failed": null,
+      "resultSha256": "3836cdad138fcbc14f74efd4e5d4a1a0df420eb2dd9b86995d10a2a2ab14eb03",
+      "candidateCount": 0,
+      "top8": [],
+      "groups": null
+    },
+    {
+      "strategy": "restaurant",
+      "rows": 1926,
+      "counts": null,
+      "processed": 1926,
+      "dataInsufficient": 82,
+      "failed": 175,
+      "resultSha256": "878dd2ff55ab5116a23276f4fe856e93273c96313fb39bb27d687f14bcbc772e",
+      "candidateCount": 20,
+      "top8": null,
+      "groups": {
+        "excluded": 44,
+        "results": 1926,
+        "issues": 173,
+        "candidates": 20,
+        "riskCandidates": 0,
+        "riskWarnings": 20
+      },
+      "firstCandidates": [
+        {
+          "code": "1232",
+          "eligible": true,
+          "status": "PASS",
+          "label": "四項續強條件通過",
+          "score": null,
+          "close": 161
+        },
+        {
+          "code": "1264",
+          "eligible": true,
+          "status": "PASS",
+          "label": "四項續強條件通過",
+          "score": null,
+          "close": 245.5
+        },
+        {
+          "code": "1323",
+          "eligible": true,
+          "status": "PASS",
+          "label": "四項續強條件通過",
+          "score": null,
+          "close": 21.8
+        },
+        {
+          "code": "1454",
+          "eligible": true,
+          "status": "PASS",
+          "label": "四項續強條件通過",
+          "score": null,
+          "close": 12.4
+        },
+        {
+          "code": "2453",
+          "eligible": true,
+          "status": "PASS",
+          "label": "四項續強條件通過",
+          "score": null,
+          "close": 57.5
+        },
+        {
+          "code": "2501",
+          "eligible": true,
+          "status": "PASS",
+          "label": "四項續強條件通過",
+          "score": null,
+          "close": 21.05
+        },
+        {
+          "code": "2516",
+          "eligible": true,
+          "status": "PASS",
+          "label": "四項續強條件通過",
+          "score": null,
+          "close": 17.1
+        },
+        {
+          "code": "2610",
+          "eligible": true,
+          "status": "PASS",
+          "label": "四項續強條件通過",
+          "score": null,
+          "close": 21.8
+        }
+      ]
+    },
+    {
+      "strategy": "structure",
+      "rows": 1997,
+      "counts": null,
+      "processed": null,
+      "dataInsufficient": null,
+      "failed": null,
+      "resultSha256": "8b64f96da5568432cda902ce7ae0bee9d359671751feea59dfe3d83db2308316",
+      "candidateCount": 8,
+      "top8": [
+        {
+          "code": "1708",
+          "eligible": null,
+          "status": "QUALIFIED",
+          "label": null,
+          "score": {
+            "momentum": 90.1491,
+            "trend": 67.2086,
+            "volume": 92.339,
+            "breakout": 97.8571,
+            "total": 86.1176
+          },
+          "close": 46.25
+        },
+        {
+          "code": "8299",
+          "eligible": null,
+          "status": "QUALIFIED",
+          "label": null,
+          "score": {
+            "momentum": 98.59,
+            "trend": 61.5862,
+            "volume": 57.9534,
+            "breakout": 100,
+            "total": 79.3914
+          },
+          "close": 1630
+        },
+        {
+          "code": "3017",
+          "eligible": null,
+          "status": "QUALIFIED",
+          "label": null,
+          "score": {
+            "momentum": 100,
+            "trend": 65.2933,
+            "volume": 37.3506,
+            "breakout": 100,
+            "total": 75.661
+          },
+          "close": 2795
+        },
+        {
+          "code": "5469",
+          "eligible": null,
+          "status": "QUALIFIED",
+          "label": null,
+          "score": {
+            "momentum": 70.4685,
+            "trend": 62.0795,
+            "volume": 26.3524,
+            "breakout": 98.2353,
+            "total": 61.5073
+          },
+          "close": 72.8
+        },
+        {
+          "code": "2413",
+          "eligible": null,
+          "status": "QUALIFIED",
+          "label": null,
+          "score": {
+            "momentum": 43.8269,
+            "trend": 64.3717,
+            "volume": 52.5055,
+            "breakout": 100,
+            "total": 59.5587
+          },
+          "close": 49.1
+        },
+        {
+          "code": "2360",
+          "eligible": null,
+          "status": "QUALIFIED",
+          "label": null,
+          "score": {
+            "momentum": 54.1263,
+            "trend": 0,
+            "volume": 93.6831,
+            "breakout": 94,
+            "total": 56.465
+          },
+          "close": 1095
+        },
+        {
+          "code": "2464",
+          "eligible": null,
+          "status": "QUALIFIED",
+          "label": null,
+          "score": {
+            "momentum": 49.9206,
+            "trend": 36.324,
+            "volume": 45.2958,
+            "breakout": 100,
+            "total": 52.8772
+          },
+          "close": 142
+        },
+        {
+          "code": "3042",
+          "eligible": null,
+          "status": "QUALIFIED",
+          "label": null,
+          "score": {
+            "momentum": 57.9798,
+            "trend": 9.6563,
+            "volume": 54.8954,
+            "breakout": 97.6923,
+            "total": 51.0847
+          },
+          "close": 123
+        }
+      ],
+      "groups": {
+        "qualified": 8,
+        "top8": 8,
+        "comparison": 2
+      }
+    }
+  ]
+}

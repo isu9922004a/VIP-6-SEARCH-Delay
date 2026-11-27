@@ -48,15 +48,17 @@ async function checkVisible(){
  const modal=document.getElementById('imagePreviewModal'),epoch=root.ShitouReportPreviewEpoch;
  if(modal?.classList.contains('show')&&modal.dataset.marketReader==='true')modal.dataset.marketExportBlocked='true';
  const result=await refresh();
- if(modal?.classList.contains('show')&&modal.dataset.marketReader==='true'){
+ const previousNotice=modal?.dataset.marketFreshnessNotice||'';
+ if(epoch===root.ShitouReportPreviewEpoch&&modal?.classList.contains('show')&&modal.dataset.marketReader==='true'){
   modal.dataset.marketFreshnessNotice=result.notice||'';
   modal.dataset.marketExportBlocked=String(!result.ready);
   const note=document.getElementById('imagePreviewNote');if(note&&!result.ready)note.textContent='暫停下載與分享：'+result.notice;
  }
- if(result.ready&&modal?.classList.contains('show')&&modal.dataset.marketReader==='true'&&epoch===root.ShitouReportPreviewEpoch&&current()===result.data&&(result.changed||(modal.dataset.marketFreshnessNotice||'')!==result.notice)){
-  const view=modal.dataset.marketView,scroll=modal.scrollTop;
+ if(result.ready&&modal?.classList.contains('show')&&modal.dataset.marketReader==='true'&&epoch===root.ShitouReportPreviewEpoch&&current()===result.data&&(result.changed||previousNotice!==result.notice)){
+  const preview=modal.querySelector('.image-preview-wrap');
+  const view=modal.dataset.marketView,scroll=preview.scrollTop;
   await root.generateMarketInfographicV3328(modal.dataset.marketWatermarked==='true',{recheck:false,notice:result.notice});
-  if(current()===result.data&&modal.classList.contains('show')&&modal.dataset.marketReader==='true'&&root.ShitouReportPreviewEpoch===epoch+1){modal.dataset.marketView=view;modal.scrollTop=scroll;const toggle=document.getElementById('marketReaderToggle');if(toggle){toggle.textContent=view==='reading'?'完整圖片':'文字閱讀';toggle.setAttribute('aria-pressed',String(view==='reading'));}}
+  if(current()===result.data&&modal.classList.contains('show')&&modal.dataset.marketReader==='true'&&root.ShitouReportPreviewEpoch===epoch+1){modal.dataset.marketExportBlocked='false';modal.dataset.marketView=view;preview.scrollTop=scroll;const toggle=document.getElementById('marketReaderToggle');if(toggle){toggle.textContent=view==='reading'?'完整圖片':'文字閱讀';toggle.setAttribute('aria-pressed',String(view==='reading'));}}
  }
  return result;
 }
@@ -65,7 +67,9 @@ if(root.addEventListener){root.addEventListener('focus',onFocus);document.addEve
  document.addEventListener('click',event=>{
   const control=event.target.closest?.('#imageDownloadLink,#imageShareButton,#lineShareSave,#r45PreviewZip'),modal=document.getElementById('imagePreviewModal');
   if(control&&modal?.classList.contains('show')&&modal.dataset.marketReader==='true'&&modal.dataset.marketExportBlocked==='true'){
-   event.preventDefault();event.stopImmediatePropagation();const note=document.getElementById('imagePreviewNote');if(note)note.textContent='最新行情尚未核對，請重新載入大盤後再下載或分享。';
+   event.preventDefault();event.stopImmediatePropagation();
+   const note=document.getElementById('imagePreviewNote');if(note)note.textContent='最新行情尚未核對，暫停下載與分享。';
+   const status=document.getElementById('lineShareStatus');if(status)status.textContent='請重新載入大盤以核對行情。';
   }
  },true);setInterval(()=>checkVisible().catch(()=>{}),INTERVAL);}
 const api={refresh,checkVisible,fingerprint,valid,verifyHistory,fromHistory,intervalMs:INTERVAL,getStatus:()=>lastResult};root.ShitouMarketReportRefresh=api;

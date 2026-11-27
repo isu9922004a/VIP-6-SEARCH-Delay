@@ -9,13 +9,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <link rel="stylesheet" href="./tower-design.css?v=V8.7.2">
 
-<title>石頭少爺 V9.25｜策略選股</title>
+<title>石頭少爺 V9.26｜盤後趨勢預判與策略選股</title>
 <link rel="stylesheet" href="./enhanced-macd-v923.css?v=V9.23">
 <script src="./scan-exclusions-rsi-v5328.js?v=V8.7.2"></script>
 <script src="./stock-query-runtime-v826.js?v=V8.7.2"></script>
 <script src="./report-watermark-v84.js?v=V8.7.2"></script>
 <link rel="stylesheet" href="./frontend-v84.css?v=V8.7.2">
-<script src="./version-v50.js?v=V9.25-UI1"></script>
+<script src="./version-v50.js?v=V9.26-PREVIEW4"></script>
 <script src="./report-beginner-copy-v88.js?v=V8.8-COPY1"></script>
 
 <style>
@@ -1079,13 +1079,7 @@ body.dark .v46-reason,body.dark .v46-note,body.dark .v46-family{color:#d2dae7}bo
 
 /* RESTAURANT_FULLBLEED_1_BEGIN */
 @media(max-width:600px){
- #imagePreviewModal[data-report-full-bleed="true"]{padding:0;display:none;background:#163c58}
- #imagePreviewModal[data-report-full-bleed="true"].show{display:block}
- #imagePreviewModal[data-report-full-bleed="true"] .image-modal-card{width:100%;max-width:none;margin:0;padding:0;border:0;border-radius:0;box-shadow:none}
- #imagePreviewModal[data-report-full-bleed="true"] .image-modal-head{padding:10px 12px;margin:0}
- #imagePreviewModal[data-report-full-bleed="true"] .image-preview-wrap{width:100%;margin:0;padding:0;border:0;border-radius:0;max-height:none;overflow:visible;background:#163c58}
- #imagePreviewModal[data-report-full-bleed="true"] #imagePreviewImg{width:100%;max-width:none;height:auto;margin:0;padding:0;border:0;border-radius:0;box-shadow:none;object-fit:contain}
- #imagePreviewModal[data-report-full-bleed="true"] .image-modal-actions,#imagePreviewModal[data-report-full-bleed="true"] .image-preview-note{padding:10px 12px;margin:0}
+
 }
 
 /* MARKET-ENTRY-POLISH-V1: homepage market actions only, no analytical changes. */
@@ -1194,7 +1188,7 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
 
   <div class="container">
 
-    <h1><span class="ui-brand-mark">🪨</span> 石頭少爺 Agent <span class="ui-release-short">V9.25</span></h1>
+    <h1><span class="ui-brand-mark">🪨</span> 石頭少爺 Agent <span class="ui-release-short">V9.26</span></h1>
     <nav aria-label="策略捷徑" class="ui-inline-1"><a id="towerGoldShortcut" href="#towerGoldPanel" class="ui-inline-2" title="盤後新生 K0 全市場掃描">④ 主力生命線成本</a></nav>
 
 
@@ -2004,18 +1998,20 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
 
 <div id="imagePreviewModal" class="image-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="imagePreviewTitle">
   <div class="image-modal-card">
-    <div class="image-modal-head">
-      <div id="imagePreviewTitle" class="image-modal-title">🖼️ 分析圖預覽</div>
+    <header class="image-modal-head">
+      <div id="imagePreviewTitle" class="image-modal-title">圖片報告</div>
       <button class="image-modal-close" type="button" onclick="closeInfographicPreviewV3328()">✕ 關閉</button>
-    </div>
-    <div class="image-preview-wrap">
+    </header>
+    <div class="image-preview-wrap" tabindex="0" aria-label="圖片報告內容">
       <img id="imagePreviewImg" alt="石頭少爺分析圖預覽">
+      <p id="imagePreviewNote" class="image-preview-note" role="status"></p>
     </div>
-    <div class="image-modal-actions">
-      <a id="imageDownloadLink" class="image-save-link" href="#" download>💾 儲存 PNG</a>
-      <button id="imageShareButton" class="image-share-btn" type="button" onclick="shareInfographicV3328()">📤 分享圖片</button>
-    </div>
-    <div id="imagePreviewNote" class="image-preview-note">圖片由目前盤後分析資料產生；實際尺寸會在生成後顯示。兩種版本都會放入同一份支撐壓力交叉驗證結果，也可另外生成防盜浮水印版。</div>
+    <footer class="image-modal-footer">
+      <div class="image-modal-actions">
+        <a id="imageDownloadLink" class="image-save-link" download>💾 儲存 PNG</a>
+        <button id="imageShareButton" class="image-share-btn" type="button" onclick="shareInfographicV3328()">📤 分享到 LINE</button>
+      </div>
+    </footer>
   </div>
 </div>
 
@@ -20517,10 +20513,6 @@ const INFOGRAPHIC_FONT_SCALE_V3333=1.16;
 // 舊版基準 1.16 保留；個股圖優先嘗試 1.23，若換行內容會超出既有欄位，drawWrapV3328 會自動退回安全倍率。
 const STOCK_INFOGRAPHIC_FONT_SCALE_V3776=1.23;
 const INFO_FONT_V3328='-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","Microsoft JhengHei",Arial,sans-serif';
-let infographicPreviewUrlV3328=null;
-let infographicPreviewBlobV3328=null;
-let infographicPreviewFilenameV3328="石頭少爺分析圖.png";
-let infographicPreviewTitleV3328="石頭少爺分析圖";
 
 function infoPaletteV3328(){
   return {
@@ -23073,56 +23065,16 @@ function sanitizeFilenameV3328(s){
   return String(s||"分析圖").replace(/[\\/:*?"<>|]+/g,"_").replace(/\s+/g,"_");
 }
 
-function canvasBlobV3328(canvas){
-  return new Promise((resolve,reject)=>{
-    try{canvas.toBlob(blob=>blob?resolve(blob):reject(new Error("PNG 轉換失敗")),"image/png");}
-    catch(err){reject(err);}
-  });
-}
-
-async function showInfographicPreviewV3328(canvas,filename,title){
-  const request=window.ShitouReportPreviewEpoch=(window.ShitouReportPreviewEpoch||0)+1;
-  const shareReady=window.ShitouImageShareV1?.prepare(canvas,{filename});
-  const blob=await canvasBlobV3328(canvas);
-  if(request!==window.ShitouReportPreviewEpoch)return false;
-  if(infographicPreviewUrlV3328)URL.revokeObjectURL(infographicPreviewUrlV3328);
-  infographicPreviewUrlV3328=URL.createObjectURL(blob);
-  infographicPreviewBlobV3328=blob;
-  infographicPreviewFilenameV3328=filename;
-  infographicPreviewTitleV3328=title;
-  const modal=document.getElementById("imagePreviewModal"),img=document.getElementById("imagePreviewImg"),link=document.getElementById("imageDownloadLink"),head=document.getElementById("imagePreviewTitle"),share=document.getElementById("imageShareButton");
-  modal.dataset.reportFullBleed=canvas.dataset?.fullBleed==="true"?"true":"false"; // RESTAURANT_FULLBLEED_1
-  img.src=infographicPreviewUrlV3328;link.href=infographicPreviewUrlV3328;link.download=filename;head.textContent=`🖼️ ${title}｜PNG 預覽`;
-  let canShare=false;try{const f=new File([blob],filename,{type:"image/png"});canShare=!!(navigator.share&&navigator.canShare&&navigator.canShare({files:[f]}));}catch{}
-  if(!window.ShitouImageShareV1)share.style.display=canShare?"inline-flex":"none";
-  modal.classList.add("show");modal.setAttribute("aria-hidden","false");document.body.style.overflow="hidden";
-  await shareReady;
-  return request===window.ShitouReportPreviewEpoch;
+function showInfographicPreviewV3328(canvas, filename, title, options){
+  return window.ShitouImageShareV1.show(canvas, filename, title, options);
 }
 
 function closeInfographicPreviewV3328(){
-  window.ShitouReportPreviewEpoch=(window.ShitouReportPreviewEpoch||0)+1;
-  window.ShitouImageShareV1?.clear();
-  infographicPreviewBlobV3328=null;
-  infographicPreviewFilenameV3328="";
-  if(infographicPreviewUrlV3328)URL.revokeObjectURL(infographicPreviewUrlV3328);
-  infographicPreviewUrlV3328=null;
-  document.getElementById("imagePreviewImg")?.removeAttribute("src");
-  document.getElementById("imageDownloadLink")?.removeAttribute("href");
-  const modal=document.getElementById("imagePreviewModal");modal.classList.remove("show");modal.setAttribute("aria-hidden","true");document.body.style.overflow="";
+  window.ShitouImageShareV1.close();
 }
 
-async function shareInfographicV3328(){
-  if(window.ShitouImageShareV1)return window.ShitouImageShareV1.shareCurrent();
-  if(!infographicPreviewBlobV3328)return;
-  const note=document.getElementById("imagePreviewNote");
-  try{
-    const file=new File([infographicPreviewBlobV3328],infographicPreviewFilenameV3328,{type:"image/png"});
-    if(!(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})))throw new Error("此瀏覽器不支援直接分享圖片檔");
-    await navigator.share({files:[file]});
-  }catch(err){
-    if(err?.name!=="AbortError")note.textContent=`分享未完成：${err?.message||"此裝置不支援"}。可改用「儲存 PNG」或長按預覽圖片。`;
-  }
+function shareInfographicV3328(){
+  return window.ShitouImageShareV1.shareCurrent();
 }
 
 async function generateStockInfographicV3328(withWatermark=false){
@@ -24108,12 +24060,6 @@ function initUiTheme(){
 }
 
 
-document.getElementById("imagePreviewModal")?.addEventListener("click",e=>{
-  if(e.target?.id==="imagePreviewModal")closeInfographicPreviewV3328();
-});
-document.addEventListener("keydown",e=>{
-  if(e.key==="Escape"&&document.getElementById("imagePreviewModal")?.classList.contains("show"))closeInfographicPreviewV3328();
-});
 
 initUiTheme();
 
@@ -34810,7 +34756,7 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 
 <script src="./technical-evidence-r45.js?v=V8.7.2"></script>
 <script src="./r45-integration.js?v=V8.7.2"></script>
-<script src="./r45-report-suite.js?v=V9.4-LIFE94-2"></script>
+<script src="./r45-report-suite.js?v=V9.26-PREVIEW4"></script>
 <script src="./teacher-three-pan-core.js?v=V8.7.2"></script>
 <script src="./shitou-wave-core-v48.js?v=V8.7.2"></script>
 <script src="./xiaomingdao-course-v52.js?v=V8.7.2"></script>
@@ -34818,7 +34764,7 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 <script src="./price-action-context-v1.js?v=V8.7.2-ENGULFRANGE1"></script>
 <script src="./selection-evidence-v1.js?v=V8.7.2-HISTORY1"></script>
 <script src="./worker-data-contract-v1.js?v=V8.7.2"></script>
-<script src="./research-official-history-v1.js?v=V8.7.2-STREAMSCAN3"></script>
+<script src="./research-official-history-v1.js?v=V9.26-PREVIEW4"></script>
 <script src="./research-source-evidence-v1.js?v=V8.7.2"></script>
 <script src="./selection-data-v2.js?v=V8.7.2-STREAMSCAN3"></script>
 <script src="./selection-decision-v2.js?v=V8.7.2"></script>
@@ -35059,7 +35005,8 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 <script src="./indicator-shadow-ui-v1.js?v=V9.4-LIFE94-2"></script>
 <script src="./restaurant-filter-v1.js?v=V8.7.2-RESTAURANT6"></script>
 <script src="./restaurant-scanner-v1.js?v=V8.7.2-RESTAURANT6"></script>
-<script src="./mobile-image-share-v1.js?v=V8.7.2-MARKETPAGE1"></script>
+<link rel="stylesheet" href="./report-preview-v926.css?v=V9.26-PREVIEW4">
+<script src="./mobile-image-share-v1.js?v=V9.26-PREVIEW4"></script>
 <script src="./mobile-png-export-r5329.js?v=V8.7.2"></script>
 <script src="./restaurant-report-v1.js?v=V8.7.2-RESTAURANT6"></script>
 <script src="./restaurant-ui-v1.js?v=V8.7.2-RESTAURANT6"></script>
@@ -35085,7 +35032,7 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 <script src="./research-life-source-audit-v932.js?v=V9.4-LIFE94-2"></script>
 <script src="./kline-life-03-core-v1.js?v=V9.4-LIFE94-2"></script>
 <script src="./kline-life-03-pages-v94.js?v=V9.7.2-LIFEVIS1"></script>
-<script src="./kline-life-03-viewer-v94.js?v=V9.6-MARKETLIFE1"></script>
+<script src="./kline-life-03-viewer-v94.js?v=V9.26-PREVIEW4"></script>
 <script src="./life-line-visual-v972.js?v=V9.7.2-LIFEVIS1"></script>
 <script src="./life-line-visual-v98.js?v=V9.12-ETF-RESEARCH1"></script>
 <script src="./kline-life-03-report-v1.js?v=V9.12-ETF-RESEARCH1"></script>
@@ -35114,13 +35061,13 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 <script src="./research-v83/forecast-engine.js?v=V8.7.2-NETWORKRECOVERY1"></script>
 <script src="./research-v83/kronos-data.js?v=V8.7.2-NETWORKRECOVERY1"></script>
 <script src="./research-action-guide-v1.js?v=V8.7.2-ENGULFRANGE2"></script>
-<script src="./research-report-v1.js?v=V9.25"></script>
+<script src="./research-report-v1.js?v=V9.26"></script>
 <script src="./engulf-range-report-v1.js?v=V8.8-COPY1"></script>
 <script src="./drax-price-reminder-v1.js?v=V8.7.2"></script>
-<script src="./research-integration-v1.js?v=V9.22-LIFELINE1"></script>
-<script src="./research-v83/stock-simple-report.js?v=V9.25"></script>
+<script src="./research-integration-v1.js?v=V9.26-PREVIEW4"></script>
+<script src="./research-v83/stock-simple-report.js?v=V9.26-PREVIEW4"></script>
 <script src="./stock-audit-alert-v82.js?v=V8.7.2"></script>
-<script src="./release-compact-v1.js?v=V8.7.2"></script>
+<script src="./release-compact-v1.js?v=V9.26-PREVIEW4"></script>
 <link rel="stylesheet" href="./ui-polish-v85.css?v=V8.7.2">
 <script src="./ui-polish-v85.js?v=V9.5-UI1" defer></script>
 
@@ -35144,20 +35091,20 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 
 
 <script src="./research-v83/market-freshness.js?v=V8.8-POSTCLOSE1"></script>
-<script src="./market-report-comfort-v864.js?v=V9.25-UI1"></script>
-<script src="./market-report-refresh-v864.js?v=V9.25-UI1"></script>
+<script src="./market-report-comfort-v864.js?v=V9.26-PREVIEW4"></script>
+<script src="./market-report-refresh-v864.js?v=V9.26-PREVIEW4"></script>
 <script src="./stock-professional-v84.js?v=V9.4-LIFE94-2"></script>
 
 
 <script src="./kronos-future-core-v1.js?v=V8.8-WAVE-EVIDENCE1"></script>
 <script src="./kronos-future-share-config-v873.js?v=V8.8-SHARES1"></script>
 <script src="./kronos-future-shares-v873.js?v=V8.8-SHARES1"></script>
-<script src="./kronos-future-report-v1.js?v=V8.8-COPY1"></script>
+<script src="./kronos-future-report-v1.js?v=V9.26-PREVIEW4"></script>
 <script src="./ui-simplify-v95.js?v=V9.5-UI1" defer></script>
 
 <script src="./market-life-source-audit-v96.js?v=V9.6-MARKETLIFE1"></script>
 <script src="./market-life-report-v96.js?v=V9.6-MARKETLIFE1"></script>
-<script src="./market-life-ui-v96.js?v=V9.25-UI1"></script>
+<script src="./market-life-ui-v96.js?v=V9.26-PREVIEW4"></script>
 
 <link rel="stylesheet" href="./main-force-lifeline-v97.css?v=V9.18-COST97-CONTRAST1">
 <link rel="stylesheet" href="./ui-feedback-v923.css?v=V9.23-UIFEEDBACK.2">

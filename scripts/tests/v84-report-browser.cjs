@@ -10,6 +10,29 @@ fs.mkdirSync(out,{recursive:true});
  try{
  browser=await chromium.launch({executablePath:process.env.CHROME_BIN||'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
  const page=await browser.newPage({viewport:{width:428,height:926},isMobile:true,hasTouch:true});page.on('pageerror',e=>errors.push(e.message));page.on('requestfailed',r=>{if(r.url().startsWith('blob:'))console.log('BLOB FAILED',r.url(),r.failure());});
+ await page.addInitScript(()=>{
+  window.reportShares=[];
+  Object.defineProperty(navigator,'canShare',{configurable:true,value:({files})=>files[0] instanceof File});
+  Object.defineProperty(navigator,'share',{configurable:true,value:async request=>{
+   const file=request.files[0], active=navigator.userActivation?.isActive;
+   const bytes=new Uint8Array(await file.arrayBuffer());
+   reportShares.push({name:file.name,type:file.type,active,keys:Object.keys(request),signature:[...bytes.slice(0,3)]});
+  }});
+ });
+ async function verifyShare(){
+  const previous=await page.evaluate(()=>reportShares.length);
+  await page.waitForFunction(()=>!!ShitouImageShareV1.getState());
+  const expected=await page.evaluate(()=>ShitouImageShareV1.getState().files[0].name);
+  const share=page.locator('#imageShareButton');
+  assert.match(await share.textContent(),/分享到 LINE/);
+  const rect=await share.boundingBox();
+  assert.ok(rect.y>=0&&rect.y+rect.height<=926);
+  await share.click();
+  await page.waitForFunction(count=>reportShares.length===count+1,previous);
+  const record=await page.evaluate(()=>reportShares.at(-1));
+  assert.deepEqual(record,{name:expected,type:'image/jpeg',active:true,keys:['files'],signature:[255,216,255]});
+  return record;
+ }
  // Follow the existing UI: dynamic export lists keep secondary actions folded.
  async function revealExport(id){const button=page.locator('#'+id);if(!await button.isVisible()){const more=button.locator('..').locator(':scope > .up-more-btn');if(await more.isVisible())await more.click();}}
  await page.route('**/*',route=>{
@@ -68,7 +91,7 @@ fs.mkdirSync(out,{recursive:true});
     const [download]=await Promise.all([page.waitForEvent('download',{timeout:15000}),page.locator('#imageDownloadLink').click({timeout:7000})]);
     const file=path.join(out,id+'.png');await download.saveAs(file);const bytes=fs.readFileSync(file);
     assert.equal(bytes.subarray(1,4).toString(),'PNG');assert.ok(bytes.readUInt32BE(16)>=1152);if(/Professional|ThreePan|TowerStock/.test(id))assert.equal(bytes.readUInt32BE(16),1284);
-    checks.push({button:id,status:'PASS',bytes:bytes.length,width:bytes.readUInt32BE(16),height:bytes.readUInt32BE(20)});
+    checks.push({button:id,status:'PASS',bytes:bytes.length,width:bytes.readUInt32BE(16),height:bytes.readUInt32BE(20),share:await verifyShare()});
     await page.evaluate(()=>closeInfographicPreviewV3328());console.log('PASS button download',id);
    }
    await page.evaluate(()=>ShitouWorkspaceV831.closeReport());
@@ -98,7 +121,7 @@ fs.mkdirSync(out,{recursive:true});
    await revealExport(id);await page.locator('#'+id).click();
    await page.waitForFunction(()=>document.querySelector('#imagePreviewModal')?.classList.contains('show')&&document.querySelector('#imageDownloadLink')?.href.startsWith('blob:'),{},{timeout:45000});
    const [download]=await Promise.all([page.waitForEvent('download'),page.locator('#imageDownloadLink').click()]);const file=path.join(out,id+'.png');await download.saveAs(file);const bytes=fs.readFileSync(file);assert.equal(bytes.subarray(1,4).toString(),'PNG');
-   checks.push({button:id,status:'PASS',bytes:bytes.length,width:bytes.readUInt32BE(16),height:bytes.readUInt32BE(20)});await page.evaluate(()=>closeInfographicPreviewV3328());console.log('PASS scan button',id);
+   checks.push({button:id,status:'PASS',bytes:bytes.length,width:bytes.readUInt32BE(16),height:bytes.readUInt32BE(20),share:await verifyShare()});await page.evaluate(()=>closeInfographicPreviewV3328());console.log('PASS scan button',id);
   }
  }
  await page.evaluate(()=>ShitouWorkspaceV831.select('filters','restaurant'));
@@ -129,7 +152,7 @@ fs.mkdirSync(out,{recursive:true});
  for(const [filter,id] of [['restaurant','restaurantImage'],['restaurant','restaurantAllImages'],['market','generateMarketImageButton'],['market','generateMarketWatermarkImageButton']]){
   await page.evaluate(filter=>{ShitouWorkspaceV831.select(filter==='market'?'market':'filters',filter);if(filter==='market')document.getElementById('marketResult').style.display='block';},filter);
   await revealExport(id);await page.locator('#'+id).click();await page.waitForFunction(()=>document.querySelector('#imagePreviewModal')?.classList.contains('show')&&document.querySelector('#imageDownloadLink')?.href.startsWith('blob:'),{},{timeout:30000});
-  const [download]=await Promise.all([page.waitForEvent('download'),page.locator('#imageDownloadLink').click()]);await download.saveAs(path.join(out,id+'.png'));checks.push({button:id,status:'PASS',fixture:filter==='restaurant'?'SYNTHETIC':'RECORDED'});console.log('PASS additional button',id);
+  const [download]=await Promise.all([page.waitForEvent('download'),page.locator('#imageDownloadLink').click()]);await download.saveAs(path.join(out,id+'.png'));checks.push({button:id,status:'PASS',fixture:filter==='restaurant'?'SYNTHETIC':'RECORDED',share:await verifyShare()});console.log('PASS additional button',id);
   await page.evaluate(()=>closeInfographicPreviewV3328());
  }
  await page.evaluate(()=>{globalThis.__clipboardPng=0;Object.defineProperty(navigator,'clipboard',{configurable:true,value:{write:async items=>{const blob=await items[0].getType('image/png');if(blob.size>0)globalThis.__clipboardPng++;}}});ShitouWorkspaceV831.select('filters','daytrade');});

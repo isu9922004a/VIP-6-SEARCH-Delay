@@ -72,15 +72,22 @@ await check('single-stock inline image button chooses the stock title even witho
  },zfixture);assert.equal(x.mode,'SINGLE_STOCK');assert.equal(x.title,'四策略研究｜白話行動指南');return x;
 });
 await check('sharing prepares image-only files and never reuses previous report bytes',async()=>{
- const x=await page.evaluate(async r=>{
+ const prepared=await page.evaluate(async r=>{
   const a=ShitouResearchIntegration.forReport(r),share=ShitouImageShareV1,p=ShitouResearchReport.pages(a)[0];
-  Object.defineProperty(navigator,'canShare',{configurable:true,value:()=>true});let sent;
-  Object.defineProperty(navigator,'share',{configurable:true,value:async payload=>{sent=payload;}});
+  Object.defineProperty(navigator,'canShare',{configurable:true,value:()=>true});
+  Object.defineProperty(navigator,'share',{configurable:true,value:async payload=>{window.__researchSharedImage=payload;}});
   await share.prepare(p,{filename:'9933_first.png'});const old=share.getState().files[0];
-  await share.prepare(p,{filename:'9933_second.png'});const fresh=share.getState().files[0];await share.shareCurrent();
-  const actual=sent.files[0],ok=old!==fresh&&actual===fresh&&fresh.size>0&&fresh.type==='image/jpeg'&&Object.keys(sent).length===1;
-  share.clear();return {ok,cleared:share.getState()===null,size:fresh.size,type:fresh.type};
- },zfixture);assert.ok(x.ok&&x.cleared);return x;
+  await showInfographicPreviewV3328(p,'9933_second.png','研究報告');
+  const fresh=share.getState().files[0];
+  return {replaced:old!==fresh,size:fresh.size,type:fresh.type};
+ },zfixture);
+ await page.locator('#imageShareButton').click();
+ const ok=await page.evaluate(()=>{const sent=window.__researchSharedImage;
+  return sent?.files.length===1&&sent.files[0]===ShitouImageShareV1.getState().files[0]&&Object.keys(sent).length===1;
+ });
+ await page.locator('.image-modal-close').click();
+ const x={...prepared,ok,cleared:await page.evaluate(()=>ShitouImageShareV1.getState()===null)};
+ assert.ok(x.replaced&&x.ok&&x.cleared&&x.size>0);assert.equal(x.type,'image/jpeg');return x;
 });
 await check('real canvas text remains within horizontal safety bounds across long fields and continuation pages',async()=>{
  const x=await page.evaluate(r=>{

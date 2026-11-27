@@ -32,7 +32,7 @@ fs.mkdirSync(out,{recursive:true});
  for(const id of ['generateMarketImageButton','generateMarketWatermarkImageButton','waveMarketCleanButton','waveMarketMarkedButton','futureMarketCleanButton','futureMarketMarkedButton'])assert.equal(await toolbar.locator('#'+id).count(),1);
  await page.evaluate(async()=>{const r=await ShitouMarketReportRefresh.refresh();if(!r.ready)throw Error(r.error||'Fixture market refresh failed');});
  for(const id of ['generateMarketImageButton','generateMarketWatermarkImageButton','waveMarketCleanButton','waveMarketMarkedButton']){
-  await page.locator('#'+id).click();await page.waitForFunction(()=>document.getElementById('imagePreviewModal').classList.contains('show'));await page.locator('#imagePreviewImg').evaluate(i=>i.decode());assert.deepEqual(await page.locator('#imagePreviewImg').evaluate(i=>[i.naturalWidth,i.naturalHeight]),[1284,2778]);await page.evaluate(()=>closeInfographicPreviewV3328());
+  await page.locator('#'+id).click();await page.waitForFunction(()=>document.getElementById('imagePreviewModal').classList.contains('show')&&document.getElementById('imagePreviewImg').hasAttribute('src'));await page.locator('#imagePreviewImg').evaluate(i=>i.decode());assert.deepEqual(await page.locator('#imagePreviewImg').evaluate(i=>[i.naturalWidth,i.naturalHeight]),[1284,2778]);await page.evaluate(()=>closeInfographicPreviewV3328());
  }
  for(const width of [360,390,428,768,1280]){
   await page.setViewportSize({width,height:926});await toolbar.scrollIntoViewIfNeeded();assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
