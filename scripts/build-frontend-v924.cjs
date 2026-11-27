@@ -11,8 +11,9 @@ function build(source,{deferFuture=false}={}){
     const isJs=body!==undefined,content=isJs?body:style;
     if(isJs&&/\bdocument\.(?:currentScript|write|writeln)\b|\bimport\.meta\b/.test(content))throw Error('Inline script is not safe to relocate without individual review');
     const name='index-inline-v924-'+(isJs?'js-'+String(++js).padStart(2,'0')+'.js':'css-'+String(++css).padStart(2,'0')+'.css');
-    const replacement=isJs?'<script src="./'+name+'?v='+VERSION+'"></script>':'<link rel="stylesheet" href="./'+name+'?v='+VERSION+'">';
-    files.push({name,content,bytes:Buffer.byteLength(content),sha256:sha(content)});
+    const digest=sha(content), url='./'+name+'?v='+VERSION+'-'+digest.slice(0,12);
+    const replacement=isJs?'<script src="'+url+'"></script>':'<link rel="stylesheet" href="'+url+'">';
+    files.push({name,content,bytes:Buffer.byteLength(content),sha256:digest});
     moves.push({original:tag,replacement});return replacement;
   });
   assert.equal(js,13,'unexpected original inline JS inventory');

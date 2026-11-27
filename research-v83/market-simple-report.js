@@ -109,7 +109,7 @@ function page(snapshot,{document:doc=root.document,watermarked=false}={}){
  canvas.dataset.researchAudit=JSON.stringify(audit);
  return {width:W,height:H,dataset:{researchAudit:JSON.stringify(audit)},renderExportRegion:()=>canvas,toBlob:(cb,type='image/png')=>canvas.toBlob(cb,type)};
 }
-let activeUrl=null,imageBlob=null,imageFile=null,sharePending=false;
+let activeUrl=null,imageBlob=null,imageFile=null;
 function current(){
  const snapshot=root.independentMarketReportSnapshot?.();
  if(!snapshot)throw Error('請先完成獨立大盤資料載入，再產生圖片。');
@@ -117,27 +117,12 @@ function current(){
 }
 function status(message){const target=root.document.getElementById('simpleMarketReportStatus');if(target)target.textContent=message;}
 function shareNotice(message){const target=root.document.getElementById('simpleMarketShareStatus');if(target)target.textContent=message;}
-function cleanup(){if(activeUrl){URL.revokeObjectURL(activeUrl);activeUrl=null;}imageBlob=null;imageFile=null;}
+function cleanup(){if(activeUrl){root.ShitouImageShareV1.release(activeUrl);activeUrl=null;}imageBlob=null;imageFile=null;}
 function close(){const dialog=root.document.getElementById('simpleMarketReportDialog');if(dialog?.open)dialog.close();else cleanup();}
 function shareCurrentImage(){
- const nav=root.navigator,button=root.document.getElementById('simpleMarketLineShareButton');
- if(sharePending)return;
- if(!imageBlob?.size){shareNotice('圖片不存在，請重新產生大盤報告。');return;}
- const mobile=/iPhone|iPad|iPod|Android/i.test(nav?.userAgent||'')||(nav?.platform==='MacIntel'&&nav?.maxTouchPoints>1);
- const clipboardAvailable=typeof nav?.clipboard?.write==='function'&&typeof root.ClipboardItem==='function';
- const fileShare=typeof nav?.share==='function'&&imageFile&&(typeof nav.canShare!=='function'||(()=>{try{return nav.canShare({files:[imageFile]});}catch(_){return false;}})());
- const finish=(promise,success)=>{sharePending=true;if(button)button.disabled=true;Promise.resolve(promise).then(()=>shareNotice(success)).catch(e=>shareNotice(e?.name==='AbortError'?'分享已取消；可重新分享。':'分享失敗：'+(e?.message||'瀏覽器不支援')+'；請下載PNG後至LINE聊天室傳送。')).finally(()=>{sharePending=false;if(button)button.disabled=false;});};
- if(fileShare&&(mobile||!clipboardAvailable)){
-  try{finish(nav.share({files:[imageFile]}),'已交給系統分享功能；請在LINE聊天室確認送出。');}
-  catch(e){shareNotice('開啟分享功能失敗，請下載PNG後至LINE傳送。');}
-  return;
- }
- if(clipboardAvailable){
-  try{finish(nav.clipboard.write([new root.ClipboardItem({'image/png':imageBlob})]),'已複製完整PNG圖片，請到LINE電腦版聊天室貼上送出。');}
-  catch(e){shareNotice('複製PNG失敗，請下載PNG後至LINE傳送。');}
-  return;
- }
- shareNotice('此瀏覽器無法直接分享圖片，請按「下載PNG」再從LINE聊天室傳送。');
+ const file=imageFile, blob=imageBlob;
+ return root.ShitouImageShareV1.shareCompact({file,blob,button:root.document.getElementById('simpleMarketLineShareButton'),
+  status:shareNotice,isCurrent:()=>imageBlob===blob&&root.document.getElementById('simpleMarketReportDialog')?.open===true});
 }
 let opening=false;
 async function open(watermarked=false,researchCanvas=null){if(opening)return null;opening=true;const triggers=["marketSimpleAnalysisButton","marketSimpleAnalysisWatermarkButton"].map(id=>root.document.getElementById(id)).filter(Boolean);triggers.forEach(b=>{b.disabled=true;b.setAttribute('aria-busy','true');});
@@ -158,13 +143,13 @@ async function open(watermarked=false,researchCanvas=null){if(opening)return nul
   dialog.replaceChildren();
   const title=root.document.createElement('h2');title.textContent=(wavePicture?'大盤波浪分析':researchCanvas?'吞沒與箱體研究':'大盤精簡分析')+'｜TAIEX｜'+VERSION+'｜'+(watermarked?'浮水印版':'無浮水印版');
   const controls=root.document.createElement('div');controls.className='simple-market-report-controls';
-  const download=root.document.createElement('a');download.href=activeUrl;download.download=filename;download.className='market-report-btn';download.textContent='下載 PNG';
-  const share=root.document.createElement('button');share.type='button';share.id='simpleMarketLineShareButton';share.className='market-report-btn';share.textContent='📤 分享圖片到 LINE';share.addEventListener('click',shareCurrentImage);
+  const download=root.document.createElement('a');download.href=activeUrl;download.download=filename;download.className='market-report-btn';download.textContent='儲存 PNG';
+  const share=root.document.createElement('button');share.type='button';share.id='simpleMarketLineShareButton';share.className='market-report-btn';share.textContent='📤 分享到 LINE';share.addEventListener('click',shareCurrentImage);
   const dismiss=root.document.createElement('button');dismiss.type='button';dismiss.className='market-report-btn';dismiss.textContent='關閉';dismiss.addEventListener('click',close);
   controls.append(download,share,dismiss);
   const note=root.document.createElement('p');note.id='simpleMarketShareStatus';note.setAttribute('role','status');note.setAttribute('aria-live','polite');note.textContent='手機可從分享面板選LINE，電腦可複製圖片貼到LINE聊天室。';
   const img=root.document.createElement('img');img.src=activeUrl;img.alt='大盤精簡分析完整圖片';img.width=result.width;img.height=result.height;
-  dialog.append(title,controls,note,img);dialog.dataset.reportAudit=result.dataset.waveReportAudit||result.dataset.researchAudit||result.dataset.engulfRangeAudit;
+  root.ShitouImageShareV1.layoutCompact(dialog,{title,controls,dismiss,status:note,image:img,download});dialog.dataset.reportAudit=result.dataset.waveReportAudit||result.dataset.researchAudit||result.dataset.engulfRangeAudit;
   if(!dialog.open)dialog.showModal();
   status('已產生大盤'+(watermarked?'浮水印版':'無浮水印版')+'精簡分析圖片，請預覽、下載或分享。');
   return result;

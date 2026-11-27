@@ -1,0 +1,214 @@
+#imagePreviewModal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 100010;
+  box-sizing: border-box;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  padding: 16px;
+  background: rgba(15, 23, 42, .72);
+}
+#imagePreviewModal.show { display: grid; place-items: center; }
+#imagePreviewModal .image-modal-card {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  box-sizing: border-box;
+  width: min(100%, 1120px);
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: var(--card, #fff);
+  color: var(--text, #183c56);
+  border-radius: 16px;
+}
+#imagePreviewModal .image-modal-head,
+#imagePreviewModal .image-modal-footer {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 8px max(10px, env(safe-area-inset-right)) 8px max(10px, env(safe-area-inset-left));
+}
+#imagePreviewModal .image-modal-head {
+  justify-content: space-between;
+  padding-top: max(8px, env(safe-area-inset-top));
+  border-bottom: 1px solid var(--line, #d7e1eb);
+}
+#imagePreviewModal .image-modal-title {
+  flex: 1;
+  min-width: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+}
+#imagePreviewModal .image-preview-wrap {
+  box-sizing: border-box;
+  min-height: 0;
+  min-width: 0;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden auto;
+  overscroll-behavior: contain;
+  background: var(--bg, #eef3f8);
+  border-radius: 0;
+}
+#imagePreviewModal #imagePreviewImg,
+#imagePreviewModal #lineShareImg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 1000px;
+  margin: 0 auto;
+  border-radius: 0;
+  box-shadow: none;
+}
+#imagePreviewModal #imagePreviewImg:not([src]) { display: none; }
+#imagePreviewModal[data-report-full-bleed="true"] #imagePreviewImg { max-width: none; }
+#imagePreviewModal .image-preview-note,
+#imagePreviewModal #lineSharePreview {
+  margin: 0;
+  padding: 8px 12px;
+  overflow-wrap: anywhere;
+}
+#imagePreviewModal .image-modal-footer {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line, #d7e1eb);
+}
+#imagePreviewModal .image-modal-actions,
+#imagePreviewModal #lineSharePanel,
+#imagePreviewModal .r45-preview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  width: auto;
+  margin: 0;
+  padding: 0;
+}
+#imagePreviewModal [hidden] { display: none !important; }
+#imagePreviewModal .image-modal-close,
+#imagePreviewModal .image-modal-actions :is(button, a),
+#imagePreviewModal #lineSharePanel :is(button, a) {
+  box-sizing: border-box;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 0;
+  min-height: 44px;
+  max-width: 100%;
+  padding: 5px 9px;
+  font-size: 14px;
+  line-height: 1.25;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+#imagePreviewModal .image-modal-close { flex: none; white-space: nowrap; }
+#imagePreviewModal #imageDownloadLink,
+#imagePreviewModal #imageShareButton { flex: 1 1 125px; }
+#imagePreviewModal #imageDownloadLink:not([href]) { opacity: .55; }
+#imagePreviewModal #imageShareButton { background: #087f5b; color: #fff; }
+#imagePreviewModal .r45-preview-actions { flex: 1 0 100%; }
+#imagePreviewModal .r45-preview-actions :is(strong, span) { font-size: 13px; }
+#imagePreviewModal #life94Status:empty { display: none; }
+#imagePreviewModal #lineShareStatus {
+  margin: 0;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+#imagePreviewModal :is(#lineSharePrev, #lineShareNext, #lineShareSave) {
+  border: 1px solid #b9c7d8;
+  border-radius: 8px;
+  background: #fff;
+  color: #173a61;
+  text-decoration: none;
+}
+@media (max-width: 600px), (max-width: 1000px) and (orientation: landscape) {
+  #imagePreviewModal { padding: 0; }
+  #imagePreviewModal .image-modal-card { border: 0; border-radius: 0; }
+}
+
+:is(#simpleStockReportDialog,#simpleMarketReportDialog).compact-report-preview[open] {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  height: 92vh;
+  height: 92dvh;
+  padding: 0;
+  overflow: hidden;
+}
+.compact-report-preview .compact-preview-head,
+.compact-report-preview .compact-preview-footer {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 8px max(10px, env(safe-area-inset-right)) 8px max(10px, env(safe-area-inset-left));
+}
+.compact-report-preview .compact-preview-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: max(8px, env(safe-area-inset-top));
+}
+.compact-report-preview .compact-preview-head button {
+  flex: none;
+  white-space: nowrap;
+  min-height: 44px;
+}
+:is(#simpleStockReportDialog,#simpleMarketReportDialog).compact-report-preview h2 {
+  min-width: 0;
+  margin: 0;
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+.compact-report-preview .compact-preview-scroll {
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden auto;
+  overscroll-behavior: contain;
+}
+:is(#simpleStockReportDialog,#simpleMarketReportDialog).compact-report-preview img {
+  width: 100%;
+  height: auto;
+  margin: 0;
+}
+.compact-report-preview .compact-preview-footer { padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+:is(#simpleStockReportDialog,#simpleMarketReportDialog).compact-report-preview .compact-preview-footer > div {
+  position: static;
+  margin: 0;
+  padding: 0;
+}
+:is(#simpleStockReportDialog,#simpleMarketReportDialog).compact-report-preview .compact-preview-footer a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+:is(#simpleStockReportDialog,#simpleMarketReportDialog).compact-report-preview .compact-preview-footer p {
+  margin: 6px 0 0;
+}
+@media (max-width: 600px), (max-width: 1000px) and (orientation: landscape) {
+  :is(#simpleStockReportDialog,#simpleMarketReportDialog).compact-report-preview[open] {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    max-height: none;
+    margin: auto 0;
+    border: 0;
+    border-radius: 0;
+  }
+}
