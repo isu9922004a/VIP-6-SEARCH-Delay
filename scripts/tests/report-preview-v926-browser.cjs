@@ -2,6 +2,7 @@
 
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const http = require('node:http');
 const path = require('node:path');
 const {chromium, webkit} = require(process.env.PLAYWRIGHT_MODULE || 'playwright-core');
 const root = path.resolve(__dirname, '../..');
@@ -25,7 +26,12 @@ async function openReport(page, scenario = {}) {
     for (let y = 140; y < height; y += 650) ctx.fillText('Preview layout sample', 60, y);
     const show = standalone ? ShitouImageShareV1.show : showInfographicPreviewV3328;
     await show(canvas, filename, '強勢飆股濾網｜台積電（2330）｜第 1/2 頁');
-    await document.querySelector('#imagePreviewImg').decode();
+    const image = document.querySelector('#imagePreviewImg');
+    if (!image.complete) await new Promise((resolve,reject)=>{
+      image.addEventListener('load',resolve,{once:true});
+      image.addEventListener('error',()=>reject(Error('Preview PNG failed to load')), {once:true});
+    });
+    if (image.naturalWidth!==canvas.width || image.naturalHeight!==canvas.height) throw Error('Preview PNG dimensions differ');
   }, scenario);
 }
 
@@ -73,8 +79,11 @@ async function installMocks(page) {
       const image = new Image();
       const url = URL.createObjectURL(file);
       try {
-        image.src = url;
-        await image.decode();
+        await new Promise((resolve,reject)=>{
+          image.onload=resolve;
+          image.onerror=()=>reject(Error('Shared JPEG failed to load'));
+          image.src = url;
+        });
         const c = document.createElement('canvas');
         c.width = c.height = 1;
         const ctx = c.getContext('2d');
@@ -173,26 +182,32 @@ async function verifyShare(page) {
 
 async function main() {
   fs.mkdirSync(out, {recursive:true});
-  const browser = webkitRun ? await webkit.launch() : await chromium.launch({
-    executablePath: process.env.CHROME_BIN || '/usr/bin/google-chrome', args:['--no-sandbox']
+  const base = stage || root;
+  const server = http.createServer((request,response) => {
+    const url = new URL(request.url,'http://localhost');
+    const name = url.pathname === '/' ? 'index.html' : decodeURIComponent(url.pathname.slice(1));
+    const file = path.resolve(base, name);
+    if (!file.startsWith(base + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) {
+      response.writeHead(404).end();
+      return;
+    }
+    response.setHeader('Content-Type', mime[path.extname(file)] || 'application/octet-stream');
+    fs.createReadStream(file).pipe(response);
   });
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  const origin = 'http://127.0.0.1:' + server.address().port;
+  let browser;
   const errors = [], results = [];
   try {
+    browser = webkitRun ? await webkit.launch() : await chromium.launch({
+      executablePath: process.env.CHROME_BIN || '/usr/bin/google-chrome', args:['--no-sandbox']
+    });
     const page = await browser.newPage({viewport:{width:428,height:926},isMobile:true,hasTouch:true});
     page.on('pageerror', error => errors.push(error.message));
     await installMocks(page);
-    await page.route('**/*', route => {
-      const url = new URL(route.request().url());
-      if (url.origin !== 'https://v926.test') return route.abort();
-      const name = url.pathname === '/' ? 'index.html' : decodeURIComponent(url.pathname.slice(1));
-      const base = stage || root;
-      const file = path.resolve(base, name);
-      if (!file.startsWith(base + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) {
-        return route.fulfill({status:404});
-      }
-      return route.fulfill({path:file,contentType:mime[path.extname(file)]});
-    });
-    await page.goto('https://v926.test/');
+    // Leave browser-local blob: URLs on their native loading path.
+    await page.route(/^https?:\/\//, route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());
+    await page.goto(origin);
     await openReport(page);
     for (const [width, height] of sizes) {
       await page.setViewportSize({width, height});
@@ -215,14 +230,15 @@ async function main() {
     await page.screenshot({path:path.join(out,'428x926.png')});
     await verifyShare(page);
     assert.deepEqual(errors, []);
-    await page.goto('https://v926.test/market-outlook.html');
+    await page.goto(origin+'/market-outlook.html');
     await openReport(page, {standalone:true, height:2778});
     await assertFixedControls(page);
     await page.locator('#marketLifeClose').click();
     assert.equal(await page.locator('#imagePreviewModal').isVisible(), false);
     fs.writeFileSync(path.join(out,'results.json'), JSON.stringify({mode:stage?'pages build':'source',browser:webkitRun?'webkit':'chromium',results,errors,standalone:true}, null, 2));
   } finally {
-    await browser.close();
+    await browser?.close();
+    await new Promise(resolve=>server.close(resolve));
   }
 }
 
