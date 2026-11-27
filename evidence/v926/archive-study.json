@@ -899,7 +899,7 @@
         "trendLifecycle": {
           "status": "UNCONFIRMED",
           "direction": "BEAR",
-          "label": "方向未確認",
+          "label": "階段待確認",
           "alert": null,
           "evidence": {
             "higher": false,
@@ -1293,9 +1293,9 @@
           ]
         },
         "beginnerExplanation": {
-          "direction": "方向未確認",
+          "direction": "階段待確認",
           "momentum": null,
-          "breakout": "突破關卡後，收盤又回到原區間。",
+          "breakout": "跌破關卡後，收盤又回到原區間。",
           "pattern": null,
           "next": [
             "若收盤高於 44525.24 點，且量價或結構改善，再觀察是否轉強。",
@@ -2464,7 +2464,7 @@
         "trendLifecycle": {
           "status": "UNCONFIRMED",
           "direction": "BEAR",
-          "label": "方向未確認",
+          "label": "階段待確認",
           "alert": null,
           "evidence": {
             "higher": false,
@@ -2774,9 +2774,9 @@
           }
         },
         "beginnerExplanation": {
-          "direction": "方向未確認",
+          "direction": "階段待確認",
           "momentum": null,
-          "breakout": "突破關卡後，收盤又回到原區間。",
+          "breakout": "跌破關卡後，收盤又回到原區間。",
           "pattern": null,
           "next": [
             "目前尚無明確位置。"
@@ -4201,7 +4201,7 @@
         "beginnerExplanation": {
           "direction": "區間盤整",
           "momentum": null,
-          "breakout": "突破關卡後，收盤又回到原區間。",
+          "breakout": "跌破關卡後，收盤又回到原區間。",
           "pattern": null,
           "next": [
             "目前尚無明確位置。"
@@ -4454,13 +4454,13 @@
   ],
   "performance": {
     "cpu": {
-      "p50Ms": 0.5377610000000175,
-      "p95Ms": 4.376498000000083,
+      "p50Ms": 0.3896269999999902,
+      "p95Ms": 1.2902040000000028,
       "samples": 320,
       "method": "Node performance.now(), pure analysis wall time, I/O excluded"
     },
     "externalRequests": 0,
-    "residentMiB": 54.73046875,
+    "residentMiB": 54.265625,
     "environment": {
       "node": "v24.22.3",
       "platform": "linux"
