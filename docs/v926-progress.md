@@ -2,6 +2,9 @@
 
 候選分支 `feat/v926-postmarket-trend-lifeline`。主線基準為 `582a0decfb1cf727287d3c4efbe3874469c248a2`，識別版本 V9.25。GitHub 比對 main 與基準結果一致。分支查詢未找到先前 V9.26 分支或 PR。工作集中在 [草稿 PR #119](https://github.com/isu9922004a/VIP-6-SEARCH-Delay/pull/119)，候選網站與報告顯示 V9.26，正式策略資料版本沿用已核准識別。
 
+
+[正式基準稽核 JSON](../evidence/v926/production-baseline.json)｜[正式基準 Actions](https://github.com/isu9922004a/VIP-6-SEARCH-Delay/actions/runs/45935469469/job/140297556045)
+
 ## 分享根因
 
 用 V9.25 Pages 模組化建置、428×926 Chromium、1284×6800 測試長圖重現。長圖滿版規則把 `.image-preview-wrap` 改為 `max-height:none;overflow:visible`，整個彈窗負責捲動，工具列排在圖片之後。Computed style 顯示分享與 PNG 工具列從距視窗頂端 2370.66px 才開始。一般預覽的 82vh 上限也把外層標題和動作列排除在高度預算之外。分享工具偵測不支援檔案時設為 disabled，缺少共用模組的 legacy 路徑還會隱藏分享按鈕。
@@ -37,7 +40,7 @@
 
 加權指數樣本外 5 日方向精確率，偏多 15 次為 46.7%，20MA 同向基準為 52.9%。偏空 17 次為 76.5%，基準為 70.4%。兩組都低於事前定義的每類 30 次。日期鄰近的觀察有重疊行情，樣本外的結果只用來紀錄。多年當時可見的版本、歷史全市場母體、公司行動、可成交資料及影子排名的驗證仍缺。研究效益與正式分數放行為 BLOCKED。
 
-計算預算預設 P95 8ms。封存回放的 320 次 Node v24.22.3 計算不包含檔案 I/O，P50 0.40ms、P95 2.14ms，全程序 RSS 約 53.5 MiB，外部請求 0。Worker 瀏覽器重播基準／候選各 7 個被觀測的外部 URL、0 個 page error。這組統計屬封存回應重播。Pages HTML 由 73,785 bytes 至 74,018 bytes，拆分資產合計由 1,872,976 bytes 至 1,868,710 bytes，額外的共用 CSS 與 JS 另計。Worker 線上 CPU、記憶體及延遲尚待量測。
+計算預算預設 P95 8ms。封存回放的 320 次 Node v24.22.3 計算不包含檔案 I/O，P50 0.40ms、P95 2.14ms，全程序 RSS 約 53.5 MiB，外部請求 0。Worker 瀏覽器重播基準／候選各 7 個被觀測的外部 URL、0 個 page error。這組統計屬封存回應重播。Pages HTML 由 73,785 bytes 至 74,022 bytes，拆分資產合計由 1,872,976 bytes 至 1,868,710 bytes，額外的共用 CSS 與 JS 另計。Worker 線上 CPU、記憶體及延遲尚待量測。
 
 [修正後前端量測](../evidence/v926/preview-benchmark-optimized.json) 使用同一 Chromium、428×926、本機快取伺服器與 1284×6800 測試圖。兩版本各跑 5 組冷、暖快取，統計從載入及開始預覽至 PNG 解碼、分享 JPG 準備完成的時間。冷快取頁面載入 P50/P95 由 1801/4019ms 至 2019/2595ms，圖片由 511/1374ms 至 534/922ms。暖快取圖片 P50/P95 由 390/906ms 至 595/800ms。冷快取多一個本站 CSS 傳輸，暖快取兩版均無資產網路傳輸。樣本量小且同機另有測試並行，保留原始測量供重跑。
 
@@ -45,7 +48,7 @@
 
 | Phase | 結果 | 證據與待核對事項 |
 |---|---|---|
-| 0 基準 | PASS ／ BLOCKED | main SHA、來源及 Pages 記錄、50 項契約測試、1,251 項原測試及官方快照 hash 保存。正式 Pages／Worker 出站受限。 |
+| 0 基準 | PASS ／ BLOCKED | main SHA、來源及 Pages 記錄、50 項契約測試、1,251 項原測試及官方快照 hash 保存。GitHub Actions 已唯讀核對正式 V9.25 Pages 的 HTML、manifest 及 15 支拆分資產，以及 11/26 正式 Worker 盤後資料。 |
 | 1 LINE 根因 | PASS ／ NOT_VERIFIED | 428×926 DOM 已重現。報障首次出現版本待查。 |
 | 2 共用預覽 | PASS | Chromium source／Pages 固定工具列、影像捲動、關閉、備援、JPEG File、準備／取消／失敗及競態。 |
 | 3 多空趨勢 | PASS ／ NOT_VERIFIED | 引擎和邊界測試。各階段真實案例覆蓋不足。 |
@@ -58,7 +61,7 @@
 | 10 次日關卡 | PASS ／ NOT_VERIFIED | 收盤三情境邊界、開盤分列、正式交易曆 1～5 日觀察期限及缺合法關卡降級。各方向真實驗收仍有缺項。 |
 | 11 大盤生命線 | PASS ／ NOT_VERIFIED | 封存 2026-11-26 加權 39,151.81 點、原風險第 3 級與試行 PNG。正式網站複驗受限。 |
 | 12 個股生命線 | PASS ／ NOT_VERIFIED | 封存 2026-11-26 台積電 2,145 元試行 PNG，含一般及浮水印。預設生命線既有圖片逐位元回歸通過。 |
-| 13 白話文 | PASS ／ NOT_VERIFIED | 試行研究模型共用瀏覽器預覽與 PNG。AI 模擬卡片尚未接入新版研究結果。 |
+| 13 白話文 | PASS | 試行研究模型共用瀏覽器預覽與 PNG。Kronos 預覽另列同一份技術關卡，與模型取樣分開，並以封存的真實模型驗證大盤。 |
 | 14 契約與效能 | PASS ／ NOT_VERIFIED | 契約 50/50，生成 Worker 無 diff，量測本機回放。線上 Worker 資源及延遲待量測。 |
 | 15 策略及報告 | PASS ／ NOT_VERIFIED | 原策略引擎比對、舊報告及各策略輸出測試。正式站同日完整重跑待查。 |
 | 16 手機 | PASS ／ NOT_VERIFIED | 兩套本機 Chromium 路徑，各 20 個尺寸與色系組合。本機 WebKit 下載受限。Actions 首次執行的 Ubuntu 26.04 不支援固定的 Playwright 1.56.1 WebKit，候選 job 已指定 Ubuntu 24.04，來源頁 WebKit 在前一候選 HEAD 通過。實際 Pages 產物 WebKit 以本次候選結果為準。iPhone 實機與 LINE 內建瀏覽器分別待測。 |
@@ -92,7 +95,7 @@
 - `node scripts/build-frontend-v924.cjs <stage> --defer-future` 搭配 `node scripts/prepare-pages-runtime-data.cjs <stage>`。先依 `.github/workflows/deploy-data-pages.yml` 的 tar 配方放完整資產，15 支拆分檔語法檢查 exit 0。
 - `node scripts/tests/report-preview-v926-browser.cjs <evidence>` 在 `REPORT_PAGES_STAGE` 指定產物或省略時的來源頁執行。 `--webkit` 走相同斷言。實際手機及 LINE Apps 另外驗收。
 - `node scripts/backtest-postmarket-v926.cjs <output.json>` 產生封存回放結論。 `node scripts/tests/postmarket-reports-v926-browser.cjs <evidence>` 產生加權及個股一般／浮水印 PNG。
-- 已知基準 commit `582a0decfb1cf727287d3c4efbe3874469c248a2`。正式已知良好 Pages 部署 SHA 仍待核對。未來若正式發版有回歸，先查 Pages 實際產物與 Actions SHA，再走正常 PR revert 與 Pages 工作流程；契約相同，無此案 Worker 遷移或補歷史。
-- Cloud Environment Runtime 查到正式 Pages、兩個 Worker 和 WebKit CDN 出站未允許，機器設定變更請求未獲核准。GitHub Git transport 和 connector 已用於分支與 PR。若連線可用，先驗正式基準與官方快照，再判定必要 checks 與合併門檻。
+- 已知基準 commit `582a0decfb1cf727287d3c4efbe3874469c248a2`。已驗證現行 Pages 產物對應此 commit 的建置結果。未來若正式發版有回歸，先查 Pages 實際產物與 Actions SHA，再走正常 PR revert 與 Pages 工作流程；契約相同，無此案 Worker 遷移或補歷史。
+- Cloud Environment Runtime 查到正式 Pages、兩個 Worker 和 WebKit CDN 出站未允許，機器設定變更請求未獲核准。GitHub Git transport 和 connector 已用於分支與 PR。正式基準已由 GitHub Actions 唯讀驗證。本機出站限制仍適用。
 
 [PR #119 與最新 checks](https://github.com/isu9922004a/VIP-6-SEARCH-Delay/pull/119/checks)｜[正式 Pages](https://isu9922004a.github.io/VIP-6-SEARCH-Delay/)｜[正式 Market Worker](https://shitou-taiwanmarket-api.d318426.workers.dev/)

@@ -149,7 +149,7 @@ async function open(watermarked=false,researchCanvas=null){if(opening)return nul
   controls.append(download,share,dismiss);
   const note=root.document.createElement('p');note.id='simpleMarketShareStatus';note.setAttribute('role','status');note.setAttribute('aria-live','polite');note.textContent='手機可從分享面板選LINE，電腦可複製圖片貼到LINE聊天室。';
   const img=root.document.createElement('img');img.src=activeUrl;img.alt='大盤精簡分析完整圖片';img.width=result.width;img.height=result.height;
-  root.ShitouImageShareV1.layoutCompact(dialog,{title,controls,dismiss,status:note,image:img,download});dialog.dataset.reportAudit=result.dataset.waveReportAudit||result.dataset.researchAudit||result.dataset.engulfRangeAudit;
+  root.ShitouImageShareV1.layoutCompact(dialog,{title,controls,dismiss,status:note,image:img,download,previewText:result.renderPreviewText?.()});dialog.dataset.reportAudit=result.dataset.waveReportAudit||result.dataset.researchAudit||result.dataset.engulfRangeAudit;
   if(!dialog.open)dialog.showModal();
   status('已產生大盤'+(watermarked?'浮水印版':'無浮水印版')+'精簡分析圖片，請預覽、下載或分享。');
   return result;

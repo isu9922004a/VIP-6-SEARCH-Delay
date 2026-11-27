@@ -82,9 +82,29 @@ async function run() {
         await page.locator('.image-modal-close').click();
         assert.equal(await previewText.count(),0);
       }
+      if(!index) {
+        const modelRows=await page.evaluate(async ({source,analysis})=>{
+          const archive=await ShitouOfficialResearchHistory.load(source.stock,{date:source.closeDate,market:source.market});
+          const {modelPreviewReading}=await import('./postmarket-preview-v926.js');
+          const render=await modelPreviewReading(archive,{analysis});
+          return [...render().querySelectorAll('dd')].map(row=>row.textContent);
+        },{source,analysis});
+        const selected=media.find(entry=>entry.symbol===symbol).audit.lines;
+        assert.deepEqual(modelRows,selected.filter(row=>['盤後研究','關鍵價位','開盤觀察'].includes(row.label)||
+          row.label.startsWith('下一交易日收盤情境')).map(row=>row.text));
+      }
     }
-    await page.clock.setFixedTime(new Date(market.closeDate+'T10:00:00Z'));
+    await page.clock.setFixedTime(new Date(market.sourceReceipt.retrievedAt));
     await page.goto('https://v926.test/market-outlook.html?postmarket-study=1');
+    await page.locator('#futureMarketCleanButton').click();
+    const modelReading=page.locator('#simpleMarketReportDialog #postmarketPreviewText');
+    await modelReading.locator('summary').click({timeout:30000});
+    assert.match(await modelReading.locator('summary').innerText(),/盤後條件與價位/);
+    const marketLines=media.find(entry=>entry.symbol==='TAIEX').audit.lines;
+    assert.deepEqual(await modelReading.locator('dd').allTextContents(),
+      marketLines.filter(row=>['盤後研究','關鍵價位','開盤觀察'].includes(row.label)||
+        row.label.startsWith('下一交易日收盤情境')).map(row=>row.text));
+    await page.locator('#simpleMarketReportDialog .compact-preview-head button').click();
     await page.locator('#marketLifeReportButton').click();
     await page.waitForFunction(()=>ShitouLifeViewer94.getState()?.pages.some(p=>p.dataset.postmarket926Audit) &&
       !document.getElementById('marketLifeReportButton').disabled,null,{timeout:30000});
@@ -93,7 +113,7 @@ async function run() {
     assert.match(await page.locator('#imageDownloadLink').getAttribute('download'),/V9\.26_TAIEX/);
     assert.deepEqual(errors,[]);
     fs.writeFileSync(path.join(out,'archive-reports.json'),JSON.stringify({source:'committed official OHLCV archives',loadMs,media,
-      independentMarketStudyPage:true,errors},null,2));
+      independentMarketStudyPage:true,modelReadingMatchesStudy:true,errors},null,2));
     console.log(JSON.stringify({status:'PASS',loadMs,reports:media.map(({symbol,close,watermark,renderTime,encodeTime})=>
       ({symbol,close,watermark,renderTime,encodeTime}))}));
   } finally {await browser.close();}

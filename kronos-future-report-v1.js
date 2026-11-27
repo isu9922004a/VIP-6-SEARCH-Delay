@@ -74,6 +74,14 @@ function updateMessage(sourceDate,catalog,update,now=Date.now()){
  return dates+'同日模型已完成核對，網站檔案仍待同步；請重新整理後再產圖。';
 }
 function status(kind,value){const e=root.document?.getElementById(kind==='market'?'futureMarketStatus':'futureStockStatus');if(e)e.textContent=value;}
+async function studyReading(source, kind) {
+ if(new URLSearchParams(root.location.search).get('postmarket-study')!=='1')return null;
+ try {
+  const {modelPreviewReading}=await import('./postmarket-preview-v926.js?v=V9.26-RESEARCH-2A');
+  const analysis=kind==='stock' ? root.ShitouResearchIntegration?.forReport(source) : null;
+  return await modelPreviewReading(source,{index:kind==='market',analysis});
+ } catch (_) {return null;}
+}
 async function open(kind='stock',watermarked=false){if(opening)return null;opening=true;const token=++revision,buttons=[...root.document.querySelectorAll('[data-future-export-button]')];buttons.forEach(b=>{b.disabled=true;b.setAttribute('aria-busy','true');});try{
  status(kind,'正在核對同日行情與20日模型，產生手機版圖片…');let source,selection=null;
  if(kind==='stock'){selection=stockIdentity();const p=stockPayload();source=root.ShitouResearchIntegration?.prepareStockQuery?await root.ShitouResearchIntegration.prepareStockQuery(p.source):p.source;if(stockIdentity()!==selection)throw Error('查詢已更新，請重新產生目前股票的圖片。');}
@@ -81,8 +89,9 @@ async function open(kind='stock',watermarked=false){if(opening)return null;openi
  if(root.ShitouMarketFreshness?.historyStatus(source).stale)throw Error('最新盤後行情尚未同步，請更新行情後再產生圖片。');
  const code=String(source.stock||source.code||source.instrumentType),catalog=await read('data/kronos-future/manifest.json');if(catalog.schema!=='shitou-kronos-future-catalog-v1'||catalog.asOf!==source.closeDate){const update=await read('data/kronos-future/update-status.json').catch(()=>null);throw Error(updateMessage(source.closeDate,catalog,update));}const entry=catalog.instruments?.[code];if(!entry)throw Error(catalog.unavailable?.[code]||'這檔股票的20日模型尚未完成更新。');
  let forecast=models.get(entry.sha256);if(!forecast){forecast=await artifact(entry,code);models.set(entry.sha256,forecast);while(models.size>4)models.delete(models.keys().next().value);}
- if(!C.isFresh(forecast))throw Error('這份模型已到更新時間，請等最新盤後模型完成後再產生圖片。');const validated=C.evaluate(source,forecast);if(validated.state!=='READY')throw Error(validated.reason);if(root.document.fonts?.ready)await root.document.fonts.ready;if(token!==revision||kind==='stock'&&stockIdentity()!==selection)throw Error('查詢已更新，請重新產生目前股票的圖片。');
+ if(!C.isFresh(forecast))throw Error('這份模型已到更新時間，請等最新盤後模型完成後再產生圖片。');const validated=C.evaluate(source,forecast);if(validated.state!=='READY')throw Error(validated.reason);const previewText=await studyReading(source,kind);if(root.document.fonts?.ready)await root.document.fonts.ready;if(token!==revision||kind==='stock'&&stockIdentity()!==selection)throw Error('查詢已更新，請重新產生目前股票的圖片。');
  const c=render(source,forecast,{watermarked}),options={title:(kind==='market'?'大盤':'個股')+'未來K棒走勢預測',prefix:'石頭少爺_'+code+'_未來K棒走勢預測'+(watermarked?'_浮水印版':''),date:source.closeDate.replaceAll('-',''),kind:'future-'+kind,note:'真實20交易日模型取樣；1284×2778單張圖片，非買進通知。'};
+ if(previewText)c.renderPreviewText=previewText;
  if(root.strongStockShowPagesV47)await root.strongStockShowPagesV47([c],options);else if(kind==='market'&&root.ShitouMarketSimpleReport){if(!await root.ShitouMarketSimpleReport.open(watermarked,c))throw Error('圖片預覽尚未完成，請重新產生。');}else throw Error('圖片預覽模組尚未載入。');
  if(kind==='stock'&&stockIdentity()!==selection){root.closeInfographicPreviewV3328?.();root.ShitouMarketSimpleReport?.close?.();throw Error('查詢已更新，請重新產生目前股票的圖片。');}
  const img=root.document.getElementById('imagePreviewImg')||root.document.querySelector('#simpleMarketReportDialog img');const filename=code+'_'+source.closeDate+'_新手版'+(watermarked?'_浮水印':'')+'.png';for(const link of root.document.querySelectorAll('#imageDownloadLink,#simpleMarketReportDialog a[download]'))link.download=filename;active={kind,selection,source,forecast,url:img?.src,identity:validated.identity,audit:JSON.parse(c.dataset.futureReportAudit)};status(kind,'已產生'+validated.sampleCount+'條真實路徑、未來20交易日圖片，可下載或分享。');return c;

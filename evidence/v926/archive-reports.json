@@ -1,10 +1,10 @@
 {
   "source": "committed official OHLCV archives",
-  "loadMs": 4805.7186839999995,
+  "loadMs": 2369.6247200000003,
   "media": [
     {
       "symbol": "TAIEX",
-      "filename": "/workspace/scratch/v926/resume-final-archive/石頭少爺_V9.26_TAIEX_20261126_盤後趨勢研究.png",
+      "filename": "TAIEX-2026-11-26.png",
       "watermark": false,
       "close": 39151.81,
       "marketRisk": 3,
@@ -84,8 +84,8 @@
         "height": 2778,
         "watermark": false
       },
-      "renderTime": 188.90000000037253,
-      "encodeTime": 301.80000000074506,
+      "renderTime": 204.5,
+      "encodeTime": 173.19999999925494,
       "imageSize": [
         1284,
         2778
@@ -94,7 +94,7 @@
     },
     {
       "symbol": "TAIEX",
-      "filename": "/workspace/scratch/v926/resume-final-archive/石頭少爺_V9.26_TAIEX_20261126_盤後趨勢研究_浮水印.png",
+      "filename": "TAIEX-2026-11-26-watermark.png",
       "watermark": true,
       "close": 39151.81,
       "marketRisk": 3,
@@ -174,8 +174,8 @@
         "height": 2778,
         "watermark": true
       },
-      "renderTime": 136.79999999981374,
-      "encodeTime": 283.20000000018626,
+      "renderTime": 89.5,
+      "encodeTime": 209.3999999994412,
       "imageSize": [
         1284,
         2778
@@ -184,7 +184,7 @@
     },
     {
       "symbol": "2330",
-      "filename": "/workspace/scratch/v926/resume-final-archive/石頭少爺_V9.26_2330_20261126_盤後趨勢研究.png",
+      "filename": "2330-2026-11-26.png",
       "watermark": false,
       "close": 2145,
       "marketRisk": null,
@@ -252,8 +252,8 @@
         "height": 2778,
         "watermark": false
       },
-      "renderTime": 99.20000000018626,
-      "encodeTime": 264.09999999962747,
+      "renderTime": 24.700000000186265,
+      "encodeTime": 174.59999999962747,
       "imageSize": [
         1284,
         2778
@@ -262,7 +262,7 @@
     },
     {
       "symbol": "2330",
-      "filename": "/workspace/scratch/v926/resume-final-archive/石頭少爺_V9.26_2330_20261126_盤後趨勢研究_浮水印.png",
+      "filename": "2330-2026-11-26-watermark.png",
       "watermark": true,
       "close": 2145,
       "marketRisk": null,
@@ -330,8 +330,8 @@
         "height": 2778,
         "watermark": true
       },
-      "renderTime": 98.79999999981374,
-      "encodeTime": 204.69999999925494,
+      "renderTime": 22,
+      "encodeTime": 101.20000000018626,
       "imageSize": [
         1284,
         2778
@@ -340,5 +340,6 @@
     }
   ],
   "independentMarketStudyPage": true,
+  "modelReadingMatchesStudy": true,
   "errors": []
 }

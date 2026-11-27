@@ -192,22 +192,7 @@ function page(report,{document:doc=root.document,watermark=false}={}) {
   canvas.dataset.postmarket926Audit=JSON.stringify({date:report.date,asOf:report.asOf,code:report.code,
     source:report.source,version:report.engineVersion,points,lines:report.lines,barCount:report.bars.length,
     noClipping:true,width:WIDTH,height:HEIGHT,watermark});
-  canvas.renderPreviewText=()=>{
-    const details=doc.createElement('details');
-    details.id='postmarketPreviewText';
-    details.className='image-preview-note research-inline';
-    const summary=doc.createElement('summary');
-    summary.textContent='閱讀報告文字';
-    const list=doc.createElement('dl');
-    for (const line of report.lines) {
-      const label=doc.createElement('dt'), body=doc.createElement('dd');
-      label.textContent=line.label;
-      body.textContent=line.text;
-      list.append(label,body);
-    }
-    details.append(summary,list);
-    return details;
-  };
+  canvas.renderPreviewText=()=>previewText(doc,report.lines);
   canvas.dataset.fullBleed='true';
   canvas.dataset.shareAsSingleImage='true';
   canvas.title='盤後趨勢研究';
@@ -215,5 +200,22 @@ function page(report,{document:doc=root.document,watermark=false}={}) {
   return canvas;
 }
 
-return {archiveInput,view,page};
+function previewText(doc,lines,title='閱讀報告文字') {
+    const details=doc.createElement('details');
+    details.id='postmarketPreviewText';
+    details.className='image-preview-note research-inline';
+    const summary=doc.createElement('summary');
+    summary.textContent=title;
+    const list=doc.createElement('dl');
+    for (const line of lines) {
+      const label=doc.createElement('dt'), body=doc.createElement('dd');
+      label.textContent=line.label;
+      body.textContent=line.text;
+      list.append(label,body);
+    }
+    details.append(summary,list);
+    return details;
+}
+
+return {archiveInput,view,page,previewText};
 });

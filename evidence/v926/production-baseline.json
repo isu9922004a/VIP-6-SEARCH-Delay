@@ -1,0 +1,110 @@
+{
+  "site": "https://isu9922004a.github.io/VIP-6-SEARCH-Delay/",
+  "worker": "https://shitou-taiwanmarket-api.d318426.workers.dev/",
+  "checkedAt": "2026-11-27T03:40:26.234Z",
+  "status": "PASS",
+  "pages": {
+    "htmlSha256": "ae56a81c52bde793067e7ca57719ce02f6d2fb864aec464c2e0ee6a731339124",
+    "manifestSha256": "17857342568476af48485a2f898baddea4ee69804cb072fc786ba56f703484fd",
+    "etag": "W/\"6b08e53a-12039\"",
+    "cache": "HIT",
+    "expectedHtmlSha256": "ae56a81c52bde793067e7ca57719ce02f6d2fb864aec464c2e0ee6a731339124",
+    "observedSourceSha256": "78142e01abfbac10c06a5c9b97a44b85eba153f39233ecc260e9a038efa74664",
+    "assets": [
+      {
+        "name": "index-inline-v924-css-01.css",
+        "sha256": "ee076ae8b21e766d37ed303c0a6b6518fc5fb7760483c706a10aa28900998319",
+        "cache": "HIT"
+      },
+      {
+        "name": "index-inline-v924-css-02.css",
+        "sha256": "3ffdf58191e38b87b304b9193006aa833003901bd00ee0c967d6589b52eae000",
+        "cache": "MISS"
+      },
+      {
+        "name": "index-inline-v924-js-01.js",
+        "sha256": "9c1f7641d4afadd1fcf05c70f902e0c9585d764ccd54abc3ae9502dda39a7a16",
+        "cache": "MISS"
+      },
+      {
+        "name": "index-inline-v924-js-02.js",
+        "sha256": "dad59df9981e84f3ccedf4c2cf0f0d60793a94d02e1de476e4531dad71bb4785",
+        "cache": "HIT"
+      },
+      {
+        "name": "index-inline-v924-js-03.js",
+        "sha256": "06b328b545f59d5b059ad15d3033a07549df361f18e6de9f839f5661fec0d85c",
+        "cache": "HIT"
+      },
+      {
+        "name": "index-inline-v924-js-04.js",
+        "sha256": "1b1e1a02716aff1f0aff0e9eec20f932048b9339f5e65f62bf1e2c3c65c26d5c",
+        "cache": "HIT"
+      },
+      {
+        "name": "index-inline-v924-js-05.js",
+        "sha256": "365570157fb81e93c08c0bf1a81c6e6a9e6e5f5927161d6886da57176b1de070",
+        "cache": "HIT"
+      },
+      {
+        "name": "index-inline-v924-js-06.js",
+        "sha256": "5348fc5fb0420086124cca73a13d71f152d1558400269b155fb152f62d9142a3",
+        "cache": "HIT"
+      },
+      {
+        "name": "index-inline-v924-js-07.js",
+        "sha256": "9875d1cec95398360202c9075b6c1d285e225a41f95e0d4f45f5689b59d3fc94",
+        "cache": "HIT"
+      },
+      {
+        "name": "index-inline-v924-js-08.js",
+        "sha256": "c73d0de63d902367b2993a0663a7e127571b1e73af60a1b0239f0052ffa500ef",
+        "cache": "HIT"
+      },
+      {
+        "name": "index-inline-v924-js-09.js",
+        "sha256": "aba7ce439f3803b4bd61cf654edcf0e1b10329d43e38a8f7e7a6282169e74903",
+        "cache": "HIT"
+      },
+      {
+        "name": "index-inline-v924-js-10.js",
+        "sha256": "751a175edc067b7dfe6f54ecf40346afe68c6d383ede71d2c3a288e5bd6718eb",
+        "cache": "HIT"
+      },
+      {
+        "name": "index-inline-v924-js-11.js",
+        "sha256": "aba9d1460077a51c2c55f6e69cc7ba0804a32d2325cc88baa7efda4a0aa116f5",
+        "cache": "HIT"
+      },
+      {
+        "name": "index-inline-v924-js-12.js",
+        "sha256": "b97758055d3cf8b8386631938922322a04d29c2ddeaa89d6421848248b366821",
+        "cache": "HIT"
+      },
+      {
+        "name": "index-inline-v924-js-13.js",
+        "sha256": "8d183faa3d8c3b6d5ac58ead1642cca9742b46c708d8587a89207d64d373ec03",
+        "cache": "HIT"
+      }
+    ]
+  },
+  "data": {
+    "expected": "20261126",
+    "tradeDate": "2026-11-26",
+    "coverage": true,
+    "twse": 1091,
+    "tpex": 879,
+    "market": "20261126",
+    "marketType": "MARKET_SCAN_SNAPSHOT",
+    "marketVersion": "石頭少爺 Agent V49｜R5.3.2.4.26-R4.9.3-DATEGATE.1-CLOSED-BAR.1-CONTRACT.1｜盤後交易日完整性修補",
+    "marketSha256": "e835d8c59dc80ca6cbdf3cbe0d4b222f63835e31fda857002e4915ef924fb0e5",
+    "marketCache": null,
+    "indexDate": "2026-11-26",
+    "indexClose": 39151.81,
+    "indexSha256": "bc409dc1659510359ffb3f594bf85c18236c7e585f372e58bd8de72d6cd4474b",
+    "indexCache": null
+  },
+  "head": "d0872d24f28af599e62792321b09f68af91d2774",
+  "base": "582a0decfb1cf727287d3c4efbe3874469c248a2",
+  "actionsJob": "https://github.com/isu9922004a/VIP-6-SEARCH-Delay/actions/runs/45935469469/job/140297556045"
+}

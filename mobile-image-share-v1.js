@@ -312,7 +312,7 @@ async function shareCompact({file, blob, button, status, isCurrent}) {
   }
 }
 
-function layoutCompact(dialog, {title, controls, dismiss, status, image, download}) {
+function layoutCompact(dialog, {title, controls, dismiss, status, image, download, previewText}) {
   const heading = document.createElement('header');
   const scroll = document.createElement('div');
   const footer = document.createElement('footer');
@@ -325,13 +325,14 @@ function layoutCompact(dialog, {title, controls, dismiss, status, image, downloa
   scroll.tabIndex = 0;
   scroll.setAttribute('aria-label', '圖片報告內容');
   scroll.append(image);
+  if (previewText) scroll.append(previewText);
   footer.append(controls, status);
   download.addEventListener('click', protectDownload);
   dialog.append(heading, scroll, footer);
 }
 
 function resetPng() {
-  by('postmarketPreviewText')?.remove();
+  by('imagePreviewModal')?.querySelector('#postmarketPreviewText')?.remove();
   by('imagePreviewImg')?.removeAttribute('src');
   const link = by('imageDownloadLink');
   link?.removeAttribute('href');

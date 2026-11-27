@@ -1,6 +1,6 @@
 /* Explicit preview of the independent study page. Loaded only with postmarket-study=1. */
 const root = globalThis;
-const version = 'V9.26-RESEARCH-2';
+const version = 'V9.26-RESEARCH-2A';
 let pending;
 
 function loadScripts() {
@@ -65,7 +65,7 @@ function originalStockAnchors(input, analysis) {
   return out;
 }
 
-export async function makeStudyPage({source, study, analysis, benchmark, marketRisk, quality, dataAsOf, watermark = false, index = false}) {
+export async function makeStudyReport({source, study, analysis, benchmark, marketRisk, quality, dataAsOf, index = false}) {
   await loadScripts();
   const report = root.ShitouPostmarketReport926;
   const input = report.archiveInput(source,{index,dataAsOf});
@@ -92,7 +92,21 @@ export async function makeStudyPage({source, study, analysis, benchmark, marketR
       syntheticCrossRead=`連續 ${series.length-1-sameColor} 根${current.color}｜${conflict?'顏色與真實收盤方向不同':'同步核對真實收盤與原生命線'}`;
     }
   }
-  const canvas=report.page(report.view(input,result,{riskLabel:marketRisk?.risk?.label,
-    originalQuality:quality,syntheticCrossRead}),{watermark});
-  return canvas;
+  return report.view(input,result,{riskLabel:marketRisk?.risk?.label,originalQuality:quality,syntheticCrossRead});
+}
+
+export async function makeStudyPage({watermark = false, ...inputs}) {
+  const report=await makeStudyReport(inputs);
+  return report ? root.ShitouPostmarketReport926.page(report,{watermark}) : null;
+}
+
+export async function modelPreviewReading(source, {index = false, analysis, document = root.document} = {}) {
+  const study=index ? root.ShitouMarketLife96?.evaluate(source) : root.ShitouKlineLife03Report?.inspect(analysis);
+  if (!study || (index && study.sourceVerified !== true)) return null;
+  const proof=index ? null : root.ShitouOfficialResearchHistory?.proof(source);
+  const report=await makeStudyReport({source,study,analysis,index,dataAsOf:proof?.generatedAt});
+  if (!report) return null;
+  const lines=report.lines.filter(({label})=>['盤後研究','關鍵價位','開盤觀察'].includes(label) ||
+    label.startsWith('下一交易日收盤情境'));
+  return ()=>root.ShitouPostmarketReport926.previewText(document,lines,'盤後條件與價位（技術研究）');
 }
