@@ -287,3 +287,17 @@ test('preview anchor bridge rejects stale historical OHLCV, mismatched identity 
   ]) assert.deepEqual(read({...a,nContinuation:{...n,...change}}),[]);
   assert.deepEqual(read({...a,nContinuation:null,originalB:110,originalInvalidation:100}),[]);
 });
+
+
+test('V9.26 staged release blocks public study preview even if query enables it',async()=>{
+  const fs=require('node:fs');
+  const path=require('node:path');
+  const source=fs.readFileSync(path.join(__dirname,'../../postmarket-preview-v926.js'),'utf8');
+  const {studyPreviewAllowed,makeStudyReport,modelPreviewReading}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+  assert.equal(studyPreviewAllowed('https://isu9922004a.github.io'),false);
+  assert.equal(studyPreviewAllowed('https://v926.test.evil.example'),false);
+  assert.equal(studyPreviewAllowed('https://v926.test'),true);
+  assert.equal(studyPreviewAllowed(undefined),false);
+  assert.equal(await makeStudyReport({}),null);
+  assert.equal(await modelPreviewReading(null),null);
+});
