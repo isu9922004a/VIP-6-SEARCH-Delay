@@ -90,7 +90,22 @@ jobs:
           node - <<'NODE'
           const fs=require('fs'),r=JSON.parse(fs.readFileSync('/tmp/future-classification-live/results.json'));
           if(!r.source?.fresh||r.images?.length!==4)throw Error('Current model images did not complete');
-          for(const report of r.images){if(report.audit.version!=='KRONOS_FUTURE_REPORT_V88_1'||!report.audit.logicalTexts.some(s=>s.includes('本次分類範圍固定為')))throw Error('New explanation not deployed');}
+          const assert=require('node:assert/strict');
+          for(const report of r.images){
+            const a=report.audit;
+            assert.equal(a.version,'KRONOS_FUTURE_REPORT_V88_1');
+            assert.equal(a.shares.state,'READY');
+            const n=v=>a.kind==='market'?v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):v.toFixed(2);
+            const lo=n(a.shares.band.lower),hi=n(a.shares.band.upper),unit=a.shares.instrument.unit;
+            for(const line of ['三排都比較指定日收盤，範圍 '+lo+'～'+hi+' '+unit,'模擬收盤高於'+hi+unit+'，列為「偏多」。','收盤在'+lo+'～'+hi+unit+'（含邊界），列為「盤整」。','模擬收盤低於'+lo+unit+'，列為「偏空」。','下個交易日收盤：'+a.shares.rows[0].denominator+'種模擬中，有'+a.shares.rows[0].counts[1]+'種在範圍內；三排共用此範圍。'])assert.ok(a.logicalTexts.includes(line),'Missing deployed classification explanation: '+line);
+            for(const row of a.shares.rows){
+              assert.equal(row.counts.reduce((x,y)=>x+y,0),row.denominator);
+              assert.equal(row.displayUnits.reduce((x,y)=>x+y,0),1000);
+            }
+            assert.equal(a.noClipping,true);
+            assert.equal(a.noTextOverlap,true);
+            assert.equal(a.noCardOverflow,true);
+          }
           NODE
       - uses: actions/upload-artifact@v4
         if: always()
