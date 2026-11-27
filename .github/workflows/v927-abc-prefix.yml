@@ -1,0 +1,28 @@
+name: V9.27 ABC prefix evidence
+on:
+  push:
+    branches: [feat/v927-abc-prefix-audit]
+  pull_request:
+    branches: [feat/v927-release-candidate, main]
+    paths:
+      - 'scripts/audit-v927-abc-prefix.cjs'
+      - 'scripts/tests/v927-abc-prefix.test.cjs'
+      - '.github/workflows/v927-abc-prefix.yml'
+      - 'stock-worker.mjs'
+permissions:
+  contents: read
+jobs:
+  abc-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test scripts/tests/v927-abc-prefix.test.cjs
+      - run: node scripts/audit-v927-abc-prefix.cjs "$RUNNER_TEMP/v927-abc-prefix.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v927-abc-prefix-evidence
+          path: ${{ runner.temp }}/v927-abc-prefix.json
