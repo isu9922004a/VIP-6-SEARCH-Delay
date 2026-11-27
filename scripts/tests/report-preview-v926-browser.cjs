@@ -144,8 +144,11 @@ async function verifyShare(page) {
     };
     window.oldPreview = showInfographicPreviewV3328(slow, '一般_2330_20261125.png', '舊報告');
   });
+  await page.waitForFunction(() => ShitouImageShareV1.getState()?.files[0]?.name.startsWith('一般_2330'));
   assert.equal(await share.isDisabled(), true);
   assert.equal(await page.locator('#imageDownloadLink').getAttribute('href'), null);
+  assert.equal(await page.locator('#lineShareSave').getAttribute('href'), null);
+  assert.match(await status.textContent(), /準備中/);
   await openReport(page, {filename:'浮水印_2317_20261126_P02.png', color:'#bf2727', height:2778});
   await page.evaluate(async () => {finishOldPng(); if (await oldPreview) throw Error('Old PNG replaced new report');});
   await share.click();

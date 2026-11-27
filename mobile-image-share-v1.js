@@ -150,12 +150,13 @@ function capability(file) {
 }
 
 function select(index) {
-  if (!state || sharing) return;
+  if (!state || pngPending || sharing) return;
   state.index = Math.max(0, Math.min(index, state.files.length - 1));
   renderSelection();
 }
 
 function renderSelection() {
+  by('lineSharePanel').hidden = false;
   const {files, names, index} = state;
   const file = files[index], segmented = files.length > 1;
   release(previewUrl);
@@ -235,14 +236,13 @@ async function prepare(canvas, {filename = 'report.png'} = {}) {
     if (token !== revision) return null;
     state = {files, names, index: 0, singleImage: single};
     preparing = false;
-    by('lineSharePanel').hidden = false;
-    renderSelection();
+    if (!pngPending) renderSelection();
     return state;
   } catch (error) {
     if (token !== revision) return null;
     failure = `分享圖片準備失敗（${error.message}）。可儲存 PNG 後從 LINE 傳送。`;
     preparing = false;
-    note(failure);
+    if (!pngPending) note(failure);
     updateButton();
     return null;
   }
@@ -389,7 +389,11 @@ async function show(canvas, filename, title, {owner} = {}) {
   by('imagePreviewImg').src = pngUrl;
   link.href = pngUrl;
   pngPending = false;
-  updateButton();
+  if (state) renderSelection();
+  else {
+    if (failure) note(failure);
+    updateButton();
+  }
   await shareReady;
   return request === root.ShitouReportPreviewEpoch;
 }
