@@ -34,8 +34,13 @@ jobs:
           npm test
           npm run research:validate
       - run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y fonts-noto-cjk
+          # WebKit and the report fonts only need the signed Ubuntu repositories.
+          mkdir -p "$RUNNER_TEMP/v926-unused-apt-sources"
+          for source in /etc/apt/sources.list.d/microsoft-prod.{list,sources}; do
+            if test -f "$source"; then sudo mv "$source" "$RUNNER_TEMP/v926-unused-apt-sources/"; fi
+          done
+          sudo apt-get -o Acquire::Retries=3 update -qq
+          sudo apt-get -o Acquire::Retries=3 install -y fonts-noto-cjk
           npx playwright-core install --with-deps webkit
       - name: Source preview, Worker replay and preserved reports
         run: |
