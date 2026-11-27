@@ -1,6 +1,6 @@
 {
   "source": "committed official OHLCV archives",
-  "loadMs": 1824.212131,
+  "loadMs": 2239.0979919999995,
   "media": [
     {
       "symbol": "TAIEX",
@@ -84,8 +84,8 @@
         "height": 2778,
         "watermark": false
       },
-      "renderTime": 146.40000000596046,
-      "encodeTime": 239.70000000298023,
+      "renderTime": 127.5,
+      "encodeTime": 227.60000000149012,
       "imageSize": [
         1284,
         2778
@@ -174,8 +174,8 @@
         "height": 2778,
         "watermark": true
       },
-      "renderTime": 102.09999999403954,
-      "encodeTime": 158.20000000298023,
+      "renderTime": 107,
+      "encodeTime": 249.60000000149012,
       "imageSize": [
         1284,
         2778
@@ -260,8 +260,8 @@
         "height": 2778,
         "watermark": false
       },
-      "renderTime": 53.30000000447035,
-      "encodeTime": 148,
+      "renderTime": 28.5,
+      "encodeTime": 139.5,
       "imageSize": [
         1284,
         2778
@@ -346,8 +346,8 @@
         "height": 2778,
         "watermark": true
       },
-      "renderTime": 22.899999998509884,
-      "encodeTime": 65,
+      "renderTime": 25.100000001490116,
+      "encodeTime": 93.20000000298023,
       "imageSize": [
         1284,
         2778
