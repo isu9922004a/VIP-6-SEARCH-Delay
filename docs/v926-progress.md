@@ -40,7 +40,7 @@
 
 加權指數樣本外 5 日方向精確率，偏多 15 次為 46.7%，20MA 同向基準為 52.9%。偏空 17 次為 76.5%，基準為 70.4%。兩組都低於事前定義的每類 30 次。日期鄰近的觀察有重疊行情，樣本外的結果只用來紀錄。多年當時可見的版本、歷史全市場母體、公司行動、可成交資料及影子排名的驗證仍缺。研究效益與正式分數放行為 BLOCKED。
 
-計算預算預設 P95 8ms。封存回放的 320 次 Node v24.22.3 計算不包含檔案 I/O，P50 0.40ms、P95 2.14ms，全程序 RSS 約 53.5 MiB，外部請求 0。Worker 瀏覽器重播基準／候選各 7 個被觀測的外部 URL、0 個 page error。這組統計屬封存回應重播。Pages HTML 由 73,785 bytes 至 74,022 bytes，拆分資產合計由 1,872,976 bytes 至 1,868,710 bytes，額外的共用 CSS 與 JS 另計。Worker 線上 CPU、記憶體及延遲尚待量測。
+計算預算預設 P95 8ms。封存回放的 320 次 Node v24.22.3 計算不包含檔案 I/O，P50 0.40ms、P95 2.14ms，全程序 RSS 約 53.5 MiB，外部請求 0。Worker 瀏覽器重播基準／候選各 7 個被觀測的外部 URL、0 個 page error。這組統計屬封存回應重播。Pages HTML 由 73,785 bytes 至 74,030 bytes，拆分資產合計由 1,872,976 bytes 至 1,868,710 bytes，額外的共用 CSS 與 JS 另計。Worker 線上 CPU、記憶體及延遲尚待量測。
 
 [修正後前端量測](../evidence/v926/preview-benchmark-optimized.json) 使用同一 Chromium、428×926、本機快取伺服器與 1284×6800 測試圖。兩版本各跑 5 組冷、暖快取，統計從載入及開始預覽至 PNG 解碼、分享 JPG 準備完成的時間。冷快取頁面載入 P50/P95 由 1801/4019ms 至 2019/2595ms，圖片由 511/1374ms 至 534/922ms。暖快取圖片 P50/P95 由 390/906ms 至 595/800ms。冷快取多一個本站 CSS 傳輸，暖快取兩版均無資產網路傳輸。樣本量小且同機另有測試並行，保留原始測量供重跑。
 
@@ -67,8 +67,8 @@
 | 16 手機 | PASS ／ NOT_VERIFIED | 兩套本機 Chromium 路徑，各 20 個尺寸與色系組合。本機 WebKit 下載受限。Actions 首次執行的 Ubuntu 26.04 不支援固定的 Playwright 1.56.1 WebKit，候選 job 已指定 Ubuntu 24.04，來源頁 WebKit 在前一候選 HEAD 通過。實際 Pages 產物 WebKit 以本次候選結果為準。iPhone 實機與 LINE 內建瀏覽器分別待測。 |
 | 17 as-of | PASS ／ NOT_VERIFIED | 注入 T 後日 K、晚公告公司行動與成員異動的測試通過。來源過往版本沒有當時可見證明。 |
 | 18 多年回測 | BLOCKED | 現有封存回放 320 個樣本。多年可比資料及對照缺項。 |
-| 19 真實案例 | NOT_VERIFIED | 兩類 PNG 及回放事件已留存，無法證實規格要求的每個案例。 |
-| 20 CI | PASS ／ NOT_VERIFIED | 本機測試及 GitHub Actions 已接入。候選 runner 拉取完整 git 歷史，供既有大盤生命線像素比對程式讀取已核准的歷史點。加入正式 Pages 基準與 Worker 公開行情的唯讀檢查。完整必要 checks 以 PR 最終 SHA 為準。 |
+| 19 真實案例 | NOT_VERIFIED | 兩類 PNG 及 [真實案例搜尋](../evidence/v926/official-case-catalog.json) 已留存。掃描三個封存日的 5,906 筆個股資料與加權 85 個回放日，獨立核對大盤重挫、開盤防線觸發與守住、多空 FVG 完全回補。逐案資料、引擎輸出和計算值可查。其他類別仍待逐案核對。 |
+| 20 CI | PASS ／ NOT_VERIFIED | 本機測試及 GitHub Actions 已接入。候選 runner 拉取完整 git 歷史，供既有大盤生命線像素比對程式讀取已核准的歷史點。加入正式 Pages 基準與 Worker 公開行情的唯讀檢查。修正 CI 中文字型下大盤情境標題與內文相碰，也讓瀏覽器分頁保留簡短標題，完整發行名稱放在版本詳情。完整必要 checks 以 PR 最終 SHA 為準。 |
 | 21 合併、部署 | BLOCKED | 草稿 PR。必要驗收尚未完成。Worker 重部署 NOT_APPLICABLE。 |
 | 22 最終 | BLOCKED | 結論以本文件、PR 最新檢查和實際正式環境為準。 |
 
@@ -94,7 +94,7 @@
 - Node v24.22.3。 `npm run build:worker-contract` 0，`npm run test:contract` 0（50 通過），`npm test` 0（1,263 通過），`npm run research:validate` 0（保留未驗證效用結果），`npm run test:worker-browser` 0（來源與 Pages，封存 Worker 回應）。
 - `node scripts/build-frontend-v924.cjs <stage> --defer-future` 搭配 `node scripts/prepare-pages-runtime-data.cjs <stage>`。先依 `.github/workflows/deploy-data-pages.yml` 的 tar 配方放完整資產，15 支拆分檔語法檢查 exit 0。
 - `node scripts/tests/report-preview-v926-browser.cjs <evidence>` 在 `REPORT_PAGES_STAGE` 指定產物或省略時的來源頁執行。 `--webkit` 走相同斷言。實際手機及 LINE Apps 另外驗收。
-- `node scripts/backtest-postmarket-v926.cjs <output.json>` 產生封存回放結論。 `node scripts/tests/postmarket-reports-v926-browser.cjs <evidence>` 產生加權及個股一般／浮水印 PNG。
+- `node scripts/backtest-postmarket-v926.cjs <output.json>` 產生封存回放結論。 `node scripts/tests/postmarket-reports-v926-browser.cjs <evidence>` 產生加權及個股一般／浮水印 PNG，設定 `REPORT_PAGES_STAGE` 可重跑打包版。`node scripts/catalog-postmarket-v926.cjs <output.json>` 從官方封存資料重建實例。
 - 已知基準 commit `582a0decfb1cf727287d3c4efbe3874469c248a2`。已驗證現行 Pages 產物對應此 commit 的建置結果。未來若正式發版有回歸，先查 Pages 實際產物與 Actions SHA，再走正常 PR revert 與 Pages 工作流程；契約相同，無此案 Worker 遷移或補歷史。
 - Cloud Environment Runtime 查到正式 Pages、兩個 Worker 和 WebKit CDN 出站未允許，機器設定變更請求未獲核准。GitHub Git transport 和 connector 已用於分支與 PR。正式基準已由 GitHub Actions 唯讀驗證。本機出站限制仍適用。
 

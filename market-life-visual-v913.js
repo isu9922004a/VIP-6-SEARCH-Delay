@@ -149,7 +149,14 @@ function build(study,{document:doc=globalThis.document,record=null,display=null,
    round(649,1727,621,472,18,C.card,C.line,2);
    title(665,1742,'◎ 下一個交易日觀察重點',C.ink,575);
    const scenColors=[C.green,C.gold,C.risk],scenBG=['#0B3932','#483611','#4B1B30'],labels=['A','B','C'];
-   scenario.slice(0,3).forEach((s,i)=>{const y=1801+i*129;round(666,y,584,121,16,scenBG[i],C.line,1.5);round(680,y+22,68,68,34,scenColors[i],null);fit(labels[i],696,y+28,50,47,'#081F2E',850,35);fit('情境 '+['A','B','C'][i]+'｜'+s.title+(s.active?'【目前】':''),764,y+9,473,31,scenColors[i],780,25);paragraph(s.text,765,y+43,458,24,C.ink,3,1.04,590);});
+   scenario.slice(0,3).forEach((s,i)=>{
+    const y=1801+i*129;
+    round(666,y,584,126,16,scenBG[i],C.line,1.5);
+    round(680,y+22,68,68,34,scenColors[i],null);
+    fit(labels[i],696,y+28,50,47,'#081F2E',850,35);
+    fit('情境 '+['A','B','C'][i]+'｜'+s.title+(s.active?'【目前】':''),764,y+6,473,31,scenColors[i],780,25);
+    paragraph(s.text,765,y+47,458,24,C.ink,3,1.05,590);
+   });
    round(14,2213,773,429,18,C.card,C.line,2);title(33,2226,'▦ 已確認的歷史紀錄（生命線事件）',C.ink,735);
    hr(61,2299,750,2299,'#87D3FF',4);
    const hs=Info.historyFields(m,obs).map((row,i)=>({...row,price:row.date?num(row.value):'—',color:[C.gold,C.gold,C.gold,C.mint,C.risk,C.green][i]}));

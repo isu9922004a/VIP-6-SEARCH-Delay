@@ -10,6 +10,7 @@ const FourModels=require('../../four-models-research-v1.js');
 const StockLife=require('../../kline-life-03-core-v1.js');
 
 const root=path.resolve(__dirname,'../..');
+const site=path.resolve(process.env.REPORT_PAGES_STAGE || root);
 const out=path.resolve(process.argv[2]||'/tmp/v926-archive-reports');
 const market=require('../../data/index/TAIEX.json');
 const manifest=require('../../data/research/manifest.json');
@@ -28,8 +29,8 @@ async function run() {
       const url=new URL(route.request().url());
       if(url.origin!=='https://v926.test')return route.abort();
       const relative=url.pathname==='/'?'index.html':url.pathname.slice(1);
-      const filename=path.resolve(root,relative);
-      return filename.startsWith(root+path.sep)&&fs.existsSync(filename)
+      const filename=path.resolve(site,relative);
+      return filename.startsWith(site+path.sep)&&fs.existsSync(filename)
         ? route.fulfill({path:filename,contentType:mime[path.extname(filename)]})
         : route.fulfill({status:404});
     });

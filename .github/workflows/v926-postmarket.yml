@@ -58,6 +58,7 @@ jobs:
           cp /tmp/verified-site/frontend-v924-manifest.json "$RUNNER_TEMP/v926/"
           REPORT_PAGES_STAGE=/tmp/verified-site node scripts/tests/report-preview-v926-browser.cjs "$RUNNER_TEMP/v926/chromium-pages"
           REPORT_PAGES_STAGE=/tmp/verified-site node scripts/tests/report-preview-v926-browser.cjs "$RUNNER_TEMP/v926/webkit-pages" --webkit
+          REPORT_PAGES_STAGE=/tmp/verified-site node scripts/tests/postmarket-reports-v926-browser.cjs "$RUNNER_TEMP/v926/official-pages-reports"
           RESEARCH_ROOT_OVERRIDE=/tmp/verified-site npm run test:worker-browser -- "$RUNNER_TEMP/v926/worker-pages"
       - name: Replay archived official OHLCV
         run: node scripts/backtest-postmarket-v926.cjs "$RUNNER_TEMP/v926/real-archive-study.json"
