@@ -202,3 +202,33 @@ test('historical scenario contains three disjoint close ranges and uses no next-
   const noFuture={...s,calendar:{...s.calendar,dates:days.slice(0,70)}};
   assert.equal(R.analyze(noFuture).nextSessionScenario.status,'DATA_INSUFFICIENT');
 });
+
+test('market consolidation waits for verified flat structure and never upgrades the legacy risk',()=>{
+  const s=bundle();
+  s.bars[69]=candle(69,100,{open:99.3});
+  const level={date:date(69),publishedAt:asOf(date(69)),verified:true,source:'test 0–3 K event',market:'TAIEX',code:'TAIEX',price:100};
+  assert.equal(R.analyze(s,{levels:{lifeLine:level}}).marketRegime.status,'NO_TRADE_CONSOLIDATION');
+  assert.equal(R.analyze(s).marketRegime.status,'DATA_INSUFFICIENT');
+  const indexWatch=R.analyze(bundle()).marketRegime.openDefense;
+  assert.equal(indexWatch.status,'WATCH_NEXT_OPEN');
+  const withBar=bundle(71,'TAIEX',[...s.bars,candle(70,99,{open:99})]);
+  assert.equal(R.confirmDefense(indexWatch,withBar).status,'TRIGGERED_WEAK');
+  assert.equal(R.confirmDefense(indexWatch,bundle(71,'TWSE')).status,'INVALIDATED');
+});
+
+test('bearish FVG bounds and direct continuation use completed closes after formation',()=>{
+  const base=bundle();
+  base.bars[67]=candle(67,102,{low:101,high:104});
+  base.bars[68]=candle(68,98,{open:102,low:96,high:103});
+  base.bars[69]=candle(69,94,{open:95,low:93,high:95});
+  const event=raw=>R.analyze(raw).fvgAnalysis.events.find(row=>row.formedDate===date(69));
+  const result=event(base);
+  assert.equal(result.direction,'BEAR');
+  assert.deepEqual([result.zoneLow,result.zoneHigh],[95,101]);
+  assert.equal(result.firstContactDate,null);
+  const next=bundle(71,'TAIEX',[...base.bars,candle(70,91,{low:90,high:92})]);
+  assert.equal(event(next).followThrough,'DIRECT_CONTINUATION');
+  const touched=bundle(71,'TAIEX',[...base.bars,candle(70,96,{high:100,low:94})]);
+  assert.equal(event(touched).status,'PARTIAL_FILL');
+  assert.equal(event(touched).retestState,'IN_RETEST_ZONE');
+});

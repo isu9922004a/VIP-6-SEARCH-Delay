@@ -9,6 +9,10 @@
 
 const WIDTH = 1284, HEIGHT = 2778;
 const VALUE = new Intl.NumberFormat('zh-TW',{maximumFractionDigits:2});
+const taipeiTime = value => {
+  const stamp = typeof value==='string' ? Date.parse(value) : NaN;
+  return Number.isFinite(stamp) ? new Date(stamp+8*3600000).toISOString().slice(0,16).replace('T',' ')+'（台北）' : '待核對';
+};
 const unitPrice = (x,unit) => Number.isFinite(x) ? VALUE.format(x) + unit : '尚無明確位置';
 const DIRECTION = {BULL:'偏多',BEAR:'偏空',NEUTRAL:'盤整',MIXED:'訊號衝突',UNKNOWN:'待確認'};
 const CONTINUATION = {SUFFICIENT:'充足',ORDINARY:'普通',INSUFFICIENT:'不足',WAITING_CONFIRMATION:'等待確認',DATA_INSUFFICIENT:'資料不足'};
@@ -164,7 +168,7 @@ function page(report,{document:doc=root.document,watermark=false}={}) {
   };
   text('石頭少爺｜V9.26 盤後趨勢研究',60,93,49,'#f2f6ff');
   text(report.title,60,172,54,'#ffffff');
-  text(`行情 ${report.date||'待確認'}｜更新 ${report.asOf||'待核對'}`,60,233,32,'#c9dbea');
+  text(`行情 ${report.date||'待確認'}｜更新 ${taipeiTime(report.asOf)}`,60,233,32,'#c9dbea');
   text('研究試行｜已完成日 K、原生命線與 20 日均線',60,316,32,'#a9dcff');
   const points=chart(ctx,report);
   let y=report.bars.length?1100:400;

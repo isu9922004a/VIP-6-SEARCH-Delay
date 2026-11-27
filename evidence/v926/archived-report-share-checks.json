@@ -1,0 +1,883 @@
+{
+  "checks": [
+    {
+      "code": "9933",
+      "name": "中鼎",
+      "date": "2026-10-22",
+      "close": 44.65,
+      "width": 1284,
+      "height": 2778,
+      "audit": "%7B%22version%22%3A%22V9.3%22%2C%22template%22%3A%22USER_REFERENCE_PROFESSIONAL%22%2C%22code%22%3A%229933%22%2C%22date%22%3A%222026-10-22%22%2C%22width%22%3A1284%2C%22height%22%3A2778%2C%22noOverlap%22%3Atrue%2C%22sections%22%3A%5B%7B%22id%22%3A%22header%22%2C%22top%22%3A0%2C%22bottom%22%3A142%7D%2C%7B%22id%22%3A%22stage%22%2C%22top%22%3A158%2C%22bottom%22%3A307%7D%2C%7B%22id%22%3A%22audiences%22%2C%22top%22%3A324%2C%22bottom%22%3A536%7D%2C%7B%22id%22%3A%22key-levels%22%2C%22top%22%3A552%2C%22bottom%22%3A1076%7D%2C%7B%22id%22%3A%22abc-chart%22%2C%22top%22%3A1094%2C%22bottom%22%3A1614%7D%2C%7B%22id%22%3A%22scenarios-evidence%22%2C%22top%22%3A1630%2C%22bottom%22%3A2076%7D%2C%7B%22id%22%3A%22condition-scores%22%2C%22top%22%3A2093%2C%22bottom%22%3A2333%7D%2C%7B%22id%22%3A%22advanced-confluence%22%2C%22top%22%3A2350%2C%22bottom%22%3A2644%7D%2C%7B%22id%22%3A%22assistant-footer%22%2C%22top%22%3A2656%2C%22bottom%22%3A2778%7D%5D%2C%22metricCount%22%3A7%2C%22levelCount%22%3A10%2C%22abc%22%3A%7B%22A%22%3A38.65%2C%22B%22%3A48.75%2C%22C%22%3A41.9%7D%2C%22close%22%3A44.65%2C%22trend%22%3A%7B%22label%22%3A%22%E5%81%8F%E5%A4%9A%22%2C%22detail%22%3A%22%E8%82%A1%E5%83%B9%E7%AB%99%E5%9C%A8%E4%B8%8A%E5%8D%87%E6%97%A520MA%E4%B8%8A%E6%96%B9%EF%BC%8C%E8%B6%A8%E5%8B%A2%E8%83%8C%E6%99%AF%E5%81%8F%E5%BC%B7%E3%80%82%EF%BD%9CABC%E5%BE%85%E7%AA%81%E7%A0%B4%22%2C%22tone%22%3A%22green%22%2C%22color%22%3A%22%2311834A%22%2C%22verified%22%3Atrue%2C%22abc%22%3A%22abc_ready%22%2C%22phase%22%3A%22WAIT_BREAKOUT%22%2C%22wave%22%3A%22%22%2C%22ma20%22%3A42.77%2C%22slope%22%3A1.66%2C%22above%22%3Atrue%7D%2C%22shortTrend%22%3A%7B%22label%22%3A%22%E6%94%BE%E9%87%8F%E7%BA%8C%E5%BC%B7%22%2C%22detail%22%3A%22%E6%94%B6%E7%9B%A4%E5%9C%A85MA%E4%B8%8A%E6%96%B9%EF%BC%8C%E4%B8%94%E7%95%B6%E6%97%A5%E4%B8%8A%E6%BC%B2%E3%80%815MA%E6%9C%AA%E8%BD%89%E9%99%8D%E3%80%82%22%2C%22tone%22%3A%22green%22%2C%22color%22%3A%22%2311834A%22%2C%22verified%22%3Atrue%2C%22ma5%22%3A43.45%2C%22prevMa5%22%3A43%2C%22above5%22%3Atrue%2C%22changePct%22%3A2.1739130434782483%2C%22volumeChangePct%22%3A100.09622516590481%2C%22nStatus%22%3A%22abc_ready%22%2C%22nPhase%22%3A%22WAIT_BREAKOUT%22%2C%22mediumLabel%22%3A%22%E5%81%8F%E5%A4%9A%22%7D%2C%22momentumCaution%22%3A%7B%22active%22%3Afalse%2C%22heat%22%3Afalse%2C%22pending%22%3Afalse%2C%22RSI5%22%3A74.82%2C%22RSI10%22%3A64.3036928783696%2C%22B%22%3A48.75%2C%22threeStatus%22%3A%22unverified%22%2C%22detail%22%3A%22%22%7D%2C%22referenceLayout%22%3Atrue%7D",
+      "unchanged": true,
+      "trend": {
+        "label": "偏多",
+        "detail": "股價站在上升日20MA上方，趨勢背景偏強。｜ABC待突破",
+        "tone": "green",
+        "color": "#11834A",
+        "verified": true,
+        "abc": "abc_ready",
+        "phase": "WAIT_BREAKOUT",
+        "wave": "",
+        "ma20": 42.77,
+        "slope": 1.66,
+        "above": true
+      },
+      "shortTrend": {
+        "label": "放量續強",
+        "detail": "收盤在5MA上方，且當日上漲、5MA未轉降。",
+        "tone": "green",
+        "color": "#11834A",
+        "verified": true,
+        "ma5": 43.45,
+        "prevMa5": 43,
+        "above5": true,
+        "changePct": 2.1739130434782483,
+        "volumeChangePct": 100.09622516590481,
+        "nStatus": "abc_ready",
+        "nPhase": "WAIT_BREAKOUT",
+        "mediumLabel": "偏多"
+      }
+    },
+    {
+      "button": "generateStockBeginnerImageButton",
+      "status": "PASS",
+      "bytes": 869448,
+      "width": 1152,
+      "height": 3227,
+      "share": {
+        "name": "石頭少爺_中鼎_9933_新手個股圖片報告_單一張完整長圖_20261022_V9.25.jpg",
+        "type": "image/jpeg",
+        "active": true,
+        "keys": [
+          "files"
+        ],
+        "signature": [
+          255,
+          216,
+          255
+        ]
+      }
+    },
+    {
+      "button": "generateStockBeginnerWatermarkImageButton",
+      "status": "PASS",
+      "bytes": 934999,
+      "width": 1152,
+      "height": 3227,
+      "share": {
+        "name": "石頭少爺_中鼎_9933_新手個股圖片報告_防盜浮水印_單一張完整長圖_20261022_V9.25.jpg",
+        "type": "image/jpeg",
+        "active": true,
+        "keys": [
+          "files"
+        ],
+        "signature": [
+          255,
+          216,
+          255
+        ]
+      }
+    },
+    {
+      "button": "generateStockProfessionalImageButton",
+      "status": "PASS",
+      "bytes": 1545820,
+      "width": 1284,
+      "height": 3193,
+      "share": {
+        "name": "石頭少爺_中鼎_9933_專業完整個股圖片報告_單一張完整長圖_20261022_V9.25.jpg",
+        "type": "image/jpeg",
+        "active": true,
+        "keys": [
+          "files"
+        ],
+        "signature": [
+          255,
+          216,
+          255
+        ]
+      }
+    },
+    {
+      "button": "generateStockProfessionalWatermarkImageButton",
+      "status": "PASS",
+      "bytes": 1587262,
+      "width": 1284,
+      "height": 3193,
+      "share": {
+        "name": "石頭少爺_中鼎_9933_專業完整個股圖片報告_防盜浮水印_單一張完整長圖_20261022_V9.25.jpg",
+        "type": "image/jpeg",
+        "active": true,
+        "keys": [
+          "files"
+        ],
+        "signature": [
+          255,
+          216,
+          255
+        ]
+      }
+    },
+    {
+      "button": "generateThreePanImageButton",
+      "status": "PASS",
+      "bytes": 658908,
+      "width": 1284,
+      "height": 2778,
+      "share": {
+        "name": "石頭少爺_9933_三盤趨勢_2026-10-22_R5328.jpg",
+        "type": "image/jpeg",
+        "active": true,
+        "keys": [
+          "files"
+        ],
+        "signature": [
+          255,
+          216,
+          255
+        ]
+      }
+    },
+    {
+      "button": "generateThreePanWatermarkImageButton",
+      "status": "PASS",
+      "bytes": 703928,
+      "width": 1284,
+      "height": 2778,
+      "share": {
+        "name": "石頭少爺_9933_三盤趨勢_2026-10-22_V9.25_防盜浮水印版.jpg",
+        "type": "image/jpeg",
+        "active": true,
+        "keys": [
+          "files"
+        ],
+        "signature": [
+          255,
+          216,
+          255
+        ]
+      }
+    },
+    {
+      "button": "generateTowerStockImageButton",
+      "status": "PASS",
+      "bytes": 605207,
+      "width": 1284,
+      "height": 2778,
+      "share": {
+        "name": "石頭少爺_9933_寶塔線個股分析_2026-10-22_R5.3.2.8.1-TOWER-SHADOW.5.1-DATEGATE.1-REVIEW.2-OBSERVE.2-RESTAURANT.2-RSICTX.1-TOP8.1-SNAPFIX.1-NOPARALLEL.1-BUGFIX.1-FULLBLEED.1-IPHONECARD.1-MOBILE-LINE.1-HEALTH.3-STRUCTURE.1-UNIFIEDUI.1-DATASYNC.1-CLOSE.1-STRUCTURE-DEP.1-STRUCTURE-QUAL.1-STRUCTURE-RISK.1-STRUCTURE-RANK.2-ALLFILTERS-FIX.1-STRUCTURECARD.1-FIXPACK.2-LINESHARE.1-BPREWATCH.1-3DAY-STRUCTURE.1-GRANVILLE.1-CANDLE-REVERSAL.1-DRAX-ALERT.1-DUALSCAN.1-BREAKOUT.1-PULLBACK.1-MOMENTUM.1-FLOW.1-AUDIT82.1-RESEARCH-MOBILE822.1-DATA-CONSISTENCY.1-WORKER-CONTRACT.3-DEEPSCAN-QUORUM.1-ZHTW.1-MULTITF.1-DATASOURCE.1-UNIFIED-REPORT.1-LIVE-AUDIT.1-CONTRACT.1-RAW-HISTORY.1-HEALTH.4-BEGINNER-GUIDE.1-UNIFIED-RESEARCH.R13-SINGLEPAGE.R14-RESTAURANT-TRANSPORT.2-STRUCTURE-CONTEXT.R16-REPORT-EVIDENCE.R16-SOURCE-EVIDENCE.R17-REPORT-REGRESSION.R18-ALL-STOCK-EXPLANATION.R19-N-EQUAL-RESEARCH.V823-BEGINNER.V824-DIRECTION.V829-OPENING.V829-OFFICIAL-HISTORY.V829.jpg",
+        "type": "image/jpeg",
+        "active": true,
+        "keys": [
+          "files"
+        ],
+        "signature": [
+          255,
+          216,
+          255
+        ]
+      }
+    },
+    {
+      "button": "generateTowerStockWatermarkImageButton",
+      "status": "PASS",
+      "bytes": 651506,
+      "width": 1284,
+      "height": 2778,
+      "share": {
+        "name": "石頭少爺_9933_寶塔線個股分析_2026-10-22_R5.3.2.8.1-TOWER-SHADOW.5.1-DATEGATE.1-REVIEW.2-OBSERVE.2-RESTAURANT.2-RSICTX.1-TOP8.1-SNAPFIX.1-NOPARALLEL.1-BUGFIX.1-FULLBLEED.1-IPHONECARD.1-MOBILE-LINE.1-HEALTH.3-STRUCTURE.1-UNIFIEDUI.1-DATASYNC.1-CLOSE.1-STRUCTURE-DEP.1-STRUCTURE-QUAL.1-STRUCTURE-RISK.1-STRUCTURE-RANK.2-ALLFILTERS-FIX.1-STRUCTURECARD.1-FIXPACK.2-LINESHARE.1-BPREWATCH.1-3DAY-STRUCTURE.1-GRANVILLE.1-CANDLE-REVERSAL.1-DRAX-ALERT.1-DUALSCAN.1-BREAKOUT.1-PULLBACK.1-MOMENTUM.1-FLOW.1-AUDIT82.1-RESEARCH-MOBILE822.1-DATA-CONSISTENCY.1-WORKER-CONTRACT.3-DEEPSCAN-QUORUM.1-ZHTW.1-MULTITF.1-DATASOURCE.1-UNIFIED-REPORT.1-LIVE-AUDIT.1-CONTRACT.1-RAW-HISTORY.1-HEALTH.4-BEGINNER-GUIDE.1-UNIFIED-RESEARCH.R13-SINGLEPAGE.R14-RESTAURANT-TRANSPORT.2-STRUCTURE-CONTEXT.R16-REPORT-EVIDENCE.R16-SOURCE-EVIDENCE.R17-REPORT-REGRESSION.R18-ALL-STOCK-EXPLANATION.R19-N-EQUAL-RESEARCH.V823-BEGINNER.V824-DIRECTION.V829-OPENING.V829-OFFICIAL-HISTORY.V829_防盜浮水印.jpg",
+        "type": "image/jpeg",
+        "active": true,
+        "keys": [
+          "files"
+        ],
+        "signature": [
+          255,
+          216,
+          255
+        ]
+      }
+    },
+    {
+      "code": "2330",
+      "name": "台積電",
+      "date": "2026-10-22",
+      "close": 2385,
+      "width": 1284,
+      "height": 2778,
+      "audit": "%7B%22version%22%3A%22V9.3%22%2C%22template%22%3A%22USER_REFERENCE_PROFESSIONAL%22%2C%22code%22%3A%222330%22%2C%22date%22%3A%222026-10-22%22%2C%22width%22%3A1284%2C%22height%22%3A2778%2C%22noOverlap%22%3Atrue%2C%22sections%22%3A%5B%7B%22id%22%3A%22header%22%2C%22top%22%3A0%2C%22bottom%22%3A142%7D%2C%7B%22id%22%3A%22stage%22%2C%22top%22%3A158%2C%22bottom%22%3A307%7D%2C%7B%22id%22%3A%22audiences%22%2C%22top%22%3A324%2C%22bottom%22%3A536%7D%2C%7B%22id%22%3A%22key-levels%22%2C%22top%22%3A552%2C%22bottom%22%3A1076%7D%2C%7B%22id%22%3A%22abc-chart%22%2C%22top%22%3A1094%2C%22bottom%22%3A1614%7D%2C%7B%22id%22%3A%22scenarios-evidence%22%2C%22top%22%3A1630%2C%22bottom%22%3A2076%7D%2C%7B%22id%22%3A%22condition-scores%22%2C%22top%22%3A2093%2C%22bottom%22%3A2333%7D%2C%7B%22id%22%3A%22advanced-confluence%22%2C%22top%22%3A2350%2C%22bottom%22%3A2644%7D%2C%7B%22id%22%3A%22assistant-footer%22%2C%22top%22%3A2656%2C%22bottom%22%3A2778%7D%5D%2C%22metricCount%22%3A7%2C%22levelCount%22%3A10%2C%22abc%22%3A%7B%22A%22%3Anull%2C%22B%22%3Anull%2C%22C%22%3Anull%7D%2C%22close%22%3A2385%2C%22trend%22%3A%7B%22label%22%3A%22%E5%BC%B1%E5%8B%A2%E6%95%B4%E7%90%86%22%2C%22detail%22%3A%22%E8%82%A1%E5%83%B9%E5%9C%A8%E8%BF%91%E8%B5%B0%E5%B9%B3%E6%97%A520MA%E4%B8%8B%E6%96%B9%EF%BC%8C%E5%85%88%E7%9C%8B%E8%83%BD%E5%90%A6%E6%AD%A2%E8%B7%8C%E4%B8%A6%E6%94%B6%E5%BE%A9%E5%9D%87%E7%B7%9A%E3%80%82%EF%BD%9CABC%E4%BB%8D%E5%9C%A8%E5%BD%A2%E6%88%90%22%2C%22tone%22%3A%22red%22%2C%22color%22%3A%22%23C92D45%22%2C%22verified%22%3Atrue%2C%22abc%22%3A%22forming%22%2C%22phase%22%3A%22WAIT_STRUCTURE%22%2C%22wave%22%3A%22%22%2C%22ma20%22%3A2485.25%2C%22slope%22%3A0.04%2C%22above%22%3Afalse%7D%2C%22shortTrend%22%3A%7B%22label%22%3A%22%E7%9F%AD%E7%B7%9A%E8%BD%89%E5%BC%B1%22%2C%22detail%22%3A%22%E6%94%B6%E7%9B%A4%E8%B7%8C%E7%A0%B45MA%E4%B8%94%E7%95%B6%E6%97%A5%E7%BA%8C%E8%B7%8C%EF%BC%8C%E7%9F%AD%E7%B7%9A%E5%8B%95%E8%83%BD%E5%81%8F%E5%BC%B1%E3%80%82%22%2C%22tone%22%3A%22red%22%2C%22color%22%3A%22%23C92D45%22%2C%22verified%22%3Atrue%2C%22ma5%22%3A2410%2C%22prevMa5%22%3A2421%2C%22above5%22%3Afalse%2C%22changePct%22%3A-1.446280991735538%2C%22volumeChangePct%22%3A-16.401565528406437%2C%22nStatus%22%3A%22forming%22%2C%22nPhase%22%3A%22WAIT_STRUCTURE%22%2C%22mediumLabel%22%3A%22%E5%BC%B1%E5%8B%A2%E6%95%B4%E7%90%86%22%7D%2C%22momentumCaution%22%3A%7B%22active%22%3Afalse%2C%22heat%22%3Afalse%2C%22pending%22%3Afalse%2C%22RSI5%22%3A19.81%2C%22RSI10%22%3A32.328985764668346%2C%22B%22%3Anull%2C%22threeStatus%22%3A%22unverified%22%2C%22detail%22%3A%22%22%7D%2C%22referenceLayout%22%3Atrue%7D",
+      "unchanged": true,
+      "trend": {
+        "label": "弱勢整理",
+        "detail": "股價在近走平日20MA下方，先看能否止跌並收復均線。｜ABC仍在形成",
+        "tone": "red",
+        "color": "#C92D45",
+        "verified": true,
+        "abc": "forming",
+        "phase": "WAIT_STRUCTURE",
+        "wave": "",
+        "ma20": 2485.25,
+        "slope": 0.04,
+        "above": false
+      },
+      "shortTrend": {
+        "label": "短線轉弱",
+        "detail": "收盤跌破5MA且當日續跌，短線動能偏弱。",
+        "tone": "red",
+        "color": "#C92D45",
+        "verified": true,
+        "ma5": 2410,
+        "prevMa5": 2421,
+        "above5": false,
+        "changePct": -1.446280991735538,
+        "volumeChangePct": -16.401565528406437,
+        "nStatus": "forming",
+        "nPhase": "WAIT_STRUCTURE",
+        "mediumLabel": "弱勢整理"
+      }
+    },
+    {
+      "code": "2317",
+      "name": "鴻海",
+      "date": "2026-10-22",
+      "close": 245,
+      "width": 1284,
+      "height": 2778,
+      "audit": "%7B%22version%22%3A%22V9.3%22%2C%22template%22%3A%22USER_REFERENCE_PROFESSIONAL%22%2C%22code%22%3A%222317%22%2C%22date%22%3A%222026-10-22%22%2C%22width%22%3A1284%2C%22height%22%3A2778%2C%22noOverlap%22%3Atrue%2C%22sections%22%3A%5B%7B%22id%22%3A%22header%22%2C%22top%22%3A0%2C%22bottom%22%3A142%7D%2C%7B%22id%22%3A%22stage%22%2C%22top%22%3A158%2C%22bottom%22%3A307%7D%2C%7B%22id%22%3A%22audiences%22%2C%22top%22%3A324%2C%22bottom%22%3A536%7D%2C%7B%22id%22%3A%22key-levels%22%2C%22top%22%3A552%2C%22bottom%22%3A1076%7D%2C%7B%22id%22%3A%22abc-chart%22%2C%22top%22%3A1094%2C%22bottom%22%3A1614%7D%2C%7B%22id%22%3A%22scenarios-evidence%22%2C%22top%22%3A1630%2C%22bottom%22%3A2076%7D%2C%7B%22id%22%3A%22condition-scores%22%2C%22top%22%3A2093%2C%22bottom%22%3A2333%7D%2C%7B%22id%22%3A%22advanced-confluence%22%2C%22top%22%3A2350%2C%22bottom%22%3A2644%7D%2C%7B%22id%22%3A%22assistant-footer%22%2C%22top%22%3A2656%2C%22bottom%22%3A2778%7D%5D%2C%22metricCount%22%3A7%2C%22levelCount%22%3A10%2C%22abc%22%3A%7B%22A%22%3A226.5%2C%22B%22%3A274.5%2C%22C%22%3A238%7D%2C%22close%22%3A245%2C%22trend%22%3A%7B%22label%22%3A%22%E5%BC%B1%E5%8B%A2%E6%95%B4%E7%90%86%22%2C%22detail%22%3A%22%E8%82%A1%E5%83%B9%E5%9C%A8%E8%BF%91%E8%B5%B0%E5%B9%B3%E6%97%A520MA%E4%B8%8B%E6%96%B9%EF%BC%8C%E5%85%88%E7%9C%8B%E8%83%BD%E5%90%A6%E6%AD%A2%E8%B7%8C%E4%B8%A6%E6%94%B6%E5%BE%A9%E5%9D%87%E7%B7%9A%E3%80%82%EF%BD%9CABC%E5%BE%85%E7%AA%81%E7%A0%B4%22%2C%22tone%22%3A%22red%22%2C%22color%22%3A%22%23C92D45%22%2C%22verified%22%3Atrue%2C%22abc%22%3A%22abc_ready%22%2C%22phase%22%3A%22WAIT_BREAKOUT%22%2C%22wave%22%3A%22%22%2C%22ma20%22%3A248.23%2C%22slope%22%3A-0.51%2C%22above%22%3Afalse%7D%2C%22shortTrend%22%3A%7B%22label%22%3A%22%E5%9B%9E%E6%AA%94%E8%A7%80%E5%AF%9F%22%2C%22detail%22%3A%22%E7%95%B6%E6%97%A5%E6%8B%89%E5%9B%9E%EF%BC%8C%E4%BD%86%E6%94%B6%E7%9B%A4%E4%BB%8D%E5%AE%88%E5%9C%A85MA%E4%B8%8A%E6%96%B9%E3%80%82%22%2C%22tone%22%3A%22orange%22%2C%22color%22%3A%22%23A45700%22%2C%22verified%22%3Atrue%2C%22ma5%22%3A244%2C%22prevMa5%22%3A242.9%2C%22above5%22%3Atrue%2C%22changePct%22%3A-2.0000000000000018%2C%22volumeChangePct%22%3A-52.588072883740445%2C%22nStatus%22%3A%22abc_ready%22%2C%22nPhase%22%3A%22WAIT_BREAKOUT%22%2C%22mediumLabel%22%3A%22%E5%BC%B1%E5%8B%A2%E6%95%B4%E7%90%86%22%7D%2C%22momentumCaution%22%3A%7B%22active%22%3Afalse%2C%22heat%22%3Afalse%2C%22pending%22%3Afalse%2C%22RSI5%22%3A50.14%2C%22RSI10%22%3A47.668146880271145%2C%22B%22%3A274.5%2C%22threeStatus%22%3A%22unverified%22%2C%22detail%22%3A%22%22%7D%2C%22referenceLayout%22%3Atrue%7D",
+      "unchanged": true,
+      "trend": {
+        "label": "弱勢整理",
+        "detail": "股價在近走平日20MA下方，先看能否止跌並收復均線。｜ABC待突破",
+        "tone": "red",
+        "color": "#C92D45",
+        "verified": true,
+        "abc": "abc_ready",
+        "phase": "WAIT_BREAKOUT",
+        "wave": "",
+        "ma20": 248.23,
+        "slope": -0.51,
+        "above": false
+      },
+      "shortTrend": {
+        "label": "回檔觀察",
+        "detail": "當日拉回，但收盤仍守在5MA上方。",
+        "tone": "orange",
+        "color": "#A45700",
+        "verified": true,
+        "ma5": 244,
+        "prevMa5": 242.9,
+        "above5": true,
+        "changePct": -2.0000000000000018,
+        "volumeChangePct": -52.588072883740445,
+        "nStatus": "abc_ready",
+        "nPhase": "WAIT_BREAKOUT",
+        "mediumLabel": "弱勢整理"
+      }
+    },
+    {
+      "code": "8039",
+      "name": "台虹",
+      "date": "2026-10-22",
+      "close": 266,
+      "width": 1284,
+      "height": 2778,
+      "audit": "%7B%22version%22%3A%22V9.3%22%2C%22template%22%3A%22USER_REFERENCE_PROFESSIONAL%22%2C%22code%22%3A%228039%22%2C%22date%22%3A%222026-10-22%22%2C%22width%22%3A1284%2C%22height%22%3A2778%2C%22noOverlap%22%3Atrue%2C%22sections%22%3A%5B%7B%22id%22%3A%22header%22%2C%22top%22%3A0%2C%22bottom%22%3A142%7D%2C%7B%22id%22%3A%22stage%22%2C%22top%22%3A158%2C%22bottom%22%3A307%7D%2C%7B%22id%22%3A%22audiences%22%2C%22top%22%3A324%2C%22bottom%22%3A536%7D%2C%7B%22id%22%3A%22key-levels%22%2C%22top%22%3A552%2C%22bottom%22%3A1076%7D%2C%7B%22id%22%3A%22abc-chart%22%2C%22top%22%3A1094%2C%22bottom%22%3A1614%7D%2C%7B%22id%22%3A%22scenarios-evidence%22%2C%22top%22%3A1630%2C%22bottom%22%3A2076%7D%2C%7B%22id%22%3A%22condition-scores%22%2C%22top%22%3A2093%2C%22bottom%22%3A2333%7D%2C%7B%22id%22%3A%22advanced-confluence%22%2C%22top%22%3A2350%2C%22bottom%22%3A2644%7D%2C%7B%22id%22%3A%22assistant-footer%22%2C%22top%22%3A2656%2C%22bottom%22%3A2778%7D%5D%2C%22metricCount%22%3A7%2C%22levelCount%22%3A10%2C%22abc%22%3A%7B%22A%22%3A253%2C%22B%22%3A331.5%2C%22C%22%3Anull%7D%2C%22close%22%3A266%2C%22trend%22%3A%7B%22label%22%3A%22%E6%8B%89%E5%9B%9E%E6%95%B4%E7%90%86%22%2C%22detail%22%3A%2220%E6%97%A5%E7%B7%9A%E4%BB%8D%E4%B8%8A%E5%8D%87%EF%BC%8C%E4%BD%86%E8%82%A1%E5%83%B9%E5%B7%B2%E8%B7%8C%E5%88%B0%E7%B7%9A%E4%B8%8B%EF%BC%9B%E5%85%88%E7%9C%8B%E8%83%BD%E5%90%A6%E9%87%8D%E6%96%B0%E7%AB%99%E5%9B%9E%E3%80%82%EF%BD%9CABC%E4%BB%8D%E5%9C%A8%E5%BD%A2%E6%88%90%22%2C%22tone%22%3A%22orange%22%2C%22color%22%3A%22%23A45700%22%2C%22verified%22%3Atrue%2C%22abc%22%3A%22forming%22%2C%22phase%22%3A%22WAIT_C%22%2C%22wave%22%3A%22%22%2C%22ma20%22%3A288.4%2C%22slope%22%3A2.28%2C%22above%22%3Afalse%7D%2C%22shortTrend%22%3A%7B%22label%22%3A%22%E6%80%A5%E8%B7%8C%E8%BD%89%E5%BC%B1%22%2C%22detail%22%3A%22%E5%96%AE%E6%97%A5%E6%98%8E%E9%A1%AF%E4%B8%8B%E8%B7%8C%E4%B8%94%E8%B7%8C%E7%A0%B45MA%EF%BC%8C%E7%9F%AD%E7%B7%9A%E5%85%88%E8%A7%80%E5%AF%9F%E6%AD%A2%E8%B7%8C%E3%80%82%22%2C%22tone%22%3A%22red%22%2C%22color%22%3A%22%23C92D45%22%2C%22verified%22%3Atrue%2C%22ma5%22%3A293.1%2C%22prevMa5%22%3A296.6%2C%22above5%22%3Afalse%2C%22changePct%22%3A-9.215017064846421%2C%22volumeChangePct%22%3A-28.327503015618316%2C%22nStatus%22%3A%22forming%22%2C%22nPhase%22%3A%22WAIT_C%22%2C%22mediumLabel%22%3A%22%E6%8B%89%E5%9B%9E%E6%95%B4%E7%90%86%22%7D%2C%22momentumCaution%22%3A%7B%22active%22%3Afalse%2C%22heat%22%3Afalse%2C%22pending%22%3Afalse%2C%22RSI5%22%3A30.18%2C%22RSI10%22%3A40.66855289412895%2C%22B%22%3A331.5%2C%22threeStatus%22%3A%22unverified%22%2C%22detail%22%3A%22%22%7D%2C%22referenceLayout%22%3Atrue%7D",
+      "unchanged": true,
+      "trend": {
+        "label": "拉回整理",
+        "detail": "20日線仍上升，但股價已跌到線下；先看能否重新站回。｜ABC仍在形成",
+        "tone": "orange",
+        "color": "#A45700",
+        "verified": true,
+        "abc": "forming",
+        "phase": "WAIT_C",
+        "wave": "",
+        "ma20": 288.4,
+        "slope": 2.28,
+        "above": false
+      },
+      "shortTrend": {
+        "label": "急跌轉弱",
+        "detail": "單日明顯下跌且跌破5MA，短線先觀察止跌。",
+        "tone": "red",
+        "color": "#C92D45",
+        "verified": true,
+        "ma5": 293.1,
+        "prevMa5": 296.6,
+        "above5": false,
+        "changePct": -9.215017064846421,
+        "volumeChangePct": -28.327503015618316,
+        "nStatus": "forming",
+        "nPhase": "WAIT_C",
+        "mediumLabel": "拉回整理"
+      }
+    },
+    {
+      "code": "4939",
+      "name": "亞電",
+      "date": "2026-10-22",
+      "close": 72.2,
+      "width": 1284,
+      "height": 2778,
+      "audit": "%7B%22version%22%3A%22V9.3%22%2C%22template%22%3A%22USER_REFERENCE_PROFESSIONAL%22%2C%22code%22%3A%224939%22%2C%22date%22%3A%222026-10-22%22%2C%22width%22%3A1284%2C%22height%22%3A2778%2C%22noOverlap%22%3Atrue%2C%22sections%22%3A%5B%7B%22id%22%3A%22header%22%2C%22top%22%3A0%2C%22bottom%22%3A142%7D%2C%7B%22id%22%3A%22stage%22%2C%22top%22%3A158%2C%22bottom%22%3A307%7D%2C%7B%22id%22%3A%22audiences%22%2C%22top%22%3A324%2C%22bottom%22%3A536%7D%2C%7B%22id%22%3A%22key-levels%22%2C%22top%22%3A552%2C%22bottom%22%3A1076%7D%2C%7B%22id%22%3A%22abc-chart%22%2C%22top%22%3A1094%2C%22bottom%22%3A1614%7D%2C%7B%22id%22%3A%22scenarios-evidence%22%2C%22top%22%3A1630%2C%22bottom%22%3A2076%7D%2C%7B%22id%22%3A%22condition-scores%22%2C%22top%22%3A2093%2C%22bottom%22%3A2333%7D%2C%7B%22id%22%3A%22advanced-confluence%22%2C%22top%22%3A2350%2C%22bottom%22%3A2644%7D%2C%7B%22id%22%3A%22assistant-footer%22%2C%22top%22%3A2656%2C%22bottom%22%3A2778%7D%5D%2C%22metricCount%22%3A7%2C%22levelCount%22%3A10%2C%22abc%22%3A%7B%22A%22%3A70%2C%22B%22%3A85%2C%22C%22%3Anull%7D%2C%22close%22%3A72.2%2C%22trend%22%3A%7B%22label%22%3A%22%E5%BC%B1%E5%8B%A2%E6%95%B4%E7%90%86%22%2C%22detail%22%3A%22%E8%82%A1%E5%83%B9%E5%9C%A8%E8%BF%91%E8%B5%B0%E5%B9%B3%E6%97%A520MA%E4%B8%8B%E6%96%B9%EF%BC%8C%E5%85%88%E7%9C%8B%E8%83%BD%E5%90%A6%E6%AD%A2%E8%B7%8C%E4%B8%A6%E6%94%B6%E5%BE%A9%E5%9D%87%E7%B7%9A%E3%80%82%EF%BD%9CABC%E4%BB%8D%E5%9C%A8%E5%BD%A2%E6%88%90%22%2C%22tone%22%3A%22red%22%2C%22color%22%3A%22%23C92D45%22%2C%22verified%22%3Atrue%2C%22abc%22%3A%22forming%22%2C%22phase%22%3A%22WAIT_C%22%2C%22wave%22%3A%22%22%2C%22ma20%22%3A77.13%2C%22slope%22%3A-0.28%2C%22above%22%3Afalse%7D%2C%22shortTrend%22%3A%7B%22label%22%3A%22%E6%80%A5%E8%B7%8C%E8%BD%89%E5%BC%B1%22%2C%22detail%22%3A%22%E5%96%AE%E6%97%A5%E6%98%8E%E9%A1%AF%E4%B8%8B%E8%B7%8C%E4%B8%94%E8%B7%8C%E7%A0%B45MA%EF%BC%8C%E7%9F%AD%E7%B7%9A%E5%85%88%E8%A7%80%E5%AF%9F%E6%AD%A2%E8%B7%8C%E3%80%82%22%2C%22tone%22%3A%22red%22%2C%22color%22%3A%22%23C92D45%22%2C%22verified%22%3Atrue%2C%22ma5%22%3A78.08000000000001%2C%22prevMa5%22%3A78.8%2C%22above5%22%3Afalse%2C%22changePct%22%3A-7.317073170731714%2C%22volumeChangePct%22%3A-16.38905841055429%2C%22nStatus%22%3A%22forming%22%2C%22nPhase%22%3A%22WAIT_C%22%2C%22mediumLabel%22%3A%22%E5%BC%B1%E5%8B%A2%E6%95%B4%E7%90%86%22%7D%2C%22momentumCaution%22%3A%7B%22active%22%3Afalse%2C%22heat%22%3Afalse%2C%22pending%22%3Afalse%2C%22RSI5%22%3A33.29%2C%22RSI10%22%3A41.152589587844396%2C%22B%22%3A85%2C%22threeStatus%22%3A%22unverified%22%2C%22detail%22%3A%22%22%7D%2C%22referenceLayout%22%3Atrue%7D",
+      "unchanged": true,
+      "trend": {
+        "label": "弱勢整理",
+        "detail": "股價在近走平日20MA下方，先看能否止跌並收復均線。｜ABC仍在形成",
+        "tone": "red",
+        "color": "#C92D45",
+        "verified": true,
+        "abc": "forming",
+        "phase": "WAIT_C",
+        "wave": "",
+        "ma20": 77.13,
+        "slope": -0.28,
+        "above": false
+      },
+      "shortTrend": {
+        "label": "急跌轉弱",
+        "detail": "單日明顯下跌且跌破5MA，短線先觀察止跌。",
+        "tone": "red",
+        "color": "#C92D45",
+        "verified": true,
+        "ma5": 78.08000000000001,
+        "prevMa5": 78.8,
+        "above5": false,
+        "changePct": -7.317073170731714,
+        "volumeChangePct": -16.38905841055429,
+        "nStatus": "forming",
+        "nPhase": "WAIT_C",
+        "mediumLabel": "弱勢整理"
+      }
+    },
+    {
+      "code": "1815",
+      "name": "富喬",
+      "date": "2026-10-22",
+      "close": 139,
+      "width": 1284,
+      "height": 2778,
+      "audit": "%7B%22version%22%3A%22V9.3%22%2C%22template%22%3A%22USER_REFERENCE_PROFESSIONAL%22%2C%22code%22%3A%221815%22%2C%22date%22%3A%222026-10-22%22%2C%22width%22%3A1284%2C%22height%22%3A2778%2C%22noOverlap%22%3Atrue%2C%22sections%22%3A%5B%7B%22id%22%3A%22header%22%2C%22top%22%3A0%2C%22bottom%22%3A142%7D%2C%7B%22id%22%3A%22stage%22%2C%22top%22%3A158%2C%22bottom%22%3A307%7D%2C%7B%22id%22%3A%22audiences%22%2C%22top%22%3A324%2C%22bottom%22%3A536%7D%2C%7B%22id%22%3A%22key-levels%22%2C%22top%22%3A552%2C%22bottom%22%3A1076%7D%2C%7B%22id%22%3A%22abc-chart%22%2C%22top%22%3A1094%2C%22bottom%22%3A1614%7D%2C%7B%22id%22%3A%22scenarios-evidence%22%2C%22top%22%3A1630%2C%22bottom%22%3A2076%7D%2C%7B%22id%22%3A%22condition-scores%22%2C%22top%22%3A2093%2C%22bottom%22%3A2333%7D%2C%7B%22id%22%3A%22advanced-confluence%22%2C%22top%22%3A2350%2C%22bottom%22%3A2644%7D%2C%7B%22id%22%3A%22assistant-footer%22%2C%22top%22%3A2656%2C%22bottom%22%3A2778%7D%5D%2C%22metricCount%22%3A7%2C%22levelCount%22%3A10%2C%22abc%22%3A%7B%22A%22%3A111%2C%22B%22%3A129.5%2C%22C%22%3Anull%7D%2C%22close%22%3A139%2C%22trend%22%3A%7B%22label%22%3A%22%E5%81%8F%E5%A4%9A%22%2C%22detail%22%3A%22%E8%82%A1%E5%83%B9%E7%AB%99%E5%9C%A8%E4%B8%8A%E5%8D%87%E6%97%A520MA%E4%B8%8A%E6%96%B9%EF%BC%8C%E8%B6%A8%E5%8B%A2%E8%83%8C%E6%99%AF%E5%81%8F%E5%BC%B7%E3%80%82%EF%BD%9CABC%E4%BB%8D%E5%9C%A8%E5%BD%A2%E6%88%90%22%2C%22tone%22%3A%22green%22%2C%22color%22%3A%22%2311834A%22%2C%22verified%22%3Atrue%2C%22abc%22%3A%22forming%22%2C%22phase%22%3A%22WAIT_C%22%2C%22wave%22%3A%22%22%2C%22ma20%22%3A130.43%2C%22slope%22%3A6.04%2C%22above%22%3Atrue%7D%2C%22shortTrend%22%3A%7B%22label%22%3A%22%E6%80%A5%E8%B7%8C%E8%BD%89%E5%BC%B1%22%2C%22detail%22%3A%22%E5%96%AE%E6%97%A5%E6%98%8E%E9%A1%AF%E4%B8%8B%E8%B7%8C%E4%B8%94%E8%B7%8C%E7%A0%B45MA%EF%BC%8C%E7%9F%AD%E7%B7%9A%E5%85%88%E8%A7%80%E5%AF%9F%E6%AD%A2%E8%B7%8C%E3%80%82%22%2C%22tone%22%3A%22red%22%2C%22color%22%3A%22%23C92D45%22%2C%22verified%22%3Atrue%2C%22ma5%22%3A146.8%2C%22prevMa5%22%3A144.5%2C%22above5%22%3Afalse%2C%22changePct%22%3A-5.442176870748295%2C%22volumeChangePct%22%3A7.355365759413113%2C%22nStatus%22%3A%22forming%22%2C%22nPhase%22%3A%22WAIT_C%22%2C%22mediumLabel%22%3A%22%E5%81%8F%E5%A4%9A%22%7D%2C%22momentumCaution%22%3A%7B%22active%22%3Afalse%2C%22heat%22%3Afalse%2C%22pending%22%3Afalse%2C%22RSI5%22%3A47.13%2C%22RSI10%22%3A55.315488803430995%2C%22B%22%3A129.5%2C%22threeStatus%22%3A%22unverified%22%2C%22detail%22%3A%22%22%7D%2C%22referenceLayout%22%3Atrue%7D",
+      "unchanged": true,
+      "trend": {
+        "label": "偏多",
+        "detail": "股價站在上升日20MA上方，趨勢背景偏強。｜ABC仍在形成",
+        "tone": "green",
+        "color": "#11834A",
+        "verified": true,
+        "abc": "forming",
+        "phase": "WAIT_C",
+        "wave": "",
+        "ma20": 130.43,
+        "slope": 6.04,
+        "above": true
+      },
+      "shortTrend": {
+        "label": "急跌轉弱",
+        "detail": "單日明顯下跌且跌破5MA，短線先觀察止跌。",
+        "tone": "red",
+        "color": "#C92D45",
+        "verified": true,
+        "ma5": 146.8,
+        "prevMa5": 144.5,
+        "above5": false,
+        "changePct": -5.442176870748295,
+        "volumeChangePct": 7.355365759413113,
+        "nStatus": "forming",
+        "nPhase": "WAIT_C",
+        "mediumLabel": "偏多"
+      }
+    },
+    {
+      "code": "2059",
+      "name": "川湖",
+      "date": "2026-10-22",
+      "close": 9755,
+      "width": 1284,
+      "height": 2778,
+      "audit": "%7B%22version%22%3A%22V9.3%22%2C%22template%22%3A%22USER_REFERENCE_PROFESSIONAL%22%2C%22code%22%3A%222059%22%2C%22date%22%3A%222026-10-22%22%2C%22width%22%3A1284%2C%22height%22%3A2778%2C%22noOverlap%22%3Atrue%2C%22sections%22%3A%5B%7B%22id%22%3A%22header%22%2C%22top%22%3A0%2C%22bottom%22%3A142%7D%2C%7B%22id%22%3A%22stage%22%2C%22top%22%3A158%2C%22bottom%22%3A307%7D%2C%7B%22id%22%3A%22audiences%22%2C%22top%22%3A324%2C%22bottom%22%3A536%7D%2C%7B%22id%22%3A%22key-levels%22%2C%22top%22%3A552%2C%22bottom%22%3A1076%7D%2C%7B%22id%22%3A%22abc-chart%22%2C%22top%22%3A1094%2C%22bottom%22%3A1614%7D%2C%7B%22id%22%3A%22scenarios-evidence%22%2C%22top%22%3A1630%2C%22bottom%22%3A2076%7D%2C%7B%22id%22%3A%22condition-scores%22%2C%22top%22%3A2093%2C%22bottom%22%3A2333%7D%2C%7B%22id%22%3A%22advanced-confluence%22%2C%22top%22%3A2350%2C%22bottom%22%3A2644%7D%2C%7B%22id%22%3A%22assistant-footer%22%2C%22top%22%3A2656%2C%22bottom%22%3A2778%7D%5D%2C%22metricCount%22%3A7%2C%22levelCount%22%3A10%2C%22abc%22%3A%7B%22A%22%3Anull%2C%22B%22%3Anull%2C%22C%22%3Anull%7D%2C%22close%22%3A9755%2C%22trend%22%3A%7B%22label%22%3A%22%E5%81%8F%E7%A9%BA%22%2C%22detail%22%3A%22%E8%82%A1%E5%83%B9%E5%9C%A8%E4%B8%8B%E9%99%8D%E6%97%A520MA%E4%B8%8B%E6%96%B9%EF%BC%8C%E8%B6%A8%E5%8B%A2%E8%88%87%E5%83%B9%E6%A0%BC%E4%BD%8D%E7%BD%AE%E5%9D%87%E5%81%8F%E5%BC%B1%E3%80%82%EF%BD%9CABC%E4%BB%8D%E5%9C%A8%E5%BD%A2%E6%88%90%22%2C%22tone%22%3A%22red%22%2C%22color%22%3A%22%23C92D45%22%2C%22verified%22%3Atrue%2C%22abc%22%3A%22forming%22%2C%22phase%22%3A%22WAIT_STRUCTURE%22%2C%22wave%22%3A%22%22%2C%22ma20%22%3A11283.25%2C%22slope%22%3A-4.49%2C%22above%22%3Afalse%7D%2C%22shortTrend%22%3A%7B%22label%22%3A%22%E7%9F%AD%E7%B7%9A%E8%BD%89%E5%BC%B1%22%2C%22detail%22%3A%22%E6%94%B6%E7%9B%A4%E8%B7%8C%E7%A0%B45MA%E4%B8%94%E7%95%B6%E6%97%A5%E7%BA%8C%E8%B7%8C%EF%BC%8C%E7%9F%AD%E7%B7%9A%E5%8B%95%E8%83%BD%E5%81%8F%E5%BC%B1%E3%80%82%22%2C%22tone%22%3A%22red%22%2C%22color%22%3A%22%23C92D45%22%2C%22verified%22%3Atrue%2C%22ma5%22%3A9962%2C%22prevMa5%22%3A9955%2C%22above5%22%3Afalse%2C%22changePct%22%3A-3.224206349206349%2C%22volumeChangePct%22%3A-34.19986230117525%2C%22nStatus%22%3A%22forming%22%2C%22nPhase%22%3A%22WAIT_STRUCTURE%22%2C%22mediumLabel%22%3A%22%E5%81%8F%E7%A9%BA%22%7D%2C%22momentumCaution%22%3A%7B%22active%22%3Afalse%2C%22heat%22%3Afalse%2C%22pending%22%3Afalse%2C%22RSI5%22%3A25.85%2C%22RSI10%22%3A30.498036357273705%2C%22B%22%3Anull%2C%22threeStatus%22%3A%22unverified%22%2C%22detail%22%3A%22%22%7D%2C%22referenceLayout%22%3Atrue%7D",
+      "unchanged": true,
+      "trend": {
+        "label": "偏空",
+        "detail": "股價在下降日20MA下方，趨勢與價格位置均偏弱。｜ABC仍在形成",
+        "tone": "red",
+        "color": "#C92D45",
+        "verified": true,
+        "abc": "forming",
+        "phase": "WAIT_STRUCTURE",
+        "wave": "",
+        "ma20": 11283.25,
+        "slope": -4.49,
+        "above": false
+      },
+      "shortTrend": {
+        "label": "短線轉弱",
+        "detail": "收盤跌破5MA且當日續跌，短線動能偏弱。",
+        "tone": "red",
+        "color": "#C92D45",
+        "verified": true,
+        "ma5": 9962,
+        "prevMa5": 9955,
+        "above5": false,
+        "changePct": -3.224206349206349,
+        "volumeChangePct": -34.19986230117525,
+        "nStatus": "forming",
+        "nPhase": "WAIT_STRUCTURE",
+        "mediumLabel": "偏空"
+      }
+    },
+    {
+      "button": "generateMomentumImageButton",
+      "status": "PASS",
+      "bytes": 574749,
+      "width": 1284,
+      "height": 2778,
+      "share": {
+        "name": "石頭少爺_主升段_前八名_iPhone12ProMax滿版_01-3_20261026_V9.25.jpg",
+        "type": "image/jpeg",
+        "active": true,
+        "keys": [
+          "files"
+        ],
+        "signature": [
+          255,
+          216,
+          255
+        ]
+      }
+    },
+    {
+      "button": "generateMomentumWatermarkImageButton",
+      "status": "PASS",
+      "bytes": 618583,
+      "width": 1284,
+      "height": 2778,
+      "share": {
+        "name": "石頭少爺_主升段_前八名_iPhone12ProMax滿版_防盜浮水印_01-3_20261026_V9.25.jpg",
+        "type": "image/jpeg",
+        "active": true,
+        "keys": [
+          "files"
+        ],
+        "signature": [
+          255,
+          216,
+          255
+        ]
+      }
+    },
+    {
+      "button": "downloadMomentumAllCandidatesImageButton",
+      "status": "PASS",
+      "bytes": 398935,
+      "width": 1284,
+      "height": 2778,
+      "share": {
+        "name": "石頭少爺_主升段_全部結果摘要_01-3_20261026_V9.25.jpg",
+        "type": "image/jpeg",
+        "active": true,
+        "keys": [
+          "files"
+        ],
+        "signature": [
+          255,
+          216,
+          255
+        ]
+      }
+    },
+    {
+      "button": "downloadMomentumAllCandidatesImageWatermarkButton",
+      "status": "PASS",
+      "bytes": 444445,
+      "width": 1284,
+      "height": 2778,
+      "share": {
+        "name": "石頭少爺_主升段_全部結果摘要_防盜浮水印_01-3_20261026_V9.25.jpg",
+        "type": "image/jpeg",
+        "active": true,
+        "keys": [
+          "files"
+        ],
+        "signature": [
+          255,
+          216,
+          255
+        ]
+      }
+    },
+    {
+      "button": "generateDayTradeImageButton",
+      "status": "PASS",
+      "bytes": 551077,
+      "width": 1284,
+      "height": 2778,
+      "share": {
+        "name": "石頭少爺_當沖_前八名_iPhone12ProMax滿版_01-3_20261026_V9.25.jpg",
+        "type": "image/jpeg",
+        "active": true,
+        "keys": [
+          "files"
+        ],
+        "signature": [
+          255,
+          216,
+          255
+        ]
+      }
+    },
+    {
+      "button": "generateDayTradeWatermarkImageButton",
+      "status": "PASS",
+      "bytes": 593625,
+      "width": 1284,
+      "height": 2778,
+      "share": {
+        "name": "石頭少爺_當沖_前八名_iPhone12ProMax滿版_防盜浮水印_01-3_20261026_V9.25.jpg",
+        "type": "image/jpeg",
+        "active": true,
+        "keys": [
+          "files"
+        ],
+        "signature": [
+          255,
+          216,
+          255
+        ]
+      }
+    },
+    {
+      "button": "downloadDayTradeAllCandidatesImageButton",
+      "status": "PASS",
+      "bytes": 397657,
+      "width": 1284,
+      "height": 2778,
+      "share": {
+        "name": "石頭少爺_當沖_全部結果摘要_01-3_20261026_V9.25.jpg",
+        "type": "image/jpeg",
+        "active": true,
+        "keys": [
+          "files"
+        ],
+        "signature": [
+          255,
+          216,
+          255
+        ]
+      }
+    },
+    {
+      "button": "downloadDayTradeAllCandidatesImageWatermarkButton",
+      "status": "PASS",
+      "bytes": 446298,
+      "width": 1284,
+      "height": 2778,
+      "share": {
+        "name": "石頭少爺_當沖_全部結果摘要_防盜浮水印_01-3_20261026_V9.25.jpg",
+        "type": "image/jpeg",
+        "active": true,
+        "keys": [
+          "files"
+        ],
+        "signature": [
+          255,
+          216,
+          255
+        ]
+      }
+    },
+    {
+      "button": "strongStockTopImage",
+      "status": "PASS",
+      "bytes": 330195,
+      "width": 1284,
+      "height": 2778,
+      "share": {
+        "name": "強勢飆股濾網_部分驗證_前8檔_01-3_20261022_V9.25.jpg",
+        "type": "image/jpeg",
+        "active": true,
+        "keys": [
+          "files"
+        ],
+        "signature": [
+          255,
+          216,
+          255
+        ]
+      }
+    },
+    {
+      "button": "strongStockAllImage",
+      "status": "PASS",
+      "bytes": 330195,
+      "width": 1284,
+      "height": 2778,
+      "share": {
+        "name": "強勢飆股濾網_部分驗證_全部候選_01-3_20261022_V9.25.jpg",
+        "type": "image/jpeg",
+        "active": true,
+        "keys": [
+          "files"
+        ],
+        "signature": [
+          255,
+          216,
+          255
+        ]
+      }
+    },
+    {
+      "button": "testStrongWatermark0",
+      "status": "PASS",
+      "bytes": 373281,
+      "width": 1284,
+      "height": 2778,
+      "share": {
+        "name": "強勢飆股濾網_部分驗證_前8檔_浮水印_01-3_20261022_V9.25.jpg",
+        "type": "image/jpeg",
+        "active": true,
+        "keys": [
+          "files"
+        ],
+        "signature": [
+          255,
+          216,
+          255
+        ]
+      }
+    },
+    {
+      "button": "testStrongWatermark1",
+      "status": "PASS",
+      "bytes": 373281,
+      "width": 1284,
+      "height": 2778,
+      "share": {
+        "name": "強勢飆股濾網_部分驗證_全部候選_浮水印_01-3_20261022_V9.25.jpg",
+        "type": "image/jpeg",
+        "active": true,
+        "keys": [
+          "files"
+        ],
+        "signature": [
+          255,
+          216,
+          255
+        ]
+      }
+    },
+    {
+      "button": "towerImage",
+      "status": "PASS",
+      "bytes": 289049,
+      "width": 1284,
+      "height": 2778,
+      "share": {
+        "name": "TOWER_GOLD_V9.25_01-4_2026-10-22_V9.25.jpg",
+        "type": "image/jpeg",
+        "active": true,
+        "keys": [
+          "files"
+        ],
+        "signature": [
+          255,
+          216,
+          255
+        ]
+      }
+    },
+    {
+      "button": "restaurantImage",
+      "status": "PASS_EMPTY_GUARD"
+    },
+    {
+      "button": "restaurantAllImages",
+      "status": "PASS_EMPTY_GUARD"
+    },
+    {
+      "button": "restaurantImage",
+      "status": "PASS",
+      "fixture": "SYNTHETIC",
+      "share": {
+        "name": "2560_V9.25_01-2_2026-11-26_V9.25.jpg",
+        "type": "image/jpeg",
+        "active": true,
+        "keys": [
+          "files"
+        ],
+        "signature": [
+          255,
+          216,
+          255
+        ]
+      }
+    },
+    {
+      "button": "restaurantAllImages",
+      "status": "PASS",
+      "fixture": "SYNTHETIC",
+      "share": {
+        "name": "2560_V9.25_單一張完整長圖_2026-11-26_V9.25.jpg",
+        "type": "image/jpeg",
+        "active": true,
+        "keys": [
+          "files"
+        ],
+        "signature": [
+          255,
+          216,
+          255
+        ]
+      }
+    },
+    {
+      "button": "generateMarketImageButton",
+      "status": "PASS",
+      "fixture": "RECORDED",
+      "share": {
+        "name": "石頭少爺_TAIEX_大盤分析圖_iPhone12ProMax_1284x2778_單張滿版_20261126_V9.25.jpg",
+        "type": "image/jpeg",
+        "active": true,
+        "keys": [
+          "files"
+        ],
+        "signature": [
+          255,
+          216,
+          255
+        ]
+      }
+    },
+    {
+      "button": "generateMarketWatermarkImageButton",
+      "status": "PASS",
+      "fixture": "RECORDED",
+      "share": {
+        "name": "石頭少爺_TAIEX_大盤分析圖_防盜浮水印_iPhone12ProMax_1284x2778_單張滿版_20261126_V9.25.jpg",
+        "type": "image/jpeg",
+        "active": true,
+        "keys": [
+          "files"
+        ],
+        "signature": [
+          255,
+          216,
+          255
+        ]
+      }
+    },
+    {
+      "button": "copyDayTradeTop8ImageButton",
+      "status": "PASS_PNG_CLIPBOARD"
+    },
+    {
+      "button": "copyDayTradeTop8ImageWatermarkButton",
+      "status": "PASS_PNG_CLIPBOARD"
+    },
+    {
+      "button": "copyDayTradeAllCandidatesImageButton",
+      "status": "PASS_PNG_CLIPBOARD"
+    },
+    {
+      "button": "copyDayTradeAllCandidatesImageWatermarkButton",
+      "status": "PASS_PNG_CLIPBOARD"
+    },
+    {
+      "button": "towerZip",
+      "status": "PASS"
+    },
+    {
+      "button": "#copyReportButton",
+      "status": "PASS_TEXT_CLIPBOARD"
+    },
+    {
+      "button": "#copyNewbieButton",
+      "status": "PASS_TEXT_CLIPBOARD"
+    },
+    {
+      "button": "#copyThreePanReportButton",
+      "status": "PASS_TEXT_CLIPBOARD"
+    },
+    {
+      "button": "#copyTowerStockReportButton",
+      "status": "PASS_TEXT_CLIPBOARD"
+    },
+    {
+      "button": "#copyMomentumReportButton",
+      "status": "PASS_TEXT_CLIPBOARD"
+    },
+    {
+      "button": "#copyMomentumFullPart1Button",
+      "status": "PASS_TEXT_CLIPBOARD"
+    },
+    {
+      "button": "#copyMomentumFullPart2Button",
+      "status": "PASS_TEXT_CLIPBOARD"
+    },
+    {
+      "button": "#copyDayTradeReportButton",
+      "status": "PASS_TEXT_CLIPBOARD"
+    },
+    {
+      "button": "[onclick=\"copyDayTradeReportPartV1(1)\"]",
+      "status": "PASS_TEXT_CLIPBOARD"
+    },
+    {
+      "button": "[onclick=\"copyDayTradeReportPartV1(2)\"]",
+      "status": "PASS_TEXT_CLIPBOARD"
+    },
+    {
+      "button": "[onclick=\"copyStrongStockTextV47()\"]",
+      "status": "PASS_TEXT_CLIPBOARD"
+    },
+    {
+      "button": "#towerCopy",
+      "status": "PASS_TEXT_CLIPBOARD"
+    },
+    {
+      "button": "#restaurantCopy",
+      "status": "PASS_TEXT_CLIPBOARD"
+    },
+    {
+      "button": "#copyMarketReportButton",
+      "status": "PASS_TEXT_CLIPBOARD"
+    },
+    {
+      "button": "#downloadTowerStockReportButton",
+      "status": "PASS_TEXT_DOWNLOAD",
+      "originalFilenameLength": 937
+    },
+    {
+      "button": "#downloadMomentumFullReportButton",
+      "status": "PASS_TEXT_DOWNLOAD",
+      "originalFilenameLength": 245
+    },
+    {
+      "button": "#downloadDayTradeFullReportButton",
+      "status": "PASS_TEXT_DOWNLOAD",
+      "originalFilenameLength": 254
+    },
+    {
+      "button": "[onclick=\"downloadStrongStockTextV47()\"]",
+      "status": "PASS_TEXT_DOWNLOAD",
+      "originalFilenameLength": 31
+    },
+    {
+      "button": "#towerDownload",
+      "status": "PASS_TEXT_DOWNLOAD",
+      "originalFilenameLength": 31
+    },
+    {
+      "button": "#restaurantText",
+      "status": "PASS_TEXT_DOWNLOAD",
+      "originalFilenameLength": 928
+    },
+    {
+      "button": "#restaurantJSON",
+      "status": "PASS_TEXT_DOWNLOAD",
+      "originalFilenameLength": 22
+    }
+  ],
+  "errors": [],
+  "scope": "Recorded worker responses through real query buttons; report renderers and PNG pixels"
+}

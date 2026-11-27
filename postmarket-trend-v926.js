@@ -23,7 +23,7 @@ const stages = Object.freeze({
   INITIAL_BEAR:'初跌轉弱', BEAR_CONTINUATION:'主跌延續', LATE_BEAR:'末跌警戒',
   LOW_LEVEL_BASE_CANDIDATE:'低檔止跌候選', BEAR_STRUCTURE_REPAIRED:'空頭結構修復',
   HEALTHY_CONSOLIDATION:'健康整理', RANGE:'區間盤整', CONFLICT:'多空訊號衝突',
-  UNCONFIRMED:'方向未確認', DATA_INSUFFICIENT:'資料不足'
+  UNCONFIRMED:'階段待確認', DATA_INSUFFICIENT:'資料不足'
 });
 
 function verifiedLevels(ctx, levels = {}) {
@@ -233,7 +233,7 @@ function nextSessionScenario(ctx, trend, life, reversal, regime, fvgPlan) {
   if (!ctx.nextSession || !valid || !(bear<bull)) return {...unavailable('尚無明確位置或下一交易日曆未確認'),
     levels:{close,lifeLine:life?.price??null,openingDefense:defense},evidence};
   return {
-    status:'HYPOTHETICAL',nextSessionDate:ctx.nextSession,levels:{continuation:resistance,close,lifeLine:life?.price??null,support,resistance,
+    status:'HYPOTHETICAL',nextSessionDate:ctx.nextSession,levels:{continuation:bull,close,lifeLine:life?.price??null,support,resistance,
       openingDefense:defense,fvg:fvgPlan.status==='RESEARCH_ONLY'?fvgPlan:null},evidence,
     opening:defense===null?null:`若開盤低於 ${defense}${unit}，留意短線轉弱。`,
     conditions:[
@@ -291,7 +291,8 @@ function analyze(snapshot, {levels={}, benchmark, breadth, previousWatch, shadow
     beginnerExplanation:{
       direction:trendLifecycle.label,
       momentum:trendLifecycle.alert??momentumStall.summary??null,
-      breakout:breakoutConfirmation.status==='FAILED_BREAKOUT'?'突破關卡後，收盤又回到原區間。':
+      breakout:breakoutConfirmation.status==='FAILED_BREAKOUT'?
+        (breakoutConfirmation.selected.direction==='BEAR'?'跌破關卡後，收盤又回到原區間。':'突破關卡後，收盤又回到原區間。'):
         breakoutConfirmation.status==='RETEST_HELD'?'突破後回來測試關卡，暫時守住。':null,
       pattern:reversalWatch.summary??regime.summary??null,
       next:scenario.conditions?.map(c=>c.summary)??['目前尚無明確位置。']

@@ -1,0 +1,108 @@
+{
+  "mode": "pages build",
+  "browser": "chromium",
+  "results": [
+    {
+      "width": 320,
+      "height": 568,
+      "colorScheme": "light"
+    },
+    {
+      "width": 320,
+      "height": 568,
+      "colorScheme": "dark"
+    },
+    {
+      "width": 375,
+      "height": 667,
+      "colorScheme": "light"
+    },
+    {
+      "width": 375,
+      "height": 667,
+      "colorScheme": "dark"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "colorScheme": "light"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "colorScheme": "dark"
+    },
+    {
+      "width": 414,
+      "height": 896,
+      "colorScheme": "light"
+    },
+    {
+      "width": 414,
+      "height": 896,
+      "colorScheme": "dark"
+    },
+    {
+      "width": 428,
+      "height": 926,
+      "colorScheme": "light"
+    },
+    {
+      "width": 428,
+      "height": 926,
+      "colorScheme": "dark"
+    },
+    {
+      "width": 430,
+      "height": 932,
+      "colorScheme": "light"
+    },
+    {
+      "width": 430,
+      "height": 932,
+      "colorScheme": "dark"
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "colorScheme": "light"
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "colorScheme": "dark"
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "colorScheme": "light"
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "colorScheme": "dark"
+    },
+    {
+      "width": 926,
+      "height": 428,
+      "colorScheme": "light"
+    },
+    {
+      "width": 926,
+      "height": 428,
+      "colorScheme": "dark"
+    },
+    {
+      "width": 568,
+      "height": 320,
+      "colorScheme": "light"
+    },
+    {
+      "width": 568,
+      "height": 320,
+      "colorScheme": "dark"
+    }
+  ],
+  "errors": [],
+  "standalone": true
+}

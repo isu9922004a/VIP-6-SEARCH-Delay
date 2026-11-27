@@ -13,6 +13,7 @@ let state = null;
 let revision = 0;
 let sharing = false;
 let preparing = false;
+let pngPending = false;
 let failure = '';
 let previewUrl = null;
 let pngUrl = null;
@@ -106,7 +107,7 @@ function controls() {
 function updateButton() {
   const button = by('imageShareButton');
   if (!button) return;
-  button.disabled = preparing || sharing;
+  button.disabled = preparing || pngPending || sharing;
   button.textContent = state?.files.length > 1
     ? `📤 分享到 LINE（${state.index + 1}/${state.files.length} 段）`
     : '📤 分享到 LINE';
@@ -249,7 +250,7 @@ async function prepare(canvas, {filename = 'report.png'} = {}) {
 
 async function shareCurrent() {
   if (sharing) return;
-  if (preparing || !state) {
+  if (preparing || pngPending || !state) {
     note(failure || '圖片分享準備中…');
     return;
   }
@@ -345,6 +346,7 @@ function nextRequest() {
 async function show(canvas, filename, title, {owner} = {}) {
   const modal = mount();
   const request = nextRequest();
+  pngPending = true;
   const opening = !modal.classList.contains('show');
   modal.dispatchEvent(new CustomEvent('shitou-preview-change', {detail: owner}));
   clear();
@@ -368,12 +370,15 @@ async function show(canvas, filename, title, {owner} = {}) {
     modal.setAttribute('aria-hidden', 'false');
     modal.querySelector('.image-modal-close').focus();
   }
+  const shareReady = prepare(canvas, {filename});
   let blob;
   try {
     blob = await encode(canvas, 'image/png');
   } catch (error) {
     if (request !== root.ShitouReportPreviewEpoch) return false;
+    clear();
     preparing = false;
+    pngPending = false;
     failure = 'PNG 編碼失敗，請重新產生圖片。';
     updateButton();
     note(failure);
@@ -383,7 +388,9 @@ async function show(canvas, filename, title, {owner} = {}) {
   pngUrl = URL.createObjectURL(blob);
   by('imagePreviewImg').src = pngUrl;
   link.href = pngUrl;
-  await prepare(canvas, {filename});
+  pngPending = false;
+  updateButton();
+  await shareReady;
   return request === root.ShitouReportPreviewEpoch;
 }
 
@@ -391,6 +398,7 @@ function close() {
   const modal = by('imagePreviewModal');
   if (!modal) return;
   nextRequest();
+  pngPending = false;
   modal.dispatchEvent(new CustomEvent('shitou-preview-change'));
   clear();
   resetPng();

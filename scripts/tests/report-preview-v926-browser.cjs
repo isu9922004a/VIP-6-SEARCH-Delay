@@ -97,6 +97,16 @@ async function verifyShare(page) {
   await page.evaluate(() => {shareMode = 'reject-file';});
   await share.click();
   assert.match(await status.textContent(), /拒絕分享這個圖片檔/);
+  for (const [link,signature,extension] of [
+    ['#imageDownloadLink',[137,80,78,71],'.png'], ['#lineShareSave',[255,216,255],'.jpg']
+  ]) {
+    const downloading=page.waitForEvent('download');
+    await page.locator(link).click();
+    const download=await downloading;
+    assert.ok(download.suggestedFilename().endsWith(extension));
+    const bytes=fs.readFileSync(await download.path());
+    assert.deepEqual([...bytes.subarray(0,signature.length)],signature);
+  }
   for (const [mode, expected] of [['cancel', /分享已取消/], ['system', /系統分享未完成/], ['gesture', /未允許分享/]]) {
     await page.evaluate(mode => {shareMode = mode;}, mode);
     await share.click();
@@ -119,7 +129,10 @@ async function verifyShare(page) {
     const slow = document.createElement('canvas');
     slow.width = slow.height = 20;
     const encode = slow.toBlob.bind(slow);
-    slow.toBlob = (callback, ...options) => {window.finishOldPng = () => encode(callback, ...options);};
+    slow.toBlob = (callback, mime, ...options) => {
+      if (mime === 'image/png') window.finishOldPng = () => encode(callback, mime, ...options);
+      else encode(callback, mime, ...options);
+    };
     window.oldPreview = showInfographicPreviewV3328(slow, '一般_2330_20261125.png', '舊報告');
   });
   assert.equal(await share.isDisabled(), true);
@@ -142,6 +155,20 @@ async function verifyShare(page) {
   await page.evaluate(() => {finishShare();});
   await page.waitForFunction(() => !document.querySelector('#imageShareButton').disabled);
   assert.doesNotMatch(await status.textContent(), /已交由系統分享/);
+  const failed=await page.evaluate(async () => {
+    const canvas=document.createElement('canvas');
+    canvas.width=canvas.height=20;
+    const encode=canvas.toBlob.bind(canvas);
+    canvas.toBlob=(done,mime,...options)=>mime==='image/jpeg'?done(null):encode(done,mime,...options);
+    return showInfographicPreviewV3328(canvas,'png-fallback.png','編碼備援');
+  });
+  assert.equal(failed,true);
+  assert.equal(await share.isDisabled(),false);
+  assert.ok(await page.locator('#imageDownloadLink').getAttribute('href'));
+  assert.equal(await page.locator('#lineShareSave').getAttribute('href'),null);
+  await share.click();
+  assert.match(await status.textContent(),/JPG 編碼失敗/);
+  assert.equal(await page.evaluate(() => shareRecords.length),3);
 }
 
 async function main() {

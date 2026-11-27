@@ -20,6 +20,14 @@ async function main() {
     const phone = { width: 390, height: 844 };
     const page = await browser.newPage({ viewport: phone, isMobile: true, hasTouch: true, acceptDownloads: true });
     page.on('pageerror', error => errors.push(error.message));
+    await page.addInitScript(() => {
+      window.macdShare = null;
+      Object.defineProperty(navigator, 'canShare', {configurable:true,value:({files})=>files[0] instanceof File});
+      Object.defineProperty(navigator, 'share', {configurable:true,value:async ({files:[file]})=>{
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        window.macdShare = {name:file.name, type:file.type, signature:[...bytes.slice(0,3)]};
+      }});
+    });
     await page.clock.setFixedTime(new Date(date + 'T11:00:00Z'));
     let inputs = sample.artifact;
     let releaseInputs;
@@ -94,6 +102,12 @@ async function main() {
       assert.equal(png.subarray(1, 4).toString(), 'PNG');
       assert.equal(png.readUInt32BE(16), 1284);
       assert.equal(png.readUInt32BE(20), 2778);
+      await page.waitForFunction(()=>!!ShitouImageShareV1.getState());
+      const expected = await page.evaluate(()=>{window.macdShare=null;return ShitouImageShareV1.getState().files[0].name;});
+      await page.locator('#imageShareButton').click();
+      await page.waitForFunction(()=>window.macdShare!==null);
+      assert.deepEqual(await page.evaluate(()=>window.macdShare),
+        {name:expected,type:'image/jpeg',signature:[255,216,255]});
     }
     await exportImage('structureImage', 'top-8.png');
     await page.evaluate(() => closeInfographicPreviewV3328());

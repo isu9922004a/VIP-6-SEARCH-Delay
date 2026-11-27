@@ -1,0 +1,34 @@
+{
+  "imagePreviewModal": {
+    "top": 0,
+    "bottom": 926,
+    "display": "block",
+    "overflow": "auto"
+  },
+  "imagePreviewImg": {
+    "top": 94,
+    "bottom": 2360.65625,
+    "display": "block",
+    "overflow": "clip"
+  },
+  "imageShareButton": {
+    "top": 2370.65625,
+    "bottom": 2418.65625,
+    "display": "flex",
+    "overflow": "visible",
+    "disabled": true,
+    "text": "📤 分享第 1/2 段到 LINE"
+  },
+  "imageDownloadLink": {
+    "top": 2370.65625,
+    "bottom": 2418.65625,
+    "display": "flex",
+    "overflow": "visible"
+  },
+  "lineSharePanel": {
+    "top": 2511.046875,
+    "bottom": 2698.234375,
+    "display": "block",
+    "overflow": "visible"
+  }
+}

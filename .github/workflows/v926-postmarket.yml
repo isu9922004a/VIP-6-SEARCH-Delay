@@ -38,6 +38,7 @@ jobs:
           npm run test:worker-browser -- "$RUNNER_TEMP/v926/worker-source"
           node scripts/tests/life-v94-mobile-browser.cjs "$RUNNER_TEMP/v926/life94"
           node scripts/tests/market-comfort-browser.cjs "$RUNNER_TEMP/v926/market"
+          node scripts/tests/v84-report-browser.cjs "$RUNNER_TEMP/v926/scan-reports"
           node scripts/tests/enhanced-macd-v923-browser.cjs "$RUNNER_TEMP/v926/macd"
           node scripts/tests/kronos-v83-browser.cjs "$RUNNER_TEMP/v926/kronos"
           node scripts/tests/market-life-v96-browser.cjs "$RUNNER_TEMP/v926/market-life"
@@ -59,3 +60,42 @@ jobs:
         with:
           name: v926-candidate-evidence
           path: ${{ runner.temp }}/v926
+
+  formal-strategy-regression:
+    if: github.event_name == 'push' || startsWith(github.head_ref, 'feat/v926-')
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      CHROME_BIN: /usr/bin/google-chrome
+      V95_USE_OFFICIAL_MACD: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+      - name: Replay the same static market and stock responses through each strategy
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || '582a0decfb1cf727287d3c4efbe3874469c248a2' }}
+        run: |
+          git worktree add --detach "$RUNNER_TEMP/v926-base" "$BASE_SHA"
+          V95_SOURCE_ROOT="$RUNNER_TEMP/v926-base" npm run test:selection:v95 -- "$RUNNER_TEMP/v926-formal/baseline"
+          npm run test:selection:v95 -- "$RUNNER_TEMP/v926-formal/candidate"
+          node - "$RUNNER_TEMP/v926-formal" <<'NODE'
+          const assert = require('node:assert/strict');
+          const fs = require('node:fs');
+          const root = process.argv[2];
+          const baseline = JSON.parse(fs.readFileSync(root+'/baseline/selection.json'));
+          const candidate = JSON.parse(fs.readFileSync(root+'/candidate/selection.json'));
+          assert.equal(candidate.date, baseline.date);
+          assert.equal(candidate.marketSha256, baseline.marketSha256);
+          assert.equal(candidate.results.length, 6);
+          assert.deepEqual(candidate.results, baseline.results);
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v926-formal-strategy-regression
+          path: ${{ runner.temp }}/v926-formal

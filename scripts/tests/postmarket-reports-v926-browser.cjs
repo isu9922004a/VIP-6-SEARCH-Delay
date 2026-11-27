@@ -78,8 +78,17 @@ async function run() {
         await page.locator('.image-modal-close').click();
       }
     }
+    await page.clock.setFixedTime(new Date(market.closeDate+'T10:00:00Z'));
+    await page.goto('https://v926.test/market-outlook.html?postmarket-study=1');
+    await page.locator('#marketLifeReportButton').click();
+    await page.waitForFunction(()=>ShitouLifeViewer94.getState()?.pages.some(p=>p.dataset.postmarket926Audit) &&
+      !document.getElementById('marketLifeReportButton').disabled,null,{timeout:30000});
+    await page.evaluate(()=>ShitouLifeViewer94.select(ShitouLifeViewer94.getState().pages.length-1));
+    assert.match(await page.locator('#imagePreviewTitle').textContent(),/盤後趨勢研究/);
+    assert.match(await page.locator('#imageDownloadLink').getAttribute('download'),/V9\.26_TAIEX/);
     assert.deepEqual(errors,[]);
-    fs.writeFileSync(path.join(out,'archive-reports.json'),JSON.stringify({source:'committed official OHLCV archives',loadMs,media,errors},null,2));
+    fs.writeFileSync(path.join(out,'archive-reports.json'),JSON.stringify({source:'committed official OHLCV archives',loadMs,media,
+      independentMarketStudyPage:true,errors},null,2));
     console.log(JSON.stringify({status:'PASS',loadMs,reports:media.map(({symbol,close,watermark,renderTime,encodeTime})=>
       ({symbol,close,watermark,renderTime,encodeTime}))}));
   } finally {await browser.close();}

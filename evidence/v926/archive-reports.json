@@ -1,0 +1,360 @@
+{
+  "source": "committed official OHLCV archives",
+  "loadMs": 4213.922003,
+  "media": [
+    {
+      "symbol": "TAIEX",
+      "filename": "/workspace/scratch/v926/final-archive-reports/石頭少爺_V9.26_TAIEX_20261126_盤後趨勢研究.png",
+      "watermark": false,
+      "close": 39151.81,
+      "marketRisk": 3,
+      "audit": {
+        "date": "2026-11-26",
+        "asOf": "2026-11-26T19:39:02.107Z",
+        "code": "TAIEX",
+        "source": "TWSE Official｜TAIEX OHLC + FMTQIK 市場成交股數",
+        "version": "V9.26-RESEARCH-1",
+        "points": [
+          {
+            "date": "2026-11-20",
+            "price": 37837.05,
+            "label": "向下跌破",
+            "barIndex": 40,
+            "x": 1072.5,
+            "y": 798.0789915465743
+          },
+          {
+            "date": "2026-11-24",
+            "price": 37837.05,
+            "label": "回到原區間",
+            "barIndex": 42,
+            "x": 1120.2777777777778,
+            "y": 798.0789915465743
+          }
+        ],
+        "lines": [
+          {
+            "label": "已確認行情",
+            "text": "收盤 39,151.81 點，+2.50%｜已驗證日 K 120/160 根，最近連續 120 根"
+          },
+          {
+            "label": "盤後研究",
+            "text": "偏空｜階段待確認"
+          },
+          {
+            "label": "原四級風險",
+            "text": "弱勢偏空"
+          },
+          {
+            "label": "力道觀察",
+            "text": "跌破關卡後，收盤又回到原區間。"
+          },
+          {
+            "label": "市場廣度",
+            "text": "上市廣度資料不足｜上櫃廣度資料不足"
+          },
+          {
+            "label": "關鍵價位",
+            "text": "續強關卡 40,315.53 點｜今日收盤 39,151.81 點｜原生命線 40,315.53 點｜結構支撐 35,442.41 點｜結構壓力 44,525.24 點"
+          },
+          {
+            "label": "開盤觀察",
+            "text": "目前無已確認開盤防線"
+          },
+          {
+            "label": "三根 K 棒形成的價格失衡區（FVG）",
+            "text": "空方 2026-11-18｜40,938.2 點 至 41,040.08 點｜突破力道待確認｜待回測"
+          },
+          {
+            "label": "FVG 假設價格試算",
+            "text": "參考 40,989.14 點｜防守 41,245.29 點｜2R 40,476.84 點｜3R 40,220.69 點。依假設承受 1 份風險試算價格空間。"
+          },
+          {
+            "label": "下一交易日收盤情境 2026-11-27",
+            "text": "若收盤高於 40315.53 點，且量價或結構改善，再觀察是否轉強。\n若收盤低於 35442.41 點，留意支撐轉弱。\n若收盤仍在 35442.41 至 40315.53 點，先看整理。"
+          },
+          {
+            "label": "資料來源",
+            "text": "TWSE Official｜TAIEX OHLC + FMTQIK 市場成交股數｜歷史資料版本待核對"
+          }
+        ],
+        "barCount": 45,
+        "noClipping": true,
+        "width": 1284,
+        "height": 2778,
+        "watermark": false
+      },
+      "renderTime": 299.69999999995343,
+      "encodeTime": 650,
+      "imageSize": [
+        1284,
+        2778
+      ],
+      "blob": true
+    },
+    {
+      "symbol": "TAIEX",
+      "filename": "/workspace/scratch/v926/final-archive-reports/石頭少爺_V9.26_TAIEX_20261126_盤後趨勢研究_浮水印.png",
+      "watermark": true,
+      "close": 39151.81,
+      "marketRisk": 3,
+      "audit": {
+        "date": "2026-11-26",
+        "asOf": "2026-11-26T19:39:02.107Z",
+        "code": "TAIEX",
+        "source": "TWSE Official｜TAIEX OHLC + FMTQIK 市場成交股數",
+        "version": "V9.26-RESEARCH-1",
+        "points": [
+          {
+            "date": "2026-11-20",
+            "price": 37837.05,
+            "label": "向下跌破",
+            "barIndex": 40,
+            "x": 1072.5,
+            "y": 798.0789915465743
+          },
+          {
+            "date": "2026-11-24",
+            "price": 37837.05,
+            "label": "回到原區間",
+            "barIndex": 42,
+            "x": 1120.2777777777778,
+            "y": 798.0789915465743
+          }
+        ],
+        "lines": [
+          {
+            "label": "已確認行情",
+            "text": "收盤 39,151.81 點，+2.50%｜已驗證日 K 120/160 根，最近連續 120 根"
+          },
+          {
+            "label": "盤後研究",
+            "text": "偏空｜階段待確認"
+          },
+          {
+            "label": "原四級風險",
+            "text": "弱勢偏空"
+          },
+          {
+            "label": "力道觀察",
+            "text": "跌破關卡後，收盤又回到原區間。"
+          },
+          {
+            "label": "市場廣度",
+            "text": "上市廣度資料不足｜上櫃廣度資料不足"
+          },
+          {
+            "label": "關鍵價位",
+            "text": "續強關卡 40,315.53 點｜今日收盤 39,151.81 點｜原生命線 40,315.53 點｜結構支撐 35,442.41 點｜結構壓力 44,525.24 點"
+          },
+          {
+            "label": "開盤觀察",
+            "text": "目前無已確認開盤防線"
+          },
+          {
+            "label": "三根 K 棒形成的價格失衡區（FVG）",
+            "text": "空方 2026-11-18｜40,938.2 點 至 41,040.08 點｜突破力道待確認｜待回測"
+          },
+          {
+            "label": "FVG 假設價格試算",
+            "text": "參考 40,989.14 點｜防守 41,245.29 點｜2R 40,476.84 點｜3R 40,220.69 點。依假設承受 1 份風險試算價格空間。"
+          },
+          {
+            "label": "下一交易日收盤情境 2026-11-27",
+            "text": "若收盤高於 40315.53 點，且量價或結構改善，再觀察是否轉強。\n若收盤低於 35442.41 點，留意支撐轉弱。\n若收盤仍在 35442.41 至 40315.53 點，先看整理。"
+          },
+          {
+            "label": "資料來源",
+            "text": "TWSE Official｜TAIEX OHLC + FMTQIK 市場成交股數｜歷史資料版本待核對"
+          }
+        ],
+        "barCount": 45,
+        "noClipping": true,
+        "width": 1284,
+        "height": 2778,
+        "watermark": true
+      },
+      "renderTime": 293.39999999990687,
+      "encodeTime": 310.30000000004657,
+      "imageSize": [
+        1284,
+        2778
+      ],
+      "blob": true
+    },
+    {
+      "symbol": "2330",
+      "filename": "/workspace/scratch/v926/final-archive-reports/石頭少爺_V9.26_2330_20261126_盤後趨勢研究.png",
+      "watermark": false,
+      "close": 2145,
+      "marketRisk": null,
+      "audit": {
+        "date": "2026-11-26",
+        "asOf": "2026-11-26T13:43:40.824Z",
+        "code": "2330",
+        "source": "Verified official exchange daily archive",
+        "version": "V9.26-RESEARCH-1",
+        "points": [
+          {
+            "date": "2026-11-20",
+            "price": 2020,
+            "label": "向下跌破",
+            "barIndex": 40,
+            "x": 1072.5,
+            "y": 838.9238822863613
+          },
+          {
+            "date": "2026-11-23",
+            "price": 2020,
+            "label": "回到原區間",
+            "barIndex": 41,
+            "x": 1096.388888888889,
+            "y": 838.9238822863613
+          }
+        ],
+        "lines": [
+          {
+            "label": "已確認行情",
+            "text": "收盤 2,145 元，-0.23%｜已驗證日 K 160/160 根，最近連續 160 根"
+          },
+          {
+            "label": "盤後研究",
+            "text": "偏空｜階段待確認｜續強條件 等待確認"
+          },
+          {
+            "label": "原突破品質",
+            "text": "請見原個股報告"
+          },
+          {
+            "label": "力道觀察",
+            "text": "跌破關卡後，收盤又回到原區間。"
+          },
+          {
+            "label": "相對大盤",
+            "text": "相對大盤資料不足"
+          },
+          {
+            "label": "關鍵價位",
+            "text": "續強關卡 尚無明確位置｜今日收盤 2,145 元｜原生命線 2,210 元｜結構支撐 尚無明確位置｜結構壓力 尚無明確位置"
+          },
+          {
+            "label": "開盤觀察",
+            "text": "目前無已確認開盤防線"
+          },
+          {
+            "label": "三根 K 棒形成的價格失衡區（FVG）",
+            "text": "形成區間或公司行動證據不足"
+          },
+          {
+            "label": "下一交易日收盤情境 ",
+            "text": "目前尚無明確位置。"
+          },
+          {
+            "label": "資料來源",
+            "text": "Verified official exchange daily archive｜歷史資料版本待核對"
+          }
+        ],
+        "barCount": 45,
+        "noClipping": true,
+        "width": 1284,
+        "height": 2778,
+        "watermark": false
+      },
+      "renderTime": 16,
+      "encodeTime": 321.79999999981374,
+      "imageSize": [
+        1284,
+        2778
+      ],
+      "blob": true
+    },
+    {
+      "symbol": "2330",
+      "filename": "/workspace/scratch/v926/final-archive-reports/石頭少爺_V9.26_2330_20261126_盤後趨勢研究_浮水印.png",
+      "watermark": true,
+      "close": 2145,
+      "marketRisk": null,
+      "audit": {
+        "date": "2026-11-26",
+        "asOf": "2026-11-26T13:43:40.824Z",
+        "code": "2330",
+        "source": "Verified official exchange daily archive",
+        "version": "V9.26-RESEARCH-1",
+        "points": [
+          {
+            "date": "2026-11-20",
+            "price": 2020,
+            "label": "向下跌破",
+            "barIndex": 40,
+            "x": 1072.5,
+            "y": 838.9238822863613
+          },
+          {
+            "date": "2026-11-23",
+            "price": 2020,
+            "label": "回到原區間",
+            "barIndex": 41,
+            "x": 1096.388888888889,
+            "y": 838.9238822863613
+          }
+        ],
+        "lines": [
+          {
+            "label": "已確認行情",
+            "text": "收盤 2,145 元，-0.23%｜已驗證日 K 160/160 根，最近連續 160 根"
+          },
+          {
+            "label": "盤後研究",
+            "text": "偏空｜階段待確認｜續強條件 等待確認"
+          },
+          {
+            "label": "原突破品質",
+            "text": "請見原個股報告"
+          },
+          {
+            "label": "力道觀察",
+            "text": "跌破關卡後，收盤又回到原區間。"
+          },
+          {
+            "label": "相對大盤",
+            "text": "相對大盤資料不足"
+          },
+          {
+            "label": "關鍵價位",
+            "text": "續強關卡 尚無明確位置｜今日收盤 2,145 元｜原生命線 2,210 元｜結構支撐 尚無明確位置｜結構壓力 尚無明確位置"
+          },
+          {
+            "label": "開盤觀察",
+            "text": "目前無已確認開盤防線"
+          },
+          {
+            "label": "三根 K 棒形成的價格失衡區（FVG）",
+            "text": "形成區間或公司行動證據不足"
+          },
+          {
+            "label": "下一交易日收盤情境 ",
+            "text": "目前尚無明確位置。"
+          },
+          {
+            "label": "資料來源",
+            "text": "Verified official exchange daily archive｜歷史資料版本待核對"
+          }
+        ],
+        "barCount": 45,
+        "noClipping": true,
+        "width": 1284,
+        "height": 2778,
+        "watermark": true
+      },
+      "renderTime": 34.800000000046566,
+      "encodeTime": 304.5,
+      "imageSize": [
+        1284,
+        2778
+      ],
+      "blob": true
+    }
+  ],
+  "independentMarketStudyPage": true,
+  "errors": []
+}

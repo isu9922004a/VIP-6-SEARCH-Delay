@@ -285,7 +285,9 @@ async function preview(analyses,{stockMode=false,detail=false,chartOnly=false,li
    try{
     const {makeStudyPage}=await import('./postmarket-preview-v926.js?v=V9.26-RESEARCH-1');
     const life=root.ShitouKlineLife03Report.inspect(analyses[0]);
-    const research=await makeStudyPage({source:latestStockQuery.source,study:life,marketRisk:marketContext,watermark});
+    const source=latestStockQuery.source,proof=root.ShitouOfficialResearchHistory?.proof(source);
+    const research=await makeStudyPage({source,study:life,marketRisk:marketContext,watermark,dataAsOf:proof?.generatedAt,
+     quality:analyses[0].models?.A?.breakoutQuality?.score});
     if(research)pages.push(research);
    }catch(error){console.warn('盤後趨勢研究頁暫不可用',error.message);}
   }

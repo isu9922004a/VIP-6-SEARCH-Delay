@@ -1,0 +1,4475 @@
+{
+  "status": "EXPLORATORY_NOT_VALIDATED",
+  "protocol": {
+    "protocolVersion": "V9.26-STUDY-1",
+    "horizons": [
+      1,
+      3,
+      5
+    ],
+    "purgeSessions": 5,
+    "trainFraction": 0.55,
+    "holdoutBlocks": 3,
+    "minimumOverall": 100,
+    "minimumPerEvent": 30,
+    "minimumPrecisionLift": 0.05,
+    "roundTripStockBps": 60,
+    "cpuBudgetP95Ms": 8,
+    "releaseGate": "REQUIRES_INDEPENDENT_POINT_IN_TIME_MULTI_YEAR_STOCK_AND_INDEX_STUDY",
+    "instruments": [
+      {
+        "symbol": "TAIEX",
+        "path": "data/index/TAIEX.json"
+      },
+      {
+        "symbol": "2330",
+        "path": "data/research/2026-11-26/2330.json"
+      },
+      {
+        "symbol": "8099",
+        "path": "data/research/2026-11-26/8099.json"
+      }
+    ],
+    "outcomes": {
+      "directional": "Next official session open to the close 1, 3 or 5 official sessions later. Positive for long, negative for short.",
+      "defense": "The exact next completed session opened below the frozen price. The result does not use a later substitute.",
+      "failure": "Within five subsequent sessions, a close crossed back through the frozen breakout level and tolerance.",
+      "baseline": "Same-date price vs MA20 sign, with identical outcome windows.",
+      "fill": "For an active FVG follow-up records zone touch. Index levels are observations and unknown stock fills are excluded."
+    }
+  },
+  "protocolSha256": "f55cde2ba887118cfab9d6179cbaa181d6875aab868e50d4264d5fb73092d1d0",
+  "pointInTimeVerified": false,
+  "productionScoreEnabled": false,
+  "studies": [
+    {
+      "symbol": "TAIEX",
+      "market": "TAIEX",
+      "archive": "data/index/TAIEX.json",
+      "sha256": "358f983bde05d0585bfef8676b4eb78a5e1baaab5bb25261ba71206e4ed7b48d",
+      "source": "TWSE Official｜TAIEX OHLC + FMTQIK 市場成交股數",
+      "period": [
+        "2026-06-03",
+        "2026-11-26"
+      ],
+      "historicalSessions": 120,
+      "validSessions": 120,
+      "completedOutcomeSampleCount": 80,
+      "sandboxStockSimulation": null,
+      "training": {
+        "samples": 26,
+        "signalStages": {
+          "LATE_BEAR": 2,
+          "UNCONFIRMED": 13,
+          "HEALTHY_CONSOLIDATION": 2,
+          "LATE_BULL": 4,
+          "CONFLICT": 5
+        },
+        "retention": {
+          "fvgObservations": 25,
+          "fvgContact": 18,
+          "fvgFullFill": 14,
+          "fvgInvalidated": 14,
+          "target2RObserved": 19,
+          "target3RObserved": 12,
+          "defenseObserved": 13,
+          "ambiguousTouchOrder": 0,
+          "breakoutObservations": 7,
+          "failedBreakout": 5,
+          "openingDefenseObserved": 1,
+          "openingDefenseTriggered": 0
+        },
+        "metrics": {
+          "1": {
+            "BULL": {
+              "baseline": {
+                "signalCount": 18,
+                "sampleCoverage": 0.6923076923076923,
+                "precision": 0.5555555555555556,
+                "recall": 0.6666666666666666,
+                "meanDirectionalObservation": 0.0011686722192038837,
+                "favorableExcursion": 0.007380396631647061,
+                "adverseExcursion": -0.0072246608924194655
+              },
+              "shadow": {
+                "signalCount": 7,
+                "sampleCoverage": 0.2692307692307692,
+                "precision": 0.2857142857142857,
+                "recall": 0.13333333333333333,
+                "meanDirectionalObservation": -0.003248567417250373,
+                "favorableExcursion": 0.00419875997487137,
+                "adverseExcursion": -0.010817753084347419
+              }
+            },
+            "BEAR": {
+              "baseline": {
+                "signalCount": 8,
+                "sampleCoverage": 0.3076923076923077,
+                "precision": 0.375,
+                "recall": 0.2727272727272727,
+                "meanDirectionalObservation": -0.00009153440134598845,
+                "favorableExcursion": 0.01548784944430373,
+                "adverseExcursion": -0.017834671874971814
+              },
+              "shadow": {
+                "signalCount": 8,
+                "sampleCoverage": 0.3076923076923077,
+                "precision": 0.375,
+                "recall": 0.2727272727272727,
+                "meanDirectionalObservation": -0.00009153440134598845,
+                "favorableExcursion": 0.01548784944430373,
+                "adverseExcursion": -0.017834671874971814
+              }
+            }
+          },
+          "3": {
+            "BULL": {
+              "baseline": {
+                "signalCount": 18,
+                "sampleCoverage": 0.6923076923076923,
+                "precision": 0.7222222222222222,
+                "recall": 0.6842105263157895,
+                "meanDirectionalObservation": 0.006768959327702458,
+                "favorableExcursion": 0.016753763875285686,
+                "adverseExcursion": -0.013312670459438982
+              },
+              "shadow": {
+                "signalCount": 7,
+                "sampleCoverage": 0.2692307692307692,
+                "precision": 0.2857142857142857,
+                "recall": 0.10526315789473684,
+                "meanDirectionalObservation": -0.008524396572296438,
+                "favorableExcursion": 0.008002605187463699,
+                "adverseExcursion": -0.021171101087560946
+              }
+            },
+            "BEAR": {
+              "baseline": {
+                "signalCount": 8,
+                "sampleCoverage": 0.3076923076923077,
+                "precision": 0.25,
+                "recall": 0.2857142857142857,
+                "meanDirectionalObservation": -0.011218425454331424,
+                "favorableExcursion": 0.03207330857168543,
+                "adverseExcursion": -0.03929630776552212
+              },
+              "shadow": {
+                "signalCount": 8,
+                "sampleCoverage": 0.3076923076923077,
+                "precision": 0.25,
+                "recall": 0.2857142857142857,
+                "meanDirectionalObservation": -0.011218425454331424,
+                "favorableExcursion": 0.03207330857168543,
+                "adverseExcursion": -0.03929630776552212
+              }
+            }
+          },
+          "5": {
+            "BULL": {
+              "baseline": {
+                "signalCount": 18,
+                "sampleCoverage": 0.6923076923076923,
+                "precision": 0.7222222222222222,
+                "recall": 0.65,
+                "meanDirectionalObservation": 0.009750664210840317,
+                "favorableExcursion": 0.023745297524103273,
+                "adverseExcursion": -0.01649406729562347
+              },
+              "shadow": {
+                "signalCount": 7,
+                "sampleCoverage": 0.2692307692307692,
+                "precision": 0.5714285714285714,
+                "recall": 0.2,
+                "meanDirectionalObservation": -0.0016609692831278825,
+                "favorableExcursion": 0.013289270805304445,
+                "adverseExcursion": -0.025073834767192844
+              }
+            },
+            "BEAR": {
+              "baseline": {
+                "signalCount": 8,
+                "sampleCoverage": 0.3076923076923077,
+                "precision": 0.125,
+                "recall": 0.16666666666666666,
+                "meanDirectionalObservation": -0.04067142804512247,
+                "favorableExcursion": 0.03207330857168543,
+                "adverseExcursion": -0.05134244445872224
+              },
+              "shadow": {
+                "signalCount": 8,
+                "sampleCoverage": 0.3076923076923077,
+                "precision": 0.125,
+                "recall": 0.16666666666666666,
+                "meanDirectionalObservation": -0.04067142804512247,
+                "favorableExcursion": 0.03207330857168543,
+                "adverseExcursion": -0.05134244445872224
+              }
+            }
+          }
+        }
+      },
+      "holdout": {
+        "samples": 44,
+        "signalStages": {
+          "RANGE": 3,
+          "CONFLICT": 4,
+          "INITIAL_BULL": 5,
+          "LATE_BULL": 6,
+          "UNCONFIRMED": 21,
+          "LATE_BEAR": 5
+        },
+        "retention": {
+          "fvgObservations": 44,
+          "fvgContact": 22,
+          "fvgFullFill": 17,
+          "fvgInvalidated": 17,
+          "target2RObserved": 33,
+          "target3RObserved": 32,
+          "defenseObserved": 17,
+          "ambiguousTouchOrder": 5,
+          "breakoutObservations": 15,
+          "failedBreakout": 7,
+          "openingDefenseObserved": 3,
+          "openingDefenseTriggered": 3
+        },
+        "metrics": {
+          "1": {
+            "BULL": {
+              "baseline": {
+                "signalCount": 17,
+                "sampleCoverage": 0.38636363636363635,
+                "precision": 0.5882352941176471,
+                "recall": 0.5263157894736842,
+                "meanDirectionalObservation": 0.0006384393549030224,
+                "favorableExcursion": 0.007374575923228916,
+                "adverseExcursion": -0.006438868501121611
+              },
+              "shadow": {
+                "signalCount": 15,
+                "sampleCoverage": 0.3409090909090909,
+                "precision": 0.5333333333333333,
+                "recall": 0.42105263157894735,
+                "meanDirectionalObservation": -0.001048277229529367,
+                "favorableExcursion": 0.006540622420839423,
+                "adverseExcursion": -0.00729738430127116
+              }
+            },
+            "BEAR": {
+              "baseline": {
+                "signalCount": 27,
+                "sampleCoverage": 0.6136363636363636,
+                "precision": 0.6666666666666666,
+                "recall": 0.72,
+                "meanDirectionalObservation": 0.0073447088294993764,
+                "favorableExcursion": 0.01874874385501635,
+                "adverseExcursion": -0.011677108988263166
+              },
+              "shadow": {
+                "signalCount": 17,
+                "sampleCoverage": 0.38636363636363635,
+                "precision": 0.7058823529411765,
+                "recall": 0.48,
+                "meanDirectionalObservation": 0.007806331292041165,
+                "favorableExcursion": 0.021781651261457806,
+                "adverseExcursion": -0.01340414957960965
+              }
+            }
+          },
+          "3": {
+            "BULL": {
+              "baseline": {
+                "signalCount": 17,
+                "sampleCoverage": 0.38636363636363635,
+                "precision": 0.47058823529411764,
+                "recall": 0.42105263157894735,
+                "meanDirectionalObservation": -0.00035680781357696215,
+                "favorableExcursion": 0.014877385048733881,
+                "adverseExcursion": -0.014775171576086654
+              },
+              "shadow": {
+                "signalCount": 15,
+                "sampleCoverage": 0.3409090909090909,
+                "precision": 0.4,
+                "recall": 0.3157894736842105,
+                "meanDirectionalObservation": -0.003684429615106481,
+                "favorableExcursion": 0.011803477533011749,
+                "adverseExcursion": -0.016745194452898206
+              }
+            },
+            "BEAR": {
+              "baseline": {
+                "signalCount": 27,
+                "sampleCoverage": 0.6136363636363636,
+                "precision": 0.5925925925925926,
+                "recall": 0.64,
+                "meanDirectionalObservation": 0.017949741994729655,
+                "favorableExcursion": 0.0481684390238046,
+                "adverseExcursion": -0.023300460660246394
+              },
+              "shadow": {
+                "signalCount": 17,
+                "sampleCoverage": 0.38636363636363635,
+                "precision": 0.6470588235294118,
+                "recall": 0.44,
+                "meanDirectionalObservation": 0.0198050184911434,
+                "favorableExcursion": 0.05664565556757305,
+                "adverseExcursion": -0.027136838135792426
+              }
+            }
+          },
+          "5": {
+            "BULL": {
+              "baseline": {
+                "signalCount": 17,
+                "sampleCoverage": 0.38636363636363635,
+                "precision": 0.5294117647058824,
+                "recall": 0.5294117647058824,
+                "meanDirectionalObservation": -0.0035435716893859243,
+                "favorableExcursion": 0.01883264284178822,
+                "adverseExcursion": -0.02170055643642154
+              },
+              "shadow": {
+                "signalCount": 15,
+                "sampleCoverage": 0.3409090909090909,
+                "precision": 0.4666666666666667,
+                "recall": 0.4117647058823529,
+                "meanDirectionalObservation": -0.006876331401727165,
+                "favorableExcursion": 0.016286103031806665,
+                "adverseExcursion": -0.024593963961277745
+              }
+            },
+            "BEAR": {
+              "baseline": {
+                "signalCount": 27,
+                "sampleCoverage": 0.6136363636363636,
+                "precision": 0.7037037037037037,
+                "recall": 0.7037037037037037,
+                "meanDirectionalObservation": 0.02874679568187184,
+                "favorableExcursion": 0.07357026932111796,
+                "adverseExcursion": -0.028679597365958803
+              },
+              "shadow": {
+                "signalCount": 17,
+                "sampleCoverage": 0.38636363636363635,
+                "precision": 0.7647058823529411,
+                "recall": 0.48148148148148145,
+                "meanDirectionalObservation": 0.046087125901261836,
+                "favorableExcursion": 0.09414853676686283,
+                "adverseExcursion": -0.031534938385180414
+              }
+            }
+          }
+        }
+      },
+      "walkForward": [
+        {
+          "startDate": "2026-09-07",
+          "endDate": "2026-10-02",
+          "historyAvailableUntil": "2026-09-04",
+          "test": {
+            "samples": 8,
+            "signalStages": {
+              "RANGE": 3,
+              "CONFLICT": 2,
+              "INITIAL_BULL": 3
+            },
+            "retention": {
+              "fvgObservations": 8,
+              "fvgContact": 6,
+              "fvgFullFill": 4,
+              "fvgInvalidated": 4,
+              "target2RObserved": 2,
+              "target3RObserved": 2,
+              "defenseObserved": 4,
+              "ambiguousTouchOrder": 0,
+              "breakoutObservations": 2,
+              "failedBreakout": 0,
+              "openingDefenseObserved": 0,
+              "openingDefenseTriggered": 0
+            },
+            "metrics": {
+              "1": {
+                "BULL": {
+                  "baseline": {
+                    "signalCount": 5,
+                    "sampleCoverage": 0.625,
+                    "precision": 0.6,
+                    "recall": 0.6,
+                    "meanDirectionalObservation": 0.005446546161741339,
+                    "favorableExcursion": 0.01007915228654288,
+                    "adverseExcursion": -0.002087952539046145
+                  },
+                  "shadow": {
+                    "signalCount": 3,
+                    "sampleCoverage": 0.375,
+                    "precision": 0.3333333333333333,
+                    "recall": 0.2,
+                    "meanDirectionalObservation": 0.00021836777747160271,
+                    "favorableExcursion": 0.00771243568347139,
+                    "adverseExcursion": -0.0034799208984102417
+                  }
+                },
+                "BEAR": {
+                  "baseline": {
+                    "signalCount": 3,
+                    "sampleCoverage": 0.375,
+                    "precision": 0.3333333333333333,
+                    "recall": 0.3333333333333333,
+                    "meanDirectionalObservation": -0.0023248608829499195,
+                    "favorableExcursion": 0.002583214514917276,
+                    "adverseExcursion": -0.011881928986215762
+                  },
+                  "shadow": {
+                    "signalCount": 0,
+                    "sampleCoverage": 0,
+                    "precision": null,
+                    "recall": 0,
+                    "meanDirectionalObservation": null,
+                    "favorableExcursion": null,
+                    "adverseExcursion": null
+                  }
+                }
+              },
+              "3": {
+                "BULL": {
+                  "baseline": {
+                    "signalCount": 5,
+                    "sampleCoverage": 0.625,
+                    "precision": 0.6,
+                    "recall": 0.5,
+                    "meanDirectionalObservation": 0.008361566864747516,
+                    "favorableExcursion": 0.020890799955771967,
+                    "adverseExcursion": -0.00437628545737625
+                  },
+                  "shadow": {
+                    "signalCount": 3,
+                    "sampleCoverage": 0.375,
+                    "precision": 0.3333333333333333,
+                    "recall": 0.16666666666666666,
+                    "meanDirectionalObservation": -0.0024642923573504247,
+                    "favorableExcursion": 0.00953020564852003,
+                    "adverseExcursion": -0.0072938090956270836
+                  }
+                },
+                "BEAR": {
+                  "baseline": {
+                    "signalCount": 3,
+                    "sampleCoverage": 0.375,
+                    "precision": 0,
+                    "recall": 0,
+                    "meanDirectionalObservation": -0.028100484907843965,
+                    "favorableExcursion": 0.002583214514917276,
+                    "adverseExcursion": -0.03260033729124334
+                  },
+                  "shadow": {
+                    "signalCount": 0,
+                    "sampleCoverage": 0,
+                    "precision": null,
+                    "recall": 0,
+                    "meanDirectionalObservation": null,
+                    "favorableExcursion": null,
+                    "adverseExcursion": null
+                  }
+                }
+              },
+              "5": {
+                "BULL": {
+                  "baseline": {
+                    "signalCount": 5,
+                    "sampleCoverage": 0.625,
+                    "precision": 0.8,
+                    "recall": 0.5714285714285714,
+                    "meanDirectionalObservation": 0.011991366619838573,
+                    "favorableExcursion": 0.021515667983581288,
+                    "adverseExcursion": -0.005133376174876347
+                  },
+                  "shadow": {
+                    "signalCount": 3,
+                    "sampleCoverage": 0.375,
+                    "precision": 0.6666666666666666,
+                    "recall": 0.2857142857142857,
+                    "meanDirectionalObservation": 0.005684193597615368,
+                    "favorableExcursion": 0.010571652361535566,
+                    "adverseExcursion": -0.008555626958127246
+                  }
+                },
+                "BEAR": {
+                  "baseline": {
+                    "signalCount": 3,
+                    "sampleCoverage": 0.375,
+                    "precision": 0,
+                    "recall": 0,
+                    "meanDirectionalObservation": -0.04621826022731357,
+                    "favorableExcursion": 0.002583214514917276,
+                    "adverseExcursion": -0.055540310206654286
+                  },
+                  "shadow": {
+                    "signalCount": 0,
+                    "sampleCoverage": 0,
+                    "precision": null,
+                    "recall": 0,
+                    "meanDirectionalObservation": null,
+                    "favorableExcursion": null,
+                    "adverseExcursion": null
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "startDate": "2026-10-05",
+          "endDate": "2026-11-02",
+          "historyAvailableUntil": "2026-10-02",
+          "test": {
+            "samples": 8,
+            "signalStages": {
+              "LATE_BULL": 2,
+              "UNCONFIRMED": 5,
+              "LATE_BEAR": 1
+            },
+            "retention": {
+              "fvgObservations": 8,
+              "fvgContact": 1,
+              "fvgFullFill": 1,
+              "fvgInvalidated": 1,
+              "target2RObserved": 8,
+              "target3RObserved": 8,
+              "defenseObserved": 1,
+              "ambiguousTouchOrder": 1,
+              "breakoutObservations": 3,
+              "failedBreakout": 1,
+              "openingDefenseObserved": 0,
+              "openingDefenseTriggered": 0
+            },
+            "metrics": {
+              "1": {
+                "BULL": {
+                  "baseline": {
+                    "signalCount": 2,
+                    "sampleCoverage": 0.25,
+                    "precision": 0.5,
+                    "recall": 0.3333333333333333,
+                    "meanDirectionalObservation": -0.012087876847607149,
+                    "favorableExcursion": 0.006990937245259898,
+                    "adverseExcursion": -0.01640429698601259
+                  },
+                  "shadow": {
+                    "signalCount": 2,
+                    "sampleCoverage": 0.25,
+                    "precision": 0.5,
+                    "recall": 0.3333333333333333,
+                    "meanDirectionalObservation": -0.012087876847607149,
+                    "favorableExcursion": 0.006990937245259898,
+                    "adverseExcursion": -0.01640429698601259
+                  }
+                },
+                "BEAR": {
+                  "baseline": {
+                    "signalCount": 6,
+                    "sampleCoverage": 0.75,
+                    "precision": 0.6666666666666666,
+                    "recall": 0.8,
+                    "meanDirectionalObservation": 0.003224946775250629,
+                    "favorableExcursion": 0.009488908537979568,
+                    "adverseExcursion": -0.008379730707575472
+                  },
+                  "shadow": {
+                    "signalCount": 1,
+                    "sampleCoverage": 0.125,
+                    "precision": 1,
+                    "recall": 0.2,
+                    "meanDirectionalObservation": 0.0024879250051934587,
+                    "favorableExcursion": 0.011567109272211051,
+                    "adverseExcursion": -0.008098686032823155
+                  }
+                }
+              },
+              "3": {
+                "BULL": {
+                  "baseline": {
+                    "signalCount": 2,
+                    "sampleCoverage": 0.25,
+                    "precision": 0,
+                    "recall": 0,
+                    "meanDirectionalObservation": -0.029267175703497295,
+                    "favorableExcursion": 0.006990937245259898,
+                    "adverseExcursion": -0.03927033507503658
+                  },
+                  "shadow": {
+                    "signalCount": 2,
+                    "sampleCoverage": 0.25,
+                    "precision": 0,
+                    "recall": 0,
+                    "meanDirectionalObservation": -0.029267175703497295,
+                    "favorableExcursion": 0.006990937245259898,
+                    "adverseExcursion": -0.03927033507503658
+                  }
+                },
+                "BEAR": {
+                  "baseline": {
+                    "signalCount": 6,
+                    "sampleCoverage": 0.75,
+                    "precision": 0.5,
+                    "recall": 0.6,
+                    "meanDirectionalObservation": 0.005119581151042496,
+                    "favorableExcursion": 0.01698333714158116,
+                    "adverseExcursion": -0.013129509807499903
+                  },
+                  "shadow": {
+                    "signalCount": 1,
+                    "sampleCoverage": 0.125,
+                    "precision": 0,
+                    "recall": 0,
+                    "meanDirectionalObservation": -0.00340025794612564,
+                    "favorableExcursion": 0.011567109272211051,
+                    "adverseExcursion": -0.018377795859012558
+                  }
+                }
+              },
+              "5": {
+                "BULL": {
+                  "baseline": {
+                    "signalCount": 2,
+                    "sampleCoverage": 0.25,
+                    "precision": 0,
+                    "recall": 0,
+                    "meanDirectionalObservation": -0.03704517365223148,
+                    "favorableExcursion": 0.006990937245259898,
+                    "adverseExcursion": -0.045877250118877166
+                  },
+                  "shadow": {
+                    "signalCount": 2,
+                    "sampleCoverage": 0.25,
+                    "precision": 0,
+                    "recall": 0,
+                    "meanDirectionalObservation": -0.03704517365223148,
+                    "favorableExcursion": 0.006990937245259898,
+                    "adverseExcursion": -0.045877250118877166
+                  }
+                },
+                "BEAR": {
+                  "baseline": {
+                    "signalCount": 6,
+                    "sampleCoverage": 0.75,
+                    "precision": 0.8333333333333334,
+                    "recall": 0.7142857142857143,
+                    "meanDirectionalObservation": 0.016002603801119175,
+                    "favorableExcursion": 0.0284285031463829,
+                    "adverseExcursion": -0.013404354485567649
+                  },
+                  "shadow": {
+                    "signalCount": 1,
+                    "sampleCoverage": 0.125,
+                    "precision": 1,
+                    "recall": 0.14285714285714285,
+                    "meanDirectionalObservation": 0.02793824873623707,
+                    "favorableExcursion": 0.039213437435080656,
+                    "adverseExcursion": -0.018377795859012558
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "startDate": "2026-11-03",
+          "endDate": "2026-11-26",
+          "historyAvailableUntil": "2026-11-02",
+          "test": {
+            "samples": 8,
+            "signalStages": {
+              "LATE_BEAR": 4,
+              "UNCONFIRMED": 2,
+              "CONFLICT": 2
+            },
+            "retention": {
+              "fvgObservations": 8,
+              "fvgContact": 5,
+              "fvgFullFill": 5,
+              "fvgInvalidated": 5,
+              "target2RObserved": 7,
+              "target3RObserved": 6,
+              "defenseObserved": 5,
+              "ambiguousTouchOrder": 3,
+              "breakoutObservations": 3,
+              "failedBreakout": 2,
+              "openingDefenseObserved": 0,
+              "openingDefenseTriggered": 0
+            },
+            "metrics": {
+              "1": {
+                "BULL": {
+                  "baseline": {
+                    "signalCount": 0,
+                    "sampleCoverage": 0,
+                    "precision": null,
+                    "recall": 0,
+                    "meanDirectionalObservation": null,
+                    "favorableExcursion": null,
+                    "adverseExcursion": null
+                  },
+                  "shadow": {
+                    "signalCount": 0,
+                    "sampleCoverage": 0,
+                    "precision": null,
+                    "recall": 0,
+                    "meanDirectionalObservation": null,
+                    "favorableExcursion": null,
+                    "adverseExcursion": null
+                  }
+                },
+                "BEAR": {
+                  "baseline": {
+                    "signalCount": 8,
+                    "sampleCoverage": 1,
+                    "precision": 0.875,
+                    "recall": 1,
+                    "meanDirectionalObservation": 0.02078092145618929,
+                    "favorableExcursion": 0.03140085922344149,
+                    "adverseExcursion": -0.010667481146747038
+                  },
+                  "shadow": {
+                    "signalCount": 6,
+                    "sampleCoverage": 0.75,
+                    "precision": 0.8333333333333334,
+                    "recall": 0.7142857142857143,
+                    "meanDirectionalObservation": 0.018422506369198583,
+                    "favorableExcursion": 0.028065807774548552,
+                    "adverseExcursion": -0.012625655752585304
+                  }
+                }
+              },
+              "3": {
+                "BULL": {
+                  "baseline": {
+                    "signalCount": 0,
+                    "sampleCoverage": 0,
+                    "precision": null,
+                    "recall": 0,
+                    "meanDirectionalObservation": null,
+                    "favorableExcursion": null,
+                    "adverseExcursion": null
+                  },
+                  "shadow": {
+                    "signalCount": 0,
+                    "sampleCoverage": 0,
+                    "precision": null,
+                    "recall": 0,
+                    "meanDirectionalObservation": null,
+                    "favorableExcursion": null,
+                    "adverseExcursion": null
+                  }
+                },
+                "BEAR": {
+                  "baseline": {
+                    "signalCount": 8,
+                    "sampleCoverage": 1,
+                    "precision": 0.75,
+                    "recall": 1,
+                    "meanDirectionalObservation": 0.05030489572707106,
+                    "favorableExcursion": 0.07788726556565558,
+                    "adverseExcursion": -0.019859069333455603
+                  },
+                  "shadow": {
+                    "signalCount": 6,
+                    "sampleCoverage": 0.75,
+                    "precision": 0.6666666666666666,
+                    "recall": 0.6666666666666666,
+                    "meanDirectionalObservation": 0.03404962273952572,
+                    "favorableExcursion": 0.06393482877554833,
+                    "adverseExcursion": -0.024881106668196724
+                  }
+                }
+              },
+              "5": {
+                "BULL": {
+                  "baseline": {
+                    "signalCount": 0,
+                    "sampleCoverage": 0,
+                    "precision": null,
+                    "recall": 0,
+                    "meanDirectionalObservation": null,
+                    "favorableExcursion": null,
+                    "adverseExcursion": null
+                  },
+                  "shadow": {
+                    "signalCount": 0,
+                    "sampleCoverage": 0,
+                    "precision": null,
+                    "recall": 0,
+                    "meanDirectionalObservation": null,
+                    "favorableExcursion": null,
+                    "adverseExcursion": null
+                  }
+                },
+                "BEAR": {
+                  "baseline": {
+                    "signalCount": 8,
+                    "sampleCoverage": 1,
+                    "precision": 0.875,
+                    "recall": 1,
+                    "meanDirectionalObservation": 0.07113661309740595,
+                    "favorableExcursion": 0.11546580844294424,
+                    "adverseExcursion": -0.019859069333455603
+                  },
+                  "shadow": {
+                    "signalCount": 6,
+                    "sampleCoverage": 0.75,
+                    "precision": 0.8333333333333334,
+                    "recall": 0.7142857142857143,
+                    "meanDirectionalObservation": 0.0843055258464494,
+                    "favorableExcursion": 0.11282692431633434,
+                    "adverseExcursion": -0.024881106668196724
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "current": {
+        "status": "AVAILABLE",
+        "mode": "SHADOW_ONLY",
+        "analysisDate": "2026-11-26",
+        "dataAsOf": "2026-11-26T19:39:02.107Z",
+        "parameters": {
+          "version": "V9.26-RESEARCH-1",
+          "doji": 0.1,
+          "wick": 0.5,
+          "surgeDoji": 0.15,
+          "surgeDojiOpen": 0.005,
+          "surgeBody": 0.65,
+          "surgeReturn": 0.07,
+          "highZone": 0.98,
+          "heavyVolume": 1.5,
+          "smallMoveAtr": 0.35,
+          "distanceAtr": 2,
+          "slowEfficiency": 0.65,
+          "stallLookback": 10,
+          "stallHighDays": 4,
+          "stallRecent": 3,
+          "stallRange": 0.65,
+          "stallVolume": 0.85,
+          "stallShadowPenalty": 5,
+          "breakoutWindow": 5,
+          "breakoutBufferAtr": 0.1,
+          "breakoutLookbacks": [
+            5,
+            10,
+            20
+          ],
+          "fvgScanSessions": 10,
+          "fvgExpiry": 8,
+          "fvgStopPct": 0.005,
+          "fvgStopAtr": 0.1,
+          "indexSelloff": -0.01,
+          "relativeNear": 0.01,
+          "relativeStrong": 0.03,
+          "atrPeriod": 14,
+          "historyLimit": 160,
+          "minTrend": 36
+        },
+        "engineVersion": "V9.26-RESEARCH-1",
+        "source": "TWSE Official｜TAIEX OHLC + FMTQIK 市場成交股數",
+        "dataCoverage": {
+          "valid": 120,
+          "expected": 160,
+          "contiguous": 120,
+          "sinceKnownReset": 120
+        },
+        "pointInTimeVerified": false,
+        "missingFields": [],
+        "warnings": [
+          "來源未證明為行情日當時可見版本，歷史研究可能受補正影響。"
+        ],
+        "evidence": {
+          "keyLevels": {
+            "lifeLine": null,
+            "support": null,
+            "resistance": null
+          },
+          "latestDate": "2026-11-26",
+          "previousDate": "2026-11-25"
+        },
+        "facts": {
+          "close": 39151.81,
+          "change": 0.025
+        },
+        "trendLifecycle": {
+          "status": "UNCONFIRMED",
+          "direction": "BEAR",
+          "label": "方向未確認",
+          "alert": null,
+          "evidence": {
+            "higher": false,
+            "lower": true,
+            "above": null,
+            "below": null,
+            "ma20": 41156.56500000002,
+            "maSlope": -1101.5274999999892,
+            "priorUp": false,
+            "priorDown": false,
+            "breakout": "FAILED_BREAKOUT"
+          },
+          "invalidation": 44525.24,
+          "missingFields": [
+            "原生命線"
+          ]
+        },
+        "momentumExhaustion": {
+          "bull": {
+            "status": "PARTIAL_DATA",
+            "direction": "BULL",
+            "score": null,
+            "researchScore": null,
+            "coverage": {
+              "available": 4,
+              "expected": 5
+            },
+            "evidence": [],
+            "missingFields": [
+              "原生命線及分界是否失守"
+            ],
+            "tier": null,
+            "summary": null
+          },
+          "bear": {
+            "status": "PARTIAL_DATA",
+            "direction": "BEAR",
+            "score": null,
+            "researchScore": null,
+            "coverage": {
+              "available": 4,
+              "expected": 5
+            },
+            "evidence": [
+              {
+                "id": "shorteningHistogram",
+                "group": "momentum",
+                "date": "2026-11-26"
+              }
+            ],
+            "missingFields": [
+              "原生命線及分界是否失守"
+            ],
+            "tier": null,
+            "summary": null
+          }
+        },
+        "continuation": "WAITING_CONFIRMATION",
+        "reversalWatch": {
+          "status": "NOT_APPLICABLE"
+        },
+        "openingConfirmation": null,
+        "momentumStall": {
+          "status": "NO_STALL",
+          "isStalling": false,
+          "stallingDays": 4,
+          "rangeRatio": 1.1117172490978582,
+          "volumeRatio": 0.9950029375993381,
+          "referenceHigh": 44257.15,
+          "trendContext": -19.783664966315772,
+          "actionTag": null,
+          "evidence": {
+            "rangeRef": 0.04111566593144464,
+            "volumeRef": 14100886097.4,
+            "position": 0.38844894930439194,
+            "upper": 44525.24,
+            "lower": 35738.68
+          },
+          "summary": null
+        },
+        "stallAdjustedScore": null,
+        "breakoutConfirmation": {
+          "status": "FAILED_BREAKOUT",
+          "selected": {
+            "status": "FAILED_BREAKOUT",
+            "direction": "BEAR",
+            "level": 37837.05,
+            "window": 20,
+            "buffer": 155.07600590728612,
+            "eventDate": "2026-11-20",
+            "retestDate": null,
+            "confirmationDate": null,
+            "failureDate": "2026-11-24",
+            "observationSessions": 5,
+            "windowClosed": false
+          },
+          "events": [
+            {
+              "status": "FAILED_BREAKOUT",
+              "direction": "BEAR",
+              "level": 37837.05,
+              "window": 20,
+              "buffer": 155.07600590728612,
+              "eventDate": "2026-11-20",
+              "retestDate": null,
+              "confirmationDate": null,
+              "failureDate": "2026-11-24",
+              "observationSessions": 5,
+              "windowClosed": false
+            },
+            {
+              "status": "FAILED_BREAKOUT",
+              "direction": "BEAR",
+              "level": 37837.05,
+              "window": 10,
+              "buffer": 155.07600590728612,
+              "eventDate": "2026-11-20",
+              "retestDate": null,
+              "confirmationDate": null,
+              "failureDate": "2026-11-24",
+              "observationSessions": 5,
+              "windowClosed": false
+            },
+            {
+              "status": "FAILED_BREAKOUT",
+              "direction": "BEAR",
+              "level": 38259.7,
+              "window": 5,
+              "buffer": 155.07600590728612,
+              "eventDate": "2026-11-20",
+              "retestDate": null,
+              "confirmationDate": null,
+              "failureDate": "2026-11-24",
+              "observationSessions": 5,
+              "windowClosed": false
+            },
+            {
+              "status": "FAILED_BREAKOUT",
+              "direction": "BEAR",
+              "level": 39260.99,
+              "window": 5,
+              "buffer": 151.19085251553884,
+              "eventDate": "2026-11-19",
+              "retestDate": null,
+              "confirmationDate": "2026-11-20",
+              "failureDate": "2026-11-24",
+              "observationSessions": 5,
+              "windowClosed": true
+            }
+          ]
+        },
+        "fvgAnalysis": {
+          "status": "ACTIVE",
+          "selected": {
+            "direction": "BEAR",
+            "formedDate": "2026-11-18",
+            "zoneLow": 40938.2,
+            "zoneHigh": 41040.08,
+            "formationHigh": 40938.2,
+            "formationLow": 39260.99,
+            "fvgBreakoutQuality": "WEAK_OR_UNCONFIRMED",
+            "status": "OPEN",
+            "firstContactDate": null,
+            "fullyFilledDate": null,
+            "invalidatedDate": null,
+            "fillRatio": 0,
+            "active": true,
+            "lastClose": 39151.81,
+            "retestState": "AWAITING_RETEST",
+            "followThrough": "DIRECT_CONTINUATION"
+          },
+          "events": [
+            {
+              "direction": "BEAR",
+              "formedDate": "2026-11-17",
+              "zoneLow": 41533.84,
+              "zoneHigh": 43534.12,
+              "formationHigh": 41533.84,
+              "formationLow": 39786.45,
+              "fvgBreakoutQuality": "WEAK_OR_UNCONFIRMED",
+              "status": "OPEN",
+              "firstContactDate": null,
+              "fullyFilledDate": null,
+              "invalidatedDate": null,
+              "fillRatio": 0,
+              "active": true,
+              "lastClose": 39151.81,
+              "retestState": "AWAITING_RETEST",
+              "followThrough": "DIRECT_CONTINUATION"
+            },
+            {
+              "direction": "BEAR",
+              "formedDate": "2026-11-18",
+              "zoneLow": 40938.2,
+              "zoneHigh": 41040.08,
+              "formationHigh": 40938.2,
+              "formationLow": 39260.99,
+              "fvgBreakoutQuality": "WEAK_OR_UNCONFIRMED",
+              "status": "OPEN",
+              "firstContactDate": null,
+              "fullyFilledDate": null,
+              "invalidatedDate": null,
+              "fillRatio": 0,
+              "active": true,
+              "lastClose": 39151.81,
+              "retestState": "AWAITING_RETEST",
+              "followThrough": "DIRECT_CONTINUATION"
+            },
+            {
+              "direction": "BEAR",
+              "formedDate": "2026-11-20",
+              "zoneLow": 37646.13,
+              "zoneHigh": 39260.99,
+              "formationHigh": 37646.13,
+              "formationLow": 35738.68,
+              "fvgBreakoutQuality": "CONFIRMED_FVG",
+              "status": "INVALIDATED",
+              "firstContactDate": "2026-11-24",
+              "fullyFilledDate": "2026-11-24",
+              "invalidatedDate": "2026-11-24",
+              "fillRatio": 1,
+              "active": false,
+              "lastClose": 39151.81,
+              "retestState": "INVALIDATED",
+              "followThrough": "FAILED_BREAKOUT"
+            },
+            {
+              "direction": "BEAR",
+              "formedDate": "2026-11-23",
+              "zoneLow": 37108.2,
+              "zoneHigh": 38259.7,
+              "formationHigh": 37108.2,
+              "formationLow": 35442.41,
+              "fvgBreakoutQuality": "CONFIRMED_FVG",
+              "status": "INVALIDATED",
+              "firstContactDate": "2026-11-24",
+              "fullyFilledDate": "2026-11-24",
+              "invalidatedDate": "2026-11-24",
+              "fillRatio": 1,
+              "active": false,
+              "lastClose": 39151.81,
+              "retestState": "INVALIDATED",
+              "followThrough": "FAILED_BREAKOUT"
+            },
+            {
+              "direction": "BULL",
+              "formedDate": "2026-11-24",
+              "zoneLow": 37646.13,
+              "zoneHigh": 39148.91,
+              "formationHigh": 40180.38,
+              "formationLow": 39148.91,
+              "fvgBreakoutQuality": "WEAK_OR_UNCONFIRMED",
+              "status": "FULL_FILL",
+              "firstContactDate": "2026-11-25",
+              "fullyFilledDate": "2026-11-25",
+              "invalidatedDate": null,
+              "fillRatio": 1,
+              "active": false,
+              "lastClose": 39151.81,
+              "retestState": "FILLED",
+              "followThrough": "AWAITING_CONFIRMATION"
+            }
+          ],
+          "traditionalGaps": [
+            {
+              "date": "2026-11-16",
+              "direction": "BEAR",
+              "status": "VERIFIED"
+            },
+            {
+              "date": "2026-11-20",
+              "direction": "BEAR",
+              "status": "VERIFIED"
+            },
+            {
+              "date": "2026-11-24",
+              "direction": "BULL",
+              "status": "VERIFIED"
+            }
+          ],
+          "selection": "最新有效未完全回補區"
+        },
+        "fvgPlan": {
+          "status": "RESEARCH_ONLY",
+          "direction": "BEAR",
+          "entryZone": [
+            40938.2,
+            41040.08
+          ],
+          "entryRef": 40989.14,
+          "stopRef": 41245.29,
+          "risk": 256.15,
+          "target2R": 40476.84,
+          "target3R": 40220.69,
+          "actualR2": 2,
+          "actualR3": 3,
+          "crossSession2R": null,
+          "crossSession3R": null,
+          "atrStop": 41223.54,
+          "summary": "依假設價位試算承受 1 份風險時的 2 份及 3 份價格空間。"
+        },
+        "fvgBreakoutQuality": "WEAK_OR_UNCONFIRMED",
+        "marketRegime": {
+          "status": "DATA_INSUFFICIENT",
+          "openDefenseLevel": null,
+          "openDefense": null,
+          "selloff": false,
+          "change": 0.02503912117234952,
+          "missingFields": [
+            "生命線或 FVG 所需資料"
+          ],
+          "evidence": {
+            "streak": false,
+            "highArea": false,
+            "prior20": 47015.45,
+            "inside": true,
+            "support": 35442.41,
+            "resistance": 44525.24,
+            "hadRecentFvg": false
+          },
+          "summary": null
+        },
+        "openDefenseLevel": null,
+        "marketBreadth": {
+          "status": "DATA_INSUFFICIENT",
+          "missingFields": [
+            "當日官方普通股母體及各市場行情"
+          ]
+        },
+        "relativeStrength": {
+          "status": "NOT_APPLICABLE"
+        },
+        "nextSessionScenario": {
+          "status": "HYPOTHETICAL",
+          "nextSessionDate": "2026-11-27",
+          "levels": {
+            "continuation": 44525.24,
+            "close": 39151.81,
+            "lifeLine": null,
+            "support": 35442.41,
+            "resistance": 44525.24,
+            "openingDefense": null,
+            "fvg": {
+              "status": "RESEARCH_ONLY",
+              "direction": "BEAR",
+              "entryZone": [
+                40938.2,
+                41040.08
+              ],
+              "entryRef": 40989.14,
+              "stopRef": 41245.29,
+              "risk": 256.15,
+              "target2R": 40476.84,
+              "target3R": 40220.69,
+              "actualR2": 2,
+              "actualR3": 3,
+              "crossSession2R": null,
+              "crossSession3R": null,
+              "atrStop": 41223.54,
+              "summary": "依假設價位試算承受 1 份風險時的 2 份及 3 份價格空間。"
+            }
+          },
+          "evidence": {
+            "priceDate": "2026-11-26",
+            "support": "原結構支撐或前 10 正式交易日最低",
+            "resistance": "原結構壓力或前 10 正式交易日最高",
+            "close": "指定交易日收盤",
+            "lifeLine": null
+          },
+          "opening": null,
+          "conditions": [
+            {
+              "state": "BULL",
+              "operator": ">",
+              "price": 44525.24,
+              "summary": "若收盤高於 44525.24 點，且量價或結構改善，再觀察是否轉強。"
+            },
+            {
+              "state": "BEAR",
+              "operator": "<",
+              "price": 35442.41,
+              "summary": "若收盤低於 35442.41 點，留意支撐轉弱。"
+            },
+            {
+              "state": "RANGE",
+              "lower": 35442.41,
+              "upper": 44525.24,
+              "inclusive": true,
+              "summary": "若收盤仍在 35442.41 至 44525.24 點，先看整理。"
+            }
+          ]
+        },
+        "beginnerExplanation": {
+          "direction": "方向未確認",
+          "momentum": null,
+          "breakout": "突破關卡後，收盤又回到原區間。",
+          "pattern": null,
+          "next": [
+            "若收盤高於 44525.24 點，且量價或結構改善，再觀察是否轉強。",
+            "若收盤低於 35442.41 點，留意支撐轉弱。",
+            "若收盤仍在 35442.41 至 44525.24 點，先看整理。"
+          ]
+        }
+      },
+      "currentBar": {
+        "date": "2026-11-26",
+        "open": 38435.99,
+        "high": 39459.95,
+        "low": 38435.99,
+        "close": 39151.81,
+        "volume": 11760283963
+      },
+      "selectedCases": [
+        {
+          "date": "2026-11-10",
+          "index": 107,
+          "stage": "LATE_BEAR",
+          "direction": "BEAR",
+          "baseline": "BEAR",
+          "opening": null,
+          "fvg": {
+            "contact": true,
+            "fill": true,
+            "invalidated": true,
+            "target2R": true,
+            "target3R": true,
+            "stop": true,
+            "bothInSession": false
+          },
+          "breakout": null,
+          "outcomes": {
+            "1": {
+              "observedReturn": 0.02599675999681006,
+              "upperExcursion": 0.02599675999681006,
+              "lowerExcursion": -0.009915439069579368
+            },
+            "3": {
+              "observedReturn": 0.01250377876731501,
+              "upperExcursion": 0.03221178901217914,
+              "lowerExcursion": -0.009915439069579368
+            },
+            "5": {
+              "observedReturn": -0.07055978612640657,
+              "upperExcursion": 0.03221178901217914,
+              "lowerExcursion": -0.077645786233974
+            }
+          }
+        },
+        {
+          "date": "2026-11-11",
+          "index": 108,
+          "stage": "LATE_BEAR",
+          "direction": "BEAR",
+          "baseline": "BEAR",
+          "opening": null,
+          "fvg": {
+            "contact": true,
+            "fill": true,
+            "invalidated": true,
+            "target2R": true,
+            "target3R": true,
+            "stop": true,
+            "bothInSession": true
+          },
+          "breakout": {
+            "failed": true
+          },
+          "outcomes": {
+            "1": {
+              "observedReturn": -0.0246396257531043,
+              "upperExcursion": 0.007803902449182276,
+              "lowerExcursion": -0.027997897713151865
+            },
+            "3": {
+              "observedReturn": -0.07108074474552772,
+              "upperExcursion": 0.007803902449182276,
+              "lowerExcursion": -0.07108074474552772
+            },
+            "5": {
+              "observedReturn": -0.09021069495428513,
+              "upperExcursion": 0.007803902449182276,
+              "lowerExcursion": -0.11134945177121292
+            }
+          }
+        },
+        {
+          "date": "2026-11-12",
+          "index": 109,
+          "stage": "LATE_BEAR",
+          "direction": "BEAR",
+          "baseline": "BEAR",
+          "opening": null,
+          "fvg": {
+            "contact": true,
+            "fill": true,
+            "invalidated": true,
+            "target2R": true,
+            "target3R": true,
+            "stop": true,
+            "bothInSession": true
+          },
+          "breakout": null,
+          "outcomes": {
+            "1": {
+              "observedReturn": -0.0010208201099044523,
+              "upperExcursion": 0.01760600186414618,
+              "lowerExcursion": -0.004245907170100427
+            },
+            "3": {
+              "observedReturn": -0.08297485690105733,
+              "upperExcursion": 0.01760600186414618,
+              "lowerExcursion": -0.08996620520474163
+            },
+            "5": {
+              "observedReturn": -0.1210633638115497,
+              "upperExcursion": 0.01760600186414618,
+              "lowerExcursion": -0.12488749363845864
+            }
+          }
+        },
+        {
+          "date": "2026-11-13",
+          "index": 110,
+          "stage": "LATE_BEAR",
+          "direction": "BEAR",
+          "baseline": "BEAR",
+          "opening": null,
+          "fvg": {
+            "contact": true,
+            "fill": true,
+            "invalidated": true,
+            "target2R": true,
+            "target3R": false,
+            "stop": true,
+            "bothInSession": true
+          },
+          "breakout": null,
+          "outcomes": {
+            "1": {
+              "observedReturn": -0.05681917944347836,
+              "upperExcursion": 0,
+              "lowerExcursion": -0.05681917944347836
+            },
+            "3": {
+              "observedReturn": -0.07624282905892144,
+              "upperExcursion": 0,
+              "lowerExcursion": -0.09770612620488583
+            },
+            "5": {
+              "observedReturn": -0.17188494687264,
+              "upperExcursion": 0,
+              "lowerExcursion": -0.17865565739621003
+            }
+          }
+        },
+        {
+          "date": "2026-11-16",
+          "index": 111,
+          "stage": "UNCONFIRMED",
+          "direction": "BEAR",
+          "baseline": "BEAR",
+          "opening": null,
+          "fvg": {
+            "contact": true,
+            "fill": true,
+            "invalidated": true,
+            "target2R": false,
+            "target3R": false,
+            "stop": true,
+            "bothInSession": false
+          },
+          "breakout": null,
+          "outcomes": {
+            "1": {
+              "observedReturn": -0.01121005341009762,
+              "upperExcursion": 0.024347270205373306,
+              "lowerExcursion": -0.01874853255411557
+            },
+            "3": {
+              "observedReturn": -0.052279301071556095,
+              "upperExcursion": 0.024347270205373306,
+              "lowerExcursion": -0.05640270069233855
+            },
+            "5": {
+              "observedReturn": -0.09210997508054919,
+              "upperExcursion": 0.024347270205373306,
+              "lowerExcursion": -0.1258854001219336
+            }
+          }
+        },
+        {
+          "date": "2026-11-17",
+          "index": 112,
+          "stage": "CONFLICT",
+          "direction": "MIXED",
+          "baseline": "BEAR",
+          "opening": null,
+          "fvg": {
+            "contact": false,
+            "fill": false,
+            "invalidated": false,
+            "target2R": true,
+            "target3R": true,
+            "stop": false,
+            "bothInSession": false
+          },
+          "breakout": {
+            "failed": false
+          },
+          "outcomes": {
+            "1": {
+              "observedReturn": -0.012897319234805082,
+              "upperExcursion": 0.005356324114214939,
+              "lowerExcursion": -0.03583243553734772
+            },
+            "3": {
+              "observedReturn": -0.11509797743570793,
+              "upperExcursion": 0.005356324114214939,
+              "lowerExcursion": -0.12233298109115176
+            },
+            "5": {
+              "observedReturn": -0.01467924064018522,
+              "upperExcursion": 0.005356324114214939,
+              "lowerExcursion": -0.129608750864745
+            }
+          }
+        },
+        {
+          "date": "2026-11-18",
+          "index": 113,
+          "stage": "CONFLICT",
+          "direction": "MIXED",
+          "baseline": "BEAR",
+          "opening": null,
+          "fvg": {
+            "contact": false,
+            "fill": false,
+            "invalidated": false,
+            "target2R": true,
+            "target3R": true,
+            "stop": false,
+            "bothInSession": false
+          },
+          "breakout": null,
+          "outcomes": {
+            "1": {
+              "observedReturn": -0.04281501419951772,
+              "upperExcursion": 0.00422959054424954,
+              "lowerExcursion": -0.04697959160289289
+            },
+            "3": {
+              "observedReturn": -0.08304345194370621,
+              "upperExcursion": 0.00422959054424954,
+              "lowerExcursion": -0.11715617078080287
+            },
+            "5": {
+              "observedReturn": -0.04858050906036593,
+              "upperExcursion": 0.00422959054424954,
+              "lowerExcursion": -0.11715617078080287
+            }
+          }
+        },
+        {
+          "date": "2026-11-19",
+          "index": 114,
+          "stage": "UNCONFIRMED",
+          "direction": "BEAR",
+          "baseline": "BEAR",
+          "opening": null,
+          "fvg": {
+            "contact": false,
+            "fill": false,
+            "invalidated": false,
+            "target2R": true,
+            "target3R": true,
+            "stop": false,
+            "bothInSession": false
+          },
+          "breakout": {
+            "failed": true
+          },
+          "outcomes": {
+            "1": {
+              "observedReturn": -0.04284211949541683,
+              "upperExcursion": 0,
+              "lowerExcursion": -0.050667890696865725
+            },
+            "3": {
+              "observedReturn": 0.06577621657259325,
+              "upperExcursion": 0.06731767647829945,
+              "lowerExcursion": -0.05853775673621686
+            },
+            "5": {
+              "observedReturn": 0.03999561176673416,
+              "upperExcursion": 0.06731767647829945,
+              "lowerExcursion": -0.05853775673621686
+            }
+          }
+        }
+      ]
+    },
+    {
+      "symbol": "2330",
+      "market": "TWSE",
+      "archive": "data/research/2026-11-26/2330.json",
+      "sha256": "32f5a85eafc60af910d608c439ecb6c5c902ddd049bfd7d97e781626d4742d97",
+      "source": "Verified official exchange daily archive",
+      "period": [
+        "2026-04-07",
+        "2026-11-26"
+      ],
+      "historicalSessions": 160,
+      "validSessions": 160,
+      "completedOutcomeSampleCount": 120,
+      "sandboxStockSimulation": null,
+      "training": {
+        "samples": 48,
+        "signalStages": {
+          "LATE_BULL": 9,
+          "INITIAL_BULL": 5,
+          "UNCONFIRMED": 17,
+          "HEALTHY_CONSOLIDATION": 3,
+          "CONFLICT": 9,
+          "RANGE": 1,
+          "INITIAL_BEAR": 1,
+          "LATE_BEAR": 3
+        },
+        "retention": {
+          "fvgObservations": 0,
+          "fvgContact": 0,
+          "fvgFullFill": 0,
+          "fvgInvalidated": 0,
+          "target2RObserved": 0,
+          "target3RObserved": 0,
+          "defenseObserved": 0,
+          "ambiguousTouchOrder": 0,
+          "breakoutObservations": 12,
+          "failedBreakout": 10,
+          "openingDefenseObserved": 0,
+          "openingDefenseTriggered": 0
+        },
+        "metrics": {
+          "1": {
+            "BULL": {
+              "baseline": {
+                "signalCount": 32,
+                "sampleCoverage": 0.6666666666666666,
+                "precision": 0.40625,
+                "recall": 0.5652173913043478,
+                "meanDirectionalObservation": -0.0015094616978248501,
+                "favorableExcursion": 0.01054069893482467,
+                "adverseExcursion": -0.009438579927688949
+              },
+              "shadow": {
+                "signalCount": 22,
+                "sampleCoverage": 0.4583333333333333,
+                "precision": 0.22727272727272727,
+                "recall": 0.21739130434782608,
+                "meanDirectionalObservation": -0.003592862724182355,
+                "favorableExcursion": 0.010699985354553097,
+                "adverseExcursion": -0.009928727392720065
+              }
+            },
+            "BEAR": {
+              "baseline": {
+                "signalCount": 16,
+                "sampleCoverage": 0.3333333333333333,
+                "precision": 0.3125,
+                "recall": 0.25,
+                "meanDirectionalObservation": -0.004111206748204706,
+                "favorableExcursion": 0.008068695301577652,
+                "adverseExcursion": -0.014404367241924107
+              },
+              "shadow": {
+                "signalCount": 11,
+                "sampleCoverage": 0.22916666666666666,
+                "precision": 0.36363636363636365,
+                "recall": 0.2,
+                "meanDirectionalObservation": -0.003247094000158566,
+                "favorableExcursion": 0.008775344809210817,
+                "adverseExcursion": -0.014513281968366714
+              }
+            }
+          },
+          "3": {
+            "BULL": {
+              "baseline": {
+                "signalCount": 32,
+                "sampleCoverage": 0.6666666666666666,
+                "precision": 0.5,
+                "recall": 0.6666666666666666,
+                "meanDirectionalObservation": -0.002379939933656521,
+                "favorableExcursion": 0.020980977547658645,
+                "adverseExcursion": -0.024627504522220765
+              },
+              "shadow": {
+                "signalCount": 22,
+                "sampleCoverage": 0.4583333333333333,
+                "precision": 0.36363636363636365,
+                "recall": 0.3333333333333333,
+                "meanDirectionalObservation": -0.008050479238524654,
+                "favorableExcursion": 0.018729846998249602,
+                "adverseExcursion": -0.026894277310236577
+              }
+            },
+            "BEAR": {
+              "baseline": {
+                "signalCount": 16,
+                "sampleCoverage": 0.3333333333333333,
+                "precision": 0.5,
+                "recall": 0.34782608695652173,
+                "meanDirectionalObservation": -0.009540082988632771,
+                "favorableExcursion": 0.02317911038260348,
+                "adverseExcursion": -0.03664480897650062
+              },
+              "shadow": {
+                "signalCount": 11,
+                "sampleCoverage": 0.22916666666666666,
+                "precision": 0.6363636363636364,
+                "recall": 0.30434782608695654,
+                "meanDirectionalObservation": 0.0002545497959075145,
+                "favorableExcursion": 0.026068094767741353,
+                "adverseExcursion": -0.030643958775989747
+              }
+            }
+          },
+          "5": {
+            "BULL": {
+              "baseline": {
+                "signalCount": 32,
+                "sampleCoverage": 0.6666666666666666,
+                "precision": 0.46875,
+                "recall": 0.5769230769230769,
+                "meanDirectionalObservation": -0.002719266430397483,
+                "favorableExcursion": 0.029200948817409242,
+                "adverseExcursion": -0.03331651542442045
+              },
+              "shadow": {
+                "signalCount": 22,
+                "sampleCoverage": 0.4583333333333333,
+                "precision": 0.45454545454545453,
+                "recall": 0.38461538461538464,
+                "meanDirectionalObservation": -0.008534876064596368,
+                "favorableExcursion": 0.025118485270663373,
+                "adverseExcursion": -0.03953283862252702
+              }
+            },
+            "BEAR": {
+              "baseline": {
+                "signalCount": 16,
+                "sampleCoverage": 0.3333333333333333,
+                "precision": 0.25,
+                "recall": 0.2,
+                "meanDirectionalObservation": -0.011955607034311033,
+                "favorableExcursion": 0.031818505752103335,
+                "adverseExcursion": -0.042658986243604466
+              },
+              "shadow": {
+                "signalCount": 11,
+                "sampleCoverage": 0.22916666666666666,
+                "precision": 0.2727272727272727,
+                "recall": 0.15,
+                "meanDirectionalObservation": -0.0022807857551316664,
+                "favorableExcursion": 0.03863448803246841,
+                "adverseExcursion": -0.037790732329146245
+              }
+            }
+          }
+        }
+      },
+      "holdout": {
+        "samples": 62,
+        "signalStages": {
+          "UNCONFIRMED": 33,
+          "RANGE": 4,
+          "CONFLICT": 7,
+          "HEALTHY_CONSOLIDATION": 5,
+          "INITIAL_BULL": 1,
+          "LATE_BULL": 7,
+          "LATE_BEAR": 5
+        },
+        "retention": {
+          "fvgObservations": 0,
+          "fvgContact": 0,
+          "fvgFullFill": 0,
+          "fvgInvalidated": 0,
+          "target2RObserved": 0,
+          "target3RObserved": 0,
+          "defenseObserved": 0,
+          "ambiguousTouchOrder": 0,
+          "breakoutObservations": 17,
+          "failedBreakout": 10,
+          "openingDefenseObserved": 0,
+          "openingDefenseTriggered": 0
+        },
+        "metrics": {
+          "1": {
+            "BULL": {
+              "baseline": {
+                "signalCount": 33,
+                "sampleCoverage": 0.532258064516129,
+                "precision": 0.48484848484848486,
+                "recall": 0.5517241379310345,
+                "meanDirectionalObservation": -0.00017493051023678623,
+                "favorableExcursion": 0.00809844534528728,
+                "adverseExcursion": -0.00694543546909338
+              },
+              "shadow": {
+                "signalCount": 24,
+                "sampleCoverage": 0.3870967741935484,
+                "precision": 0.5,
+                "recall": 0.41379310344827586,
+                "meanDirectionalObservation": 0.0014166149372410914,
+                "favorableExcursion": 0.007730359995006116,
+                "adverseExcursion": -0.004322358616257853
+              }
+            },
+            "BEAR": {
+              "baseline": {
+                "signalCount": 29,
+                "sampleCoverage": 0.46774193548387094,
+                "precision": 0.5517241379310345,
+                "recall": 0.5333333333333333,
+                "meanDirectionalObservation": 0.00017511763379920902,
+                "favorableExcursion": 0.010663279078948948,
+                "adverseExcursion": -0.012337844685563752
+              },
+              "shadow": {
+                "signalCount": 16,
+                "sampleCoverage": 0.25806451612903225,
+                "precision": 0.5625,
+                "recall": 0.3,
+                "meanDirectionalObservation": -0.0004416801464825551,
+                "favorableExcursion": 0.01352048244155396,
+                "adverseExcursion": -0.01577093330257817
+              }
+            }
+          },
+          "3": {
+            "BULL": {
+              "baseline": {
+                "signalCount": 33,
+                "sampleCoverage": 0.532258064516129,
+                "precision": 0.3333333333333333,
+                "recall": 0.4583333333333333,
+                "meanDirectionalObservation": -0.0053038438733119635,
+                "favorableExcursion": 0.013715719077155405,
+                "adverseExcursion": -0.016641122793535777
+              },
+              "shadow": {
+                "signalCount": 24,
+                "sampleCoverage": 0.3870967741935484,
+                "precision": 0.25,
+                "recall": 0.25,
+                "meanDirectionalObservation": -0.004110707445628474,
+                "favorableExcursion": 0.01295172525538213,
+                "adverseExcursion": -0.013792051996325752
+              }
+            },
+            "BEAR": {
+              "baseline": {
+                "signalCount": 29,
+                "sampleCoverage": 0.46774193548387094,
+                "precision": 0.5517241379310345,
+                "recall": 0.48484848484848486,
+                "meanDirectionalObservation": 0.0011143077386079777,
+                "favorableExcursion": 0.03146683527205442,
+                "adverseExcursion": -0.02599356260312083
+              },
+              "shadow": {
+                "signalCount": 16,
+                "sampleCoverage": 0.25806451612903225,
+                "precision": 0.625,
+                "recall": 0.30303030303030304,
+                "meanDirectionalObservation": 0.0008349997115098678,
+                "favorableExcursion": 0.04231167498483488,
+                "adverseExcursion": -0.030731598555157724
+              }
+            }
+          },
+          "5": {
+            "BULL": {
+              "baseline": {
+                "signalCount": 33,
+                "sampleCoverage": 0.532258064516129,
+                "precision": 0.45454545454545453,
+                "recall": 0.5172413793103449,
+                "meanDirectionalObservation": -0.009524056791670314,
+                "favorableExcursion": 0.017933505649148227,
+                "adverseExcursion": -0.024976835339131573
+              },
+              "shadow": {
+                "signalCount": 24,
+                "sampleCoverage": 0.3870967741935484,
+                "precision": 0.375,
+                "recall": 0.3103448275862069,
+                "meanDirectionalObservation": -0.0065340807217869334,
+                "favorableExcursion": 0.017789875313653208,
+                "adverseExcursion": -0.02091295900959582
+              }
+            },
+            "BEAR": {
+              "baseline": {
+                "signalCount": 29,
+                "sampleCoverage": 0.46774193548387094,
+                "precision": 0.5172413793103449,
+                "recall": 0.46875,
+                "meanDirectionalObservation": 0.0027990285144028158,
+                "favorableExcursion": 0.04761567373321657,
+                "adverseExcursion": -0.033668197046200526
+              },
+              "shadow": {
+                "signalCount": 16,
+                "sampleCoverage": 0.25806451612903225,
+                "precision": 0.75,
+                "recall": 0.375,
+                "meanDirectionalObservation": 0.013537433254463868,
+                "favorableExcursion": 0.06778718773375725,
+                "adverseExcursion": -0.03805176200914748
+              }
+            }
+          }
+        }
+      },
+      "walkForward": [
+        {
+          "startDate": "2026-08-12",
+          "endDate": "2026-09-14",
+          "historyAvailableUntil": "2026-08-11",
+          "test": {
+            "samples": 14,
+            "signalStages": {
+              "UNCONFIRMED": 7,
+              "RANGE": 3,
+              "CONFLICT": 2,
+              "HEALTHY_CONSOLIDATION": 2
+            },
+            "retention": {
+              "fvgObservations": 0,
+              "fvgContact": 0,
+              "fvgFullFill": 0,
+              "fvgInvalidated": 0,
+              "target2RObserved": 0,
+              "target3RObserved": 0,
+              "defenseObserved": 0,
+              "ambiguousTouchOrder": 0,
+              "breakoutObservations": 2,
+              "failedBreakout": 2,
+              "openingDefenseObserved": 0,
+              "openingDefenseTriggered": 0
+            },
+            "metrics": {
+              "1": {
+                "BULL": {
+                  "baseline": {
+                    "signalCount": 11,
+                    "sampleCoverage": 0.7857142857142857,
+                    "precision": 0.6363636363636364,
+                    "recall": 0.7777777777777778,
+                    "meanDirectionalObservation": 0.0038704290203505076,
+                    "favorableExcursion": 0.010048506471274815,
+                    "adverseExcursion": -0.0062113258228256455
+                  },
+                  "shadow": {
+                    "signalCount": 7,
+                    "sampleCoverage": 0.5,
+                    "precision": 0.5714285714285714,
+                    "recall": 0.4444444444444444,
+                    "meanDirectionalObservation": 0.0009157590253458288,
+                    "favorableExcursion": 0.0079479738921479,
+                    "adverseExcursion": -0.006781156272571206
+                  }
+                },
+                "BEAR": {
+                  "baseline": {
+                    "signalCount": 3,
+                    "sampleCoverage": 0.21428571428571427,
+                    "precision": 0.3333333333333333,
+                    "recall": 0.2,
+                    "meanDirectionalObservation": -0.0014181241645613667,
+                    "favorableExcursion": 0.006263632548997977,
+                    "adverseExcursion": -0.003505879328608611
+                  },
+                  "shadow": {
+                    "signalCount": 0,
+                    "sampleCoverage": 0,
+                    "precision": null,
+                    "recall": 0,
+                    "meanDirectionalObservation": null,
+                    "favorableExcursion": null,
+                    "adverseExcursion": null
+                  }
+                }
+              },
+              "3": {
+                "BULL": {
+                  "baseline": {
+                    "signalCount": 11,
+                    "sampleCoverage": 0.7857142857142857,
+                    "precision": 0.45454545454545453,
+                    "recall": 0.625,
+                    "meanDirectionalObservation": 0.0038651423974824695,
+                    "favorableExcursion": 0.016113653074144182,
+                    "adverseExcursion": -0.01183173804846766
+                  },
+                  "shadow": {
+                    "signalCount": 7,
+                    "sampleCoverage": 0.5,
+                    "precision": 0.14285714285714285,
+                    "recall": 0.125,
+                    "meanDirectionalObservation": -0.001769481627248326,
+                    "favorableExcursion": 0.013263616443037498,
+                    "adverseExcursion": -0.013229056418996252
+                  }
+                },
+                "BEAR": {
+                  "baseline": {
+                    "signalCount": 3,
+                    "sampleCoverage": 0.21428571428571427,
+                    "precision": 0,
+                    "recall": 0,
+                    "meanDirectionalObservation": -0.01948306593746052,
+                    "favorableExcursion": 0.006263632548997977,
+                    "adverseExcursion": -0.02924703525653601
+                  },
+                  "shadow": {
+                    "signalCount": 0,
+                    "sampleCoverage": 0,
+                    "precision": null,
+                    "recall": 0,
+                    "meanDirectionalObservation": null,
+                    "favorableExcursion": null,
+                    "adverseExcursion": null
+                  }
+                }
+              },
+              "5": {
+                "BULL": {
+                  "baseline": {
+                    "signalCount": 11,
+                    "sampleCoverage": 0.7857142857142857,
+                    "precision": 0.6363636363636364,
+                    "recall": 0.7,
+                    "meanDirectionalObservation": 0.003627572024074165,
+                    "favorableExcursion": 0.022169905213852627,
+                    "adverseExcursion": -0.014793493837276522
+                  },
+                  "shadow": {
+                    "signalCount": 7,
+                    "sampleCoverage": 0.5,
+                    "precision": 0.42857142857142855,
+                    "recall": 0.3,
+                    "meanDirectionalObservation": -0.003940395855963952,
+                    "favorableExcursion": 0.019484676165828305,
+                    "adverseExcursion": -0.017883244087124463
+                  }
+                },
+                "BEAR": {
+                  "baseline": {
+                    "signalCount": 3,
+                    "sampleCoverage": 0.21428571428571427,
+                    "precision": 0,
+                    "recall": 0,
+                    "meanDirectionalObservation": -0.023059126537005852,
+                    "favorableExcursion": 0.006263632548997977,
+                    "adverseExcursion": -0.03765050833749924
+                  },
+                  "shadow": {
+                    "signalCount": 0,
+                    "sampleCoverage": 0,
+                    "precision": null,
+                    "recall": 0,
+                    "meanDirectionalObservation": null,
+                    "favorableExcursion": null,
+                    "adverseExcursion": null
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "startDate": "2026-09-15",
+          "endDate": "2026-10-21",
+          "historyAvailableUntil": "2026-09-14",
+          "test": {
+            "samples": 14,
+            "signalStages": {
+              "UNCONFIRMED": 3,
+              "INITIAL_BULL": 1,
+              "LATE_BULL": 7,
+              "HEALTHY_CONSOLIDATION": 3
+            },
+            "retention": {
+              "fvgObservations": 0,
+              "fvgContact": 0,
+              "fvgFullFill": 0,
+              "fvgInvalidated": 0,
+              "target2RObserved": 0,
+              "target3RObserved": 0,
+              "defenseObserved": 0,
+              "ambiguousTouchOrder": 0,
+              "breakoutObservations": 2,
+              "failedBreakout": 1,
+              "openingDefenseObserved": 0,
+              "openingDefenseTriggered": 0
+            },
+            "metrics": {
+              "1": {
+                "BULL": {
+                  "baseline": {
+                    "signalCount": 14,
+                    "sampleCoverage": 1,
+                    "precision": 0.5,
+                    "recall": 1,
+                    "meanDirectionalObservation": 0.0028444496652132523,
+                    "favorableExcursion": 0.008697898930035221,
+                    "adverseExcursion": -0.0024161393828167226
+                  },
+                  "shadow": {
+                    "signalCount": 14,
+                    "sampleCoverage": 1,
+                    "precision": 0.5,
+                    "recall": 1,
+                    "meanDirectionalObservation": 0.0028444496652132523,
+                    "favorableExcursion": 0.008697898930035221,
+                    "adverseExcursion": -0.0024161393828167226
+                  }
+                },
+                "BEAR": {
+                  "baseline": {
+                    "signalCount": 0,
+                    "sampleCoverage": 0,
+                    "precision": null,
+                    "recall": 0,
+                    "meanDirectionalObservation": null,
+                    "favorableExcursion": null,
+                    "adverseExcursion": null
+                  },
+                  "shadow": {
+                    "signalCount": 0,
+                    "sampleCoverage": 0,
+                    "precision": null,
+                    "recall": 0,
+                    "meanDirectionalObservation": null,
+                    "favorableExcursion": null,
+                    "adverseExcursion": null
+                  }
+                }
+              },
+              "3": {
+                "BULL": {
+                  "baseline": {
+                    "signalCount": 14,
+                    "sampleCoverage": 1,
+                    "precision": 0.35714285714285715,
+                    "recall": 1,
+                    "meanDirectionalObservation": -0.0009243868041820773,
+                    "favorableExcursion": 0.01499098952952073,
+                    "adverseExcursion": -0.011500208480861846
+                  },
+                  "shadow": {
+                    "signalCount": 14,
+                    "sampleCoverage": 1,
+                    "precision": 0.35714285714285715,
+                    "recall": 1,
+                    "meanDirectionalObservation": -0.0009243868041820773,
+                    "favorableExcursion": 0.01499098952952073,
+                    "adverseExcursion": -0.011500208480861846
+                  }
+                },
+                "BEAR": {
+                  "baseline": {
+                    "signalCount": 0,
+                    "sampleCoverage": 0,
+                    "precision": null,
+                    "recall": 0,
+                    "meanDirectionalObservation": null,
+                    "favorableExcursion": null,
+                    "adverseExcursion": null
+                  },
+                  "shadow": {
+                    "signalCount": 0,
+                    "sampleCoverage": 0,
+                    "precision": null,
+                    "recall": 0,
+                    "meanDirectionalObservation": null,
+                    "favorableExcursion": null,
+                    "adverseExcursion": null
+                  }
+                }
+              },
+              "5": {
+                "BULL": {
+                  "baseline": {
+                    "signalCount": 14,
+                    "sampleCoverage": 1,
+                    "precision": 0.42857142857142855,
+                    "recall": 1,
+                    "meanDirectionalObservation": -0.004449016748131894,
+                    "favorableExcursion": 0.019733514089006254,
+                    "adverseExcursion": -0.020367294662041742
+                  },
+                  "shadow": {
+                    "signalCount": 14,
+                    "sampleCoverage": 1,
+                    "precision": 0.42857142857142855,
+                    "recall": 1,
+                    "meanDirectionalObservation": -0.004449016748131894,
+                    "favorableExcursion": 0.019733514089006254,
+                    "adverseExcursion": -0.020367294662041742
+                  }
+                },
+                "BEAR": {
+                  "baseline": {
+                    "signalCount": 0,
+                    "sampleCoverage": 0,
+                    "precision": null,
+                    "recall": 0,
+                    "meanDirectionalObservation": null,
+                    "favorableExcursion": null,
+                    "adverseExcursion": null
+                  },
+                  "shadow": {
+                    "signalCount": 0,
+                    "sampleCoverage": 0,
+                    "precision": null,
+                    "recall": 0,
+                    "meanDirectionalObservation": null,
+                    "favorableExcursion": null,
+                    "adverseExcursion": null
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "startDate": "2026-10-22",
+          "endDate": "2026-11-26",
+          "historyAvailableUntil": "2026-10-21",
+          "test": {
+            "samples": 14,
+            "signalStages": {
+              "UNCONFIRMED": 10,
+              "LATE_BEAR": 2,
+              "CONFLICT": 2
+            },
+            "retention": {
+              "fvgObservations": 0,
+              "fvgContact": 0,
+              "fvgFullFill": 0,
+              "fvgInvalidated": 0,
+              "target2RObserved": 0,
+              "target3RObserved": 0,
+              "defenseObserved": 0,
+              "ambiguousTouchOrder": 0,
+              "breakoutObservations": 7,
+              "failedBreakout": 5,
+              "openingDefenseObserved": 0,
+              "openingDefenseTriggered": 0
+            },
+            "metrics": {
+              "1": {
+                "BULL": {
+                  "baseline": {
+                    "signalCount": 2,
+                    "sampleCoverage": 0.14285714285714285,
+                    "precision": 0,
+                    "recall": 0,
+                    "meanDirectionalObservation": -0.03614336397355267,
+                    "favorableExcursion": 0.004233188195452375,
+                    "adverseExcursion": -0.03823980003225286
+                  },
+                  "shadow": {
+                    "signalCount": 0,
+                    "sampleCoverage": 0,
+                    "precision": null,
+                    "recall": 0,
+                    "meanDirectionalObservation": null,
+                    "favorableExcursion": null,
+                    "adverseExcursion": null
+                  }
+                },
+                "BEAR": {
+                  "baseline": {
+                    "signalCount": 12,
+                    "sampleCoverage": 0.8571428571428571,
+                    "precision": 0.6666666666666666,
+                    "recall": 0.8,
+                    "meanDirectionalObservation": 0.0006676736738994345,
+                    "favorableExcursion": 0.017651004879034888,
+                    "adverseExcursion": -0.021599574030612783
+                  },
+                  "shadow": {
+                    "signalCount": 10,
+                    "sampleCoverage": 0.7142857142857143,
+                    "precision": 0.6,
+                    "recall": 0.6,
+                    "meanDirectionalObservation": -0.0014741073916934243,
+                    "favorableExcursion": 0.01708615511970002,
+                    "adverseExcursion": -0.022048086890162532
+                  }
+                }
+              },
+              "3": {
+                "BULL": {
+                  "baseline": {
+                    "signalCount": 2,
+                    "sampleCoverage": 0.14285714285714285,
+                    "precision": 0,
+                    "recall": 0,
+                    "meanDirectionalObservation": -0.07089582325431382,
+                    "favorableExcursion": 0.004233188195452375,
+                    "adverseExcursion": -0.0762377035961942
+                  },
+                  "shadow": {
+                    "signalCount": 0,
+                    "sampleCoverage": 0,
+                    "precision": null,
+                    "recall": 0,
+                    "meanDirectionalObservation": null,
+                    "favorableExcursion": null,
+                    "adverseExcursion": null
+                  }
+                },
+                "BEAR": {
+                  "baseline": {
+                    "signalCount": 12,
+                    "sampleCoverage": 0.8571428571428571,
+                    "precision": 0.5833333333333334,
+                    "recall": 0.7777777777777778,
+                    "meanDirectionalObservation": 0.003578152305759095,
+                    "favorableExcursion": 0.05536055062090456,
+                    "adverseExcursion": -0.040671777560662835
+                  },
+                  "shadow": {
+                    "signalCount": 10,
+                    "sampleCoverage": 0.7142857142857143,
+                    "precision": 0.5,
+                    "recall": 0.5555555555555556,
+                    "meanDirectionalObservation": -0.009125144547232799,
+                    "favorableExcursion": 0.050966725768899934,
+                    "adverseExcursion": -0.04493473112622259
+                  }
+                }
+              },
+              "5": {
+                "BULL": {
+                  "baseline": {
+                    "signalCount": 2,
+                    "sampleCoverage": 0.14285714285714285,
+                    "precision": 0,
+                    "recall": 0,
+                    "meanDirectionalObservation": -0.11667472988227706,
+                    "favorableExcursion": 0.004233188195452375,
+                    "adverseExcursion": -0.128326076439284
+                  },
+                  "shadow": {
+                    "signalCount": 0,
+                    "sampleCoverage": 0,
+                    "precision": null,
+                    "recall": 0,
+                    "meanDirectionalObservation": null,
+                    "favorableExcursion": null,
+                    "adverseExcursion": null
+                  }
+                },
+                "BEAR": {
+                  "baseline": {
+                    "signalCount": 12,
+                    "sampleCoverage": 0.8571428571428571,
+                    "precision": 0.5833333333333334,
+                    "recall": 0.7777777777777778,
+                    "meanDirectionalObservation": -0.0018265614572404814,
+                    "favorableExcursion": 0.07588921258625753,
+                    "adverseExcursion": -0.05118957125689159
+                  },
+                  "shadow": {
+                    "signalCount": 10,
+                    "sampleCoverage": 0.7142857142857143,
+                    "precision": 0.6,
+                    "recall": 0.6666666666666666,
+                    "meanDirectionalObservation": -0.00834532166751235,
+                    "favorableExcursion": 0.07036194017288158,
+                    "adverseExcursion": -0.0566469926526062
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "current": {
+        "status": "AVAILABLE",
+        "mode": "SHADOW_ONLY",
+        "analysisDate": "2026-11-26",
+        "dataAsOf": "2026-11-26T13:43:40.824Z",
+        "parameters": {
+          "version": "V9.26-RESEARCH-1",
+          "doji": 0.1,
+          "wick": 0.5,
+          "surgeDoji": 0.15,
+          "surgeDojiOpen": 0.005,
+          "surgeBody": 0.65,
+          "surgeReturn": 0.07,
+          "highZone": 0.98,
+          "heavyVolume": 1.5,
+          "smallMoveAtr": 0.35,
+          "distanceAtr": 2,
+          "slowEfficiency": 0.65,
+          "stallLookback": 10,
+          "stallHighDays": 4,
+          "stallRecent": 3,
+          "stallRange": 0.65,
+          "stallVolume": 0.85,
+          "stallShadowPenalty": 5,
+          "breakoutWindow": 5,
+          "breakoutBufferAtr": 0.1,
+          "breakoutLookbacks": [
+            5,
+            10,
+            20
+          ],
+          "fvgScanSessions": 10,
+          "fvgExpiry": 8,
+          "fvgStopPct": 0.005,
+          "fvgStopAtr": 0.1,
+          "indexSelloff": -0.01,
+          "relativeNear": 0.01,
+          "relativeStrong": 0.03,
+          "atrPeriod": 14,
+          "historyLimit": 160,
+          "minTrend": 36
+        },
+        "engineVersion": "V9.26-RESEARCH-1",
+        "source": "Verified official exchange daily archive",
+        "dataCoverage": {
+          "valid": 160,
+          "expected": 160,
+          "contiguous": 160,
+          "sinceKnownReset": 160
+        },
+        "pointInTimeVerified": false,
+        "missingFields": [],
+        "warnings": [
+          "來源未證明為行情日當時可見版本，歷史研究可能受補正影響。"
+        ],
+        "evidence": {
+          "keyLevels": {
+            "lifeLine": null,
+            "support": null,
+            "resistance": null
+          },
+          "latestDate": "2026-11-26",
+          "previousDate": "2026-11-25"
+        },
+        "facts": {
+          "close": 2145,
+          "change": -0.0023
+        },
+        "trendLifecycle": {
+          "status": "UNCONFIRMED",
+          "direction": "BEAR",
+          "label": "方向未確認",
+          "alert": null,
+          "evidence": {
+            "higher": false,
+            "lower": true,
+            "above": null,
+            "below": null,
+            "ma20": 2222.5,
+            "maSlope": -35.75,
+            "priorUp": false,
+            "priorDown": false,
+            "breakout": "FAILED_BREAKOUT"
+          },
+          "invalidation": 2395,
+          "missingFields": [
+            "原生命線"
+          ]
+        },
+        "momentumExhaustion": {
+          "bull": {
+            "status": "PARTIAL_DATA",
+            "direction": "BULL",
+            "score": null,
+            "researchScore": null,
+            "coverage": {
+              "available": 4,
+              "expected": 5
+            },
+            "evidence": [],
+            "missingFields": [
+              "原生命線及分界是否失守"
+            ],
+            "tier": null,
+            "summary": null
+          },
+          "bear": {
+            "status": "PARTIAL_DATA",
+            "direction": "BEAR",
+            "score": null,
+            "researchScore": null,
+            "coverage": {
+              "available": 4,
+              "expected": 5
+            },
+            "evidence": [
+              {
+                "id": "shorteningHistogram",
+                "group": "momentum",
+                "date": "2026-11-26"
+              }
+            ],
+            "missingFields": [
+              "原生命線及分界是否失守"
+            ],
+            "tier": null,
+            "summary": null
+          }
+        },
+        "continuation": "WAITING_CONFIRMATION",
+        "reversalWatch": {
+          "status": "NO_PATTERN"
+        },
+        "openingConfirmation": null,
+        "momentumStall": {
+          "status": "NO_STALL",
+          "isStalling": false,
+          "stallingDays": 4,
+          "rangeRatio": 0.7926794112835386,
+          "volumeRatio": 0.9373021083884646,
+          "referenceHigh": 2395,
+          "trendContext": -14.163090128755362,
+          "actionTag": null,
+          "evidence": {
+            "rangeRef": 0.03806515246726941,
+            "volumeRef": 50608354.1,
+            "position": 0.4117647058823529,
+            "upper": 2395,
+            "lower": 1970
+          },
+          "summary": null
+        },
+        "stallAdjustedScore": null,
+        "breakoutConfirmation": {
+          "status": "FAILED_BREAKOUT",
+          "selected": {
+            "status": "FAILED_BREAKOUT",
+            "direction": "BEAR",
+            "level": 2020,
+            "window": 20,
+            "buffer": 7.50420742974019,
+            "eventDate": "2026-11-20",
+            "retestDate": null,
+            "confirmationDate": null,
+            "failureDate": "2026-11-23",
+            "observationSessions": 5,
+            "windowClosed": false
+          },
+          "events": [
+            {
+              "status": "FAILED_BREAKOUT",
+              "direction": "BEAR",
+              "level": 2020,
+              "window": 20,
+              "buffer": 7.50420742974019,
+              "eventDate": "2026-11-20",
+              "retestDate": null,
+              "confirmationDate": null,
+              "failureDate": "2026-11-23",
+              "observationSessions": 5,
+              "windowClosed": false
+            },
+            {
+              "status": "FAILED_BREAKOUT",
+              "direction": "BEAR",
+              "level": 2020,
+              "window": 10,
+              "buffer": 7.50420742974019,
+              "eventDate": "2026-11-20",
+              "retestDate": null,
+              "confirmationDate": null,
+              "failureDate": "2026-11-23",
+              "observationSessions": 5,
+              "windowClosed": false
+            },
+            {
+              "status": "FAILED_BREAKOUT",
+              "direction": "BEAR",
+              "level": 2085,
+              "window": 5,
+              "buffer": 7.50420742974019,
+              "eventDate": "2026-11-20",
+              "retestDate": null,
+              "confirmationDate": null,
+              "failureDate": "2026-11-24",
+              "observationSessions": 5,
+              "windowClosed": false
+            },
+            {
+              "status": "FAILED_BREAKOUT",
+              "direction": "BEAR",
+              "level": 2150,
+              "window": 5,
+              "buffer": 7.273761847412513,
+              "eventDate": "2026-11-19",
+              "retestDate": null,
+              "confirmationDate": "2026-11-20",
+              "failureDate": "2026-11-24",
+              "observationSessions": 5,
+              "windowClosed": true
+            }
+          ]
+        },
+        "fvgAnalysis": {
+          "status": "DATA_INSUFFICIENT",
+          "selected": null,
+          "events": [
+            {
+              "direction": "BEAR",
+              "formedDate": "2026-11-17",
+              "zoneLow": 2270,
+              "zoneHigh": 2340,
+              "formationHigh": 2270,
+              "formationLow": 2155,
+              "fvgBreakoutQuality": "WEAK_OR_UNCONFIRMED",
+              "status": "DATA_INSUFFICIENT",
+              "firstContactDate": null,
+              "fullyFilledDate": null,
+              "invalidatedDate": null,
+              "fillRatio": 0,
+              "active": false,
+              "lastClose": null,
+              "retestState": "INSUFFICIENT_DATA",
+              "followThrough": "DATA_INSUFFICIENT",
+              "corporateActionDate": null
+            },
+            {
+              "direction": "BEAR",
+              "formedDate": "2026-11-18",
+              "zoneLow": 2210,
+              "zoneHigh": 2215,
+              "formationHigh": 2210,
+              "formationLow": 2150,
+              "fvgBreakoutQuality": "WEAK_OR_UNCONFIRMED",
+              "status": "DATA_INSUFFICIENT",
+              "firstContactDate": null,
+              "fullyFilledDate": null,
+              "invalidatedDate": null,
+              "fillRatio": 0,
+              "active": false,
+              "lastClose": null,
+              "retestState": "INSUFFICIENT_DATA",
+              "followThrough": "DATA_INSUFFICIENT",
+              "corporateActionDate": null
+            },
+            {
+              "direction": "BEAR",
+              "formedDate": "2026-11-20",
+              "zoneLow": 2060,
+              "zoneHigh": 2150,
+              "formationHigh": 2060,
+              "formationLow": 1970,
+              "fvgBreakoutQuality": "WEAK_OR_UNCONFIRMED",
+              "status": "DATA_INSUFFICIENT",
+              "firstContactDate": null,
+              "fullyFilledDate": null,
+              "invalidatedDate": null,
+              "fillRatio": 0,
+              "active": false,
+              "lastClose": null,
+              "retestState": "INSUFFICIENT_DATA",
+              "followThrough": "DATA_INSUFFICIENT",
+              "corporateActionDate": null
+            },
+            {
+              "direction": "BEAR",
+              "formedDate": "2026-11-23",
+              "zoneLow": 2050,
+              "zoneHigh": 2085,
+              "formationHigh": 2050,
+              "formationLow": 1970,
+              "fvgBreakoutQuality": "WEAK_OR_UNCONFIRMED",
+              "status": "DATA_INSUFFICIENT",
+              "firstContactDate": null,
+              "fullyFilledDate": null,
+              "invalidatedDate": null,
+              "fillRatio": 0,
+              "active": false,
+              "lastClose": null,
+              "retestState": "INSUFFICIENT_DATA",
+              "followThrough": "DATA_INSUFFICIENT",
+              "corporateActionDate": null
+            },
+            {
+              "direction": "BULL",
+              "formedDate": "2026-11-24",
+              "zoneLow": 2060,
+              "zoneHigh": 2230,
+              "formationHigh": 2230,
+              "formationLow": 2230,
+              "fvgBreakoutQuality": "WEAK_OR_UNCONFIRMED",
+              "status": "DATA_INSUFFICIENT",
+              "firstContactDate": null,
+              "fullyFilledDate": null,
+              "invalidatedDate": null,
+              "fillRatio": 0,
+              "active": false,
+              "lastClose": null,
+              "retestState": "INSUFFICIENT_DATA",
+              "followThrough": "DATA_INSUFFICIENT",
+              "corporateActionDate": null
+            }
+          ],
+          "traditionalGaps": [
+            {
+              "date": "2026-11-20",
+              "direction": "BEAR",
+              "status": "CORPORATE_ACTION_UNCONFIRMED"
+            },
+            {
+              "date": "2026-11-24",
+              "direction": "BULL",
+              "status": "CORPORATE_ACTION_UNCONFIRMED"
+            },
+            {
+              "date": "2026-11-25",
+              "direction": "BEAR",
+              "status": "CORPORATE_ACTION_UNCONFIRMED"
+            }
+          ],
+          "selection": "最新有效未完全回補區"
+        },
+        "fvgPlan": {
+          "status": "DATA_INSUFFICIENT",
+          "missingFields": [
+            "未確認有效 FVG"
+          ]
+        },
+        "fvgBreakoutQuality": null,
+        "marketRegime": {
+          "status": "NOT_APPLICABLE"
+        },
+        "openDefenseLevel": null,
+        "marketBreadth": {
+          "status": "NOT_APPLICABLE"
+        },
+        "relativeStrength": {
+          "status": "DATA_INSUFFICIENT",
+          "missingFields": [
+            "個股對應市場指數"
+          ]
+        },
+        "nextSessionScenario": {
+          "status": "DATA_INSUFFICIENT",
+          "missingFields": [
+            "尚無明確位置或下一交易日曆未確認"
+          ],
+          "levels": {
+            "close": 2145,
+            "lifeLine": null,
+            "openingDefense": null
+          },
+          "evidence": {
+            "priceDate": "2026-11-26",
+            "support": "原結構支撐或前 10 正式交易日最低",
+            "resistance": "原結構壓力或前 10 正式交易日最高",
+            "close": "指定交易日收盤",
+            "lifeLine": null
+          }
+        },
+        "beginnerExplanation": {
+          "direction": "方向未確認",
+          "momentum": null,
+          "breakout": "突破關卡後，收盤又回到原區間。",
+          "pattern": null,
+          "next": [
+            "目前尚無明確位置。"
+          ]
+        }
+      },
+      "currentBar": {
+        "date": "2026-11-26",
+        "open": 2150,
+        "high": 2170,
+        "low": 2120,
+        "close": 2145,
+        "volume": 45892693
+      },
+      "selectedCases": [
+        {
+          "date": "2026-10-30",
+          "index": 140,
+          "stage": "UNCONFIRMED",
+          "direction": "BEAR",
+          "baseline": "BEAR",
+          "opening": null,
+          "fvg": null,
+          "breakout": {
+            "failed": false
+          },
+          "outcomes": {
+            "1": {
+              "observedReturn": 0.008658008658008587,
+              "upperExcursion": 0.015151515151515138,
+              "lowerExcursion": 0
+            },
+            "3": {
+              "observedReturn": -0.02164502164502169,
+              "upperExcursion": 0.015151515151515138,
+              "lowerExcursion": -0.03246753246753242
+            },
+            "5": {
+              "observedReturn": -0.0757575757575758,
+              "upperExcursion": 0.015151515151515138,
+              "lowerExcursion": -0.1255411255411255
+            }
+          }
+        },
+        {
+          "date": "2026-11-02",
+          "index": 141,
+          "stage": "UNCONFIRMED",
+          "direction": "BEAR",
+          "baseline": "BEAR",
+          "opening": null,
+          "fvg": null,
+          "breakout": {
+            "failed": false
+          },
+          "outcomes": {
+            "1": {
+              "observedReturn": -0.0021739130434782483,
+              "upperExcursion": 0.01521739130434785,
+              "lowerExcursion": -0.008695652173912993
+            },
+            "3": {
+              "observedReturn": -0.02608695652173909,
+              "upperExcursion": 0.01521739130434785,
+              "lowerExcursion": -0.02826086956521734
+            },
+            "5": {
+              "observedReturn": -0.02826086956521734,
+              "upperExcursion": 0.01521739130434785,
+              "lowerExcursion": -0.12173913043478257
+            }
+          }
+        },
+        {
+          "date": "2026-11-03",
+          "index": 142,
+          "stage": "UNCONFIRMED",
+          "direction": "BEAR",
+          "baseline": "BEAR",
+          "opening": null,
+          "fvg": null,
+          "breakout": {
+            "failed": false
+          },
+          "outcomes": {
+            "1": {
+              "observedReturn": -0.025862068965517238,
+              "upperExcursion": 0,
+              "lowerExcursion": -0.03663793103448276
+            },
+            "3": {
+              "observedReturn": -0.07974137931034486,
+              "upperExcursion": 0,
+              "lowerExcursion": -0.1293103448275862
+            },
+            "5": {
+              "observedReturn": -0.015086206896551713,
+              "upperExcursion": 0,
+              "lowerExcursion": -0.1293103448275862
+            }
+          }
+        },
+        {
+          "date": "2026-11-04",
+          "index": 143,
+          "stage": "UNCONFIRMED",
+          "direction": "BEAR",
+          "baseline": "BEAR",
+          "opening": null,
+          "fvg": null,
+          "breakout": {
+            "failed": true
+          },
+          "outcomes": {
+            "1": {
+              "observedReturn": -0.004444444444444473,
+              "upperExcursion": 0.015555555555555545,
+              "lowerExcursion": -0.00666666666666671
+            },
+            "3": {
+              "observedReturn": -0.00666666666666671,
+              "upperExcursion": 0.01777777777777767,
+              "lowerExcursion": -0.10222222222222221
+            },
+            "5": {
+              "observedReturn": 0.06444444444444453,
+              "upperExcursion": 0.06444444444444453,
+              "lowerExcursion": -0.10222222222222221
+            }
+          }
+        },
+        {
+          "date": "2026-11-06",
+          "index": 145,
+          "stage": "UNCONFIRMED",
+          "direction": "BEAR",
+          "baseline": "BEAR",
+          "opening": null,
+          "fvg": null,
+          "breakout": {
+            "failed": true
+          },
+          "outcomes": {
+            "1": {
+              "observedReturn": 0.011312217194570096,
+              "upperExcursion": 0.03619909502262453,
+              "lowerExcursion": -0.009049773755656076
+            },
+            "3": {
+              "observedReturn": 0.08371040723981893,
+              "upperExcursion": 0.08371040723981893,
+              "lowerExcursion": -0.009049773755656076
+            },
+            "5": {
+              "observedReturn": 0.06334841628959276,
+              "upperExcursion": 0.08371040723981893,
+              "lowerExcursion": -0.009049773755656076
+            }
+          }
+        },
+        {
+          "date": "2026-11-11",
+          "index": 148,
+          "stage": "UNCONFIRMED",
+          "direction": "NEUTRAL",
+          "baseline": "BULL",
+          "opening": null,
+          "fvg": null,
+          "breakout": {
+            "failed": true
+          },
+          "outcomes": {
+            "1": {
+              "observedReturn": -0.018867924528301883,
+              "upperExcursion": 0.004192872117400492,
+              "lowerExcursion": -0.023060796645702264
+            },
+            "3": {
+              "observedReturn": -0.07127882599580715,
+              "upperExcursion": 0.004192872117400492,
+              "lowerExcursion": -0.07127882599580715
+            },
+            "5": {
+              "observedReturn": -0.08805031446540879,
+              "upperExcursion": 0.004192872117400492,
+              "lowerExcursion": -0.0985324947589099
+            }
+          }
+        },
+        {
+          "date": "2026-11-17",
+          "index": 152,
+          "stage": "CONFLICT",
+          "direction": "MIXED",
+          "baseline": "BEAR",
+          "opening": null,
+          "fvg": null,
+          "breakout": {
+            "failed": true
+          },
+          "outcomes": {
+            "1": {
+              "observedReturn": -0.011363636363636354,
+              "upperExcursion": 0.00454545454545463,
+              "lowerExcursion": -0.022727272727272707
+            },
+            "3": {
+              "observedReturn": -0.09090909090909094,
+              "upperExcursion": 0.00454545454545463,
+              "lowerExcursion": -0.1045454545454545
+            },
+            "5": {
+              "observedReturn": 0.013636363636363669,
+              "upperExcursion": 0.013636363636363669,
+              "lowerExcursion": -0.1045454545454545
+            }
+          }
+        },
+        {
+          "date": "2026-11-19",
+          "index": 154,
+          "stage": "UNCONFIRMED",
+          "direction": "BEAR",
+          "baseline": "BEAR",
+          "opening": null,
+          "fvg": null,
+          "breakout": {
+            "failed": true
+          },
+          "outcomes": {
+            "1": {
+              "observedReturn": -0.017199017199017175,
+              "upperExcursion": 0.01228501228501222,
+              "lowerExcursion": -0.03194103194103193
+            },
+            "3": {
+              "observedReturn": 0.0958230958230959,
+              "upperExcursion": 0.0958230958230959,
+              "lowerExcursion": -0.03194103194103193
+            },
+            "5": {
+              "observedReturn": 0.054054054054053946,
+              "upperExcursion": 0.0958230958230959,
+              "lowerExcursion": -0.03194103194103193
+            }
+          }
+        }
+      ]
+    },
+    {
+      "symbol": "8099",
+      "market": "TPEX",
+      "archive": "data/research/2026-11-26/8099.json",
+      "sha256": "c64b55eccfb61348d5d379a2f40ac27ca01e94257856793a7902c339088bee49",
+      "source": "Verified official exchange daily archive",
+      "period": [
+        "2026-04-07",
+        "2026-11-26"
+      ],
+      "historicalSessions": 160,
+      "validSessions": 160,
+      "completedOutcomeSampleCount": 120,
+      "sandboxStockSimulation": null,
+      "training": {
+        "samples": 48,
+        "signalStages": {
+          "UNCONFIRMED": 25,
+          "RANGE": 5,
+          "INITIAL_BULL": 2,
+          "LATE_BULL": 1,
+          "INITIAL_BEAR": 5,
+          "LATE_BEAR": 7,
+          "CONFLICT": 3
+        },
+        "retention": {
+          "fvgObservations": 0,
+          "fvgContact": 0,
+          "fvgFullFill": 0,
+          "fvgInvalidated": 0,
+          "target2RObserved": 0,
+          "target3RObserved": 0,
+          "defenseObserved": 0,
+          "ambiguousTouchOrder": 0,
+          "breakoutObservations": 5,
+          "failedBreakout": 3,
+          "openingDefenseObserved": 0,
+          "openingDefenseTriggered": 0
+        },
+        "metrics": {
+          "1": {
+            "BULL": {
+              "baseline": {
+                "signalCount": 11,
+                "sampleCoverage": 0.22916666666666666,
+                "precision": 0.45454545454545453,
+                "recall": 0.3125,
+                "meanDirectionalObservation": -0.001824262298770822,
+                "favorableExcursion": 0.02345440705458148,
+                "adverseExcursion": -0.024155811711168925
+              },
+              "shadow": {
+                "signalCount": 4,
+                "sampleCoverage": 0.08333333333333333,
+                "precision": 0.5,
+                "recall": 0.125,
+                "meanDirectionalObservation": 0.002012841500602963,
+                "favorableExcursion": 0.037466345613821894,
+                "adverseExcursion": -0.03256333719512314
+              }
+            },
+            "BEAR": {
+              "baseline": {
+                "signalCount": 37,
+                "sampleCoverage": 0.7708333333333334,
+                "precision": 0.7027027027027027,
+                "recall": 0.8125,
+                "meanDirectionalObservation": 0.007190920524328018,
+                "favorableExcursion": 0.01894947370713393,
+                "adverseExcursion": -0.010042086780908283
+              },
+              "shadow": {
+                "signalCount": 29,
+                "sampleCoverage": 0.6041666666666666,
+                "precision": 0.6551724137931034,
+                "recall": 0.59375,
+                "meanDirectionalObservation": 0.004987872831168592,
+                "favorableExcursion": 0.017991676169485764,
+                "adverseExcursion": -0.011196956380416071
+              }
+            }
+          },
+          "3": {
+            "BULL": {
+              "baseline": {
+                "signalCount": 11,
+                "sampleCoverage": 0.22916666666666666,
+                "precision": 0.36363636363636365,
+                "recall": 0.26666666666666666,
+                "meanDirectionalObservation": -0.009267965397136107,
+                "favorableExcursion": 0.04533900241193411,
+                "adverseExcursion": -0.03918667807482057
+              },
+              "shadow": {
+                "signalCount": 4,
+                "sampleCoverage": 0.08333333333333333,
+                "precision": 0,
+                "recall": 0,
+                "meanDirectionalObservation": -0.05111435042730675,
+                "favorableExcursion": 0.04458659877837884,
+                "adverseExcursion": -0.05972914766676746
+              }
+            },
+            "BEAR": {
+              "baseline": {
+                "signalCount": 37,
+                "sampleCoverage": 0.7708333333333334,
+                "precision": 0.6486486486486487,
+                "recall": 0.7741935483870968,
+                "meanDirectionalObservation": 0.006948374680902258,
+                "favorableExcursion": 0.029368428145636057,
+                "adverseExcursion": -0.024585597779693675
+              },
+              "shadow": {
+                "signalCount": 29,
+                "sampleCoverage": 0.6041666666666666,
+                "precision": 0.6551724137931034,
+                "recall": 0.6129032258064516,
+                "meanDirectionalObservation": 0.004644128973233365,
+                "favorableExcursion": 0.02893828869240614,
+                "adverseExcursion": -0.026444810981157436
+              }
+            }
+          },
+          "5": {
+            "BULL": {
+              "baseline": {
+                "signalCount": 11,
+                "sampleCoverage": 0.22916666666666666,
+                "precision": 0.18181818181818182,
+                "recall": 0.125,
+                "meanDirectionalObservation": -0.026352893319020444,
+                "favorableExcursion": 0.06146713064233105,
+                "adverseExcursion": -0.05444382484610866
+              },
+              "shadow": {
+                "signalCount": 4,
+                "sampleCoverage": 0.08333333333333333,
+                "precision": 0,
+                "recall": 0,
+                "meanDirectionalObservation": -0.05873550443186329,
+                "favorableExcursion": 0.04458659877837884,
+                "adverseExcursion": -0.0715365276524374
+              }
+            },
+            "BEAR": {
+              "baseline": {
+                "signalCount": 37,
+                "sampleCoverage": 0.7708333333333334,
+                "precision": 0.6216216216216216,
+                "recall": 0.71875,
+                "meanDirectionalObservation": 0.005785004859782812,
+                "favorableExcursion": 0.034642464505944,
+                "adverseExcursion": -0.029733126565230108
+              },
+              "shadow": {
+                "signalCount": 29,
+                "sampleCoverage": 0.6041666666666666,
+                "precision": 0.5172413793103449,
+                "recall": 0.46875,
+                "meanDirectionalObservation": 0.0006494575108270347,
+                "favorableExcursion": 0.03325129772537724,
+                "adverseExcursion": -0.0330123477075315
+              }
+            }
+          }
+        }
+      },
+      "holdout": {
+        "samples": 62,
+        "signalStages": {
+          "UNCONFIRMED": 35,
+          "LATE_BULL": 13,
+          "RANGE": 6,
+          "LATE_BEAR": 1,
+          "CONFLICT": 2,
+          "INITIAL_BULL": 3,
+          "HEALTHY_CONSOLIDATION": 2
+        },
+        "retention": {
+          "fvgObservations": 0,
+          "fvgContact": 0,
+          "fvgFullFill": 0,
+          "fvgInvalidated": 0,
+          "target2RObserved": 0,
+          "target3RObserved": 0,
+          "defenseObserved": 0,
+          "ambiguousTouchOrder": 0,
+          "breakoutObservations": 21,
+          "failedBreakout": 8,
+          "openingDefenseObserved": 0,
+          "openingDefenseTriggered": 0
+        },
+        "metrics": {
+          "1": {
+            "BULL": {
+              "baseline": {
+                "signalCount": 46,
+                "sampleCoverage": 0.7419354838709677,
+                "precision": 0.43478260869565216,
+                "recall": 0.8695652173913043,
+                "meanDirectionalObservation": 0.004626296712330108,
+                "favorableExcursion": 0.027496492503004587,
+                "adverseExcursion": -0.023443451216038472
+              },
+              "shadow": {
+                "signalCount": 42,
+                "sampleCoverage": 0.6774193548387096,
+                "precision": 0.4523809523809524,
+                "recall": 0.8260869565217391,
+                "meanDirectionalObservation": 0.006001492304530615,
+                "favorableExcursion": 0.029284765889521773,
+                "adverseExcursion": -0.02391362417420851
+              }
+            },
+            "BEAR": {
+              "baseline": {
+                "signalCount": 16,
+                "sampleCoverage": 0.25806451612903225,
+                "precision": 0.75,
+                "recall": 0.4,
+                "meanDirectionalObservation": 0.003599577902563572,
+                "favorableExcursion": 0.014444713102164608,
+                "adverseExcursion": -0.008652305439214414
+              },
+              "shadow": {
+                "signalCount": 4,
+                "sampleCoverage": 0.06451612903225806,
+                "precision": 1,
+                "recall": 0.13333333333333333,
+                "meanDirectionalObservation": 0.007976326655794674,
+                "favorableExcursion": 0.017235830014011883,
+                "adverseExcursion": -0.00464749361183997
+              }
+            }
+          },
+          "3": {
+            "BULL": {
+              "baseline": {
+                "signalCount": 46,
+                "sampleCoverage": 0.7419354838709677,
+                "precision": 0.5434782608695652,
+                "recall": 0.7352941176470589,
+                "meanDirectionalObservation": 0.04730470905737729,
+                "favorableExcursion": 0.09155902614335475,
+                "adverseExcursion": -0.04583498716821542
+              },
+              "shadow": {
+                "signalCount": 42,
+                "sampleCoverage": 0.6774193548387096,
+                "precision": 0.5714285714285714,
+                "recall": 0.7058823529411765,
+                "meanDirectionalObservation": 0.05348788182669199,
+                "favorableExcursion": 0.09893301129185221,
+                "adverseExcursion": -0.0476530987811811
+              }
+            },
+            "BEAR": {
+              "baseline": {
+                "signalCount": 16,
+                "sampleCoverage": 0.25806451612903225,
+                "precision": 0.375,
+                "recall": 0.24,
+                "meanDirectionalObservation": -0.010757773891807668,
+                "favorableExcursion": 0.01821043237537439,
+                "adverseExcursion": -0.029715367700111697
+              },
+              "shadow": {
+                "signalCount": 4,
+                "sampleCoverage": 0.06451612903225806,
+                "precision": 0.25,
+                "recall": 0.04,
+                "meanDirectionalObservation": -0.026246061488292782,
+                "favorableExcursion": 0.023114224889970836,
+                "adverseExcursion": -0.0430459383052032
+              }
+            }
+          },
+          "5": {
+            "BULL": {
+              "baseline": {
+                "signalCount": 46,
+                "sampleCoverage": 0.7419354838709677,
+                "precision": 0.5869565217391305,
+                "recall": 0.75,
+                "meanDirectionalObservation": 0.09200774806973806,
+                "favorableExcursion": 0.15456959960907343,
+                "adverseExcursion": -0.05974373874934881
+              },
+              "shadow": {
+                "signalCount": 42,
+                "sampleCoverage": 0.6774193548387096,
+                "precision": 0.6190476190476191,
+                "recall": 0.7222222222222222,
+                "meanDirectionalObservation": 0.10168726638254777,
+                "favorableExcursion": 0.16708006893821828,
+                "adverseExcursion": -0.06198050939871178
+              }
+            },
+            "BEAR": {
+              "baseline": {
+                "signalCount": 16,
+                "sampleCoverage": 0.25806451612903225,
+                "precision": 0.4375,
+                "recall": 0.2692307692307692,
+                "meanDirectionalObservation": -0.023178877406578764,
+                "favorableExcursion": 0.01998464824087997,
+                "adverseExcursion": -0.05342460397028116
+              },
+              "shadow": {
+                "signalCount": 4,
+                "sampleCoverage": 0.06451612903225806,
+                "precision": 0,
+                "recall": 0,
+                "meanDirectionalObservation": -0.07249436071913595,
+                "favorableExcursion": 0.023114224889970836,
+                "adverseExcursion": -0.10611770924453034
+              }
+            }
+          }
+        }
+      },
+      "walkForward": [
+        {
+          "startDate": "2026-08-12",
+          "endDate": "2026-09-14",
+          "historyAvailableUntil": "2026-08-11",
+          "test": {
+            "samples": 14,
+            "signalStages": {
+              "UNCONFIRMED": 8,
+              "LATE_BULL": 6
+            },
+            "retention": {
+              "fvgObservations": 0,
+              "fvgContact": 0,
+              "fvgFullFill": 0,
+              "fvgInvalidated": 0,
+              "target2RObserved": 0,
+              "target3RObserved": 0,
+              "defenseObserved": 0,
+              "ambiguousTouchOrder": 0,
+              "breakoutObservations": 3,
+              "failedBreakout": 1,
+              "openingDefenseObserved": 0,
+              "openingDefenseTriggered": 0
+            },
+            "metrics": {
+              "1": {
+                "BULL": {
+                  "baseline": {
+                    "signalCount": 13,
+                    "sampleCoverage": 0.9285714285714286,
+                    "precision": 0.46153846153846156,
+                    "recall": 1,
+                    "meanDirectionalObservation": 0.0005196107416538446,
+                    "favorableExcursion": 0.014164514200017844,
+                    "adverseExcursion": -0.014785948794356308
+                  },
+                  "shadow": {
+                    "signalCount": 13,
+                    "sampleCoverage": 0.9285714285714286,
+                    "precision": 0.46153846153846156,
+                    "recall": 1,
+                    "meanDirectionalObservation": 0.0005196107416538446,
+                    "favorableExcursion": 0.014164514200017844,
+                    "adverseExcursion": -0.014785948794356308
+                  }
+                },
+                "BEAR": {
+                  "baseline": {
+                    "signalCount": 1,
+                    "sampleCoverage": 0.07142857142857142,
+                    "precision": 1,
+                    "recall": 0.125,
+                    "meanDirectionalObservation": 0.0202360876897133,
+                    "favorableExcursion": 0.0202360876897133,
+                    "adverseExcursion": 0
+                  },
+                  "shadow": {
+                    "signalCount": 0,
+                    "sampleCoverage": 0,
+                    "precision": null,
+                    "recall": 0,
+                    "meanDirectionalObservation": null,
+                    "favorableExcursion": null,
+                    "adverseExcursion": null
+                  }
+                }
+              },
+              "3": {
+                "BULL": {
+                  "baseline": {
+                    "signalCount": 13,
+                    "sampleCoverage": 0.9285714285714286,
+                    "precision": 0.38461538461538464,
+                    "recall": 1,
+                    "meanDirectionalObservation": 0.00020583637015463113,
+                    "favorableExcursion": 0.028092557039275736,
+                    "adverseExcursion": -0.024418352892965064
+                  },
+                  "shadow": {
+                    "signalCount": 13,
+                    "sampleCoverage": 0.9285714285714286,
+                    "precision": 0.38461538461538464,
+                    "recall": 1,
+                    "meanDirectionalObservation": 0.00020583637015463113,
+                    "favorableExcursion": 0.028092557039275736,
+                    "adverseExcursion": -0.024418352892965064
+                  }
+                },
+                "BEAR": {
+                  "baseline": {
+                    "signalCount": 1,
+                    "sampleCoverage": 0.07142857142857142,
+                    "precision": 1,
+                    "recall": 0.1111111111111111,
+                    "meanDirectionalObservation": 0.005059021922428242,
+                    "favorableExcursion": 0.0202360876897133,
+                    "adverseExcursion": -0.008431703204047292
+                  },
+                  "shadow": {
+                    "signalCount": 0,
+                    "sampleCoverage": 0,
+                    "precision": null,
+                    "recall": 0,
+                    "meanDirectionalObservation": null,
+                    "favorableExcursion": null,
+                    "adverseExcursion": null
+                  }
+                }
+              },
+              "5": {
+                "BULL": {
+                  "baseline": {
+                    "signalCount": 13,
+                    "sampleCoverage": 0.9285714285714286,
+                    "precision": 0.46153846153846156,
+                    "recall": 1,
+                    "meanDirectionalObservation": 0.0023043120602492806,
+                    "favorableExcursion": 0.04250015987200765,
+                    "adverseExcursion": -0.03151935869617091
+                  },
+                  "shadow": {
+                    "signalCount": 13,
+                    "sampleCoverage": 0.9285714285714286,
+                    "precision": 0.46153846153846156,
+                    "recall": 1,
+                    "meanDirectionalObservation": 0.0023043120602492806,
+                    "favorableExcursion": 0.04250015987200765,
+                    "adverseExcursion": -0.03151935869617091
+                  }
+                },
+                "BEAR": {
+                  "baseline": {
+                    "signalCount": 1,
+                    "sampleCoverage": 0.07142857142857142,
+                    "precision": 1,
+                    "recall": 0.125,
+                    "meanDirectionalObservation": 0.011804384485666009,
+                    "favorableExcursion": 0.0202360876897133,
+                    "adverseExcursion": -0.030354131534570117
+                  },
+                  "shadow": {
+                    "signalCount": 0,
+                    "sampleCoverage": 0,
+                    "precision": null,
+                    "recall": 0,
+                    "meanDirectionalObservation": null,
+                    "favorableExcursion": null,
+                    "adverseExcursion": null
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "startDate": "2026-09-15",
+          "endDate": "2026-10-21",
+          "historyAvailableUntil": "2026-09-14",
+          "test": {
+            "samples": 14,
+            "signalStages": {
+              "UNCONFIRMED": 8,
+              "CONFLICT": 2,
+              "RANGE": 3,
+              "LATE_BULL": 1
+            },
+            "retention": {
+              "fvgObservations": 0,
+              "fvgContact": 0,
+              "fvgFullFill": 0,
+              "fvgInvalidated": 0,
+              "target2RObserved": 0,
+              "target3RObserved": 0,
+              "defenseObserved": 0,
+              "ambiguousTouchOrder": 0,
+              "breakoutObservations": 4,
+              "failedBreakout": 2,
+              "openingDefenseObserved": 0,
+              "openingDefenseTriggered": 0
+            },
+            "metrics": {
+              "1": {
+                "BULL": {
+                  "baseline": {
+                    "signalCount": 8,
+                    "sampleCoverage": 0.5714285714285714,
+                    "precision": 0.375,
+                    "recall": 0.75,
+                    "meanDirectionalObservation": -0.0012895861542720904,
+                    "favorableExcursion": 0.01531610208929976,
+                    "adverseExcursion": -0.012889215784618283
+                  },
+                  "shadow": {
+                    "signalCount": 4,
+                    "sampleCoverage": 0.2857142857142857,
+                    "precision": 0.5,
+                    "recall": 0.5,
+                    "meanDirectionalObservation": 0.007234084697231025,
+                    "favorableExcursion": 0.021912582234025424,
+                    "adverseExcursion": -0.0072717964139834
+                  }
+                },
+                "BEAR": {
+                  "baseline": {
+                    "signalCount": 6,
+                    "sampleCoverage": 0.42857142857142855,
+                    "precision": 0.8333333333333334,
+                    "recall": 0.5555555555555556,
+                    "meanDirectionalObservation": -0.0032286364168459722,
+                    "favorableExcursion": 0.013958197521879823,
+                    "adverseExcursion": -0.014137733798922173
+                  },
+                  "shadow": {
+                    "signalCount": 3,
+                    "sampleCoverage": 0.21428571428571427,
+                    "precision": 1,
+                    "recall": 0.3333333333333333,
+                    "meanDirectionalObservation": 0.010076754915710584,
+                    "favorableExcursion": 0.0185143283492241,
+                    "adverseExcursion": -0.00619665814911996
+                  }
+                }
+              },
+              "3": {
+                "BULL": {
+                  "baseline": {
+                    "signalCount": 8,
+                    "sampleCoverage": 0.5714285714285714,
+                    "precision": 0.375,
+                    "recall": 0.42857142857142855,
+                    "meanDirectionalObservation": 0.0011778045082865563,
+                    "favorableExcursion": 0.03924196062745319,
+                    "adverseExcursion": -0.022089525397566673
+                  },
+                  "shadow": {
+                    "signalCount": 4,
+                    "sampleCoverage": 0.2857142857142857,
+                    "precision": 0.5,
+                    "recall": 0.2857142857142857,
+                    "meanDirectionalObservation": 0.01997421403699995,
+                    "favorableExcursion": 0.06435173917077525,
+                    "adverseExcursion": -0.017434235563057537
+                  }
+                },
+                "BEAR": {
+                  "baseline": {
+                    "signalCount": 6,
+                    "sampleCoverage": 0.42857142857142855,
+                    "precision": 0.3333333333333333,
+                    "recall": 0.2857142857142857,
+                    "meanDirectionalObservation": -0.032292034091873,
+                    "favorableExcursion": 0.01953275657825861,
+                    "adverseExcursion": -0.05515761478295408
+                  },
+                  "shadow": {
+                    "signalCount": 3,
+                    "sampleCoverage": 0.21428571428571427,
+                    "precision": 0.3333333333333333,
+                    "recall": 0.14285714285714285,
+                    "meanDirectionalObservation": -0.03387805406702582,
+                    "favorableExcursion": 0.02635218818383604,
+                    "adverseExcursion": -0.05571954253089073
+                  }
+                }
+              },
+              "5": {
+                "BULL": {
+                  "baseline": {
+                    "signalCount": 8,
+                    "sampleCoverage": 0.5714285714285714,
+                    "precision": 0.5,
+                    "recall": 0.5,
+                    "meanDirectionalObservation": 0.011334219701226209,
+                    "favorableExcursion": 0.045853673902792824,
+                    "adverseExcursion": -0.02746475312823575
+                  },
+                  "shadow": {
+                    "signalCount": 4,
+                    "sampleCoverage": 0.2857142857142857,
+                    "precision": 0.75,
+                    "recall": 0.375,
+                    "meanDirectionalObservation": 0.03229563361721641,
+                    "favorableExcursion": 0.0684976761525331,
+                    "adverseExcursion": -0.018671859325433776
+                  }
+                },
+                "BEAR": {
+                  "baseline": {
+                    "signalCount": 6,
+                    "sampleCoverage": 0.42857142857142855,
+                    "precision": 0.3333333333333333,
+                    "recall": 0.3333333333333333,
+                    "meanDirectionalObservation": -0.06042729056619478,
+                    "favorableExcursion": 0.020636509337640534,
+                    "adverseExcursion": -0.10943212828671178
+                  },
+                  "shadow": {
+                    "signalCount": 3,
+                    "sampleCoverage": 0.21428571428571427,
+                    "precision": 0,
+                    "recall": 0,
+                    "meanDirectionalObservation": -0.09219236928938956,
+                    "favorableExcursion": 0.02635218818383604,
+                    "adverseExcursion": -0.13479011148851958
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "startDate": "2026-10-22",
+          "endDate": "2026-11-26",
+          "historyAvailableUntil": "2026-10-21",
+          "test": {
+            "samples": 14,
+            "signalStages": {
+              "UNCONFIRMED": 7,
+              "LATE_BULL": 5,
+              "HEALTHY_CONSOLIDATION": 2
+            },
+            "retention": {
+              "fvgObservations": 0,
+              "fvgContact": 0,
+              "fvgFullFill": 0,
+              "fvgInvalidated": 0,
+              "target2RObserved": 0,
+              "target3RObserved": 0,
+              "defenseObserved": 0,
+              "ambiguousTouchOrder": 0,
+              "breakoutObservations": 8,
+              "failedBreakout": 4,
+              "openingDefenseObserved": 0,
+              "openingDefenseTriggered": 0
+            },
+            "metrics": {
+              "1": {
+                "BULL": {
+                  "baseline": {
+                    "signalCount": 14,
+                    "sampleCoverage": 1,
+                    "precision": 0.5714285714285714,
+                    "recall": 1,
+                    "meanDirectionalObservation": 0.0030412514035958937,
+                    "favorableExcursion": 0.046637859538303475,
+                    "adverseExcursion": -0.048130444337452505
+                  },
+                  "shadow": {
+                    "signalCount": 14,
+                    "sampleCoverage": 1,
+                    "precision": 0.5714285714285714,
+                    "recall": 1,
+                    "meanDirectionalObservation": 0.0030412514035958937,
+                    "favorableExcursion": 0.046637859538303475,
+                    "adverseExcursion": -0.048130444337452505
+                  }
+                },
+                "BEAR": {
+                  "baseline": {
+                    "signalCount": 0,
+                    "sampleCoverage": 0,
+                    "precision": null,
+                    "recall": 0,
+                    "meanDirectionalObservation": null,
+                    "favorableExcursion": null,
+                    "adverseExcursion": null
+                  },
+                  "shadow": {
+                    "signalCount": 0,
+                    "sampleCoverage": 0,
+                    "precision": null,
+                    "recall": 0,
+                    "meanDirectionalObservation": null,
+                    "favorableExcursion": null,
+                    "adverseExcursion": null
+                  }
+                }
+              },
+              "3": {
+                "BULL": {
+                  "baseline": {
+                    "signalCount": 14,
+                    "sampleCoverage": 1,
+                    "precision": 0.5,
+                    "recall": 1,
+                    "meanDirectionalObservation": 0.02356271731585452,
+                    "favorableExcursion": 0.1115462573370116,
+                    "adverseExcursion": -0.10501359470826802
+                  },
+                  "shadow": {
+                    "signalCount": 14,
+                    "sampleCoverage": 1,
+                    "precision": 0.5,
+                    "recall": 1,
+                    "meanDirectionalObservation": 0.02356271731585452,
+                    "favorableExcursion": 0.1115462573370116,
+                    "adverseExcursion": -0.10501359470826802
+                  }
+                },
+                "BEAR": {
+                  "baseline": {
+                    "signalCount": 0,
+                    "sampleCoverage": 0,
+                    "precision": null,
+                    "recall": 0,
+                    "meanDirectionalObservation": null,
+                    "favorableExcursion": null,
+                    "adverseExcursion": null
+                  },
+                  "shadow": {
+                    "signalCount": 0,
+                    "sampleCoverage": 0,
+                    "precision": null,
+                    "recall": 0,
+                    "meanDirectionalObservation": null,
+                    "favorableExcursion": null,
+                    "adverseExcursion": null
+                  }
+                }
+              },
+              "5": {
+                "BULL": {
+                  "baseline": {
+                    "signalCount": 14,
+                    "sampleCoverage": 1,
+                    "precision": 0.5,
+                    "recall": 1,
+                    "meanDirectionalObservation": 0.017157273889806042,
+                    "favorableExcursion": 0.15977840620384992,
+                    "adverseExcursion": -0.14092918230564694
+                  },
+                  "shadow": {
+                    "signalCount": 14,
+                    "sampleCoverage": 1,
+                    "precision": 0.5,
+                    "recall": 1,
+                    "meanDirectionalObservation": 0.017157273889806042,
+                    "favorableExcursion": 0.15977840620384992,
+                    "adverseExcursion": -0.14092918230564694
+                  }
+                },
+                "BEAR": {
+                  "baseline": {
+                    "signalCount": 0,
+                    "sampleCoverage": 0,
+                    "precision": null,
+                    "recall": 0,
+                    "meanDirectionalObservation": null,
+                    "favorableExcursion": null,
+                    "adverseExcursion": null
+                  },
+                  "shadow": {
+                    "signalCount": 0,
+                    "sampleCoverage": 0,
+                    "precision": null,
+                    "recall": 0,
+                    "meanDirectionalObservation": null,
+                    "favorableExcursion": null,
+                    "adverseExcursion": null
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "current": {
+        "status": "AVAILABLE",
+        "mode": "SHADOW_ONLY",
+        "analysisDate": "2026-11-26",
+        "dataAsOf": "2026-11-26T13:43:40.824Z",
+        "parameters": {
+          "version": "V9.26-RESEARCH-1",
+          "doji": 0.1,
+          "wick": 0.5,
+          "surgeDoji": 0.15,
+          "surgeDojiOpen": 0.005,
+          "surgeBody": 0.65,
+          "surgeReturn": 0.07,
+          "highZone": 0.98,
+          "heavyVolume": 1.5,
+          "smallMoveAtr": 0.35,
+          "distanceAtr": 2,
+          "slowEfficiency": 0.65,
+          "stallLookback": 10,
+          "stallHighDays": 4,
+          "stallRecent": 3,
+          "stallRange": 0.65,
+          "stallVolume": 0.85,
+          "stallShadowPenalty": 5,
+          "breakoutWindow": 5,
+          "breakoutBufferAtr": 0.1,
+          "breakoutLookbacks": [
+            5,
+            10,
+            20
+          ],
+          "fvgScanSessions": 10,
+          "fvgExpiry": 8,
+          "fvgStopPct": 0.005,
+          "fvgStopAtr": 0.1,
+          "indexSelloff": -0.01,
+          "relativeNear": 0.01,
+          "relativeStrong": 0.03,
+          "atrPeriod": 14,
+          "historyLimit": 160,
+          "minTrend": 36
+        },
+        "engineVersion": "V9.26-RESEARCH-1",
+        "source": "Verified official exchange daily archive",
+        "dataCoverage": {
+          "valid": 160,
+          "expected": 160,
+          "contiguous": 160,
+          "sinceKnownReset": 160
+        },
+        "pointInTimeVerified": false,
+        "missingFields": [],
+        "warnings": [
+          "來源未證明為行情日當時可見版本，歷史研究可能受補正影響。"
+        ],
+        "evidence": {
+          "keyLevels": {
+            "lifeLine": null,
+            "support": null,
+            "resistance": null
+          },
+          "latestDate": "2026-11-26",
+          "previousDate": "2026-11-25"
+        },
+        "facts": {
+          "close": 133.5,
+          "change": -0.0599
+        },
+        "trendLifecycle": {
+          "status": "RANGE",
+          "direction": "NEUTRAL",
+          "label": "區間盤整",
+          "alert": null,
+          "evidence": {
+            "higher": false,
+            "lower": true,
+            "above": null,
+            "below": null,
+            "ma20": 149.65,
+            "maSlope": 7.4150000000000205,
+            "priorUp": true,
+            "priorDown": false,
+            "breakout": "FAILED_BREAKOUT"
+          },
+          "invalidation": null,
+          "missingFields": [
+            "原生命線"
+          ]
+        },
+        "momentumExhaustion": {
+          "bull": {
+            "status": "PARTIAL_DATA",
+            "direction": "BULL",
+            "score": null,
+            "researchScore": null,
+            "coverage": {
+              "available": 4,
+              "expected": 5
+            },
+            "evidence": [
+              {
+                "id": "noNewExtreme",
+                "group": "persistence",
+                "date": "2026-11-26"
+              }
+            ],
+            "missingFields": [
+              "原生命線及分界是否失守"
+            ],
+            "tier": null,
+            "summary": null
+          },
+          "bear": {
+            "status": "PARTIAL_DATA",
+            "direction": "BEAR",
+            "score": null,
+            "researchScore": null,
+            "coverage": {
+              "available": 4,
+              "expected": 5
+            },
+            "evidence": [],
+            "missingFields": [
+              "原生命線及分界是否失守"
+            ],
+            "tier": null,
+            "summary": null
+          }
+        },
+        "continuation": "WAITING_CONFIRMATION",
+        "reversalWatch": {
+          "status": "NO_PATTERN"
+        },
+        "openingConfirmation": null,
+        "momentumStall": {
+          "status": "NO_STALL",
+          "isStalling": false,
+          "stallingDays": 4,
+          "rangeRatio": 0.9343732269839398,
+          "volumeRatio": 0.8657656148825621,
+          "referenceHigh": 200,
+          "trendContext": 16.326530612244895,
+          "actionTag": null,
+          "evidence": {
+            "rangeRef": 0.10018496144734974,
+            "volumeRef": 2856454.4,
+            "position": 0.08904109589041095,
+            "upper": 200,
+            "lower": 127
+          },
+          "summary": null
+        },
+        "stallAdjustedScore": null,
+        "breakoutConfirmation": {
+          "status": "FAILED_BREAKOUT",
+          "selected": {
+            "status": "FAILED_BREAKOUT",
+            "direction": "BEAR",
+            "level": 148.5,
+            "window": 5,
+            "buffer": 1.244597435185219,
+            "eventDate": "2026-11-20",
+            "retestDate": "2026-11-23",
+            "confirmationDate": null,
+            "failureDate": "2026-11-24",
+            "observationSessions": 5,
+            "windowClosed": false
+          },
+          "events": [
+            {
+              "status": "FAILED_BREAKOUT",
+              "direction": "BEAR",
+              "level": 148.5,
+              "window": 5,
+              "buffer": 1.244597435185219,
+              "eventDate": "2026-11-20",
+              "retestDate": "2026-11-23",
+              "confirmationDate": null,
+              "failureDate": "2026-11-24",
+              "observationSessions": 5,
+              "windowClosed": false
+            },
+            {
+              "status": "RETEST_CONTINUATION",
+              "direction": "BEAR",
+              "level": 153.5,
+              "window": 5,
+              "buffer": 1.1672587763533127,
+              "eventDate": "2026-11-19",
+              "retestDate": "2026-11-20",
+              "confirmationDate": "2026-11-23",
+              "failureDate": null,
+              "observationSessions": 5,
+              "windowClosed": true
+            }
+          ]
+        },
+        "fvgAnalysis": {
+          "status": "DATA_INSUFFICIENT",
+          "selected": null,
+          "events": [
+            {
+              "direction": "BULL",
+              "formedDate": "2026-11-13",
+              "zoneLow": 150.5,
+              "zoneHigh": 171.5,
+              "formationHigh": 182,
+              "formationLow": 171.5,
+              "fvgBreakoutQuality": "WEAK_OR_UNCONFIRMED",
+              "status": "DATA_INSUFFICIENT",
+              "firstContactDate": null,
+              "fullyFilledDate": null,
+              "invalidatedDate": null,
+              "fillRatio": 0,
+              "active": false,
+              "lastClose": null,
+              "retestState": "INSUFFICIENT_DATA",
+              "followThrough": "DATA_INSUFFICIENT",
+              "corporateActionDate": null
+            },
+            {
+              "direction": "BULL",
+              "formedDate": "2026-11-16",
+              "zoneLow": 165.5,
+              "zoneHigh": 200,
+              "formationHigh": 200,
+              "formationLow": 200,
+              "fvgBreakoutQuality": "WEAK_OR_UNCONFIRMED",
+              "status": "DATA_INSUFFICIENT",
+              "firstContactDate": null,
+              "fullyFilledDate": null,
+              "invalidatedDate": null,
+              "fillRatio": 0,
+              "active": false,
+              "lastClose": null,
+              "retestState": "INSUFFICIENT_DATA",
+              "followThrough": "DATA_INSUFFICIENT",
+              "corporateActionDate": null
+            },
+            {
+              "direction": "BEAR",
+              "formedDate": "2026-11-18",
+              "zoneLow": 177.5,
+              "zoneHigh": 200,
+              "formationHigh": 177.5,
+              "formationLow": 162,
+              "fvgBreakoutQuality": "WEAK_OR_UNCONFIRMED",
+              "status": "DATA_INSUFFICIENT",
+              "firstContactDate": null,
+              "fullyFilledDate": null,
+              "invalidatedDate": null,
+              "fillRatio": 0,
+              "active": false,
+              "lastClose": null,
+              "retestState": "INSUFFICIENT_DATA",
+              "followThrough": "DATA_INSUFFICIENT",
+              "corporateActionDate": null
+            },
+            {
+              "direction": "BEAR",
+              "formedDate": "2026-11-19",
+              "zoneLow": 171,
+              "zoneHigh": 180,
+              "formationHigh": 171,
+              "formationLow": 148.5,
+              "fvgBreakoutQuality": "WEAK_OR_UNCONFIRMED",
+              "status": "DATA_INSUFFICIENT",
+              "firstContactDate": null,
+              "fullyFilledDate": null,
+              "invalidatedDate": null,
+              "fillRatio": 0,
+              "active": false,
+              "lastClose": null,
+              "retestState": "INSUFFICIENT_DATA",
+              "followThrough": "DATA_INSUFFICIENT",
+              "corporateActionDate": null
+            },
+            {
+              "direction": "BEAR",
+              "formedDate": "2026-11-20",
+              "zoneLow": 159,
+              "zoneHigh": 162,
+              "formationHigh": 159,
+              "formationLow": 134,
+              "fvgBreakoutQuality": "WEAK_OR_UNCONFIRMED",
+              "status": "DATA_INSUFFICIENT",
+              "firstContactDate": null,
+              "fullyFilledDate": null,
+              "invalidatedDate": null,
+              "fillRatio": 0,
+              "active": false,
+              "lastClose": null,
+              "retestState": "INSUFFICIENT_DATA",
+              "followThrough": "DATA_INSUFFICIENT",
+              "corporateActionDate": null
+            },
+            {
+              "direction": "BEAR",
+              "formedDate": "2026-11-26",
+              "zoneLow": 147.5,
+              "zoneHigh": 153,
+              "formationHigh": 147.5,
+              "formationLow": 128,
+              "fvgBreakoutQuality": "WEAK_OR_UNCONFIRMED",
+              "status": "DATA_INSUFFICIENT",
+              "firstContactDate": null,
+              "fullyFilledDate": null,
+              "invalidatedDate": null,
+              "fillRatio": 0,
+              "active": false,
+              "lastClose": null,
+              "retestState": "INSUFFICIENT_DATA",
+              "followThrough": "DATA_INSUFFICIENT",
+              "corporateActionDate": null
+            }
+          ],
+          "traditionalGaps": [
+            {
+              "date": "2026-11-13",
+              "direction": "BULL",
+              "status": "CORPORATE_ACTION_UNCONFIRMED"
+            },
+            {
+              "date": "2026-11-16",
+              "direction": "BULL",
+              "status": "CORPORATE_ACTION_UNCONFIRMED"
+            },
+            {
+              "date": "2026-11-17",
+              "direction": "BEAR",
+              "status": "CORPORATE_ACTION_UNCONFIRMED"
+            },
+            {
+              "date": "2026-11-18",
+              "direction": "BEAR",
+              "status": "CORPORATE_ACTION_UNCONFIRMED"
+            },
+            {
+              "date": "2026-11-24",
+              "direction": "BULL",
+              "status": "CORPORATE_ACTION_UNCONFIRMED"
+            }
+          ],
+          "selection": "最新有效未完全回補區"
+        },
+        "fvgPlan": {
+          "status": "DATA_INSUFFICIENT",
+          "missingFields": [
+            "未確認有效 FVG"
+          ]
+        },
+        "fvgBreakoutQuality": null,
+        "marketRegime": {
+          "status": "NOT_APPLICABLE"
+        },
+        "openDefenseLevel": null,
+        "marketBreadth": {
+          "status": "NOT_APPLICABLE"
+        },
+        "relativeStrength": {
+          "status": "DATA_INSUFFICIENT",
+          "missingFields": [
+            "個股對應市場指數"
+          ]
+        },
+        "nextSessionScenario": {
+          "status": "DATA_INSUFFICIENT",
+          "missingFields": [
+            "尚無明確位置或下一交易日曆未確認"
+          ],
+          "levels": {
+            "close": 133.5,
+            "lifeLine": null,
+            "openingDefense": null
+          },
+          "evidence": {
+            "priceDate": "2026-11-26",
+            "support": "原結構支撐或前 10 正式交易日最低",
+            "resistance": "原結構壓力或前 10 正式交易日最高",
+            "close": "指定交易日收盤",
+            "lifeLine": null
+          }
+        },
+        "beginnerExplanation": {
+          "direction": "區間盤整",
+          "momentum": null,
+          "breakout": "突破關卡後，收盤又回到原區間。",
+          "pattern": null,
+          "next": [
+            "目前尚無明確位置。"
+          ]
+        }
+      },
+      "currentBar": {
+        "date": "2026-11-26",
+        "open": 143.5,
+        "high": 147.5,
+        "low": 128,
+        "close": 133.5,
+        "volume": 3072248
+      },
+      "selectedCases": [
+        {
+          "date": "2026-11-02",
+          "index": 141,
+          "stage": "UNCONFIRMED",
+          "direction": "BULL",
+          "baseline": "BULL",
+          "opening": null,
+          "fvg": null,
+          "breakout": {
+            "failed": false
+          },
+          "outcomes": {
+            "1": {
+              "observedReturn": 0.06746031746031744,
+              "upperExcursion": 0.06746031746031744,
+              "lowerExcursion": 0
+            },
+            "3": {
+              "observedReturn": 0.20634920634920628,
+              "upperExcursion": 0.20634920634920628,
+              "lowerExcursion": 0
+            },
+            "5": {
+              "observedReturn": 0.11507936507936511,
+              "upperExcursion": 0.22222222222222232,
+              "lowerExcursion": 0
+            }
+          }
+        },
+        {
+          "date": "2026-11-03",
+          "index": 142,
+          "stage": "UNCONFIRMED",
+          "direction": "BULL",
+          "baseline": "BULL",
+          "opening": null,
+          "fvg": null,
+          "breakout": {
+            "failed": false
+          },
+          "outcomes": {
+            "1": {
+              "observedReturn": 0.01773049645390068,
+              "upperExcursion": 0.028368794326241176,
+              "lowerExcursion": -0.03546099290780147
+            },
+            "3": {
+              "observedReturn": 0.05319148936170204,
+              "upperExcursion": 0.08156028368794321,
+              "lowerExcursion": -0.03546099290780147
+            },
+            "5": {
+              "observedReturn": -0.028368794326241176,
+              "upperExcursion": 0.09219858156028371,
+              "lowerExcursion": -0.049645390070921946
+            }
+          }
+        },
+        {
+          "date": "2026-11-04",
+          "index": 143,
+          "stage": "UNCONFIRMED",
+          "direction": "BULL",
+          "baseline": "BULL",
+          "opening": null,
+          "fvg": null,
+          "breakout": {
+            "failed": false
+          },
+          "outcomes": {
+            "1": {
+              "observedReturn": 0.08571428571428563,
+              "upperExcursion": 0.08571428571428563,
+              "lowerExcursion": 0
+            },
+            "3": {
+              "observedReturn": 0.0035714285714285587,
+              "upperExcursion": 0.10000000000000009,
+              "lowerExcursion": -0.042857142857142816
+            },
+            "5": {
+              "observedReturn": 0.07499999999999996,
+              "upperExcursion": 0.10000000000000009,
+              "lowerExcursion": -0.09285714285714286
+            }
+          }
+        },
+        {
+          "date": "2026-11-05",
+          "index": 144,
+          "stage": "UNCONFIRMED",
+          "direction": "BULL",
+          "baseline": "BULL",
+          "opening": null,
+          "fvg": null,
+          "breakout": {
+            "failed": true
+          },
+          "outcomes": {
+            "1": {
+              "observedReturn": 0.024137931034482696,
+              "upperExcursion": 0.051724137931034475,
+              "lowerExcursion": -0.0482758620689655
+            },
+            "3": {
+              "observedReturn": -0.05517241379310345,
+              "upperExcursion": 0.06206896551724128,
+              "lowerExcursion": -0.07586206896551728
+            },
+            "5": {
+              "observedReturn": 0.14137931034482754,
+              "upperExcursion": 0.14137931034482754,
+              "lowerExcursion": -0.12413793103448278
+            }
+          }
+        },
+        {
+          "date": "2026-11-12",
+          "index": 149,
+          "stage": "UNCONFIRMED",
+          "direction": "BULL",
+          "baseline": "BULL",
+          "opening": null,
+          "fvg": null,
+          "breakout": {
+            "failed": true
+          },
+          "outcomes": {
+            "1": {
+              "observedReturn": 0.011111111111111072,
+              "upperExcursion": 0.011111111111111072,
+              "lowerExcursion": -0.047222222222222276
+            },
+            "3": {
+              "observedReturn": 0,
+              "upperExcursion": 0.11111111111111116,
+              "lowerExcursion": -0.047222222222222276
+            },
+            "5": {
+              "observedReturn": -0.17500000000000004,
+              "upperExcursion": 0.11111111111111116,
+              "lowerExcursion": -0.17500000000000004
+            }
+          }
+        },
+        {
+          "date": "2026-11-13",
+          "index": 150,
+          "stage": "UNCONFIRMED",
+          "direction": "BULL",
+          "baseline": "BULL",
+          "opening": null,
+          "fvg": null,
+          "breakout": {
+            "failed": true
+          },
+          "outcomes": {
+            "1": {
+              "observedReturn": 0,
+              "upperExcursion": 0,
+              "lowerExcursion": 0
+            },
+            "3": {
+              "observedReturn": -0.1775,
+              "upperExcursion": 0,
+              "lowerExcursion": -0.18999999999999995
+            },
+            "5": {
+              "observedReturn": -0.2875,
+              "upperExcursion": 0,
+              "lowerExcursion": -0.32999999999999996
+            }
+          }
+        },
+        {
+          "date": "2026-11-16",
+          "index": 151,
+          "stage": "HEALTHY_CONSOLIDATION",
+          "direction": "BULL",
+          "baseline": "BULL",
+          "opening": null,
+          "fvg": null,
+          "breakout": {
+            "failed": true
+          },
+          "outcomes": {
+            "1": {
+              "observedReturn": -0.09547738693467334,
+              "upperExcursion": 0,
+              "lowerExcursion": -0.09547738693467334
+            },
+            "3": {
+              "observedReturn": -0.25376884422110557,
+              "upperExcursion": 0,
+              "lowerExcursion": -0.25376884422110557
+            },
+            "5": {
+              "observedReturn": -0.29648241206030146,
+              "upperExcursion": 0,
+              "lowerExcursion": -0.33417085427135673
+            }
+          }
+        },
+        {
+          "date": "2026-11-19",
+          "index": 154,
+          "stage": "LATE_BULL",
+          "direction": "BULL",
+          "baseline": "BULL",
+          "opening": null,
+          "fvg": null,
+          "breakout": {
+            "failed": false
+          },
+          "outcomes": {
+            "1": {
+              "observedReturn": 0.059479553903345694,
+              "upperExcursion": 0.18215613382899631,
+              "lowerExcursion": -0.0037174721189591198
+            },
+            "3": {
+              "observedReturn": 0.14498141263940512,
+              "upperExcursion": 0.18215613382899631,
+              "lowerExcursion": -0.014869888475836479
+            },
+            "5": {
+              "observedReturn": -0.0074349442379182396,
+              "upperExcursion": 0.18959107806691455,
+              "lowerExcursion": -0.048327137546468446
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "performance": {
+    "cpu": {
+      "p50Ms": 0.5377610000000175,
+      "p95Ms": 4.376498000000083,
+      "samples": 320,
+      "method": "Node performance.now(), pure analysis wall time, I/O excluded"
+    },
+    "externalRequests": 0,
+    "residentMiB": 54.73046875,
+    "environment": {
+      "node": "v24.22.3",
+      "platform": "linux"
+    }
+  },
+  "limitations": [
+    "檔案為倉庫已保存的官方行情，缺多年當時可見版本與歷史全市場成員，無法排除更正和存活者偏差。",
+    "個股缺可逐日核對的公司行動、合法參考價、停牌分類及成交與放空限制。無法驗證正式策略影子排序效益。",
+    "未建立可成交模型。指數觀察、FVG 價格接觸與樣本方向報酬不作投資績效。",
+    "保留資料缺失附近的隔離。未調整模型或門檻以適應樣本外結果。"
+  ]
+}
