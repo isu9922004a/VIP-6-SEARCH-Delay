@@ -5,7 +5,7 @@ const sha=s=>crypto.createHash('sha256').update(s).digest('hex');
 test('protected calculators and five existing scanners remain identical to the release baseline',()=>{
  for(const [name,oldExpected]of Object.entries(B.sources)){if(['strategy-2560-v1.js','strategy-2560-config-v90.js','strategy-2560-scanner-v1.js'].includes(name))continue;const expected=name==='kline-life-03-core-v1.js'?require('../fixtures/v932-life-baseline.json').coreSha256:oldExpected;assert.equal(sha(fs.readFileSync(name,'utf8').replaceAll('\r\n','\n')),require('../fixtures/v924-approved-worker-hashes.cjs').expected(name,expected),name);}
  // The sixth strategy keeps its name and indicator labels in the original format.
- const html=fs.readFileSync('index.html','utf8').replaceAll('\r\n','\n').replace(",[data-enhanced-macd-copy],[data-filter='structure']",''),inline=[...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]);assert.equal(sha(JSON.stringify(inline)),B.inlineSha256);
+ const html=fs.readFileSync('index.html','utf8').replaceAll('\r\n','\n').replace(",[data-enhanced-macd-copy],[data-filter='structure']",''),inline=[...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)].map(m=>m[1]);assert.equal(sha(JSON.stringify(inline)),require('../fixtures/v926-approved-preview-hashes.cjs').expected('index.html inline scripts',B.inlineSha256));
 });
 test('verified 4939 snapshot, all research values, rankings match the original evaluation; revised life events match the V9.3.2 regression baseline',()=>{
  const bytes=fs.readFileSync('data/research/2026-11-13/4939.json');assert.equal(sha(bytes),B.inputSha256);

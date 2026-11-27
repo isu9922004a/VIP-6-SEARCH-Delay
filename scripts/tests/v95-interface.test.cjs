@@ -7,7 +7,7 @@ test('V9.5 preserves exact scanner, strategy, life report/share dependencies and
   // V9.7 adds a dedicated, opt-in page plan. Compare every byte of the original default path.
   if(name==='kline-life-03-pages-v94.js')source=Buffer.from(source.toString().replace(/ \/\/ The fourth strategy opts[\s\S]*? \}else\{\n(?= \/\/ Page 1:)/,'').replace(' }\n const count=pages.length;',' const count=pages.length;'));
   if(name==='kline-life-03-report-v1.js')source=Buffer.from(source.toString().replace(/if\(options\.visual\)\{const v=typeof module==='object'&&module\.exports\?require\('\.\/life-line-visual-v(?:972|98)\.js'\):globalThis\.ShitouLifeVisual(?:972|98);return v\.build\(x,\{\.\.\.options,display:\{fields:fields\(x\),teaching:teaching\(\)\}\}\);\}/,''));
-  assert.equal(sha(source),require('../fixtures/v924-approved-worker-hashes.cjs').expected(name,expected),name);
+  assert.equal(sha(source),require('../fixtures/v926-approved-preview-hashes.cjs').expected(name,expected),name);
  }
 });
 test('research workbench navigation, tools and state handling match the V9.25 baseline',()=>{

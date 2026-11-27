@@ -27,7 +27,8 @@ test('frontend and report declare the current release and local assets use expli
  assert.match(v.displayCode,/^(?:V8\.(?:2\.\d+|3|4|5|6(?:\.\d+)?|7(?:\.\d+)?|8)|V9\.(?:[0-9]|(?:1[0-9]|2[0-9]))(?:\.\d+)?)(?:-R\d+)?$/);assert.equal(v.fileVersion,v.displayCode);
  assert.ok(html.includes('<title>石頭少爺 '+v.displayCode));
  const src=fs.readFileSync(path.join(root,'research-report-v1.js'),'utf8');assert.ok(src.includes(v.displayCode));
- for(const file of ['version-v50.js','research-report-v1.js'])assert.ok(html.includes(file+'?v='+v.displayCode));
+ assert.ok(html.includes('version-v50.js?v='+v.reportPreviewCacheVersion));
+ assert.ok(html.includes('research-report-v1.js?v='+v.displayCode));
  for(const entry of html.matchAll(/<(?:script|link)\b[^>]*(?:src|href)="(\.\/[^"\s]+)"/g)){
   const url=entry[1];
   if(/\.(?:js|css)\?v=/.test(url))assert.match(url,/\?v=(?:V8\.(?:2\.\d+|3(?:\.1)?|4|5|6(?:\.\d+)?|7(?:\.\d+)?|8)|V9\.(?:[0-9]|(?:1[0-9]|2[0-9]))(?:\.\d+)?)(?:-R\d+)?(?:-[A-Z0-9]+(?:\.[0-9]+)*)*$/,url);

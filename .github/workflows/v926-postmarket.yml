@@ -1,0 +1,61 @@
+name: V9.26 post-close research and image preview
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [feat/v926-postmarket-trend-lifeline]
+permissions:
+  contents: read
+jobs:
+  release-candidate:
+    if: github.event_name == 'push' || startsWith(github.head_ref, 'feat/v926-')
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      CHROME_BIN: /usr/bin/google-chrome
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+      - run: |
+          npm run build:worker-contract
+          git diff --exit-code -- stock-worker.mjs market-worker.mjs worker-data-contract-v1.js
+          node --check stock-worker.mjs
+          node --check market-worker.mjs
+          npm run test:contract
+          npm test
+          npm run research:validate
+      - run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y fonts-noto-cjk
+          npx playwright-core install --with-deps webkit
+      - name: Source preview, Worker replay and preserved reports
+        run: |
+          node scripts/tests/report-preview-v926-browser.cjs "$RUNNER_TEMP/v926/chromium-source"
+          node scripts/tests/report-preview-v926-browser.cjs "$RUNNER_TEMP/v926/webkit-source" --webkit
+          npm run test:worker-browser -- "$RUNNER_TEMP/v926/worker-source"
+          node scripts/tests/life-v94-mobile-browser.cjs "$RUNNER_TEMP/v926/life94"
+          node scripts/tests/market-comfort-browser.cjs "$RUNNER_TEMP/v926/market"
+          node scripts/tests/enhanced-macd-v923-browser.cjs "$RUNNER_TEMP/v926/macd"
+          node scripts/tests/kronos-v83-browser.cjs "$RUNNER_TEMP/v926/kronos"
+          node scripts/tests/market-life-v96-browser.cjs "$RUNNER_TEMP/v926/market-life"
+          node scripts/tests/postmarket-reports-v926-browser.cjs "$RUNNER_TEMP/v926/official-archive-reports"
+      - name: Package and run actual Pages staging recipe
+        run: |
+          mkdir -p /tmp/verified-site
+          tar --exclude=./.git --exclude=./.github --exclude=./evidence --exclude=./scripts --exclude=./third_party --exclude=./kronos --exclude=./node_modules -cf - . | tar -xf - -C /tmp/verified-site
+          node scripts/build-frontend-v924.cjs /tmp/verified-site --defer-future
+          node scripts/prepare-pages-runtime-data.cjs /tmp/verified-site
+          cp /tmp/verified-site/frontend-v924-manifest.json "$RUNNER_TEMP/v926/"
+          REPORT_PAGES_STAGE=/tmp/verified-site node scripts/tests/report-preview-v926-browser.cjs "$RUNNER_TEMP/v926/chromium-pages"
+          REPORT_PAGES_STAGE=/tmp/verified-site node scripts/tests/report-preview-v926-browser.cjs "$RUNNER_TEMP/v926/webkit-pages" --webkit
+          RESEARCH_ROOT_OVERRIDE=/tmp/verified-site npm run test:worker-browser -- "$RUNNER_TEMP/v926/worker-pages"
+      - name: Replay archived official OHLCV
+        run: node scripts/backtest-postmarket-v926.cjs "$RUNNER_TEMP/v926/real-archive-study.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v926-candidate-evidence
+          path: ${{ runner.temp }}/v926

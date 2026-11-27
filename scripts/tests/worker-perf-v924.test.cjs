@@ -13,7 +13,7 @@ test('V9.24 frontend split preserves source exactly and defers only the four dec
  assert.ok(plain.manifest.htmlBytes<plain.manifest.sourceBytes/5);
  assert.deepEqual(plain.files,deferred.files);
  assert.equal((plain.html.match(/<script\b[^>]*\bdefer\b[^>]*>/g)||[]).length+4,(deferred.html.match(/<script\b[^>]*\bdefer\b[^>]*>/g)||[]).length);
- for(const f of plain.files)assert.ok(plain.html.includes('./'+f.name+'?v=V9.24-PERF1'));
+ for(const f of plain.files)assert.ok(plain.html.includes('./'+f.name+'?v=V9.24-PERF1-'+f.sha256.slice(0,12)+'"'));
 });
 test('institutional daily lookups are bounded, retain original candidate priority and tolerate missing sources',async()=>{
  const S=await import('../../stock-worker.mjs');
