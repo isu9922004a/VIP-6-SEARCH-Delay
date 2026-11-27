@@ -69,6 +69,11 @@ jobs:
           RESEARCH_ROOT_OVERRIDE=/tmp/verified-site npm run test:worker-browser -- "$RUNNER_TEMP/v926/worker-pages"
       - name: Replay archived official OHLCV
         run: node scripts/backtest-postmarket-v926.cjs "$RUNNER_TEMP/v926/real-archive-study.json"
+      - name: V9.27 exploratory replay audit
+        if: startsWith(github.head_ref, 'feat/v927-') || startsWith(github.ref_name, 'feat/v927-')
+        run: |
+          node --test scripts/tests/v927-release-readiness.test.cjs
+          node scripts/audit-v927-release.cjs "$RUNNER_TEMP/v926/real-archive-study.json" "$RUNNER_TEMP/v926/v927-readiness.json"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
