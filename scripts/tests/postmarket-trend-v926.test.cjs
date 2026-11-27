@@ -256,3 +256,34 @@ test('legacy breakout references are frozen before the event and honor their ori
   assert.equal(matched(R.analyze(s,{anchors:[derived]})).anchor.knownDate,date(66));
   assert.deepEqual(result.nextSessionScenario.observationDates,days.slice(70,75));
 });
+
+test('preview anchor bridge rejects stale historical OHLCV, mismatched identity and unconfirmed N points',async()=>{
+  // Import the actual browser ESM without a DOM or package type change.
+  const fs=require('node:fs');
+  const path=require('node:path');
+  const source=fs.readFileSync(path.join(__dirname,'../../postmarket-preview-v926.js'),'utf8');
+  const {originalStockAnchors}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+  const s=bundle(70,'TWSE');
+  s.bars[30]=candle(30,96,{low:95});
+  s.bars[36]=candle(36,109,{high:110});
+  s.bars[42]=candle(42,101,{low:100});
+  const point=(type,i,price)=>({type,pivotDate:date(i),knownAt:date(i+3),price});
+  const event={A:point('LOW',30,95),B:point('HIGH',36,110),C:point('LOW',42,100),knownAt:date(45),invalidatedAt:null};
+  const n={state:'RESEARCH_ONLY',code:s.instrument.code,date:s.analysisDate,
+    gates:{priceBasisVerified:true,calendarVerified:true},
+    chart:{basisVerified:true,calendarVerified:true,priceBasis:s.instrument.basis,bars:s.bars.map(row=>({...row}))},
+    history:[event]};
+  const a={code:s.instrument.code,date:s.analysisDate,sourceBars:s.bars.slice(-20),nContinuation:n};
+  const read=analysis=>originalStockAnchors(s,analysis);
+  assert.deepEqual(read(a).map(x=>[x.kind,x.price,x.knownDate]),[['N_B',110,date(45)],['N_C',100,date(45)]]);
+  const stale=structuredClone(a);stale.nContinuation.chart.bars[30].low=94;
+  assert.deepEqual(read(stale),[]);
+  for(const change of [
+    {code:'9999'},{date:date(68)},{chart:{...n.chart,priceBasis:'OTHER'}},
+    {history:[{...event,C:{...event.C,knownAt:null}}]},
+    {history:[{...event,B:{...event.B,price:111}}]},
+    {history:[{...event,knownAt:date(42)}]},
+    {history:[{...event,invalidatedAt:date(44)}]}
+  ]) assert.deepEqual(read({...a,nContinuation:{...n,...change}}),[]);
+  assert.deepEqual(read({...a,nContinuation:null,originalB:110,originalInvalidation:100}),[]);
+});
