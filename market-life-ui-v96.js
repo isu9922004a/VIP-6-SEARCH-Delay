@@ -58,7 +58,7 @@ function install(){
    await doc.fonts.ready;if(token!==revision)return;await loadMarketVisual(doc);if(token!==revision)return;const pages=root.ShitouMarketLifeVisual913.build(study,{document:doc,v916:true});
    if(new URLSearchParams(root.location.search).get('postmarket-study')==='1'){
     try{
-     const {makeStudyPage}=await import('./postmarket-preview-v926.js?v=V9.26-RESEARCH-1');
+     const {makeStudyPage}=await import('./postmarket-preview-v926.js?v=V9.26-RESEARCH-2');
      const research=await makeStudyPage({source,study,marketRisk:root.ShitouMarketLifeRisk913.evaluate(study),index:true});
      if(research)pages.push(research);
     }catch(error){console.warn('盤後趨勢研究頁暫不可用',error.message);}

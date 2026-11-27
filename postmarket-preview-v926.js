@@ -1,6 +1,6 @@
 /* Explicit preview of the independent study page. Loaded only with postmarket-study=1. */
 const root = globalThis;
-const version = 'V9.26-RESEARCH-1';
+const version = 'V9.26-RESEARCH-2';
 let pending;
 
 function loadScripts() {
@@ -28,7 +28,44 @@ function loadScripts() {
   return pending;
 }
 
-export async function makeStudyPage({source, study, marketRisk, quality, dataAsOf, watermark = false, index = false}) {
+function originalStockAnchors(input, analysis) {
+  const archived=input.bars;
+  const sourceBars=analysis?.sourceBars;
+  if (!input.complete || analysis?.date!==input.analysisDate ||
+      String(analysis.code)!==String(input.instrument.code) || !Array.isArray(sourceBars) ||
+      !sourceBars.length || sourceBars.length>archived.length) return [];
+  const columns=['date','open','high','low','close','volume'];
+  const lastArchive=archived.slice(-sourceBars.length);
+  const aligned=sourceBars.every((row,i)=>columns.every(key=>row[key]===lastArchive[i][key]));
+  if (!aligned) return [];
+  const {code,market,basis}=input.instrument, out=[];
+  const add=(kind,price,knownDate,source,invalidatedDate=null)=>{
+    if (Number.isFinite(price)&&price>0&&knownDate) out.push({
+      kind,price,knownDate,source,invalidatedDate,code,market,basis,verified:true,
+      availability:'DERIVED_FROM_COMPLETED_SESSION'
+    });
+  };
+  const unified=analysis.unifiedResearch;
+  if (unified?.state==='RESEARCH_ONLY' && unified.chart?.basisVerified && unified.chart?.calendarVerified) {
+    for (const level of unified.levels || []) {
+      const kind={PIVOT_HIGH:'RESISTANCE',PIVOT_LOW:'SUPPORT',RANGE_HIGH:'NH'}[level.kind];
+      if (kind&&level.confirmationStatus==='CONFIRMED_REFERENCE') add(kind,level.price,level.confirmedAt,level.source);
+    }
+    for (const pattern of unified.chart.patterns || []) {
+      if (pattern.type==='DOUBLE_BOTTOM') add('NECKLINE',pattern.neckline,pattern.formedAt,'原已確認雙底頸線');
+    }
+  }
+  const n=analysis.nContinuation;
+  if (n?.state==='RESEARCH_ONLY' && n.gates?.priceBasisVerified && n.gates?.calendarVerified) {
+    for (const event of n.history || []) {
+      add('N_B',event.B?.price,event.knownAt,'原 N 字 B 點',event.invalidatedAt);
+      add('N_C',event.C?.price,event.knownAt,'原 N 字 C 點',event.invalidatedAt);
+    }
+  }
+  return out;
+}
+
+export async function makeStudyPage({source, study, analysis, benchmark, marketRisk, quality, dataAsOf, watermark = false, index = false}) {
   await loadScripts();
   const report = root.ShitouPostmarketReport926;
   const input = report.archiveInput(source,{index,dataAsOf});
@@ -43,7 +80,8 @@ export async function makeStudyPage({source, study, marketRisk, quality, dataAsO
     if (Number.isFinite(receipt)) levels.lifeLine.publishedAt = new Date(
       Math.min(receipt,Date.parse(levels.lifeLine.publishedAt))).toISOString();
   }
-  const result = root.ShitouPostmarketTrend926.analyze(input,{levels});
+  const result = root.ShitouPostmarketTrend926.analyze(input,{levels,anchors:index?[]:originalStockAnchors(input,analysis),
+    benchmark:benchmark?report.archiveInput(benchmark,{index:true}):undefined});
   let syntheticCrossRead;
   if (!index && root.ShitouHeikinAshi920 && result.status==='AVAILABLE' && study.validatedBars?.length>=5) {
     const series = root.ShitouHeikinAshi920.calculate(study.validatedBars);

@@ -19,6 +19,8 @@ jobs:
       CHROME_BIN: /usr/bin/google-chrome
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # The market life-line browser suite reads the approved historical renderer.
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -103,3 +105,90 @@ jobs:
         with:
           name: v926-formal-strategy-regression
           path: ${{ runner.temp }}/v926-formal
+
+  production-baseline:
+    if: github.event_name == 'pull_request' && startsWith(github.head_ref, 'feat/v926-')
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Inspect the currently published Pages artifact and completed Worker inputs
+        run: |
+          mkdir -p "$RUNNER_TEMP/v926-production"
+          node scripts/build-frontend-v924.cjs "$RUNNER_TEMP/v926-baseline" --defer-future
+          node --input-type=module - "$RUNNER_TEMP/v926-baseline" "$RUNNER_TEMP/v926-production" <<'NODE'
+          import assert from 'node:assert/strict';
+          import fs from 'node:fs';
+          import crypto from 'node:crypto';
+          import {expectedCompletedDate} from './scripts/update-market-snapshot.mjs';
+          const [local,out]=process.argv.slice(2);
+          const site='https://isu9922004a.github.io/VIP-6-SEARCH-Delay/';
+          const worker='https://shitou-taiwanmarket-api.d318426.workers.dev/';
+          const sha=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
+          const read=async url=>{
+            const response=await fetch(url,{cache:'no-store',signal:AbortSignal.timeout(30000)});
+            assert.ok(response.ok,url+' HTTP '+response.status);
+            return {bytes:Buffer.from(await response.arrayBuffer()),etag:response.headers.get('etag'),
+              cache:response.headers.get('cf-cache-status')||response.headers.get('x-cache')};
+          };
+          const audit={site,worker,checkedAt:new Date().toISOString(),status:'INCOMPLETE'};
+          const evidence=out+'/production-baseline.json';
+          try {
+            const [html,manifest,pagesSnapshot,marketResponse,indexResponse]=await Promise.all([
+              read(site+'index.html'),read(site+'frontend-v924-manifest.json'),read(site+'data/market/latest.json'),
+              read(worker+'?market=ALL_STOCKS'),read(worker+'?market=TAIEX')
+            ]);
+            const expectedManifest=JSON.parse(fs.readFileSync(local+'/frontend-v924-manifest.json'));
+            const publishedManifest=JSON.parse(manifest.bytes);
+            audit.pages={htmlSha256:sha(html.bytes),manifestSha256:sha(manifest.bytes),etag:html.etag,cache:html.cache,
+              expectedHtmlSha256:expectedManifest.htmlSha256,observedSourceSha256:publishedManifest.sourceSha256};
+            const snapshot=JSON.parse(pagesSnapshot.bytes), market=JSON.parse(marketResponse.bytes), index=JSON.parse(indexResponse.bytes);
+            const expected=expectedCompletedDate(snapshot.marketCalendar);
+            const tradeDate=String(expected??'').replace(/\D/g,'');
+            const date=value=>String(value??'').replace(/\D/g,'');
+            audit.data={expected,tradeDate:snapshot.tradeDateIso,coverage:snapshot.marketCoverageReady,
+              twse:snapshot.counts?.twseRows,tpex:snapshot.counts?.tpexRows, market:market.meta?.completedTradeDate,
+              marketType:market.type,marketVersion:market.version,marketSha256:sha(marketResponse.bytes),marketCache:marketResponse.cache,
+              indexDate:index.closeDate,indexClose:index.close,indexSha256:sha(indexResponse.bytes),indexCache:indexResponse.cache};
+            assert.equal(audit.pages.htmlSha256,expectedManifest.htmlSha256,'currently published Pages HTML differs from approved base');
+            assert.deepEqual(publishedManifest,expectedManifest);
+            audit.pages.assets=await Promise.all(expectedManifest.assets.map(async asset=>{
+              const published=await read(site+asset.name);
+              const digest=sha(published.bytes);
+              assert.equal(digest,asset.sha256,asset.name+' differs from approved base');
+              return {name:asset.name,sha256:digest,cache:published.cache};
+            }));
+            assert.match(tradeDate,/^\d{8}$/,'latest completed market day is unavailable');
+            assert.equal(date(snapshot.tradeDateIso),tradeDate);
+            assert.equal(snapshot.marketCoverageReady,true);
+            assert.ok(audit.data.twse>0&&audit.data.tpex>0);
+            assert.equal(market.type,'MARKET_SCAN_SNAPSHOT');
+            assert.equal(date(market.meta?.completedTradeDate),tradeDate);
+            assert.equal(date(market.meta?.twseQuoteDate),tradeDate);
+            assert.equal(date(market.meta?.tpexQuoteDate),tradeDate);
+            assert.equal(market.meta?.marketCoverageReady,true);
+            assert.equal(index.index,'TAIEX');
+            assert.equal(date(index.closeDate),tradeDate);
+            assert.equal(index.dailySeriesMeta?.onlyCompletedBars,true);
+            assert.equal(index.dailySeries?.at(-1)?.date,index.closeDate);
+            assert.equal(index.dailySeries?.at(-1)?.close,index.close);
+            audit.status='PASS';
+          } catch (error) {
+            audit.status='FAIL';
+            audit.error=error.message;
+            process.exitCode=1;
+          } finally {
+            fs.writeFileSync(evidence,JSON.stringify(audit,null,2)+'\n');
+            console.log(JSON.stringify(audit));
+          }
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v926-production-baseline
+          path: ${{ runner.temp }}/v926-production

@@ -834,7 +834,7 @@
         "analysisDate": "2026-11-26",
         "dataAsOf": "2026-11-26T19:39:02.107Z",
         "parameters": {
-          "version": "V9.26-RESEARCH-1",
+          "version": "V9.26-RESEARCH-2",
           "doji": 0.1,
           "wick": 0.5,
           "surgeDoji": 0.15,
@@ -852,6 +852,7 @@
           "stallRange": 0.65,
           "stallVolume": 0.85,
           "stallShadowPenalty": 5,
+          "nextHorizon": 5,
           "breakoutWindow": 5,
           "breakoutBufferAtr": 0.1,
           "breakoutLookbacks": [
@@ -870,7 +871,7 @@
           "historyLimit": 160,
           "minTrend": 36
         },
-        "engineVersion": "V9.26-RESEARCH-1",
+        "engineVersion": "V9.26-RESEARCH-2",
         "source": "TWSE Official｜TAIEX OHLC + FMTQIK 市場成交股數",
         "dataCoverage": {
           "valid": 120,
@@ -1235,6 +1236,13 @@
         "nextSessionScenario": {
           "status": "HYPOTHETICAL",
           "nextSessionDate": "2026-11-27",
+          "observationDates": [
+            "2026-11-27",
+            "2026-11-30",
+            "2026-12-01",
+            "2026-12-02",
+            "2026-12-03"
+          ],
           "levels": {
             "continuation": 44525.24,
             "close": 39151.81,
@@ -2399,7 +2407,7 @@
         "analysisDate": "2026-11-26",
         "dataAsOf": "2026-11-26T13:43:40.824Z",
         "parameters": {
-          "version": "V9.26-RESEARCH-1",
+          "version": "V9.26-RESEARCH-2",
           "doji": 0.1,
           "wick": 0.5,
           "surgeDoji": 0.15,
@@ -2417,6 +2425,7 @@
           "stallRange": 0.65,
           "stallVolume": 0.85,
           "stallShadowPenalty": 5,
+          "nextHorizon": 5,
           "breakoutWindow": 5,
           "breakoutBufferAtr": 0.1,
           "breakoutLookbacks": [
@@ -2435,7 +2444,7 @@
           "historyLimit": 160,
           "minTrend": 36
         },
-        "engineVersion": "V9.26-RESEARCH-1",
+        "engineVersion": "V9.26-RESEARCH-2",
         "source": "Verified official exchange daily archive",
         "dataCoverage": {
           "valid": 160,
@@ -3821,7 +3830,7 @@
         "analysisDate": "2026-11-26",
         "dataAsOf": "2026-11-26T13:43:40.824Z",
         "parameters": {
-          "version": "V9.26-RESEARCH-1",
+          "version": "V9.26-RESEARCH-2",
           "doji": 0.1,
           "wick": 0.5,
           "surgeDoji": 0.15,
@@ -3839,6 +3848,7 @@
           "stallRange": 0.65,
           "stallVolume": 0.85,
           "stallShadowPenalty": 5,
+          "nextHorizon": 5,
           "breakoutWindow": 5,
           "breakoutBufferAtr": 0.1,
           "breakoutLookbacks": [
@@ -3857,7 +3867,7 @@
           "historyLimit": 160,
           "minTrend": 36
         },
-        "engineVersion": "V9.26-RESEARCH-1",
+        "engineVersion": "V9.26-RESEARCH-2",
         "source": "Verified official exchange daily archive",
         "dataCoverage": {
           "valid": 160,
@@ -4454,13 +4464,13 @@
   ],
   "performance": {
     "cpu": {
-      "p50Ms": 0.3896269999999902,
-      "p95Ms": 1.2902040000000028,
+      "p50Ms": 0.3973680000000286,
+      "p95Ms": 2.142516999999998,
       "samples": 320,
       "method": "Node performance.now(), pure analysis wall time, I/O excluded"
     },
     "externalRequests": 0,
-    "residentMiB": 54.265625,
+    "residentMiB": 53.50390625,
     "environment": {
       "node": "v24.22.3",
       "platform": "linux"

@@ -1,10 +1,10 @@
 {
   "source": "committed official OHLCV archives",
-  "loadMs": 4213.922003,
+  "loadMs": 4805.7186839999995,
   "media": [
     {
       "symbol": "TAIEX",
-      "filename": "/workspace/scratch/v926/final-archive-reports/石頭少爺_V9.26_TAIEX_20261126_盤後趨勢研究.png",
+      "filename": "/workspace/scratch/v926/resume-final-archive/石頭少爺_V9.26_TAIEX_20261126_盤後趨勢研究.png",
       "watermark": false,
       "close": 39151.81,
       "marketRisk": 3,
@@ -13,7 +13,7 @@
         "asOf": "2026-11-26T19:39:02.107Z",
         "code": "TAIEX",
         "source": "TWSE Official｜TAIEX OHLC + FMTQIK 市場成交股數",
-        "version": "V9.26-RESEARCH-1",
+        "version": "V9.26-RESEARCH-2",
         "points": [
           {
             "date": "2026-11-20",
@@ -71,7 +71,7 @@
           },
           {
             "label": "下一交易日收盤情境 2026-11-27",
-            "text": "若收盤高於 40315.53 點，且量價或結構改善，再觀察是否轉強。\n若收盤低於 35442.41 點，留意支撐轉弱。\n若收盤仍在 35442.41 至 40315.53 點，先看整理。"
+            "text": "若收盤高於 40315.53 點，且量價或結構改善，再觀察是否轉強。\n若收盤低於 35442.41 點，留意支撐轉弱。\n若收盤仍在 35442.41 至 40315.53 點，先看整理。\n接續觀察至 2026-12-03，每個已完成交易日重新核對關卡。"
           },
           {
             "label": "資料來源",
@@ -84,8 +84,8 @@
         "height": 2778,
         "watermark": false
       },
-      "renderTime": 299.69999999995343,
-      "encodeTime": 650,
+      "renderTime": 188.90000000037253,
+      "encodeTime": 301.80000000074506,
       "imageSize": [
         1284,
         2778
@@ -94,7 +94,7 @@
     },
     {
       "symbol": "TAIEX",
-      "filename": "/workspace/scratch/v926/final-archive-reports/石頭少爺_V9.26_TAIEX_20261126_盤後趨勢研究_浮水印.png",
+      "filename": "/workspace/scratch/v926/resume-final-archive/石頭少爺_V9.26_TAIEX_20261126_盤後趨勢研究_浮水印.png",
       "watermark": true,
       "close": 39151.81,
       "marketRisk": 3,
@@ -103,7 +103,7 @@
         "asOf": "2026-11-26T19:39:02.107Z",
         "code": "TAIEX",
         "source": "TWSE Official｜TAIEX OHLC + FMTQIK 市場成交股數",
-        "version": "V9.26-RESEARCH-1",
+        "version": "V9.26-RESEARCH-2",
         "points": [
           {
             "date": "2026-11-20",
@@ -161,7 +161,7 @@
           },
           {
             "label": "下一交易日收盤情境 2026-11-27",
-            "text": "若收盤高於 40315.53 點，且量價或結構改善，再觀察是否轉強。\n若收盤低於 35442.41 點，留意支撐轉弱。\n若收盤仍在 35442.41 至 40315.53 點，先看整理。"
+            "text": "若收盤高於 40315.53 點，且量價或結構改善，再觀察是否轉強。\n若收盤低於 35442.41 點，留意支撐轉弱。\n若收盤仍在 35442.41 至 40315.53 點，先看整理。\n接續觀察至 2026-12-03，每個已完成交易日重新核對關卡。"
           },
           {
             "label": "資料來源",
@@ -174,8 +174,8 @@
         "height": 2778,
         "watermark": true
       },
-      "renderTime": 293.39999999990687,
-      "encodeTime": 310.30000000004657,
+      "renderTime": 136.79999999981374,
+      "encodeTime": 283.20000000018626,
       "imageSize": [
         1284,
         2778
@@ -184,7 +184,7 @@
     },
     {
       "symbol": "2330",
-      "filename": "/workspace/scratch/v926/final-archive-reports/石頭少爺_V9.26_2330_20261126_盤後趨勢研究.png",
+      "filename": "/workspace/scratch/v926/resume-final-archive/石頭少爺_V9.26_2330_20261126_盤後趨勢研究.png",
       "watermark": false,
       "close": 2145,
       "marketRisk": null,
@@ -193,23 +193,15 @@
         "asOf": "2026-11-26T13:43:40.824Z",
         "code": "2330",
         "source": "Verified official exchange daily archive",
-        "version": "V9.26-RESEARCH-1",
+        "version": "V9.26-RESEARCH-2",
         "points": [
           {
-            "date": "2026-11-20",
-            "price": 2020,
+            "date": "2026-11-25",
+            "price": 2180,
             "label": "向下跌破",
-            "barIndex": 40,
-            "x": 1072.5,
-            "y": 838.9238822863613
-          },
-          {
-            "date": "2026-11-23",
-            "price": 2020,
-            "label": "回到原區間",
-            "barIndex": 41,
-            "x": 1096.388888888889,
-            "y": 838.9238822863613
+            "barIndex": 43,
+            "x": 1144.1666666666667,
+            "y": 713.7399547255236
           }
         ],
         "lines": [
@@ -219,7 +211,7 @@
           },
           {
             "label": "盤後研究",
-            "text": "偏空｜階段待確認｜續強條件 等待確認"
+            "text": "偏空｜初跌轉弱｜續強條件 等待確認"
           },
           {
             "label": "原突破品質",
@@ -227,7 +219,7 @@
           },
           {
             "label": "力道觀察",
-            "text": "跌破關卡後，收盤又回到原區間。"
+            "text": "等收盤與重要關卡提供更多證據"
           },
           {
             "label": "相對大盤",
@@ -260,8 +252,8 @@
         "height": 2778,
         "watermark": false
       },
-      "renderTime": 16,
-      "encodeTime": 321.79999999981374,
+      "renderTime": 99.20000000018626,
+      "encodeTime": 264.09999999962747,
       "imageSize": [
         1284,
         2778
@@ -270,7 +262,7 @@
     },
     {
       "symbol": "2330",
-      "filename": "/workspace/scratch/v926/final-archive-reports/石頭少爺_V9.26_2330_20261126_盤後趨勢研究_浮水印.png",
+      "filename": "/workspace/scratch/v926/resume-final-archive/石頭少爺_V9.26_2330_20261126_盤後趨勢研究_浮水印.png",
       "watermark": true,
       "close": 2145,
       "marketRisk": null,
@@ -279,23 +271,15 @@
         "asOf": "2026-11-26T13:43:40.824Z",
         "code": "2330",
         "source": "Verified official exchange daily archive",
-        "version": "V9.26-RESEARCH-1",
+        "version": "V9.26-RESEARCH-2",
         "points": [
           {
-            "date": "2026-11-20",
-            "price": 2020,
+            "date": "2026-11-25",
+            "price": 2180,
             "label": "向下跌破",
-            "barIndex": 40,
-            "x": 1072.5,
-            "y": 838.9238822863613
-          },
-          {
-            "date": "2026-11-23",
-            "price": 2020,
-            "label": "回到原區間",
-            "barIndex": 41,
-            "x": 1096.388888888889,
-            "y": 838.9238822863613
+            "barIndex": 43,
+            "x": 1144.1666666666667,
+            "y": 713.7399547255236
           }
         ],
         "lines": [
@@ -305,7 +289,7 @@
           },
           {
             "label": "盤後研究",
-            "text": "偏空｜階段待確認｜續強條件 等待確認"
+            "text": "偏空｜初跌轉弱｜續強條件 等待確認"
           },
           {
             "label": "原突破品質",
@@ -313,7 +297,7 @@
           },
           {
             "label": "力道觀察",
-            "text": "跌破關卡後，收盤又回到原區間。"
+            "text": "等收盤與重要關卡提供更多證據"
           },
           {
             "label": "相對大盤",
@@ -346,8 +330,8 @@
         "height": 2778,
         "watermark": true
       },
-      "renderTime": 34.800000000046566,
-      "encodeTime": 304.5,
+      "renderTime": 98.79999999981374,
+      "encodeTime": 204.69999999925494,
       "imageSize": [
         1284,
         2778

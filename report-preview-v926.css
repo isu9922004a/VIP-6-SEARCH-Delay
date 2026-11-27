@@ -212,3 +212,7 @@
     border-radius: 0;
   }
 }
+
+#postmarketPreviewText { text-align: start; }
+#postmarketPreviewText dt { font-weight: 700; }
+#postmarketPreviewText dd { margin: 0 0 .75rem; white-space: pre-line; }

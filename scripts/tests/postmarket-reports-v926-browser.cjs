@@ -56,7 +56,7 @@ async function run() {
           const resolved=new URL(document.querySelector('#imageDownloadLink').href);
           return {audit,renderTime,encodeTime,imageSize:[document.querySelector('#imagePreviewImg').naturalWidth,
             document.querySelector('#imagePreviewImg').naturalHeight],blob:resolved.protocol==='blob:'};
-        }, {source,study,index,marketRisk,quality,watermark,dataAsOf:index?undefined:manifest.generatedAt});
+        }, {source,study,analysis,index,marketRisk,quality,watermark,dataAsOf:index?undefined:manifest.generatedAt});
         assert.equal(result.audit.code,symbol);
         assert.equal(result.audit.date,source.closeDate);
         assert.deepEqual(result.imageSize,[1284,2778]);
@@ -67,6 +67,10 @@ async function run() {
           assert.equal(source.dailySeries.slice(-45)[point.barIndex].date,point.date);
           assert.ok(point.x>=105&&point.x<=1180&&point.y>=359&&point.y<=912);
         }
+        const previewText=page.locator('#postmarketPreviewText');
+        await previewText.locator('summary').click();
+        assert.deepEqual(await previewText.locator('dt').allTextContents(),result.audit.lines.map(line=>line.label));
+        assert.deepEqual(await previewText.locator('dd').allTextContents(),result.audit.lines.map(line=>line.text));
         const deliverable=page.waitForEvent('download');
         await page.locator('#imageDownloadLink').click();
         const file=await deliverable;
@@ -76,6 +80,7 @@ async function run() {
         assert.deepEqual([png.readUInt32BE(16),png.readUInt32BE(20)],[1284,2778]);
         media.push({symbol,filename,watermark,close:source.close,marketRisk:marketRisk?.risk?.level??null,...result});
         await page.locator('.image-modal-close').click();
+        assert.equal(await previewText.count(),0);
       }
     }
     await page.clock.setFixedTime(new Date(market.closeDate+'T10:00:00Z'));

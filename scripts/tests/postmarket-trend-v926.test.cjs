@@ -232,3 +232,27 @@ test('bearish FVG bounds and direct continuation use completed closes after form
   assert.equal(event(touched).status,'PARTIAL_FILL');
   assert.equal(event(touched).retestState,'IN_RETEST_ZONE');
 });
+
+test('legacy breakout references are frozen before the event and honor their original publication dates',()=>{
+  const s=bundle();
+  s.bars[68]=candle(68,105,{open:100,high:106,low:99});
+  s.bars[69]=candle(69,107,{open:105,high:108,low:104});
+  const anchor={kind:'NECKLINE',price:103,code:'TAIEX',market:'TAIEX',basis:'OFFICIAL_INDEX_LEVEL',
+    knownDate:date(66),publishedAt:asOf(date(67)),verified:true,source:'confirmed fixture neckline'};
+  const matched=result=>result.breakoutConfirmation.events.find(event=>event.anchor?.kind==='NECKLINE');
+  const result=R.analyze(s,{anchors:[anchor,{...anchor}]});
+  const event=matched(result);
+  assert.equal(result.breakoutConfirmation.events.filter(e=>e.anchor).length,1);
+  assert.equal(event.eventDate,date(68));
+  assert.equal(event.anchor.knownDate,date(67));
+  assert.equal(event.level,103);
+  assert.equal(event.status,'DIRECT_CONTINUATION');
+  for (const change of [
+    {publishedAt:asOf(date(68))},{publishedAt:asOf(date(70))},{knownDate:date(69)},
+    {market:'TWSE'},{basis:'UNADJUSTED_OFFICIAL_OHLC'},{invalidatedDate:date(67)},
+    {source:null},{publishedAt:undefined}
+  ]) assert.equal(matched(R.analyze(s,{anchors:[{...anchor,...change}]})),undefined);
+  const derived={...anchor,publishedAt:undefined,availability:'DERIVED_FROM_COMPLETED_SESSION'};
+  assert.equal(matched(R.analyze(s,{anchors:[derived]})).anchor.knownDate,date(66));
+  assert.deepEqual(result.nextSessionScenario.observationDates,days.slice(70,75));
+});

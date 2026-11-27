@@ -9,7 +9,7 @@ const revisions = Object.freeze({
   }),
   'mobile-image-share-v1.js': Object.freeze({
     before: 'e220674d08a1bc636953e7806f09c725e79db2ec72284609dde0085f11074f41',
-    after: '1311a4f1b8343261447a705ff228abe643739976ef8a46613b6abac1ca1ba0cf'
+    after: '384d6aee110665cfb4c161f32d85999ddce4b39ca123897f0d9f876fa9f8c1b2'
   }),
   'index.html inline scripts': Object.freeze({
     before: '89f417047f22293b28f9fcf12219525cd94616afeea699af5990af9a95a0606c',

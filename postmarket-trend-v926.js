@@ -11,6 +11,11 @@
 
 const {PARAMETERS:P, unavailable, high, low, enough} = Patterns;
 const MODE = 'SHADOW_ONLY';
+const ANCHOR_DIRECTIONS = Object.freeze({
+  NH:'BULL', NECKLINE:'BULL', ABC_B:'BULL', ABC_C:'BEAR', N_B:'BULL', N_C:'BEAR',
+  RESISTANCE:'BULL', SUPPORT:'BEAR'
+});
+
 const positive = value => Number.isFinite(value) && value > 0;
 const GROUPS = Object.freeze({candle:20, persistence:20, volumePrice:20, momentum:15, structure:25});
 const round = value => Math.round(value * 10000) / 10000;
@@ -33,6 +38,32 @@ function verifiedLevels(ctx, levels = {}) {
       row.market===ctx.instrument.market && row.verified===true && row.source && cutoffOk(row.publishedAt,ctx) && positive(row.price);
     return [key,valid?{price:row.price,date:row.date,source:row.source}:null];
   }));
+}
+
+function verifiedAnchors(ctx, anchors) {
+  if (!Array.isArray(anchors)) return [];
+  const officialDates = new Set(ctx.trendBars.map(row=>row.date));
+  const identities = new Set();
+  return anchors.flatMap(row=>{
+    const direction = Object.hasOwn(ANCHOR_DIRECTIONS,row?.kind) ? ANCHOR_DIRECTIONS[row.kind] : null;
+    if (!direction || !positive(row.price) || !row.source || row.verified!==true ||
+        String(row.code)!==String(ctx.instrument.code) || row.market!==ctx.instrument.market ||
+        row.basis!==ctx.instrument.basis || !officialDates.has(row.knownDate)) return [];
+    // Recorded references use publication time. Internally reproduced levels use
+    // the legacy algorithm's confirmed completed bar, with explicit provenance.
+    let knownDate = row.knownDate;
+    if (row.publishedAt != null) {
+      if (!cutoffOk(row.publishedAt,ctx)) return [];
+      const publishDate = new Date(Date.parse(row.publishedAt)+8*3600000).toISOString().slice(0,10);
+      if (publishDate>knownDate) knownDate = publishDate;
+    } else if (row.availability!=='DERIVED_FROM_COMPLETED_SESSION') return [];
+    if (!officialDates.has(knownDate)) return [];
+    const invalidatedDate = officialDates.has(row.invalidatedDate) ? row.invalidatedDate : null;
+    const id = [row.kind,row.price,knownDate,invalidatedDate].join('|');
+    if (identities.has(id)) return [];
+    identities.add(id);
+    return [{direction,level:row.price,kind:row.kind,source:row.source,knownDate,invalidatedDate}];
+  });
 }
 
 function trendGeometry(bars, levels) {
@@ -233,7 +264,7 @@ function nextSessionScenario(ctx, trend, life, reversal, regime, fvgPlan) {
   if (!ctx.nextSession || !valid || !(bear<bull)) return {...unavailable('尚無明確位置或下一交易日曆未確認'),
     levels:{close,lifeLine:life?.price??null,openingDefense:defense},evidence};
   return {
-    status:'HYPOTHETICAL',nextSessionDate:ctx.nextSession,levels:{continuation:bull,close,lifeLine:life?.price??null,support,resistance,
+    status:'HYPOTHETICAL',nextSessionDate:ctx.nextSession,observationDates:ctx.nextDates,levels:{continuation:bull,close,lifeLine:life?.price??null,support,resistance,
       openingDefense:defense,fvg:fvgPlan.status==='RESEARCH_ONLY'?fvgPlan:null},evidence,
     opening:defense===null?null:`若開盤低於 ${defense}${unit}，留意短線轉弱。`,
     conditions:[
@@ -244,7 +275,7 @@ function nextSessionScenario(ctx, trend, life, reversal, regime, fvgPlan) {
   };
 }
 
-function analyze(snapshot, {levels={}, benchmark, breadth, previousWatch, shadowScore, nextLimit} = {}) {
+function analyze(snapshot, {levels={}, anchors, benchmark, breadth, previousWatch, shadowScore, nextLimit} = {}) {
   const raw = snapshot || {};
   const ctx = Patterns.createContext(raw);
   const envelope = {
@@ -259,7 +290,7 @@ function analyze(snapshot, {levels={}, benchmark, breadth, previousWatch, shadow
   const momentumStall=Patterns.momentumStall(ctx.trendBars);
   const reversalWatch=ctx.index?{status:'NOT_APPLICABLE'}:Patterns.reversalWatch(ctx);
   const openingConfirmation=previousWatch?Patterns.confirmDefense(previousWatch,raw):null;
-  const breakoutConfirmation=Patterns.breakoutHistory(ctx.trendBars,tick);
+  const breakoutConfirmation=Patterns.breakoutHistory(ctx.trendBars,tick,verifiedAnchors(ctx,anchors));
   const fvgAnalysis=Patterns.fvgAnalysis(ctx,tick);
   const legalTick=ctx.instrument.securityType==='COMMON'&&ctx.instrument.tickRuleVerified===true;
   const verifiedLimit=nextLimit?.date===ctx.nextSession&&nextLimit.source&&cutoffOk(nextLimit.publishedAt,ctx)?nextLimit:null;

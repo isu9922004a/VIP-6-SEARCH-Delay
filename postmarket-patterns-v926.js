@@ -8,11 +8,11 @@
 'use strict';
 
 const PARAMETERS = Object.freeze({
-  version: 'V9.26-RESEARCH-1',
+  version: 'V9.26-RESEARCH-2',
   doji: .10, wick: .50, surgeDoji: .15, surgeDojiOpen: .005, surgeBody: .65, surgeReturn: .07,
   highZone: .98, heavyVolume: 1.5, smallMoveAtr: .35, distanceAtr: 2, slowEfficiency: .65,
   stallLookback: 10, stallHighDays: 4, stallRecent: 3, stallRange: .65, stallVolume: .85, stallShadowPenalty: 5,
-  breakoutWindow: 5, breakoutBufferAtr: .10, breakoutLookbacks: Object.freeze([5, 10, 20]),
+  nextHorizon: 5, breakoutWindow: 5, breakoutBufferAtr: .10, breakoutLookbacks: Object.freeze([5, 10, 20]),
   fvgScanSessions: 10, fvgExpiry: 8, fvgStopPct: .005, fvgStopAtr: .1,
   indexSelloff: -.01, relativeNear: .01, relativeStrong: .03, atrPeriod: 14,
   historyLimit: 160, minTrend: 36
@@ -74,7 +74,7 @@ function createContext(snapshot) {
   const trendBars = afterReset < 0 ? contiguous : contiguous.slice(afterReset);
   return {
     status:'AVAILABLE', analysisDate, dataAsOf, source, instrument, index, rows, bars:contiguous, trendBars, action,
-    nextSession:dates[position + 1] || null, knownAt, coverage:{valid:sessions.filter(Boolean).length,
+    nextSession:dates[position + 1] || null, nextDates:dates.slice(position+1,position+1+P.nextHorizon), knownAt, coverage:{valid:sessions.filter(Boolean).length,
     expected:sessions.length, contiguous:contiguous.length, sinceKnownReset:trendBars.length},
     warnings:snapshot.pointInTime === true ? [] : ['來源未證明為行情日當時可見版本，歷史研究可能受補正影響。']
   };
@@ -165,16 +165,20 @@ function momentumStall(bars) {
   };
 }
 
-function breakoutHistory(bars, tick) {
+function breakoutHistory(bars, tick, anchors = []) {
   const {breakoutWindow:w,breakoutLookbacks:lookbacks,atrPeriod} = P;
   if (!enough(bars, Math.max(...lookbacks) + w + 1)) return unavailable('連續突破基準與觀察日K');
   const events = [];
   for (let i = bars.length - 1 - w; i < bars.length; i++) {
     const bar = bars[i], before = bars[i-1];
     const atr = U.atr(bars.slice(0,i), atrPeriod);
-    for (const window of lookbacks) for (const direction of ['BULL','BEAR']) {
+    const ranges = lookbacks.flatMap(window=>{
+      const history = prior(bars,i,window);
+      return [{direction:'BULL',level:high(history),window},{direction:'BEAR',level:low(history),window}];
+    });
+    const known = anchors.filter(anchor=>anchor.knownDate<bar.date && (!anchor.invalidatedDate || anchor.invalidatedDate>bar.date));
+    for (const {direction,level,window = null,kind,knownDate,source} of [...ranges,...known]) {
       const sign = direction === 'BULL' ? 1 : -1;
-      const history = prior(bars,i,window), level = sign === 1 ? high(history) : low(history);
       const buffer = Math.max(tick(level), (atr || 0) * P.breakoutBufferAtr);
       const margin = value => (value - level) * sign;
       if (margin(bar.close) <= buffer || margin(before.close) > buffer) continue;
@@ -193,10 +197,11 @@ function breakoutHistory(bars, tick) {
         } else if (status === 'INITIAL_BREAKOUT') status='AWAITING_CONFIRMATION';
       }
       events.push({status,direction,level,window,buffer,eventDate:bar.date,retestDate,confirmationDate,failureDate,
-        observationSessions:w,windowClosed:bars.length - 1 - i >= w});
+        ...(kind ? {anchor:{kind,knownDate,source}} : {}),observationSessions:w,windowClosed:bars.length - 1 - i >= w});
     }
   }
-  const ordered = events.sort((a,b) => b.eventDate.localeCompare(a.eventDate) || b.window - a.window);
+  const ordered = events.sort((a,b) => b.eventDate.localeCompare(a.eventDate) || Number(!!b.anchor)-Number(!!a.anchor) ||
+    (b.anchor?.knownDate||'').localeCompare(a.anchor?.knownDate||'') || (b.window||0) - (a.window||0));
   return {status:ordered[0]?.status || 'NOT_BREAKOUT', selected:ordered[0] || null, events:ordered};
 }
 

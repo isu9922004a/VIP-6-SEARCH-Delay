@@ -66,6 +66,9 @@ function view(snapshot,result,{riskLabel,originalQuality,syntheticCrossRead} = {
   });
   const strength=result.relativeStrength;
   const relative=strength?.labels?`${strength.labels}｜5 日差 ${VALUE.format(strength.five.spread*100)} 個百分點｜20 日差 ${VALUE.format(strength.twenty.spread*100)} 個百分點`:'相對大盤資料不足';
+  const observedDates=result.nextSessionScenario?.observationDates || [];
+  const nextText=(result.beginnerExplanation?.next || ['尚無明確位置']).join('\n');
+  const tracking=observedDates.length>1?nextText+`\n接續觀察至 ${observedDates.at(-1)}，每個已完成交易日重新核對關卡。`:nextText;
   const lines = [
     {label:'已確認行情',text:quote+'｜'+factLine},
     {label:'盤後研究',text:stage?`${DIRECTION[stage.direction]}｜${stage.label}${index?'':'｜續強條件 '+CONTINUATION[result.continuation]}`:'資料不足'},
@@ -81,7 +84,7 @@ function view(snapshot,result,{riskLabel,originalQuality,syntheticCrossRead} = {
     ...(plan?.status==='RESEARCH_ONLY'?[{label:'FVG 假設價格試算',text:[['參考',plan.entryRef],['防守',plan.stopRef],
       ['2R',plan.target2R],['3R',plan.target3R]].map(([label,price])=>label+' '+unitPrice(price,unit)).join('｜')+
       '。依假設承受 1 份風險試算價格空間。'}]:[]),
-    {label:`下一交易日收盤情境 ${result.nextSessionScenario?.nextSessionDate||''}`,text:result.beginnerExplanation?.next.join('\n')||'尚無明確位置'},
+    {label:`下一交易日收盤情境 ${result.nextSessionScenario?.nextSessionDate||''}`,text:tracking},
     ...(!index&&syntheticCrossRead?[{label:'神奇 K 線交叉核對',text:syntheticCrossRead}]:[]),
     {label:'資料來源',text:(result.source||'來源未確認')+'｜'+(result.warnings?.length?'歷史資料版本待核對':'行情完整性如上')}
   ];
@@ -189,6 +192,22 @@ function page(report,{document:doc=root.document,watermark=false}={}) {
   canvas.dataset.postmarket926Audit=JSON.stringify({date:report.date,asOf:report.asOf,code:report.code,
     source:report.source,version:report.engineVersion,points,lines:report.lines,barCount:report.bars.length,
     noClipping:true,width:WIDTH,height:HEIGHT,watermark});
+  canvas.renderPreviewText=()=>{
+    const details=doc.createElement('details');
+    details.id='postmarketPreviewText';
+    details.className='image-preview-note research-inline';
+    const summary=doc.createElement('summary');
+    summary.textContent='閱讀報告文字';
+    const list=doc.createElement('dl');
+    for (const line of report.lines) {
+      const label=doc.createElement('dt'), body=doc.createElement('dd');
+      label.textContent=line.label;
+      body.textContent=line.text;
+      list.append(label,body);
+    }
+    details.append(summary,list);
+    return details;
+  };
   canvas.dataset.fullBleed='true';
   canvas.dataset.shareAsSingleImage='true';
   canvas.title='盤後趨勢研究';

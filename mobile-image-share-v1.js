@@ -331,6 +331,7 @@ function layoutCompact(dialog, {title, controls, dismiss, status, image, downloa
 }
 
 function resetPng() {
+  by('postmarketPreviewText')?.remove();
   by('imagePreviewImg')?.removeAttribute('src');
   const link = by('imageDownloadLink');
   link?.removeAttribute('href');
@@ -388,6 +389,8 @@ async function show(canvas, filename, title, {owner} = {}) {
   pngUrl = URL.createObjectURL(blob);
   by('imagePreviewImg').src = pngUrl;
   link.href = pngUrl;
+  const previewText = canvas.renderPreviewText?.();
+  if (previewText) by('imagePreviewNote')?.after(previewText);
   pngPending = false;
   if (state) renderSelection();
   else {
