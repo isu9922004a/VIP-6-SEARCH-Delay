@@ -92,8 +92,15 @@ jobs:
       - run: npm ci
       - name: Replay the same static market and stock responses through each strategy
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha || '582a0decfb1cf727287d3c4efbe3874469c248a2' }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
+          set -euo pipefail
+          # For push CI, compare to the actual main ancestor integrated into this candidate.
+          # PR CI uses the event's exact base; retain all date, hash and result assertions below.
+          if [ -z "$BASE_SHA" ]; then
+            git fetch --no-tags origin main
+            BASE_SHA=$(git merge-base HEAD FETCH_HEAD)
+          fi
           git worktree add --detach "$RUNNER_TEMP/v926-base" "$BASE_SHA"
           V95_SOURCE_ROOT="$RUNNER_TEMP/v926-base" npm run test:selection:v95 -- "$RUNNER_TEMP/v926-formal/baseline"
           npm run test:selection:v95 -- "$RUNNER_TEMP/v926-formal/candidate"
