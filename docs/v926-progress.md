@@ -61,7 +61,7 @@
 | 13 白話文 | PASS ／ NOT_VERIFIED | 試行研究模型共用瀏覽器預覽與 PNG。AI 模擬卡片尚未接入新版研究結果。 |
 | 14 契約與效能 | PASS ／ NOT_VERIFIED | 契約 50/50，生成 Worker 無 diff，量測本機回放。線上 Worker 資源及延遲待量測。 |
 | 15 策略及報告 | PASS ／ NOT_VERIFIED | 原策略引擎比對、舊報告及各策略輸出測試。正式站同日完整重跑待查。 |
-| 16 手機 | PASS ／ NOT_VERIFIED | 兩套本機 Chromium 路徑，各 20 個尺寸與色系組合。WebKit 下載被環境拒絕，另交 Actions。iPhone 實機與 LINE 內建瀏覽器分別待測。 |
+| 16 手機 | PASS ／ NOT_VERIFIED | 兩套本機 Chromium 路徑，各 20 個尺寸與色系組合。本機 WebKit 下載受限。Actions 首次執行的 Ubuntu 26.04 不支援固定的 Playwright 1.56.1 WebKit，候選 job 已指定 Ubuntu 24.04 並重跑。iPhone 實機與 LINE 內建瀏覽器分別待測。 |
 | 17 as-of | PASS ／ NOT_VERIFIED | 注入 T 後日 K、晚公告公司行動與成員異動的測試通過。來源過往版本沒有當時可見證明。 |
 | 18 多年回測 | BLOCKED | 現有封存回放 320 個樣本。多年可比資料及對照缺項。 |
 | 19 真實案例 | NOT_VERIFIED | 兩類 PNG 及回放事件已留存，無法證實規格要求的每個案例。 |
