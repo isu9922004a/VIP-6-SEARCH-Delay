@@ -49,7 +49,7 @@
 | Phase | 結果 | 證據與待核對事項 |
 |---|---|---|
 | 0 基準 | PASS ／ BLOCKED | main SHA、來源及 Pages 記錄、50 項契約測試、1,251 項原測試及官方快照 hash 保存。GitHub Actions 已唯讀核對正式 V9.25 Pages 的 HTML、manifest 及 15 支拆分資產，以及 11/26 正式 Worker 盤後資料。 |
-| 1 LINE 根因 | PASS ／ NOT_VERIFIED | 428×926 DOM 已重現。報障首次出現版本待查。 |
+| 1 LINE 根因 | PASS ／ NOT_VERIFIED | 428×926 DOM 已重現。報障首次出現版本待查。大盤行情暫時無法核對時，原報告留在畫面並暫停匯出。重連確認後清除舊警示並恢復匯出，來源頁及 Pages 打包版均有回歸測試。 |
 | 2 共用預覽 | PASS | Chromium source／Pages 固定工具列、影像捲動、關閉、備援、JPEG File、準備／取消／失敗及競態。 |
 | 3 多空趨勢 | PASS ／ NOT_VERIFIED | 引擎和邊界測試。各階段真實案例覆蓋不足。 |
 | 4 衰竭 | PASS ／ BLOCKED | 研究證據、分組及資料不足測試。預測效用待驗證。 |

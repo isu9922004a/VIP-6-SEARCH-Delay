@@ -49,6 +49,7 @@ jobs:
           npm run test:worker-browser -- "$RUNNER_TEMP/v926/worker-source"
           node scripts/tests/life-v94-mobile-browser.cjs "$RUNNER_TEMP/v926/life94"
           node scripts/tests/market-comfort-browser.cjs "$RUNNER_TEMP/v926/market"
+          node scripts/tests/market-date-browser.cjs "$RUNNER_TEMP/v926/market-freshness"
           node scripts/tests/v84-report-browser.cjs "$RUNNER_TEMP/v926/scan-reports"
           node scripts/tests/enhanced-macd-v923-browser.cjs "$RUNNER_TEMP/v926/macd"
           node scripts/tests/kronos-v83-browser.cjs "$RUNNER_TEMP/v926/kronos"
@@ -63,6 +64,7 @@ jobs:
           cp /tmp/verified-site/frontend-v924-manifest.json "$RUNNER_TEMP/v926/"
           REPORT_PAGES_STAGE=/tmp/verified-site node scripts/tests/report-preview-v926-browser.cjs "$RUNNER_TEMP/v926/chromium-pages"
           REPORT_PAGES_STAGE=/tmp/verified-site node scripts/tests/report-preview-v926-browser.cjs "$RUNNER_TEMP/v926/webkit-pages" --webkit
+          REPORT_PAGES_STAGE=/tmp/verified-site node scripts/tests/market-date-browser.cjs "$RUNNER_TEMP/v926/market-freshness-pages"
           REPORT_PAGES_STAGE=/tmp/verified-site node scripts/tests/postmarket-reports-v926-browser.cjs "$RUNNER_TEMP/v926/official-pages-reports"
           RESEARCH_ROOT_OVERRIDE=/tmp/verified-site npm run test:worker-browser -- "$RUNNER_TEMP/v926/worker-pages"
       - name: Replay archived official OHLCV
