@@ -22,6 +22,22 @@ function bundle(n=70,market='TAIEX',bars=Array.from({length:n},(_,i)=>candle(i))
 const tick=()=>.01;
 const context=snapshot=>P.createContext(snapshot);
 
+test('a real archived stock keeps its historical dates and uses the already-published exchange schedule for the next five',()=>{
+  const stock=require('../../data/research/2026-11-26/2330.json');
+  const schedule=require('../fixtures/postmarket-calendar-2026-11-26.json');
+  const asOf='2026-11-26T13:43:40.824Z';
+  const date=stock.closeDate,history=stock.tradingCalendar;
+  const expected=['2026-11-27','2026-11-30','2026-12-01','2026-12-02','2026-12-03'];
+  const checked=P.extendTradingCalendar(history,schedule,date,asOf);
+  assert.deepEqual(checked.dates,[...history.dates,...expected]);
+  assert.equal(checked.futureReceipt.sha256,schedule.sourceSha256);
+  assert.equal(history.dates.at(-1),date);
+  const late={...schedule,generatedAt:'2026-11-27T01:00:00+08:00'};
+  assert.equal(P.extendTradingCalendar(history,late,date,'2026-11-27T02:00:00+08:00'),history);
+  const mismatch={...schedule,dates:schedule.dates.filter(d=>d!=='2026-11-25')};
+  assert.equal(P.extendTradingCalendar(history,mismatch,date,asOf),history);
+});
+
 test('analysis shape is isolated and future rows, action announcements and universe revisions cannot change T',()=>{
   const base=bundle();
   const options={breadth:{verified:false,date:date(69),members:[]}};

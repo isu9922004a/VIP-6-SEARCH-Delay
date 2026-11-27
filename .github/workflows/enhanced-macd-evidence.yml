@@ -26,7 +26,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p /tmp/enhanced-macd
-          node scripts/collect-enhanced-macd-v923.mjs /tmp/enhanced-macd/latest.json /tmp/enhanced-macd/archive.json 2>&1 | tee /tmp/enhanced-macd/collect.log
+          node scripts/collect-enhanced-macd-v923.mjs /tmp/enhanced-macd/latest.json /tmp/enhanced-macd/archive.json /tmp/enhanced-macd/breadth.json 2>&1 | tee /tmp/enhanced-macd/collect.log
       - name: Publish only the complete scan for the verified market snapshot
         id: publish
         if: success()
@@ -52,6 +52,23 @@ jobs:
           test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" || { echo "Main moved during scan; refuse stale publication"; exit 1; }
           cp /tmp/enhanced-macd/latest.json data/enhanced-macd/latest.json
           git add data/enhanced-macd/latest.json
+          if test -s /tmp/enhanced-macd/breadth.json; then
+            TRADE_DATE=$(node - <<'NODE'
+          const assert = require('node:assert/strict');
+          const data = require('/tmp/enhanced-macd/breadth.json');
+          const scan = require('/tmp/enhanced-macd/latest.json');
+          assert.equal(data.schema, 'OFFICIAL_POSTMARKET_BREADTH_V1');
+          assert.match(data.date, /^\d{4}-\d{2}-\d{2}$/);
+          assert.equal(data.date, scan.date);
+          assert.equal(data.snapshotHash, scan.snapshotHash);
+          process.stdout.write(data.date);
+          NODE
+            )
+            mkdir -p data/postmarket-breadth
+            cp /tmp/enhanced-macd/breadth.json "data/postmarket-breadth/$TRADE_DATE.json"
+            cp /tmp/enhanced-macd/breadth.json data/postmarket-breadth/latest.json
+            git add "data/postmarket-breadth/$TRADE_DATE.json" data/postmarket-breadth/latest.json
+          fi
           if git diff --cached --quiet; then
             echo "Verified scan unchanged"
           else

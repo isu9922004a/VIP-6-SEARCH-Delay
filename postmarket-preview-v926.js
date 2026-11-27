@@ -1,7 +1,25 @@
 /* Explicit preview of the independent study page. Loaded only with postmarket-study=1. */
 const root = globalThis;
-const version = 'V9.26-RESEARCH-2A';
-let pending;
+const version = 'V9.26-RESEARCH-2B';
+let pending, scheduleRequest;
+let breadthRequest;
+
+function loadBreadth(input) {
+  const date=input.analysisDate;
+  if (!input.complete || !/^\d{4}-\d{2}-\d{2}$/.test(date || '')) return null;
+  const key=[date,input.dataAsOf,version].join('|');
+  if (breadthRequest?.key===key) return breadthRequest.promise;
+  const url=new URL('./data/postmarket-breadth/latest.json',document.baseURI);
+  const promise=fetch(url,{cache:'no-cache',signal:AbortSignal.timeout(5000)})
+    .then(response=>response.ok?response.json():null).catch(()=>null);
+  breadthRequest={key,promise};
+  return promise;
+}
+
+function loadSchedule() {
+  return scheduleRequest??=fetch(new URL('./data/kronos/calendar.json',document.baseURI),{signal:AbortSignal.timeout(5000)})
+    .then(response=>response.ok?response.json():null).catch(()=>null);
+}
 
 function loadScripts() {
   if (!pending) {
@@ -70,6 +88,10 @@ export async function makeStudyReport({source, study, analysis, benchmark, marke
   const report = root.ShitouPostmarketReport926;
   const input = report.archiveInput(source,{index,dataAsOf});
   if (input.analysisDate !== (study.dataAsOf||study.date)) return null;
+  if (!index && input.complete && input.calendar?.dates?.at(-1)===input.analysisDate) {
+    const schedule=await loadSchedule();
+    input.calendar=root.ShitouPostmarketPatterns926.extendTradingCalendar(input.calendar,schedule,input.analysisDate,input.dataAsOf);
+  }
   const line = study.event;
   const levels = !line?.referenceOnly && Number.isFinite(line?.lifeLinePrice) && line.k0Date<=input.analysisDate
     ? {lifeLine:{date:input.analysisDate,code:input.instrument.code,market:input.instrument.market,verified:true,
@@ -80,7 +102,8 @@ export async function makeStudyReport({source, study, analysis, benchmark, marke
     if (Number.isFinite(receipt)) levels.lifeLine.publishedAt = new Date(
       Math.min(receipt,Date.parse(levels.lifeLine.publishedAt))).toISOString();
   }
-  const result = root.ShitouPostmarketTrend926.analyze(input,{levels,anchors:index?[]:originalStockAnchors(input,analysis),
+  const breadth=index?await loadBreadth(input):null;
+  const result = root.ShitouPostmarketTrend926.analyze(input,{levels,breadth,anchors:index?[]:originalStockAnchors(input,analysis),
     benchmark:benchmark?report.archiveInput(benchmark,{index:true}):undefined});
   let syntheticCrossRead;
   if (!index && root.ShitouHeikinAshi920 && result.status==='AVAILABLE' && study.validatedBars?.length>=5) {

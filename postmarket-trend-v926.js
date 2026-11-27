@@ -220,7 +220,53 @@ function relativeStrength(ctx, reference) {
     source:index.source,dates:{start:r[1].date,end:r.at(-1).date}};
 }
 
+function breadthMetrics(coverage,counts,indexChange) {
+  const quoteComplete=coverage.quote>0&&coverage.quote===coverage.eligible;
+  const historyComplete=coverage.history>0&&coverage.history===coverage.eligible;
+  return {status:quoteComplete&&historyComplete?'AVAILABLE':'DATA_INSUFFICIENT',counts,
+    coverage:{...coverage,missingQuotes:coverage.eligible-coverage.quote,missingHistory:coverage.eligible-coverage.history},
+    proportions:quoteComplete?{up:counts.up/coverage.quote,down:counts.down/coverage.quote,flat:counts.flat/coverage.quote}:null,
+    above20Ratio:historyComplete?counts.above20/coverage.history:null,
+    divergence:quoteComplete&&Number.isFinite(indexChange)?indexChange>0&&counts.down>counts.up:null};
+}
+
+function archivedBreadth(ctx,breadth) {
+  const markets={};
+  if (breadth.date!==ctx.analysisDate || !/^[a-f0-9]{64}$/.test(breadth.snapshotHash ?? '') ||
+      breadth.priceBasis!=='UNADJUSTED_OFFICIAL_OHLC') return unavailable('同日官方廣度封存');
+  const sourceHosts={TWSE:['www.twse.com.tw','openapi.twse.com.tw'],TPEX:['www.tpex.org.tw']};
+  const datasets=['companies','quotes','status'];
+  const whole=value=>Number.isSafeInteger(value)&&value>=0;
+  for (const market of ['TWSE','TPEX']) {
+    const archive=breadth.markets?.[market];
+    if (!archive) continue;
+    const {counts,coverage,sources}=archive;
+    if (!Array.isArray(sources) || sources.length!==datasets.length ||
+        !datasets.every(name=>sources.some(row=>row?.dataset===name)) || !sources.every(row=>{
+          if (row.market!==market || !cutoffOk(row.retrievedAt,ctx) || Date.parse(row.retrievedAt)<Date.parse(ctx.analysisDate+'T15:00:00+08:00') ||
+              !/^[a-f0-9]{64}$/.test(row.sha256 ?? '') ||
+              (row.date!==ctx.analysisDate && !(row.dataset==='companies' && row.date===ctx.bars.at(-2)?.date))) return false;
+          try {
+            const url=new URL(row.source);
+            return url.protocol==='https:' && sourceHosts[market].includes(url.hostname);
+          } catch {return false;}
+        })) continue;
+    const keys=['official','suspended','noTrades','noComparison','eligible','quote','history'];
+    if (!keys.every(key=>whole(coverage?.[key])) || !['up','down','flat','above20','newHigh','newLow'].every(key=>whole(counts?.[key]))) continue;
+    const excluded=coverage.suspended+coverage.noTrades+coverage.noComparison;
+    if (coverage.eligible+excluded!==coverage.official || coverage.quote>coverage.eligible || coverage.history>coverage.quote ||
+        counts.up+counts.down+counts.flat!==coverage.quote || [counts.above20,counts.newHigh,counts.newLow].some(n=>n>coverage.history)) continue;
+    const indexAligned=market==='TWSE'&&ctx.instrument.market==='TAIEX'&&enough(ctx.bars,2);
+    const indexChange=indexAligned?ctx.bars.at(-1).close-ctx.bars.at(-2).close:null;
+    markets[market]={...breadthMetrics({...coverage,excluded},counts,indexChange),
+      source:sources,priceBasis:breadth.priceBasis};
+  }
+  return {status:['TWSE','TPEX'].every(market=>markets[market]?.status==='AVAILABLE')?'AVAILABLE':'DATA_INSUFFICIENT',
+    source:'官方盤後公司名冊、停牌與行情封存',snapshotHash:breadth.snapshotHash,markets};
+}
+
 function marketBreadth(ctx, breadth) {
+  if (breadth?.schema==='OFFICIAL_POSTMARKET_BREADTH_V1') return archivedBreadth(ctx,breadth);
   if (!breadth || breadth.date!==ctx.analysisDate || breadth.verified!==true || !breadth.source ||
       !cutoffOk(breadth.publishedAt,ctx) || !Array.isArray(breadth.members)) return unavailable('當日官方普通股母體及各市場行情');
   const markets = {};
@@ -239,30 +285,27 @@ function marketBreadth(ctx, breadth) {
     const above20=history.filter(row=>row.close>row.ma20).length;
     const newHigh=history.filter(row=>row.high>row.prior20High).length, newLow=history.filter(row=>row.low<row.prior20Low).length;
     const coverage={official:members.length,eligible:eligible.length,excluded:members.length-eligible.length,
-      quote:quote.length,history:history.length,missingQuotes:eligible.length-quote.length,missingHistory:eligible.length-history.length};
+      quote:quote.length,history:history.length};
     const indexChange=breadth.indices?.[market];
-    markets[market]={status:quote.length===eligible.length&&history.length===eligible.length&&eligible.length?'AVAILABLE':'DATA_INSUFFICIENT',
-      coverage, counts:{up,down,flat,above20,newHigh,newLow},
-      proportions:quote.length&&quote.length===eligible.length?{up:up/quote.length,down:down/quote.length,flat:flat/quote.length}:null,
-      above20Ratio:history.length&&history.length===eligible.length?above20/history.length:null,
-      divergence:quote.length&&quote.length===eligible.length&&indexChange?.date===ctx.analysisDate&&indexChange?.verified&&
-        Number.isFinite(indexChange.change)?indexChange.change>0&&down>up:null};
+    markets[market]=breadthMetrics(coverage,{up,down,flat,above20,newHigh,newLow},
+      indexChange?.date===ctx.analysisDate&&indexChange?.verified?indexChange.change:null);
   }
   return {status:Object.values(markets).every(m=>m.status==='AVAILABLE')?'AVAILABLE':'DATA_INSUFFICIENT',source:breadth.source,markets};
 }
 
 function nextSessionScenario(ctx, trend, life, reversal, regime, fvgPlan) {
-  if (trend.status!=='AVAILABLE') return unavailable('關鍵位置所需已完成價格');
+  if (trend.status!=='AVAILABLE') return {...unavailable('關鍵位置所需已完成價格'),nextSessionDate:ctx.nextSession};
   const {close, support, resistance} = trend;
   const unit = ctx.index?' 點':' 元';
   const valid = positive(support)&&positive(resistance)&&support<resistance;
   const defense=reversal.nextDayOpenDefensePrice??regime.openDefenseLevel??null;
   const evidence={priceDate:ctx.analysisDate,support:'原結構支撐或前 10 正式交易日最低',
     resistance:'原結構壓力或前 10 正式交易日最高',close:'指定交易日收盤',lifeLine:life?.source??null};
+  if (ctx.calendarReceipt) evidence.tradingCalendar=ctx.calendarReceipt;
   const bear = positive(life?.price)&&life.price<=close?Math.max(support,life.price):support;
   const bull = positive(life?.price)&&life.price>=close?Math.min(resistance,life.price):resistance;
   if (!ctx.nextSession || !valid || !(bear<bull)) return {...unavailable('尚無明確位置或下一交易日曆未確認'),
-    levels:{close,lifeLine:life?.price??null,openingDefense:defense},evidence};
+    nextSessionDate:ctx.nextSession,levels:{close,lifeLine:life?.price??null,openingDefense:defense},evidence};
   return {
     status:'HYPOTHETICAL',nextSessionDate:ctx.nextSession,observationDates:ctx.nextDates,levels:{continuation:bull,close,lifeLine:life?.price??null,support,resistance,
       openingDefense:defense,fvg:fvgPlan.status==='RESEARCH_ONLY'?fvgPlan:null},evidence,

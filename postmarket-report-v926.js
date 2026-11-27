@@ -55,7 +55,7 @@ function view(snapshot,result,{riskLabel,originalQuality,syntheticCrossRead} = {
   const market = result.marketBreadth?.markets;
   const health = ['TWSE','TPEX'].map(key => {
     const breadth=market?.[key], label=key==='TWSE'?'上市':'上櫃';
-    if (!breadth?.proportions) return label+'廣度資料不足';
+    if (!breadth?.proportions) return label+'廣度資料不足'+(breadth?.coverage?`｜${breadth.coverage.quote}/${breadth.coverage.eligible} 家已核對`:'');
     const {counts,proportions,coverage}=breadth;
     const ratio = value => VALUE.format(value*100)+'%';
     const ma = breadth.above20Ratio===null ? '20 日均線資料不足' :

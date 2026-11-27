@@ -6,6 +6,7 @@ import { gunzipSync } from 'node:zlib';
 import { setTimeout as delay } from 'node:timers/promises';
 import Core from '../enhanced-macd-v923.js';
 import { sourceUrl as archiveSource } from './build-official-research-history.mjs';
+import { buildPostmarketBreadth, officialBreadthQuote } from './build-postmarket-breadth-v926.mjs';
 import {
   SOURCES, normalizeMarketDate, extractTwseMiIndexRows, extractTpexDailyQuoteRows, normalizeQuote
 } from './update-market-snapshot.mjs';
@@ -320,7 +321,7 @@ async function reconcileMissingHistory(stocks, sessions, histories, fetcher) {
     a.market.localeCompare(b.market) || a.source.localeCompare(b.source));
 }
 
-export async function collect(root, fetcher = fetch, now = new Date()) {
+export async function collect(root, fetcher = fetch, now = new Date(), {captureBreadth = false} = {}) {
   const [calendar, snapshot] = await Promise.all([
     json(path.join(root, 'data/market/research-calendar.json')),
     json(path.join(root, 'data/market/latest.json'))
@@ -350,6 +351,7 @@ export async function collect(root, fetcher = fetch, now = new Date()) {
   })));
   const histories = await historyPromise;
   const universe = [];
+  const quoteStates = captureBreadth ? new Map() : null;
   for (const market of markets) {
     try {
       const { quotes, companies: companyFeed, status } = feeds[market];
@@ -382,6 +384,7 @@ export async function collect(root, fetcher = fetch, now = new Date()) {
           bars[bars.length - 1] = null;
         }
         universe.push({ ...stock, name: stock.name || quoteName || code, suspended: halted.has(code) || volume === 0, quoteVolume: volume, bars });
+        if (quoteStates) quoteStates.set(`${market}:${code}`,{...officialBreadthQuote(market,raw),halted:halted.has(code)});
       }
     } catch (error) {
       errors.push(market + '：' + error.message);
@@ -447,7 +450,9 @@ export async function collect(root, fetcher = fetch, now = new Date()) {
     sources: receipts.sort((a, b) => a.market.localeCompare(b.market) || a.dataset.localeCompare(b.dataset)),
     historySources, recoverySources, result
   };
-  return { artifact, universe };
+  const breadth = quoteStates && result.complete ? buildPostmarketBreadth({date,snapshotHash:snapshot.contentSha256,
+    sessions,receipts,universe,quoteStates}) : null;
+  return { artifact, universe, breadth };
 }
 
 async function writeAtomic(file, data) {
@@ -458,15 +463,16 @@ async function writeAtomic(file, data) {
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const [target = 'data/enhanced-macd/latest.json', archive] = process.argv.slice(2);
+  const [target = 'data/enhanced-macd/latest.json', archive, breadthTarget] = process.argv.slice(2);
   try {
-    const { artifact, universe } = await collect(process.cwd());
+    const { artifact, universe, breadth } = await collect(process.cwd(),fetch,new Date(),{captureBreadth:!!breadthTarget});
     const { result } = artifact;
     const productionTarget = path.resolve(target) === path.resolve('data/enhanced-macd/latest.json');
     if (result.complete || !productionTarget) {
       await writeAtomic(target, { ...artifact, result: { ...result, rows: undefined } });
     }
     if (archive) await writeAtomic(archive, { ...artifact, universe: universe.map(({ bars, ...stock }) => stock) });
+    if (breadth) await writeAtomic(breadthTarget,breadth);
     console.log(JSON.stringify({
       date: artifact.date, complete: result.complete, universe: result.total,
       qualified: result.qualified.length, incomplete: result.incomplete, errors: result.errors

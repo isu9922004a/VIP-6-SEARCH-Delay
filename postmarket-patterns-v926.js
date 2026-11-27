@@ -28,6 +28,22 @@ const validDate = d => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d)
   && Number.isFinite(Date.parse(d)) && new Date(d).toISOString().slice(0,10) === d;
 const timestamp = x => typeof x === 'string' && /T.*(?:Z|[+-]\d{2}:\d{2})$/.test(x) ? Date.parse(x) : NaN;
 const taipeiDate = time => new Date(time + 8 * 3600000).toISOString().slice(0, 10);
+const orderedDates = dates => Array.isArray(dates)&&dates.every((d,i)=>validDate(d)&&(!i||d>dates[i-1]));
+
+function extendTradingCalendar(history,schedule,analysisDate,dataAsOf) {
+  const dates=history?.dates, published=timestamp(schedule?.generatedAt);
+  if (!validDate(analysisDate) || history?.verified!==true || !orderedDates(dates) || dates.at(-1)!==analysisDate ||
+      schedule?.verified!==true || schedule.source!=='https://openapi.twse.com.tw/v1/holidaySchedule/holidaySchedule' ||
+      !/^[a-f0-9]{64}$/.test(schedule.sourceSha256 ?? '') || !orderedDates(schedule.dates) ||
+      schedule.coverageYear!==analysisDate.slice(0,4) ||
+      !(published<=Math.min(timestamp(dataAsOf),Date.parse(analysisDate+'T23:59:59.999+08:00')))) return history;
+  const aligned=schedule.dates.filter(day=>day>=dates[0]&&day<=analysisDate);
+  if (aligned.length!==dates.length || aligned.some((day,i)=>day!==dates[i])) return history;
+  const next=schedule.dates.filter(day=>day>analysisDate&&day.startsWith(schedule.coverageYear+'-')).slice(0,P.nextHorizon);
+  if (!next.length) return history;
+  return {...history,dates:[...dates,...next],futureReceipt:{source:schedule.source,sha256:schedule.sourceSha256,
+    availableAt:schedule.generatedAt,coverageYear:schedule.coverageYear}};
+}
 
 function validBar(row) {
   return row?.completed !== false && row?.isComplete !== false && row?.suspended !== true && row?.noTrades !== true &&
@@ -43,7 +59,7 @@ function createContext(snapshot) {
   if (!instrument || !['TWSE','TPEX','TAIEX','TPEX_INDEX'].includes(instrument.market) || !instrument.code ||
       !['UNADJUSTED_OFFICIAL_OHLC','OFFICIAL_INDEX_LEVEL','POINT_IN_TIME_ADJUSTED'].includes(instrument.basis)) return unavailable('商品、市場及價格口徑');
   const dates = calendar?.verified === true && calendar.source ? calendar.dates : null;
-  if (!Array.isArray(dates) || !dates.every((d,i) => validDate(d) && (!i || d > dates[i-1]))) return unavailable('已核對的正式交易日曆');
+  if (!orderedDates(dates)) return unavailable('已核對的正式交易日曆');
   const position = dates.indexOf(analysisDate);
   if (position < 0) return unavailable('行情日不在正式交易日曆');
   const knownAt = Math.min(cutoff, Date.parse(analysisDate + 'T23:59:59.999+08:00'));
@@ -74,7 +90,7 @@ function createContext(snapshot) {
   const trendBars = afterReset < 0 ? contiguous : contiguous.slice(afterReset);
   return {
     status:'AVAILABLE', analysisDate, dataAsOf, source, instrument, index, rows, bars:contiguous, trendBars, action,
-    nextSession:dates[position + 1] || null, nextDates:dates.slice(position+1,position+1+P.nextHorizon), knownAt, coverage:{valid:sessions.filter(Boolean).length,
+    nextSession:dates[position + 1] || null, nextDates:dates.slice(position+1,position+1+P.nextHorizon), calendarReceipt:calendar.futureReceipt,knownAt, coverage:{valid:sessions.filter(Boolean).length,
     expected:sessions.length, contiguous:contiguous.length, sinceKnownReset:trendBars.length},
     warnings:snapshot.pointInTime === true ? [] : ['來源未證明為行情日當時可見版本，歷史研究可能受補正影響。']
   };
@@ -310,6 +326,6 @@ function fvgPlan(zone, {index = false, tickVerified = false, nextLimit, atr} = {
   };
 }
 
-return {PARAMETERS,createContext,validBar,doji,reversalWatch,confirmDefense,momentumStall,breakoutHistory,
+return {PARAMETERS,createContext,extendTradingCalendar,validBar,doji,reversalWatch,confirmDefense,momentumStall,breakoutHistory,
   fvgAnalysis,fvgPlan,roundPrice,unavailable,high,low,enough};
 });

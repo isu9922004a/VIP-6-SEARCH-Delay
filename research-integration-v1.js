@@ -285,7 +285,7 @@ async function preview(analyses,{stockMode=false,detail=false,chartOnly=false,li
   await root.ShitouLifeVisual913.ready(document);if(token!==previewSerial||query!==stockQuerySerial)return null;const pages=analyses.flatMap(a=>{const life=root.ShitouKlineLife03Report?.inspect(a);return life?root.ShitouLifeVisual913.build(life,{document,watermark,v916:true,market:marketContext,source:latestStockQuery?.analysis===a?latestStockQuery.source:null,display:{fields:root.ShitouKlineLife03Report.fields(life),teaching:root.ShitouKlineLife03Report.teaching()}}):[];});
   if(new URLSearchParams(root.location.search).get('postmarket-study')==='1' && stockMode && analyses.length===1 && latestStockQuery?.analysis===analyses[0]){
    try{
-    const {makeStudyPage}=await import('./postmarket-preview-v926.js?v=V9.26-RESEARCH-2A');
+    const {makeStudyPage}=await import('./postmarket-preview-v926.js?v=V9.26-RESEARCH-2B');
     const life=root.ShitouKlineLife03Report.inspect(analyses[0]);
     const source=latestStockQuery.source,proof=root.ShitouOfficialResearchHistory?.proof(source);
     const research=await makeStudyPage({source,study:life,analysis:analyses[0],benchmark,marketRisk:marketContext,watermark,dataAsOf:proof?.generatedAt,

@@ -14,7 +14,9 @@ const site=path.resolve(process.env.REPORT_PAGES_STAGE || root);
 const out=path.resolve(process.argv[2]||'/tmp/v926-archive-reports');
 const market=require('../../data/index/TAIEX.json');
 const manifest=require('../../data/research/manifest.json');
-const stock=require('../../data/research/2026-11-26/2330.json');
+const stock=require(path.join(root,'data/research',manifest.stocks['2330'].path));
+const calendar=require('../../data/kronos/calendar.json');
+const Patterns=require('../../postmarket-patterns-v926.js');
 const sources=[['TAIEX',market,true],['2330',stock,false]];
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json'};
 
@@ -91,6 +93,9 @@ async function run() {
           return [...render().querySelectorAll('dd')].map(row=>row.textContent);
         },{source,analysis});
         const selected=media.find(entry=>entry.symbol===symbol).audit.lines;
+        const schedule=Patterns.extendTradingCalendar(source.tradingCalendar,calendar,source.closeDate,manifest.generatedAt);
+        const upcoming=schedule.dates.filter(date=>date>source.closeDate);
+        if(upcoming.length)assert.ok(selected.some(row=>row.label==='下一交易日收盤情境 '+upcoming[0]));
         assert.deepEqual(modelRows,selected.filter(row=>['盤後研究','關鍵價位','開盤觀察'].includes(row.label)||
           row.label.startsWith('下一交易日收盤情境')).map(row=>row.text));
       }
@@ -112,9 +117,32 @@ async function run() {
     await page.evaluate(()=>ShitouLifeViewer94.select(ShitouLifeViewer94.getState().pages.length-1));
     assert.match(await page.locator('#imagePreviewTitle').textContent(),/盤後趨勢研究/);
     assert.match(await page.locator('#imageDownloadLink').getAttribute('download'),/V9\.26_TAIEX/);
+    // Inject separately from the archived market reports. These are browser fixture counts.
+    const date=market.closeDate;
+    const sourcesFor=(market,host)=>['companies','quotes','status'].map(dataset=>({market,dataset,date,
+      retrievedAt:`${date}T18:00:00+08:00`,source:`https://${host}/${dataset}`,sha256:'a'.repeat(64)}));
+    const sidecar={schema:'OFFICIAL_POSTMARKET_BREADTH_V1',priceBasis:'UNADJUSTED_OFFICIAL_OHLC',date,snapshotHash:'b'.repeat(64),markets:{
+      TWSE:{sources:sourcesFor('TWSE','www.twse.com.tw'),counts:{up:1,down:2,flat:1,above20:2,newHigh:1,newLow:2},
+        coverage:{official:5,suspended:1,noTrades:0,noComparison:0,eligible:4,quote:4,history:4}},
+      TPEX:{sources:sourcesFor('TPEX','www.tpex.org.tw'),counts:{up:1,down:0,flat:0,above20:1,newHigh:0,newLow:0},
+        coverage:{official:4,suspended:0,noTrades:0,noComparison:0,eligible:4,quote:1,history:1}}
+    }};
+    let breadthCalls=0;
+    await page.route('**/data/postmarket-breadth/latest.json',route=>{breadthCalls++;return route.fulfill({json:sidecar});});
+    await page.reload();
+    assert.equal(breadthCalls,0);
+    const projected=await page.evaluate(async ({source,study})=>{
+      const {makeStudyReport}=await import('./postmarket-preview-v926.js?v=V9.26-RESEARCH-2B');
+      const reports=await Promise.all([makeStudyReport({source,study,index:true}),makeStudyReport({source,study,index:true})]);
+      return reports.map(report=>report.lines.find(row=>row.label==='市場廣度').text);
+    },{source:market,study:MarketLife.evaluate(market,{now:new Date(market.sourceReceipt.retrievedAt)})});
+    assert.equal(breadthCalls,1);
+    assert.equal(projected[0],projected[1]);
+    assert.match(projected[0],/上市 1 漲 25%、2 跌 50%、1 平 25%.*4\/4 家已核對/);
+    assert.match(projected[0],/上櫃廣度資料不足｜1\/4 家已核對/);
     assert.deepEqual(errors,[]);
     fs.writeFileSync(path.join(out,'archive-reports.json'),JSON.stringify({source:'committed official OHLCV archives',loadMs,media,
-      independentMarketStudyPage:true,modelReadingMatchesStudy:true,errors},null,2));
+      independentMarketStudyPage:true,modelReadingMatchesStudy:true,breadthBrowserFixture:true,errors},null,2));
     console.log(JSON.stringify({status:'PASS',loadMs,reports:media.map(({symbol,close,watermark,renderTime,encodeTime})=>
       ({symbol,close,watermark,renderTime,encodeTime}))}));
   } finally {await browser.close();}

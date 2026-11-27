@@ -77,7 +77,7 @@ function status(kind,value){const e=root.document?.getElementById(kind==='market
 async function studyReading(source, kind) {
  if(new URLSearchParams(root.location.search).get('postmarket-study')!=='1')return null;
  try {
-  const {modelPreviewReading}=await import('./postmarket-preview-v926.js?v=V9.26-RESEARCH-2A');
+  const {modelPreviewReading}=await import('./postmarket-preview-v926.js?v=V9.26-RESEARCH-2B');
   const analysis=kind==='stock' ? root.ShitouResearchIntegration?.forReport(source) : null;
   return await modelPreviewReading(source,{index:kind==='market',analysis});
  } catch (_) {return null;}
