@@ -59,9 +59,8 @@ async function request(part,date,attempt=1,timeoutMs=REQUEST_TIMEOUT_MS){
  try{const base=typeof MARKET_API_BASE_URL!=='undefined'?MARKET_API_BASE_URL:'https://shitou-taiwanmarket-api.d318426.workers.dev',codes=part.map(i=>i.code).join(','),markets=part.map(i=>String(i.q.market).toUpperCase()).join(',');
   const response=await fetch(`${base}/?market=DEEP_SCAN&profile=DAILY_ONLY&codes=${encodeURIComponent(codes)}&markets=${encodeURIComponent(markets)}&_restaurant_refresh=${Date.now()}_${attempt}`,{cache:'no-store',headers:{Accept:'application/json'},signal:controller.signal});
   if(!response.ok)throw Error('Worker HTTP '+response.status);const payload=await response.json();if(payload.type!=='MOMENTUM_DEEP_SCAN'||!Array.isArray(payload.results))throw Error('第五策略深掃格式錯誤');
-  const aligned=await root.ShitouSelectionDataV2.harmonize(part,payload,'DAILY_ONLY');
-  for(const r of aligned.results||[]){if(!r.ok||!r.data)continue;const code=String(r.code||r.data.stock),p=D.get(code);if(p&&!p.error)reportCache.set(code,{key:p.key,fingerprint:p.fingerprint,report:r.data});}
-  return aligned;
+  // The shared archive-first acquisition performs canonical validation exactly once.
+  return payload;
  }finally{clearTimeout(timer);controllers.delete(controller);}
 }
 async function remote(part,date){
@@ -69,7 +68,11 @@ async function remote(part,date){
 }
 async function fetchBatch(part,date){
  const results=[],need=[];for(const item of part){const p=D.get(item.code),cached=reportCache.get(item.code);if(p&&!p.error&&cached?.key===p.key&&cached.fingerprint===p.fingerprint)try{results.push({code:item.code,ok:true,data:D.apply(cached.report,item.code)});continue;}catch(_){}need.push(item);}
- if(need.length){const payload=await remote(need,date);results.push(...payload.results);}return {type:'MOMENTUM_DEEP_SCAN',results};
+ if(need.length){
+  const payload=await D.acquireDailyBatch(need,missing=>remote(missing,date));
+  for(const row of payload.results||[]){if(!row.ok||!row.data)continue;const code=String(row.code||row.data.stock),p=D.get(code);if(p&&!p.error)reportCache.set(code,{key:p.key,fingerprint:p.fingerprint,report:row.data});}
+  results.push(...payload.results);
+ }return {type:'MOMENTUM_DEEP_SCAN',results};
 }
 function stop(){stopped=true;controllers.forEach(c=>c.abort());note('已要求停止；保留已完成結果，未處理股票不視為淘汰。');}
 async function run(){

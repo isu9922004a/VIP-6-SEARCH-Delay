@@ -1,0 +1,32 @@
+name: V9.28 momentum live profile replay
+on:
+  push:
+    branches: ['feat/v928-telegram-bot']
+    paths: ['scripts/tests/v928-live-profile-replay.cjs','.github/workflows/v928-live-momentum-replay.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v928-live-momentum-replay
+  cancel-in-progress: false
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      CHROME_BIN: /usr/bin/google-chrome
+      V95_STRATEGIES: momentum
+      V95_USE_OFFICIAL_MACD: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+      - name: Original momentum scanner with actual profile responses and official price audit
+        run: node scripts/tests/v928-live-profile-replay.cjs "$RUNNER_TEMP/v928-live-momentum"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v928-live-momentum-evidence-not-for-publication
+          path: ${{ runner.temp }}/v928-live-momentum
