@@ -1,7 +1,7 @@
 /* Shared V9.29 fifth-strategy archive contract. Partial inputs never imply confirmed zero. */
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.ShitouLowBaseArchiveV929=api;})(globalThis,function(){
 'use strict';
-const SCHEMA='LOW_BASE_BREAKOUT_ARCHIVE_V1',MODEL='LOW_BASE_VOLUME_BREAKOUT_V1',VERSION='V9.29',HEX=/^[a-f0-9]{64}$/,DATE=/^\d{4}-\d{2}-\d{2}$/;
+const SCHEMA='LOW_BASE_BREAKOUT_ARCHIVE_V1',MODEL='LOW_BASE_VOLUME_BREAKOUT_V1',VERSION='V9.29.1-BALANCED',HEX=/^[a-f0-9]{64}$/,DATE=/^\d{4}-\d{2}-\d{2}$/;
 const int=n=>Number.isSafeInteger(n)&&n>=0,finite=n=>typeof n==='number'&&Number.isFinite(n);
 const statuses=['PASS','FAIL','EXCLUDED','DATA_ERROR','INSUFFICIENT_DATA'];
 const rank=(a,b)=>b.score-a.score||a.code.localeCompare(b.code);
@@ -33,7 +33,7 @@ function build(scan,{snapshotHash,historyManifestHash,fundamentalEvidenceHash=nu
 function text(a,context){
  const checked=validate(a,context);if(!checked.ok)return {ready:false,complete:false,text:'⑤ 主升段低位階帶量突破：盤後榜單尚未核驗（'+checked.reason+'）'};
  const byCode=new Map(a.candidates.map(c=>[c.code,c])),fmt=n=>n.toFixed(2);
- const lines=['⑤ 主升段低位階帶量突破｜'+a.date,'已處理 '+a.total+' 檔｜必要條件通過 '+a.counts.PASS+'｜資料待核對 '+a.unavailable,a.complete?'全市場已核對':'部分資料不足；非完整市場排名',...a.top8.map((code,i)=>{const x=byCode.get(code);return (i+1)+'. '+x.code+' '+x.name+' '+fmt(x.close)+'元｜'+fmt(x.score)+'分（'+x.grade+'）';})];
+ const lines=['⑤ 主升段低位階帶量突破｜均衡起漲版｜'+a.date,'已處理 '+a.total+' 檔｜必要條件通過 '+a.counts.PASS+'｜資料待核對 '+a.unavailable,a.complete?'全市場已核對':'部分資料不足；非完整市場排名',...a.top8.map((code,i)=>{const x=byCode.get(code);return (i+1)+'. '+x.code+' '+x.name+' '+fmt(x.close)+'元｜'+fmt(x.score)+'分（'+x.grade+'）';})];
  if(!a.top8.length)lines.push(a.zeroConfirmed?'已核對全市場，無符合必要條件標的。':a.counts.PASS?'符合必要條件，但無達60分之TOP8候選。':'未確認候選；不可宣稱全市場零入選。');
  lines.push(a.fundamentalsConnected?'已核對基本面封存；缺少項目不加分；尚未驗證績效。':'基本面尚未接通，不加分；尚未驗證績效。');
  return {ready:true,complete:a.complete,zeroConfirmed:a.zeroConfirmed,text:lines.join('\n')};
