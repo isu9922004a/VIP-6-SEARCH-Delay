@@ -1,6 +1,8 @@
 /* Candidate adapter for the existing completed-market snapshot and MOMENTUM_DEEP_SCAN contract. */
 (function(root,factory){const node=typeof module==='object'&&module.exports,api=factory(node?require('./strategy-low-base-breakout-v929.js'):root.ShitouLowBaseBreakoutV929);if(node)module.exports=api;else root.ShitouLowBaseScannerV929=api;})(globalThis,function(C){
 'use strict';
+const GATE_LABELS=Object.freeze({PRIOR20:'突破前20日漲幅不超過20%',PRIOR60:'突破前60日漲幅不超過40%',BASE5:'突破前5日整理振幅不超過12%',DRY_VOLUME:'前5日均量低於前20日均量',DEVIATION20:'月線正乖離不超過8%',CROSS20:'今日收盤新突破月線',MA5_10:'5日均線高於10日均線',MA20_SLOPE:'月線走平或翻揚',VOLUME_PREV:'成交量大於昨日2倍',TRADE_VALUE:'成交值大於5億元',VOLUME5:'成交量大於前5日均量1.5倍',VOLUME20:'成交量大於前20日均量1.5倍',VOLUME_CAP:'成交量不超過前20日均量5倍',RED:'收紅K',BODY:'紅K實體至少占振幅50%',SHADOW:'上影線不超過振幅30%',CLOSE_LOCATION:'收盤位於振幅上方25%',RSI5:'RSI5不超過80',RSI14:'RSI14不超過75',RETURN5:'最近5日漲幅不超過15%',DEVIATION60:'季線正乖離不超過20%'});
+const gateLabel=key=>GATE_LABELS[key]||key;
 function pool(bundle,limit='all'){
  if(!(bundle?.map instanceof Map))throw Error('缺少正式市場快照');
  const date=bundle.meta?.targetTradeDate||bundle.meta?.completedTradeDate;
@@ -65,8 +67,8 @@ function lines(c){const f=c.features,q=c.quality,p=x=>Number.isFinite(x)?x.toFix
  'MA20／MA60乖離 '+p(f.deviation20)+'%／'+p(f.deviation60)+'%｜RSI5／14 '+p(f.rsi5)+'／'+p(f.rsi14),
  '紅K實體 '+p(f.bodyRatio*100)+'%｜上影 '+p(f.upperShadowRatio*100)+'%｜收盤位置 '+p(f.closeLocation*100)+'%',
  ...(q?['品質分 '+p(q.score)+'（'+q.grade+'級）｜基本面已核實 '+q.basicKnown+'/8｜可能上限 '+p(q.scoreUpper),...q.warnings,'初次突破候選；下一完成交易日才可確認續強。']:[]),
- ...(c.checks||[]).filter(x=>!x.pass).map(x=>'未通過：'+x.key)
+ ...(c.checks||[]).filter(x=>!x.pass).map(x=>'未通過：'+gateLabel(x.key))
  ]:(c.reasons||[c.reason||'資料待確認']))];}
 function text(scan){return ['⑤ 主升段低位階帶量突破｜候選版',scan.date+'｜已處理 '+scan.processed+'/'+scan.planned+'｜未處理 '+scan.pending+'｜未掃描 '+scan.deferred+'｜資料待核對 '+scan.errors,'全市場完整性：'+(scan.fullMarketCertified?'已確認':'未完成')+'｜必要條件通過 '+scan.candidates.length+' 檔','TOP 8 依已核實分數排序；不足不補滿；非勝率預測。',...scan.results.flatMap(lines)].join('\n');}
-return Object.freeze({pool,scan,finish,lines,text,diagnostics});
+return Object.freeze({pool,scan,finish,lines,text,diagnostics,gateLabel,GATE_LABELS});
 });
