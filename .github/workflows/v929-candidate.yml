@@ -7,6 +7,8 @@ on:
       - '.github/workflows/v929-candidate.yml'
       - 'index.html'
       - 'scripts/audit-v929-universe.cjs'
+      - 'scripts/collect-v929-fundamentals.mjs'
+      - 'scripts/tests/low-base-fundamentals-v929.test.cjs'
       - 'telegram-bot/**'
       - 'scripts/audit-v929-telegram-archive.mjs'
       - 'scripts/audit-v929-history-gaps.mjs'
@@ -30,7 +32,7 @@ jobs:
       - run: node --check strategy-low-base-scanner-v929.js
       - run: node --check strategy-low-base-report-v929.js
       - run: node --check strategy-low-base-ui-v929.js
-      - run: node --test scripts/tests/low-base-breakout-v929.test.cjs
+      - run: node --test scripts/tests/low-base-breakout-v929.test.cjs scripts/tests/low-base-fundamentals-v929.test.cjs
   archive-replay:
     runs-on: ubuntu-latest
     timeout-minutes: 25
