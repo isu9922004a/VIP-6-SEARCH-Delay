@@ -1,0 +1,124 @@
+name: V9.28 archive gap and tower 2560 live evidence
+on:
+  push:
+    branches: ['feat/v928-telegram-bot']
+    paths: ['.github/workflows/v928-gap-tower-2560.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  official-gap-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Compare exchange original rows with archived discontinuities
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/v928-gap"
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import crypto from 'node:crypto';
+          const codes=['7767','6173','3718','2323','6751','3714','3285','6664'];
+          const manifest=JSON.parse(fs.readFileSync('data/research/manifest.json'));
+          const date=manifest.date;
+          const out=process.env.RUNNER_TEMP+'/v928-gap';
+          const report={date,publicationAllowed:false,stocks:[],errors:[]};
+          const save=()=>fs.writeFileSync(out+'/report.json',JSON.stringify(report,null,2)+'\n');
+          const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
+          const normalize=v=>String(v??'').trim().replace(/,/g,'');
+          const num=v=>{const s=normalize(v);return /^\d+(\.\d+)?$/.test(s)?Number(s):null;};
+          const cache=new Map();
+          async function official(market,day){
+            const key=market+'-'+day;
+            if(cache.has(key))return cache.get(key);
+            const url=market==='TWSE'?'https://www.twse.com.tw/exchangeReport/MI_INDEX?response=json&date='+day.replaceAll('-','')+'&type=ALLBUT0999':'https://www.tpex.org.tw/www/zh-tw/afterTrading/dailyQuotes?date='+day.replaceAll('-','/')+'&type=EW&response=json';
+            const response=await fetch(url,{signal:AbortSignal.timeout(45000),headers:{accept:'application/json','user-agent':'Mozilla/5.0'}});
+            if(!response.ok)throw Error('HTTP '+response.status);
+            const bytes=Buffer.from(await response.arrayBuffer()),data=JSON.parse(bytes);
+            fs.writeFileSync(out+'/'+key+'.json',bytes);
+            const tables=[...(Array.isArray(data.tables)?data.tables:[])];
+            if(Array.isArray(data.fields)&&Array.isArray(data.data))tables.push(data);
+            for(const k of Object.keys(data)){const m=k.match(/^fields(\d+)$/);if(m&&Array.isArray(data[k])&&Array.isArray(data['data'+m[1]]))tables.push({fields:data[k],data:data['data'+m[1]]});}
+            const candidates=tables.filter(t=>Array.isArray(t.fields)&&Array.isArray(t.data)&&t.fields.some(x=>/證券代號|股票代號|代號/.test(String(x)))&&t.fields.some(x=>/收盤/.test(String(x)))&&t.data.length>100);
+            const returnedDate=String(data.date??'').replace(/\D/g,'');
+            const dateConfirmed=returnedDate===day.replaceAll('-','')||returnedDate===String(Number(day.slice(0,4))-1911)+day.slice(5).replaceAll('-','');
+            const result={url,sha256:sha(bytes),candidates,dateConfirmed,returnedDate,status:data.stat??data.status??null};
+            cache.set(key,result);return result;
+          }
+          for(const code of codes){
+            const entry=manifest.stocks?.[code];const result={code,entry,checks:[]};report.stocks.push(result);
+            try{
+              if(!entry)throw Error('Manifest entry missing');
+              const bytes=fs.readFileSync('data/research/'+entry.path);
+              if(sha(bytes)!==entry.sha256)throw Error('Archive hash mismatch');
+              const archive=JSON.parse(bytes),ev=archive.officialArchiveEvidence;
+              result.originalBars=ev?.originalHistoryBars;result.excludedEarlierSessions=ev?.excludedEarlierSessions;
+              const days=(ev?.excludedEarlierSessions??[]).slice(-1);
+              for(const day of days){
+                try{
+                  const source=await official(entry.market,day);
+                  const detail={day,url:source.url,sha256:source.sha256,returnedDate:source.returnedDate,dateConfirmed:source.dateConfirmed,status:source.status,tableCount:source.candidates.length,matches:[]};
+                  for(const t of source.candidates){
+                    const index=t.fields.findIndex(x=>/證券代號|股票代號|代號/.test(String(x)));
+                    for(const row of t.data.filter(r=>Array.isArray(r)&&normalize(r[index])===code)){
+                      const get=pattern=>{const i=t.fields.findIndex(x=>pattern.test(String(x)));return i<0?null:num(row[i]);};
+                      const volume=get(/成交股數|成交量/),open=get(/開盤/),high=get(/最高/),low=get(/最低/),close=get(/收盤/);
+                      detail.matches.push({fields:t.fields,row,volume,open,high,low,close});
+                    }
+                  }
+                  if(!source.dateConfirmed||!source.candidates.length)detail.classification='SOURCE_DATE_OR_SCHEMA_UNVERIFIED';
+                  else if(!detail.matches.length)detail.classification='OFFICIAL_ROW_ABSENT_REQUIRES_EVENT_CHECK';
+                  else if(detail.matches.length!==1)detail.classification='AMBIGUOUS_OFFICIAL_ROWS';
+                  else {const r=detail.matches[0];detail.classification=r.volume===0?'OFFICIAL_ZERO_VOLUME':r.volume>0&&[r.open,r.high,r.low,r.close].every(v=>v!==null&&v>0)&&r.high>=Math.max(r.open,r.close,r.low)&&r.low<=Math.min(r.open,r.close,r.high)?'OFFICIAL_VALID_BAR_REQUIRES_ARCHIVE_RECONCILIATION':'OFFICIAL_INVALID_OR_UNVERIFIED_OHLCV';}
+                  result.checks.push(detail);
+                }catch(e){result.checks.push({day,classification:'SOURCE_FETCH_FAILED',error:String(e.message)});}
+              }
+              if(code==='6664'){
+                const endpoint='https://shitou-taiwanmarket-api.d318426.workers.dev/';
+                result.profiles=[];
+                for(const profile of ['MOMENTUM_LITE','CORE','DAILY_ONLY','FULL']){
+                  try{
+                    const u=new URL(endpoint);u.searchParams.set('market','DEEP_SCAN');u.searchParams.set('profile',profile);u.searchParams.set('codes',code);
+                    const resp=await fetch(u,{redirect:'manual',signal:AbortSignal.timeout(90000)});if(!resp.ok)throw Error('HTTP '+resp.status);
+                    const raw=Buffer.from(await resp.arrayBuffer());fs.writeFileSync(out+'/6664-'+profile+'.json',raw);
+                    const x=JSON.parse(raw),r=x.results?.find(z=>String(z.code)===code),d=r?.data,rows=d?.dailySeries??[],last=rows.slice(-20),ref=archive.dailySeries??[];
+                    const norm=v=>String(v??'').replace(/\D/g,'');
+                    const match=last.filter(b=>ref.some(q=>norm(q.date)===norm(b.date)&&['open','high','low','close'].every(k=>Number.isFinite(Number(b[k]))&&Number(b[k])===Number(q[k])))).length;
+                    result.profiles.push({profile,ok:r?.ok===true,failureCode:r?.failureCode??null,error:r?.error??null,stock:d?.stock,date:d?.closeDate,completed:d?.completed,identityMatches:String(d?.stock)===code,dateMatches:norm(d?.closeDate)===norm(date),bars:rows.length,last20Matched:match,last20Compared:last.length,keys:Object.keys(d??{}).sort()});
+                  }catch(e){result.profiles.push({profile,error:String(e.message)});}
+                }
+              }
+            }catch(e){report.errors.push({code,error:String(e.message)});}finally{save();}
+          }
+          console.log(JSON.stringify(report,null,2));
+          if(report.errors.length||report.stocks.some(s=>s.checks.some(c=>['SOURCE_FETCH_FAILED','SOURCE_DATE_OR_SCHEMA_UNVERIFIED'].includes(c.classification))))process.exitCode=1;
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v928-gap-official-evidence-not-for-publication
+          path: ${{ runner.temp }}/v928-gap
+  tower-2560-live-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CHROME_BIN: /usr/bin/google-chrome
+      V95_STRATEGIES: tower,restaurant
+      V95_USE_OFFICIAL_MACD: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+      - name: Replay original tower and 2560 scanners with production Worker
+        run: node scripts/tests/v928-live-profile-replay.cjs "$RUNNER_TEMP/v928-live-tower-2560"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v928-live-tower-2560-evidence-not-for-publication
+          path: ${{ runner.temp }}/v928-live-tower-2560
