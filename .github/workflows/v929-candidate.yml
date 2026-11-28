@@ -7,6 +7,8 @@ on:
       - '.github/workflows/v929-candidate.yml'
       - 'index.html'
       - 'scripts/audit-v929-universe.cjs'
+      - 'telegram-bot/**'
+      - 'scripts/audit-v929-telegram-archive.mjs'
       - 'scripts/audit-v929-history-gaps.mjs'
       - 'scripts/audit-v929-historical-replay.mjs'
       - 'scripts/tests/v90-browser.cjs'
@@ -38,6 +40,7 @@ jobs:
         with:
           node-version: '22'
       - run: node scripts/audit-v929-universe.cjs /tmp/v929-universe
+      - run: node scripts/audit-v929-telegram-archive.mjs /tmp/v929-universe/rank-archive.json
       - run: node scripts/audit-v929-history-gaps.mjs /tmp/v929-universe/results.json /tmp/v929-universe/history-gap-review.json
       - run: node scripts/audit-v929-historical-replay.mjs /tmp/v929-universe/historical-replay.json
       - uses: actions/upload-artifact@v4

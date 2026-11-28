@@ -1,0 +1,57 @@
+import lowBaseArchive from '../strategy-low-base-archive-v929.js';
+import forecastEngine from '../research-v83/forecast-engine.js';
+const SITE='https://isu9922004a.github.io/VIP-6-SEARCH-Delay/';
+const fmt=n=>Number(n).toLocaleString('zh-TW',{maximumFractionDigits:2});
+const dateRx=/^\d{4}-\d{2}-\d{2}$/;
+const codeRx=/^\d{4,6}$/;
+const positive=n=>Number.isFinite(n)&&n>0;
+export const taipei=now=>{const p=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(now);const o=Object.fromEntries(p.map(x=>[x.type,x.value]));return {date:o.year+'-'+o.month+'-'+o.day,minute:Number(o.hour)*60+Number(o.minute)};};
+export function allowed(raw,id){return /^\d+$/.test(String(id))&&String(raw||'').split(',').map(x=>x.trim()).includes(String(id));}
+export function parse(text){const s=String(text||'').trim();if(codeRx.test(s))return {type:'stock',code:s};if(/^(?=.{2,24}$)[\p{Script=Han}A-Za-z0-9-]+$/u.test(s)&&/\p{Script=Han}/u.test(s))return {type:'stock_name',name:s};const m=s.match(/^\/(start|help|market|stock|strategy|status|daily|subscribe|unsubscribe|myid|s[1-6])(?:@[a-zA-Z0-9_]+)?(?:\s+(\S+))?$/i);if(!m)return {type:'help'};const type=m[1].toLowerCase();if(/^s[1-6]$/.test(type))return m[2]?{type:'help'}:{type:'strategy',number:Number(type[1])};if(type==='stock')return codeRx.test(m[2]||'')?{type,code:m[2]}:{type:'help'};if(type==='strategy'&&!m[2])return {type:'strategy_menu'};if(type==='strategy')return /^[1-6]$/.test(m[2]||'')?{type,number:Number(m[2])}:{type:'help'};return m[2]?{type:'help'}:{type};}
+export const help='石頭少爺選股神器｜V9.29 候選\n請點選下方按鈕，或輸入股票代號／完整名稱。\n/market 大盤盤後與模型\n/daily 盤後日報（目前大盤＋策略⑤⑥）\n/strategy 六套策略\n/subscribe 訂閱／/unsubscribe 取消\n/status 資料日期｜/myid 我的 ID\n策略①～④待正式榜單接通；⑤須核對每日封存；自動推播預設關閉。\n僅使用完成交易日，不下單；研究參考，非買賣建議。';
+export const commands=[['start','主選單'],['market','大盤判讀'],['daily','盤後日報（部分）'],['strategy','六套選股策略'],['stock','個股查詢：輸入代號'],['status','資料狀態'],['subscribe','登記每日推播'],['unsubscribe','取消訂閱'],['myid','我的 Chat ID'],['help','使用說明']].map(([command,description])=>({command,description}));
+const btn=(text,callback_data)=>({text,callback_data});
+const rows=[
+ [btn('📈 大盤判讀','/market'),btn('📰 盤後日報（部分）','/daily')],
+ [btn('🚀 主升段（待接線）','/s1'),btn('⚡ 當沖盤前（待接線）','/s2')],
+ [btn('🔥 強勢飆股（待接線）','/s3'),btn('💎 寶塔線（待接線）','/s4')],
+ [btn('🎯 主升段低位階帶量突破','/s5'),btn('📊 強化 MACD+','/s6')],
+ [btn('🔔 登記推播','/subscribe'),btn('🔕 取消訂閱','/unsubscribe')],
+ [btn('🔎 查台積電','/stock 2330'),btn('📅 資料狀態','/status')],
+ [{text:'🌐 開啟完整網頁版',url:SITE}]
+];
+export const mainKeyboard={inline_keyboard:rows};
+export function callbackCommand(value){return typeof value==='string'&&rows.some(row=>row.some(b=>b.callback_data===value))?value:null;}
+export function keyboardFor(cmd){return ['start','help','strategy_menu'].includes(cmd.type)?mainKeyboard:undefined;}
+// Explicit runtime invocation; do not pass unbound native fetch or URL objects to workerd.
+const runtimeFetch=(url,opts)=>globalThis.fetch(String(url),opts);
+class DataError extends Error{constructor(code){super(code);this.code=code;}}
+const fail=code=>{throw new DataError(code);};
+export async function read(path,fetcher=runtimeFetch){let res;try{res=await fetcher(new URL(path,SITE).href,{redirect:'manual',headers:{'Accept':'application/json','Cache-Control':'no-cache'},signal:AbortSignal.timeout(12000)});}catch(e){fail('FETCH_'+(e?.name==='TimeoutError'||e?.name==='AbortError'?'TIMEOUT':e?.name==='TypeError'?'TYPE_ERROR':'FAILED')+':'+path);}if(res.status>=300&&res.status<400)fail('REDIRECT_REJECTED_'+res.status+':'+path);if(!res.ok)fail('HTTP_'+res.status+':'+path);try{const bytes=await res.arrayBuffer();return {data:JSON.parse(new TextDecoder().decode(bytes)),bytes};}catch{fail('JSON_INVALID:'+path);}}
+
+export async function sha256(bytes){return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),x=>x.toString(16).padStart(2,'0')).join('');}
+export function expectedSession(index,now){const t=taipei(now),c=index?.tradingCalendar;if(!c?.verified||String(c.coverageYear)!==t.date.slice(0,4)||!Array.isArray(c.dates)||!c.dates.every(d=>dateRx.test(d)))fail('CALENDAR_INVALID');const date=c.dates.filter(d=>d<t.date||(d===t.date&&t.minute>=15*60)).sort().at(-1);if(!date)fail('CALENDAR_NO_SESSION');return date;}
+export function summarize(obj,date,identity){const rows=obj?.dailySeries;if(obj?.completed!==true||obj.closeDate!==date||obj.dailySeriesMeta?.onlyCompletedBars!==true||!Array.isArray(rows)||rows.length<20||!rows.every((r,i)=>dateRx.test(r.date)&&(!i||r.date>rows[i-1].date)&&r.date<=date&&['open','high','low','close'].every(k=>positive(r[k]))&&r.high>=Math.max(r.open,r.close)&&r.low<=Math.min(r.open,r.close)&&r.low<=r.high)||rows.at(-1).date!==date||rows.at(-1).close!==obj.close||(identity!=='TAIEX'&&obj.stock!==identity))fail('OHLC_OR_DATE_MISMATCH');const last=rows.at(-1),prev=rows.at(-2),ma=n=>rows.slice(-n).reduce((a,b)=>a+b.close,0)/n;return {date,close:last.close,change:last.close-prev.close,pct:(last.close/prev.close-1)*100,ma5:ma(5),ma20:ma(20),rows};}
+export function forecastText(index,f,date){try{const F=forecastEngine;const r=F.evaluate({symbol:'TAIEX',market:'TWSE_INDEX',asOf:date,bars:F.inputWindow(index.dailySeries).bars},f);if(r.state!=='MODEL_SAMPLE'||!r.executionVerified)return 'Kronos：模型日期、輸入或執行收據未核驗，暫不提供推演。';return 'Kronos '+r.dates[0]+'：'+r.label+'\n模擬收盤中位 '+fmt(r.closing.median)+'；取樣 '+r.sampleCount+' 條\n上漲／下跌／持平 '+[r.bullish,r.bearish,r.flat].map(x=>(x*100).toFixed(1)+'%').join(' / ')+'（非實際勝率）';}catch{return 'Kronos：暫無已核驗推演。';}}
+export const facts=(name,r)=>name+'｜'+r.date+' 盤後\n收盤 '+fmt(r.close)+'；漲跌 '+(r.change>=0?'+':'')+fmt(r.change)+'（'+r.pct.toFixed(2)+'%）\nMA5 '+fmt(r.ma5)+'｜MA20 '+fmt(r.ma20);
+export async function getMarket(fetcher=runtimeFetch,now=new Date()){const {data:index}=await read('data/index/TAIEX.json',fetcher);const date=expectedSession(index,now);if(index.symbol!=='TAIEX'||index.market!=='TWSE_INDEX'||index.priceAdjustment?.basis!=='OFFICIAL_INDEX_LEVEL'||index.priceAdjustment?.verified!==true)fail('INDEX_IDENTITY_INVALID');if(index.closeDate!==date)fail('INDEX_DATE_MISMATCH:expected='+date+';actual='+(dateRx.test(index.closeDate)?index.closeDate:'INVALID'));const r=summarize(index,date,'TAIEX');let f=null;try{f=(await read('data/kronos/TAIEX.json',fetcher)).data;}catch{}return {date,text:facts('臺灣加權指數',r)+'\n'+forecastText(index,f,date)+'\n'+SITE+'market-outlook.html'};}
+export async function getStock(code,date,fetcher=runtimeFetch){if(!codeRx.test(code))throw Error('股票代號錯誤');const {data:m}=await read('data/research/manifest.json',fetcher);const e=m.stocks?.[code];if(m.schema!=='OFFICIAL_RESEARCH_MANIFEST_V1'||m.verified!==true||m.date!==date||e?.ready!==true||e.code!==code||e.path!==date+'/'+code+'.json'||!/^[a-f0-9]{64}$/.test(e.sha256))throw Error('該股盤後資料尚未核驗');const {data,bytes}=await read('data/research/'+e.path,fetcher);if(await sha256(bytes)!==e.sha256||data.market!==e.market||data.name!==e.name||data.officialArchiveEvidence?.date!==date||data.officialArchiveEvidence?.stock!==code||data.isComplete!==true)throw Error('個股封存指紋未核驗');return facts(e.name+' '+code,summarize(data,date,code))+'\n未還原歷史均價，除權息可能影響比較。\n'+SITE;}
+export async function getStockByName(name,date,fetcher=runtimeFetch){const {data:m}=await read('data/research/manifest.json',fetcher);if(m.schema!=='OFFICIAL_RESEARCH_MANIFEST_V1'||m.verified!==true||m.date!==date)fail('STOCK_NAME_MANIFEST_INVALID');const matches=Object.entries(m.stocks||{}).filter(([code,e])=>codeRx.test(code)&&e?.code===code&&e.name===name);if(matches.length!==1)return '無法唯一確認此股票名稱，請輸入股票代號。';return getStock(matches[0][0],date,fetcher);}
+
+export async function getLowBase(date,fetcher=runtimeFetch){
+ try{
+  const {data:cal}=await read('data/market/research-calendar.json',fetcher);
+  if(cal?.verified!==true||cal.sourceSnapshotDate!==date||cal.dates?.at(-1)!==date||!/^[a-f0-9]{64}$/.test(cal.sourceSnapshotHash||''))fail('LOW_BASE_CALENDAR_INVALID');
+  const {data:manifest,bytes}=await read('data/research/manifest.json',fetcher);
+  if(manifest.schema!=='OFFICIAL_RESEARCH_MANIFEST_V1'||manifest.verified!==true||manifest.date!==date||manifest.snapshotContentSha256!==cal.sourceSnapshotHash)fail('LOW_BASE_MANIFEST_INVALID');
+  const {data:archive}=await read('data/low-base-breakout/latest.json',fetcher);
+  const context={date,snapshotHash:cal.sourceSnapshotHash,historyManifestHash:await sha256(bytes)};
+  const result=lowBaseArchive.text(archive,context);
+  if(result.ready&&archive.total!==manifest.universe)fail('LOW_BASE_UNIVERSE_MISMATCH');
+  return {...result,text:result.text+'\n'+SITE};
+ }catch(e){return {ready:false,complete:false,text:'⑤ 主升段低位階帶量突破：'+date+' 盤後榜單尚未核驗；不使用舊資料，也不宣稱全市場零入選。\n'+SITE};}
+}
+
+export async function getStrategy(n,date,fetcher=runtimeFetch){if(n===5)return getLowBase(date,fetcher);if(n!==6)return {ready:false,text:'策略 '+n+'：尚未取得與網站相同的正式排名封存，請至原網站執行。\n'+SITE};const {data:m}=await read('data/enhanced-macd/latest.json',fetcher);const {data:cal}=await read('data/market/research-calendar.json',fetcher);const r=m.result;if(m.schema!=='ENHANCED_MACD_SCAN_V2'||m.version!=='V9.23'||m.date!==date||r?.date!==date||r.complete!==true||cal.verified!==true||cal.sourceSnapshotDate!==date||m.snapshotHash!==cal.sourceSnapshotHash||!Array.isArray(r.top8)||r.top8.length>8||!Array.isArray(r.qualified)||r.top8.length!==Math.min(8,r.qualified.length)||r.top8.some(x=>x.date!==date||!codeRx.test(x.code)||!positive(x.close)||!r.qualified.some(q=>q.code===x.code&&q.score?.total===x.score?.total)))throw Error('第六套正式排名尚未核驗');return {ready:true,text:'⑥ 強化 MACD+｜'+date+'｜Top '+r.top8.length+'（依原排名）\n'+(r.top8.map((x,i)=>(i+1)+'. '+x.code+' '+x.name+' '+fmt(x.close)).join('\n')||'無符合標的')+'\n'+SITE};}
+export const strategyMenu='六套策略｜點選指令查詢\n/s1 策略①（待接線）\n/s2 策略②（待接線）\n/s3 策略③（待接線）\n/s4 策略④（待接線）\n/s5 主升段低位階帶量突破（同日封存）\n/s6 強化 MACD+（已接線）\n仍可使用 /strategy 加空格及編號。';
+export async function response(cmd,fetcher=runtimeFetch,now=new Date()){if(cmd.type==='help'||cmd.type==='start')return help;if(cmd.type==='strategy_menu')return strategyMenu;if(cmd.type==='strategy'&&cmd.number!==6&&cmd.number!==5)return (await getStrategy(cmd.number,'',fetcher)).text;try{const market=await getMarket(fetcher,now);if(cmd.type==='market')return market.text;if(cmd.type==='daily'){const [five,six]=await Promise.all([getStrategy(5,market.date,fetcher),getStrategy(6,market.date,fetcher).catch(()=>null)]);return '盤後日報（部分功能）\n'+market.text+'\n\n'+five.text+'\n\n'+(six?.ready?six.text:'策略⑥尚未核驗。')+'\n策略①～④尚未接通正式榜單。';}if(cmd.type==='status')return '盤後日期：'+market.date+'\nBot 候選功能：大盤、個股、策略⑤⑥；策略①～④尚未接通正式榜單。';if(cmd.type==='stock')return await getStock(cmd.code,market.date,fetcher);if(cmd.type==='stock_name')return await getStockByName(cmd.name,market.date,fetcher);if(cmd.type==='strategy')return (await getStrategy(cmd.number,market.date,fetcher)).text;}catch(e){return '盤後資料尚未核驗或服務暫不可用；不以舊資料代替最新交易日。\n診斷：'+(e instanceof DataError?e.code:'VALIDATION_FAILED')+'\n'+SITE;}return help;}

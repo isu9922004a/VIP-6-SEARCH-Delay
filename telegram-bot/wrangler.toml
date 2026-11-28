@@ -1,0 +1,14 @@
+name = "shitou-telegram-bot-v928"
+main = "worker.mjs"
+compatibility_date = "2026-11-01"
+workers_dev = true
+[vars]
+ALLOW_PARTIAL_PUSH = "0"
+[triggers]
+crons = ["0 8-14 * * *"]
+[[durable_objects.bindings]]
+name = "TELEGRAM_STATE"
+class_name = "TelegramState"
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["TelegramState"]
