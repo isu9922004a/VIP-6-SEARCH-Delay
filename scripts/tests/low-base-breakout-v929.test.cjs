@@ -93,3 +93,12 @@ test('missing or duplicate deep scan records cannot be treated as nonmatches',as
  assert.equal(x.errors,2);
  assert.equal(x.zeroConfirmed,false);
 });
+
+test('missing data reason counts are separate from independent gate failures',()=>{
+ const d=S.diagnostics([{code:'1001',status:'INSUFFICIENT_DATA',reasons:['歷史不足','歷史不足']},{code:'1002',status:'DATA_ERROR',reasons:['成交金額未核對']},{code:'1003',status:'FAIL',checks:[{key:'CROSS20',pass:false},{key:'RED',pass:true}]}]);
+ assert.equal(d.unavailableByCode.length,2);
+ assert.equal(d.unavailableReasons['歷史不足'],1);
+ assert.deepEqual(d.gateCounts.CROSS20,{evaluated:1,pass:0,fail:1});
+ assert.deepEqual(d.gateCounts.RED,{evaluated:1,pass:1,fail:0});
+ assert.equal(d.statuses.FAIL,1);
+});
