@@ -30,12 +30,15 @@ function diagnostics(results){
  return {statuses,unavailableReasons,unavailableByCode,gateCounts};
 }
 function finish(plan,results,stopped){
- const valid=results.filter(c=>c.eligible===true&&c.status==='PASS'&&Number.isFinite(c.quality?.score));
+ const expected=new Set(plan.items.map(x=>String(x.code))),seen=new Set(),badCodes=new Set();
+ for(const row of results){const code=String(row.code);if(!expected.has(code)||row.date!==plan.date||seen.has(code))badCodes.add(code);seen.add(code);}
+ const identityErrors=results.filter(row=>badCodes.has(String(row.code))).length;
+ const valid=results.filter(c=>expected.has(String(c.code))&&!badCodes.has(String(c.code))&&c.eligible===true&&c.status==='PASS'&&Number.isFinite(c.quality?.score));
  const candidates=valid.slice().sort((a,b)=>b.quality.score-a.quality.score||a.code.localeCompare(b.code));
  const errors=results.filter(c=>c.status==='DATA_ERROR'||c.status==='INSUFFICIENT_DATA').length;
- const pending=plan.items.length-results.length;
- const fullMarketCertified=plan.marketCoverageReady&&pending===0&&!stopped&&errors===0&&(plan.deferred||0)===0&&plan.marketTotal===plan.items.length;
- return {model:C.MODEL,date:plan.date,marketSnapshotFingerprint:plan.marketSnapshotFingerprint,marketTotal:plan.marketTotal,diagnostics:diagnostics(results),planned:plan.items.length,deferred:plan.deferred||0,processed:results.length,pending,stopped,errors,fullMarketCertified,results:results.slice(),candidates,top8:candidates.filter(c=>c.quality.score>=60).slice(0,8),excluded:results.filter(c=>c.status==='EXCLUDED').length,notMatched:results.filter(c=>c.status==='FAIL').length,zeroConfirmed:fullMarketCertified&&candidates.length===0};
+ const pending=plan.items.filter(item=>!seen.has(String(item.code))||badCodes.has(String(item.code))).length;
+ const fullMarketCertified=plan.marketCoverageReady&&pending===0&&identityErrors===0&&!stopped&&errors===0&&(plan.deferred||0)===0&&plan.marketTotal===plan.items.length;
+ return {model:C.MODEL,date:plan.date,marketSnapshotFingerprint:plan.marketSnapshotFingerprint,marketTotal:plan.marketTotal,diagnostics:diagnostics(results),planned:plan.items.length,deferred:plan.deferred||0,processed:plan.items.length-pending,pending,stopped,errors,identityErrors,fullMarketCertified,results:results.slice(),candidates,top8:candidates.filter(c=>c.quality.score>=60).slice(0,8),excluded:results.filter(c=>c.status==='EXCLUDED').length,notMatched:results.filter(c=>c.status==='FAIL').length,zeroConfirmed:fullMarketCertified&&candidates.length===0};
 }
 async function scan({plan,fetchBatch,shouldStop=()=>false,onProgress=()=>{},batchSize=4}){
  if(!plan?.date||!Array.isArray(plan.items)||typeof fetchBatch!=='function'||!Number.isInteger(batchSize)||batchSize<1||batchSize>8||new Set(plan.items.map(x=>x.code)).size!==plan.items.length)throw Error('掃描參數不合法');
@@ -58,7 +61,7 @@ async function scan({plan,fetchBatch,shouldStop=()=>false,onProgress=()=>{},batc
  }
  return finish(plan,results,stopped);
 }
-function lines(c){const f=c.features,q=c.quality,p=x=>Number.isFinite(x)?x.toFixed(2):'未確認';
+function lines(c){const f=c.features,q=c.quality,l=c.levels,p=x=>Number.isFinite(x)?x.toFixed(2):'未確認';
  return [c.name+'（'+c.code+'）｜'+c.date+'｜'+c.status,...(f?[
  '收盤 '+p(f.close)+'｜MA5 '+p(f.ma5)+'｜MA10 '+p(f.ma10)+'｜MA20 '+p(f.ma20)+'｜MA60 '+p(f.ma60),
  '成交量 '+p(f.volume)+'股｜成交值 '+p(f.amount/1e8)+'億元',
@@ -66,9 +69,10 @@ function lines(c){const f=c.features,q=c.quality,p=x=>Number.isFinite(x)?x.toFix
  '突破前20／60日漲幅 '+p(f.prior20Return)+'%／'+p(f.prior60Return)+'%｜5日整理振幅 '+p(f.prior5Range)+'%',
  'MA20／MA60乖離 '+p(f.deviation20)+'%／'+p(f.deviation60)+'%｜RSI5／14 '+p(f.rsi5)+'／'+p(f.rsi14),
  '紅K實體 '+p(f.bodyRatio*100)+'%｜上影 '+p(f.upperShadowRatio*100)+'%｜收盤位置 '+p(f.closeLocation*100)+'%',
+ ...(l?['突破收盤價 '+p(l.breakoutPrice)+'｜突破K低點 '+p(l.breakoutLow),'收盤失效參考：跌破 '+p(l.lifeLine)+'（突破K低點與月線取高值；月線隨後續日K更新）',l.pressure20>f.close?'前20日最高價壓力 '+p(l.pressure20):'收盤已不低於前20日最高價；不代表上方沒有其他壓力', '生命週期：初次突破，'+l.followup]:[]),
  ...(q?['品質分 '+p(q.score)+'（'+q.grade+'級）｜基本面已核實 '+q.basicKnown+'/8｜可能上限 '+p(q.scoreUpper),...q.warnings,'初次突破候選；下一完成交易日才可確認續強。']:[]),
  ...(c.checks||[]).filter(x=>!x.pass).map(x=>'未通過：'+gateLabel(x.key))
  ]:(c.reasons||[c.reason||'資料待確認']))];}
-function text(scan){return ['⑤ 主升段低位階帶量突破｜候選版',scan.date+'｜已處理 '+scan.processed+'/'+scan.planned+'｜未處理 '+scan.pending+'｜未掃描 '+scan.deferred+'｜資料待核對 '+scan.errors,'全市場完整性：'+(scan.fullMarketCertified?'已確認':'未完成')+'｜必要條件通過 '+scan.candidates.length+' 檔','TOP 8 依已核實分數排序；不足不補滿；非勝率預測。',...scan.results.flatMap(lines)].join('\n');}
+function text(scan){return ['⑤ 主升段低位階帶量突破｜候選版',scan.date+'｜已處理 '+scan.processed+'/'+scan.planned+'｜未處理 '+scan.pending+'｜未掃描 '+scan.deferred+'｜資料待核對 '+scan.errors+'｜結果身分異常 '+(scan.identityErrors||0),'全市場完整性：'+(scan.fullMarketCertified?'已確認':'未完成')+'｜必要條件通過 '+scan.candidates.length+' 檔','TOP 8 依已核實分數排序；不足不補滿；非勝率預測。',...scan.results.flatMap(lines)].join('\n');}
 return Object.freeze({pool,scan,finish,lines,text,diagnostics,gateLabel,GATE_LABELS});
 });

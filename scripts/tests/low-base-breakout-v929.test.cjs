@@ -81,8 +81,8 @@ test('failed breakout remains failed for the tracked signal',()=>{
 const S=require('../../strategy-low-base-scanner-v929.js');
 test('rank by conservative quality score, never pad top eight or certify incomplete market',()=>{
  const plan={date:'2026-11-27',items:[{code:'1001'},{code:'1002'},{code:'1003'}],marketTotal:3,marketCoverageReady:true};
- const row=(code,score)=>({code,eligible:true,status:'PASS',quality:{score}});
- const x=S.finish(plan,[row('1002',71),row('1001',81),{code:'1003',status:'DATA_ERROR'}],false);
+ const row=(code,score)=>({code,date:plan.date,eligible:true,status:'PASS',quality:{score}});
+ const x=S.finish(plan,[row('1002',71),row('1001',81),{code:'1003',date:plan.date,status:'DATA_ERROR'}],false);
  assert.deepEqual(x.top8.map(z=>z.code),['1001','1002']);
  assert.equal(x.fullMarketCertified,false);
  assert.equal(x.zeroConfirmed,false);
@@ -114,4 +114,18 @@ test('expiry is bounded to five completed trading sessions and cannot be reverse
  const {b,signal}=lifecycleFixture();
  const next=Array.from({length:6},(_,i)=>({date:'2026-10-'+String(i+2).padStart(2,'0'),open:104,high:106,low:i===5?80:103,close:i===5?81:104,volume:3000000}));
  assert.equal(L.track(signal,[...b,...next],next.at(-1).date).state,'EXPIRED');
+});
+
+test('wrong-date duplicate and foreign scan records cannot certify full coverage or enter ranking',()=>{
+ const date='2026-11-27',plan={date,items:[{code:'1001'},{code:'1002'}],marketTotal:2,marketCoverageReady:true};
+ const row=(code,d=date)=>({code,date:d,eligible:true,status:'PASS',quality:{score:80}});
+ for(const rows of [[row('1001'),row('1001')],[row('1001'),row('1002','2026-11-26')],[row('1001'),row('9999')]]){
+  const x=S.finish(plan,rows,false);assert.equal(x.fullMarketCertified,false);assert.equal(x.zeroConfirmed,false);assert.ok(x.identityErrors>0);assert.ok(x.pending>0);
+  assert.ok(x.candidates.every(c=>c.code==='1001'&&c.date===date));
+ }
+ const x=S.finish(plan,[row('1001'),row('1002')],false);assert.equal(x.fullMarketCertified,true);assert.equal(x.pending,0);
+});
+test('initial breakout levels are rendered with explicit no-followup claim',()=>{
+ const date='2026-11-27',c={...C.compute(fixture(),620000000),date,code:'1001',name:'測試',levels:{state:'INITIAL',signalDate:date,breakoutPrice:104,breakoutLow:98.5,ma20:100,lifeLine:100,pressure20:105,followup:'尚待下一完成交易日核對'}};
+ const lines=S.lines(c).join('\n');assert.match(lines,/突破收盤價 104.00/);assert.match(lines,/收盤失效參考：跌破 100.00/);assert.match(lines,/前20日最高價壓力 105.00/);assert.match(lines,/尚待下一完成交易日核對/);
 });

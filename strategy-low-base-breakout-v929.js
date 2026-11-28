@@ -1,4 +1,4 @@
-/* V9.29 candidate: hard gates and deterministic quality score. Not wired to production. */
+/* V9.29 candidate: hard gates, deterministic quality score and verified initial breakout levels. */
 (function(root,factory){
  const node=typeof module==='object'&&module.exports;
  const api=factory(node?require('./kline-attack-v90.js'):root.ShitouKlineAttack,node?require('./restaurant-filter-v1.js'):root.ShitouRestaurantCore);
@@ -78,7 +78,8 @@ function evaluate(report,options={}){
  if(q.volumeScopeAudit?.formalVolumeEligible===false||q.tradeValueSource==='ESTIMATED_CLOSE_X_VOLUME'&&q.officialTradeValue==null)return fail('INSUFFICIENT_DATA','成交量與成交金額口徑未核實');
  const amount=q.officialTradeValue??q.tradeValue;
  const result=compute(v.bars,amount,options.fundamentals,v.asOf);
- return {...result,model:MODEL,code,date:v.asOf,historyFingerprint:v.historyFingerprint};
+ const last=v.bars.at(-1),levels=result.eligible?{state:'INITIAL',signalDate:v.asOf,breakoutPrice:last.close,breakoutLow:last.low,ma20:result.features.ma20,lifeLine:Math.max(last.low,result.features.ma20),pressure20:Math.max(...v.bars.slice(-21,-1).map(b=>b.high)),followup:'尚待下一完成交易日核對'}:null;
+ return {...result,model:MODEL,code,date:v.asOf,historyFingerprint:v.historyFingerprint,levels};
 }
 return Object.freeze({MODEL,MIN_BARS,compute,evaluate,rsi,quality,BASIC_KEYS:Object.freeze(BASIC_KEYS)});
 });
