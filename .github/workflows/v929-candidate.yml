@@ -7,6 +7,7 @@ on:
       - '.github/workflows/v929-candidate.yml'
       - 'index.html'
       - 'scripts/audit-v929-universe.cjs'
+      - 'scripts/audit-v929-history-gaps.mjs'
       - 'scripts/tests/v90-browser.cjs'
       - 'scripts/tests/report-beginner-copy.test.cjs'
 permissions:
@@ -35,9 +36,10 @@ jobs:
         with:
           node-version: '22'
       - run: node scripts/audit-v929-universe.cjs /tmp/v929-universe
+      - run: node scripts/audit-v929-history-gaps.mjs /tmp/v929-universe/results.json /tmp/v929-universe/history-gap-review.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: v929-official-archive-replay
-          path: /tmp/v929-universe/results.json
+          path: /tmp/v929-universe/*.json
           if-no-files-found: warn
