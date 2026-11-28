@@ -1,0 +1,20 @@
+name: V9.28 Telegram Bot candidate
+on:
+  pull_request:
+    paths: ['telegram-bot/**', '.github/workflows/v928-telegram-bot.yml']
+  push:
+    branches: ['feat/v928-telegram-bot']
+    paths: ['telegram-bot/**', '.github/workflows/v928-telegram-bot.yml']
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test telegram-bot/core.test.mjs
+      - run: node --check telegram-bot/worker.mjs

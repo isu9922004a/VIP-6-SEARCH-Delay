@@ -1,0 +1,12 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {parse,allowed,taipei,expectedSession,summarize,getStrategy,response,forecastText} from './core.mjs';
+import worker from './worker.mjs';
+const now=new Date('2026-11-28T02:00:00Z'),date='2026-11-27';
+const index={tradingCalendar:{verified:true,coverageYear:'2026',dates:['2026-11-27','2026-11-30']}};
+test('commands and allowlist strict',()=>{assert.deepEqual(parse('/stock 2330'),{type:'stock',code:'2330'});assert.equal(parse('/stock ../../x').type,'help');assert.equal(parse('2330').code,'2330');assert.equal(parse('/strategy 7').type,'help');assert.equal(allowed('12,34',12),true);assert.equal(allowed('12,34',2),false);});
+test('completed Taipei sessions weekend and cutoff',()=>{assert.equal(taipei(now).date,'2026-11-28');assert.equal(expectedSession(index,now),date);assert.equal(expectedSession(index,new Date('2026-11-30T05:00:00Z')),date);assert.equal(expectedSession(index,new Date('2026-11-30T08:00:00Z')),'2026-11-30');assert.throws(()=>expectedSession({},now));});
+test('strict date and OHLC guards',()=>{const rows=Array.from({length:27},(_,i)=>({date:'2026-11-'+String(i+1).padStart(2,'0'),open:10,high:11,low:9,close:10}));const obj={completed:true,closeDate:date,close:10,dailySeriesMeta:{onlyCompletedBars:true},dailySeries:rows};assert.equal(summarize(obj,date,'TAIEX').ma20,10);assert.throws(()=>summarize(obj,'2026-11-30','TAIEX'));assert.throws(()=>summarize({...obj,close:11},date,'TAIEX'));assert.throws(()=>summarize({...obj,completed:false},date,'TAIEX'));});
+test('unavailable strategy never fabricates ranking',async()=>{const r=await getStrategy(1,date,()=>{throw Error('unexpected fetch')});assert.equal(r.ready,false);assert.match(r.text,/尚未取得/);});
+test('stale source fail closed and model missing not manufactured',async()=>{assert.match(await response({type:'market'},async()=>new Response('{}'),now),/尚未核驗/);assert.match(forecastText({},null,date),/暫/);});
+test('webhook secret and allowlist gates',async()=>{const env={TELEGRAM_BOT_TOKEN:'test',TELEGRAM_WEBHOOK_SECRET:'secret',TELEGRAM_CHAT_IDS:'123'};const u='https://example.com/telegram/webhook';assert.equal((await worker.fetch(new Request(u,{method:'POST',body:'{}'}),env,{})).status,404);const req=new Request(u,{method:'POST',headers:{'x-telegram-bot-api-secret-token':'secret'},body:JSON.stringify({update_id:1,message:{chat:{id:456,type:'private'},from:{id:456},text:'/market'}})});assert.equal((await worker.fetch(req,env,{})).status,200);});
