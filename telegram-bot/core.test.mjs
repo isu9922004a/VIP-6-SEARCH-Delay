@@ -30,3 +30,5 @@ test('real archived data integration: market, stock and original MACD Top8',asyn
 
 
 test('Cloudflare fetch options and redirect fail closed',async()=>{const {read}=await import('./core.mjs');const fetcher=async(url,opts)=>{assert.equal(typeof url,'string');assert.equal(opts.redirect,'manual','workerd does not support error redirect mode');assert.ok(!('cache' in opts));return new Response('{"ok":true}');};assert.deepEqual((await read('data/index/TAIEX.json',fetcher)).data,{ok:true});await assert.rejects(()=>read('data/index/TAIEX.json',async()=>new Response(null,{status:302,headers:{location:'https://example.org/'}})),/REDIRECT_REJECTED_302/);});
+
+ test('strategy menu and clickable shortcuts work without market reads',async()=>{assert.deepEqual(parse('/strategy'),{type:'strategy_menu'});for(let i=1;i<=6;i++)assert.deepEqual(parse('/s'+i),{type:'strategy',number:i});assert.equal(parse('/s6 bad').type,'help');const nofetch=()=>{throw Error('unexpected fetch');};assert.match(await response(parse('/strategy'),nofetch,now),/\/s6 強化 MACD/);assert.match(await response(parse('/s1'),nofetch,now),/尚未取得/);});
