@@ -11,7 +11,7 @@ const market={type:'MARKET_SCAN_SNAPSHOT',mode:'ALL_STOCKS',rows:snapshot.rows,e
 const endpoint='https://shitou-taiwanmarket-api.d318426.workers.dev/';
 const norm=v=>String(v||'').replace(/\D/g,'');
 const manifest=JSON.parse(fs.readFileSync(path.join(root,'data/research/manifest.json')));
-const audit={date,publicationAllowed:false,snapshotHash:snapshot.contentSha256,requests:[],issues:[],matched:0};
+const audit={date,publicationAllowed:false,snapshotHash:snapshot.contentSha256,requests:[],issues:[],matched:0,matchedCodes:{},archiveStatus:{}};
 const flush=()=>fs.writeFileSync(path.join(out,'live-profile-replay.json'),JSON.stringify(audit,null,2));
 let queue=Promise.resolve();
 async function liveDeep(u){
@@ -24,15 +24,15 @@ async function liveDeep(u){
   const data=await resp.json();assert.equal(data.type,'MOMENTUM_DEEP_SCAN');assert.ok(Array.isArray(data.results));
   const results=codes.map(code=>{
    const r=data.results.find(x=>String(x.code)===code);
-   if(!r?.ok||!r.data){record.upstreamFailed++;audit.issues.push({code,profile,reason:r?.failureCode||'UPSTREAM_UNAVAILABLE'});return r||{code,ok:false,error:'Missing upstream result',retryable:false};}
+   if(!r?.ok||!r.data){record.upstreamFailed++;audit.issues.push({code,profile,reason:r?.failureCode||'UPSTREAM_UNAVAILABLE',detail:String(r?.error||'').slice(0,200),archiveReady:manifest.stocks?.[code]?.ready===true});return r||{code,ok:false,error:'Missing upstream result',retryable:false};}
    const d=r.data,e=manifest.stocks?.[code];
    const reject=reason=>{record.rejected++;audit.issues.push({code,profile,reason});return {code,ok:false,dataUnavailable:true,retryable:false,error:'DATA_CONTRACT_UNVERIFIED｜'+reason};};
-   if(String(d.stock)!==code||norm(d.closeDate)!==norm(date)||d.completed!==true||!e?.ready)return reject('IDENTITY_DATE_OR_ARCHIVE_NOT_READY');
+   if(String(d.stock)!==code)return reject('STOCK_IDENTITY_MISMATCH');if(norm(d.closeDate)!==norm(date)||d.completed!==true)return reject('SESSION_NOT_COMPLETED_OR_MISMATCH');if(!e?.ready){audit.archiveStatus[code]={ready:false,reason:String(e?.reason||e?.status||'NOT_READY').slice(0,120)};return reject('ARCHIVE_NOT_READY');}
    const bytes=fs.readFileSync(path.join(root,'data/research',e.path));
    if(crypto.createHash('sha256').update(bytes).digest('hex')!==e.sha256)return reject('ARCHIVE_HASH');
    const archived=JSON.parse(bytes),rows=d.dailySeries||[],last=rows.slice(-20),reference=archived.dailySeries||[];
    if(last.length!==20||norm(last.at(-1)?.date)!==norm(date)||!last.every(b=>{const q=reference.find(x=>norm(x.date)===norm(b.date));return q&&['open','high','low','close'].every(k=>Number.isFinite(Number(b[k]))&&Number(b[k])===Number(q[k]));}))return reject('LAST20_OHLC_MISMATCH');
-   record.matched++;audit.matched++;return r;
+   record.matched++;audit.matched++;(audit.matchedCodes[profile]??=[]).push(code);return r;
   });
   return {...data,results,requested:codes.length,success:results.filter(x=>x.ok).length,failed:results.filter(x=>!x.ok).length};
  }catch(e){record.error=String(e.message).slice(0,180);audit.issues.push({profile,reason:'REQUEST_FAILED',count:codes.length});return {type:'MOMENTUM_DEEP_SCAN',results:codes.map(code=>({code,ok:false,retryable:false,error:'Upstream request failed'}))};}finally{flush();}
@@ -53,5 +53,5 @@ async function verifyLiveMarket(){assert.equal(manifest.date,date);assert.equal(
   const result=await page.evaluate(key=>{const s=key==='momentum'?lastMomentumScanDataV3762:key==='daytrade'?lastDayTradeScanDataV1:key==='strong'?STRONG_STOCK_TEST_API_V47.getLast():key==='tower'?ShitouTowerIntegration.getLast():key==='restaurant'?ShitouStrategy2560UI.getLast():(globalThis.ShitouEnhancedMacdUI?.getLast()??globalThis.ShitouHighVolatilityUI?.getLast()??globalThis.ShitouStructureUI?.getLast());if(!s)return {key,missing:true,text:document.getElementById(key==='tower'?'towerSummary':key==='restaurant'?'restaurantError':key==='structure'?'structureMessage':key==='strong'?'strongStockError':key==='momentum'?'momentumError':'dayTradeError').textContent};const pick=c=>({code:c.code||c.report?.stock||c.report?.code,eligible:c.eligible??null,status:c.status??null,label:c.label??null,score:c.score??null,close:c.close??c.report?.close??null});const groups={};for(const [k,v]of Object.entries(s)){if(Array.isArray(v)&&(v.some(x=>x&&typeof x==='object'&&(x.code||x.report?.stock))||/candidates|Candidates|top8|ranked/i.test(k)))groups[k]=v.map(pick);else if(['A','B'].includes(k)&&v&&typeof v==='object'){groups[k]={};for(const [n,rows]of Object.entries(v))if(Array.isArray(rows))groups[k][n]=rows.filter(x=>x&&typeof x==='object'&&x.code).map(pick);}}if(s.modeResults)for(const [mode,m]of Object.entries(s.modeResults))for(const [k,v]of Object.entries(m))if(Array.isArray(v))groups[mode+'.'+k]=v.map(pick);return {key,date:s.date||s.tradeDate||s.marketBundleMeta?.targetTradeDate||null,total:s.total??s.planned??s.universe??null,done:s.done??s.attempted??s.rows?.length??null,data:s.data??s.dataUnavailable??s.unverified?.length??null,failed:s.failed??null,groups};},key);
   assert.equal(result.missing,undefined,JSON.stringify(result));assert.equal(await page.locator(selector).isVisible(),true);assert.ok((await page.locator(selector).innerText()).trim().length>20);results.push(result);fs.writeFileSync(path.join(out,'selection.json'),JSON.stringify({date,marketSha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'data/market/latest.json'))).digest('hex'),results,errors,deepCalls},null,2));console.log('SCAN_FINISH '+JSON.stringify({key,total:result.total,done:result.done,data:result.data,failed:result.failed,groups:Object.fromEntries(Object.entries(result.groups).map(([k,v])=>[k,Array.isArray(v)?v.length:Object.fromEntries(Object.entries(v).map(([n,r])=>[n,r.length]))]))}));await page.screenshot({path:path.join(out,key+'-phone.png')});
  }
- assert.deepEqual(errors,[]);assert.equal(results.length,requested.length);console.log('V928_LIVE_PROFILE_EVIDENCE '+JSON.stringify({date,matched:audit.matched,requests:audit.requests.length,issues:audit.issues.length,publicationAllowed:false}));assert.ok(audit.matched>0,'No validated live profiles reached scanner');
+ assert.deepEqual(errors,[]);assert.equal(results.length,requested.length);const reasons={};for(const item of audit.issues){const k=item.profile+':'+item.reason;reasons[k]=(reasons[k]||0)+1;}console.log('V928_LIVE_PROFILE_EVIDENCE '+JSON.stringify({date,matched:audit.matched,uniqueByProfile:Object.fromEntries(Object.entries(audit.matchedCodes).map(([p,c])=>[p,new Set(c).size])),requests:audit.requests.length,issues:audit.issues.length,reasons,publicationAllowed:false}));for(const item of audit.issues.slice(0,40))console.log('V928_DATA_ISSUE '+JSON.stringify(item));assert.ok(audit.matched>0,'No validated live profiles reached scanner');
 }finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});
