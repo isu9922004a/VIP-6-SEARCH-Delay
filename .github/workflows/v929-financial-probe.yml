@@ -1,0 +1,28 @@
+name: V9.29 official quarterly financial probe
+on:
+  pull_request:
+    paths:
+      - 'strategy-low-base-financial-v929.cjs'
+      - 'scripts/collect-v929-financial.mjs'
+      - 'scripts/tests/low-base-financial-v929.test.cjs'
+      - '.github/workflows/v929-financial-probe.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  official-financial:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test scripts/tests/low-base-financial-v929.test.cjs
+      - run: node scripts/collect-v929-financial.mjs /tmp/v929-financial
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v929-official-quarterly-financial
+          path: /tmp/v929-financial/
+          if-no-files-found: warn
