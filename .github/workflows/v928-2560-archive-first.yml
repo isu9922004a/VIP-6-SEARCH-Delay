@@ -1,0 +1,38 @@
+name: V9.28 2560 archive-first transport regression
+on:
+  push:
+    branches: ['feat/v928-telegram-bot']
+    paths: ['strategy-2560-ui-v1.js','.github/workflows/v928-2560-archive-first.yml']
+  pull_request:
+    paths: ['strategy-2560-ui-v1.js','.github/workflows/v928-2560-archive-first.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v928-live-scanner
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CHROME_BIN: /usr/bin/google-chrome
+      V95_STRATEGIES: restaurant
+      V95_USE_OFFICIAL_MACD: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci
+      - name: Verify transport and unchanged strategy criteria
+        run: |
+          node --check strategy-2560-ui-v1.js
+          node --test scripts/tests/strategy-2560.test.cjs scripts/tests/strategy-2560-backtest.test.cjs scripts/tests/restaurant-transport.test.cjs
+      - name: Replay official archive and live fallback through original scanner
+        run: node scripts/tests/v928-live-profile-replay.cjs "$RUNNER_TEMP/v928-2560-archive-first"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v928-2560-archive-first-evidence-not-for-publication
+          path: ${{ runner.temp }}/v928-2560-archive-first
