@@ -1,0 +1,21 @@
+name: V9.29 candidate low-base breakout verification
+on:
+  pull_request:
+    paths:
+      - 'strategy-low-base-*-v929.js'
+      - 'scripts/tests/low-base-breakout-v929.test.cjs'
+      - '.github/workflows/v929-candidate.yml'
+permissions:
+  contents: read
+jobs:
+  candidate-unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check strategy-low-base-breakout-v929.js
+      - run: node --check strategy-low-base-lifecycle-v929.js
+      - run: node --test scripts/tests/low-base-breakout-v929.test.cjs
