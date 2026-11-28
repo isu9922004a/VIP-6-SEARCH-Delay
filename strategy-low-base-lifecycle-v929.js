@@ -9,19 +9,22 @@ function track(signal,bars,asOf){
  const i=bars.findIndex(b=>b.date===signal.date);
  if(i<19||i!==bars.findLastIndex(b=>b.date===signal.date))return unavailable('缺少突破日或歷史資料');
  const s=bars[i],ma=(n,j)=>j>=n-1?bars.slice(j-n+1,j+1).reduce((a,c)=>a+c.close,0)/n:null;
- if(s.close!==signal.features?.close||s.volume!==signal.features?.volume||Math.abs(ma(20,i)-signal.features.ma20)>1e-8)return unavailable('突破日行情與原始訊號不一致');
- let state='INITIAL',failureDate=null;
- for(let j=i+1;j<bars.length;j++){
+ if(!Number.isFinite(signal.features?.ma20)||!Number.isFinite(signal.features?.vma5)||signal.features.vma5<=0||s.close!==signal.features?.close||s.volume!==signal.features?.volume||Math.abs(ma(20,i)-signal.features.ma20)>1e-8)return unavailable('突破日行情與原始訊號不一致');
+ // Candidate definition: follow-up volume must be at least the pre-signal five-session mean. This threshold is not calibrated by performance research.
+ const volumeFloor=signal.features.vma5;
+ let state='INITIAL',failureDate=null,lastVolumeHealthy=null,confirmedAt=null;
+ for(let j=i+1;j<bars.length&&j-i<=5;j++){
  const b=bars[j],m=ma(20,j),m60=ma(60,j),age=j-i;
  if(b.close<s.low||b.close<m){state='FAILED';failureDate=b.date;break;}
  if(b.close/m-1>.08||m60!==null&&b.close/m60-1>.20){state='OVERHEATED';continue;}
- if(age===1&&b.close>=s.close)state='CONFIRMED';
- else if(age>=2&&b.close>=s.close&&b.close>=bars[j-1].close)state='DEVELOPING';
+ lastVolumeHealthy=b.volume>=volumeFloor;
+ if(age===1&&b.close>=s.close&&lastVolumeHealthy){state='CONFIRMED';confirmedAt=b.date;}
+ else if(age>=2&&b.close>=s.close&&b.close>=bars[j-1].close&&lastVolumeHealthy){state='DEVELOPING';confirmedAt??=b.date;}
  else state='WATCH';
  }
  const age=bars.length-1-i;
  if(age>5&&state!=='FAILED')state='EXPIRED';
- return {state,age,asOf,signalDate:s.date,breakoutPrice:s.close,breakoutLow:s.low,ma20:ma(20,bars.length-1),failureDate,scope:'盤後候選追蹤，並非買賣指令'};
+ return {state,age,asOf,signalDate:s.date,breakoutPrice:s.close,breakoutLow:s.low,ma20:ma(20,bars.length-1),failureDate,confirmedAt,volumeFloor,lastVolumeHealthy,scope:'盤後候選追蹤，並非買賣指令'};
 }
 return Object.freeze({track});
 });

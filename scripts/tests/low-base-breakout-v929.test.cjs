@@ -102,3 +102,16 @@ test('missing data reason counts are separate from independent gate failures',()
  assert.deepEqual(d.gateCounts.RED,{evaluated:1,pass:1,fail:0});
  assert.equal(d.statuses.FAIL,1);
 });
+
+test('follow-up volume must hold the pre-breakout five-session average',()=>{
+ const {b,signal}=lifecycleFixture();
+ const next={date:'2026-10-02',open:104,high:106,low:103,close:105,volume:900000};
+ const x=L.track(signal,[...b,next],next.date);
+ assert.equal(x.state,'WATCH');assert.equal(x.lastVolumeHealthy,false);
+ assert.equal(x.volumeFloor,signal.features.vma5);
+});
+test('expiry is bounded to five completed trading sessions and cannot be reversed by a later fall',()=>{
+ const {b,signal}=lifecycleFixture();
+ const next=Array.from({length:6},(_,i)=>({date:'2026-10-'+String(i+2).padStart(2,'0'),open:104,high:106,low:i===5?80:103,close:i===5?81:104,volume:3000000}));
+ assert.equal(L.track(signal,[...b,...next],next.at(-1).date).state,'EXPIRED');
+});
