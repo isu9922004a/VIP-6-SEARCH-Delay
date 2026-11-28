@@ -41,3 +41,39 @@ test('zero-range and malformed OHLCV do not qualify',()=>{
  b[0].volume=NaN;
  assert.equal(C.compute(b,620000000).status,'DATA_ERROR');
 });
+
+test('fundamental evidence after as-of never adds points',()=>{
+ const f={revenue12High:{verified:true,publishedAt:'2026-11-28',pass:true},epsAbove1:{verified:true,publishedAt:'2026-11-26',pass:true}};
+ const q=C.compute(fixture(),620000000,f,'2026-11-27').quality;
+ assert.equal(q.basic.revenue12High,null);
+ assert.equal(q.basic.epsAbove1,true);
+ assert.equal(q.basicKnown,1);
+ assert.equal(q.points.fundamentals,.625);
+ assert.ok(q.score>=0&&q.scoreUpper<=100&&q.scoreUpper>=q.score);
+});
+test('fundamentals cannot rescue hard gate failure',()=>{
+ const f=Object.fromEntries(C.BASIC_KEYS.map(k=>[k,{verified:true,publishedAt:'2026-11-26',pass:true}]));
+ assert.equal(C.compute(fixture(),500000000,f,'2026-11-27').eligible,false);
+});
+const L=require('../../strategy-low-base-lifecycle-v929.js');
+function lifecycleFixture(){
+ const b=fixture().map((z,i)=>({...z,date:new Date(Date.UTC(2026,7,1+i)).toISOString().slice(0,10)}));
+ const signal={...C.compute(b,620000000),date:b.at(-1).date};
+ return {b,signal};
+}
+test('lifecycle cannot see future bars and validates signal identity',()=>{
+ const {b,signal}=lifecycleFixture();
+ assert.equal(L.track(signal,b,signal.date).state,'INITIAL');
+ const next={date:'2026-10-02',open:104,high:106,low:103,close:105,volume:3000000};
+ assert.equal(L.track(signal,[...b,next],signal.date).state,'UNAVAILABLE');
+ assert.equal(L.track(signal,[...b,next],next.date).state,'CONFIRMED');
+ assert.equal(L.track({...signal,features:{...signal.features,close:1}},b,signal.date).state,'UNAVAILABLE');
+});
+test('failed breakout remains failed for the tracked signal',()=>{
+ const {b,signal}=lifecycleFixture();
+ const next={date:'2026-10-02',open:103,high:104,low:96,close:97,volume:3000000};
+ const recovery={date:'2026-10-03',open:100,high:105,low:99,close:104,volume:3000000};
+ const x=L.track(signal,[...b,next,recovery],recovery.date);
+ assert.equal(x.state,'FAILED');
+ assert.equal(x.failureDate,next.date);
+});
