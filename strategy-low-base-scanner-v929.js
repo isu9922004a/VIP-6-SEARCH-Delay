@@ -65,6 +65,11 @@ async function scan({plan,fetchBatch,shouldStop=()=>false,onProgress=()=>{},batc
  }
  return finish(plan,results,stopped,archive);
 }
+function riskLines(r){const p=x=>Number.isFinite(x)?x.toFixed(2):'未確認';
+ if(r.state!=='RESEARCH_ONLY')return ['N字與量價壓力：'+(r.reason||'尚未核對')];
+ const n=r.projection;return [n?'已確認N字 A '+p(n.A.price)+'／B '+p(n.B.price)+'／C '+p(n.C.price)+'｜1.618理論投射 '+p(n.target)+'（非保證目標）':'尚無符合條件的已確認N字，不提供推算價位',
+ ...(r.pressureZones||[]).map(x=>'上方日K量價聚集 '+p(x.low)+'～'+p(x.high)+'｜量占比 '+p(x.sharePct)+'%（非實際套牢籌碼）'),
+ ...(r.warnings||[]).map(x=>'額外風險：'+x),'額外N字及量價觀察尚未回測，不改原分數或排名。'];}
 function lines(c){const f=c.features,q=c.quality,l=c.levels,p=x=>Number.isFinite(x)?x.toFixed(2):'未確認';
  return [c.name+'（'+c.code+'）｜'+c.date+'｜'+c.status,...(f?[
  '收盤 '+p(f.close)+'｜MA5 '+p(f.ma5)+'｜MA10 '+p(f.ma10)+'｜MA20 '+p(f.ma20)+'｜MA60 '+p(f.ma60),
@@ -74,11 +79,12 @@ function lines(c){const f=c.features,q=c.quality,l=c.levels,p=x=>Number.isFinite
  'MA20／MA60乖離 '+p(f.deviation20)+'%／'+p(f.deviation60)+'%｜RSI5／14 '+p(f.rsi5)+'／'+p(f.rsi14),
  '紅K實體 '+p(f.bodyRatio*100)+'%｜上影 '+p(f.upperShadowRatio*100)+'%｜收盤位置 '+p(f.closeLocation*100)+'%',
  ...(l?['突破收盤價 '+p(l.breakoutPrice)+'｜突破K低點 '+p(l.breakoutLow),'收盤失效參考：跌破 '+p(l.lifeLine)+'（突破K低點與月線取高值；月線隨後續日K更新）',l.pressure20>f.close?'前20日最高價壓力 '+p(l.pressure20):'收盤已不低於前20日最高價；不代表上方沒有其他壓力', '生命週期：初次突破，'+l.followup]:[]),
+ ...(c.riskContext?riskLines(c.riskContext):[]),
  ...(q?['品質分 '+p(q.score)+'（'+q.grade+'級）｜基本面已核實 '+q.basicKnown+'/8｜可能上限 '+p(q.scoreUpper),...q.warnings,'初次突破候選；下一完成交易日才可確認續強。']:[]),
  ...(c.checks||[]).filter(x=>!x.pass).map(x=>'未通過：'+gateLabel(x.key))
  ]:(c.reasons||[c.reason||'資料待確認']))];}
 const FOLLOWUP_LABELS={INITIAL:'初次突破',CONFIRMED:'隔日確認',DEVELOPING:'續強發展',WATCH:'觀察中',OVERHEATED:'過熱',FAILED:'突破失效',EXPIRED:'追蹤期滿',UNAVAILABLE:'資料不足'};
 function followupLines(x){const p=n=>Number.isFinite(n)?n.toFixed(2):'未確認';return [x.name+'（'+x.code+'）｜'+x.signalDate+' 突破｜T+'+x.age+'｜'+(FOLLOWUP_LABELS[x.state]||x.state),'今日收盤 '+p(x.close)+'｜原突破收盤 '+p(x.breakoutPrice)+'｜原突破K低點 '+p(x.breakoutLow)+'｜月線 '+p(x.ma20),'收盤失效參考 '+p(x.lifeLine)+'｜後續量能門檻 '+p(x.volumeFloor)+'股｜'+(x.lastVolumeHealthy===null?'量能待核對':x.lastVolumeHealthy?'量能達標':'量能未達標'),...(x.failureDate?['失效日期 '+x.failureDate]:[]),'此為歷史訊號追蹤，不列入今日新突破TOP 8。'];}
 function text(scan){return ['⑤ 主升段低位階帶量突破｜候選版',scan.date+'｜已處理 '+scan.processed+'/'+scan.planned+'｜未處理 '+scan.pending+'｜未掃描 '+scan.deferred+'｜資料待核對 '+scan.errors+'｜結果身分異常 '+(scan.identityErrors||0),'全市場完整性：'+(scan.fullMarketCertified?'已確認':'未完成')+'｜必要條件通過 '+scan.candidates.length+' 檔','TOP 8 依已核實分數排序；不足不補滿；非勝率預測。','前5日突破追蹤｜來源 '+(scan.followupReview?.state||'UNAVAILABLE')+'｜已核對 '+(scan.followupReview?.checked||0)+'筆｜資料不足 '+(scan.followupReview?.unavailable||0)+'筆｜未追蹤股票 '+(scan.followupReview?.notReviewed||0)+'檔',...(scan.followups||[]).flatMap(followupLines),...scan.results.flatMap(lines)].join('\n');}
-return Object.freeze({pool,scan,finish,lines,text,diagnostics,gateLabel,GATE_LABELS,followupLines});
+return Object.freeze({pool,scan,finish,lines,text,diagnostics,gateLabel,GATE_LABELS,followupLines,riskLines});
 });

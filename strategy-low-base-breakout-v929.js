@@ -1,9 +1,9 @@
 /* V9.29 candidate: hard gates, deterministic quality score and verified initial breakout levels. */
 (function(root,factory){
  const node=typeof module==='object'&&module.exports;
- const api=factory(node?require('./kline-attack-v90.js'):root.ShitouKlineAttack,node?require('./restaurant-filter-v1.js'):root.ShitouRestaurantCore);
+ const api=factory(node?require('./kline-attack-v90.js'):root.ShitouKlineAttack,node?require('./restaurant-filter-v1.js'):root.ShitouRestaurantCore,node?require('./research-n-continuation-v1.js'):root.ShitouNContinuation);
  if(node)module.exports=api;else root.ShitouLowBaseBreakoutV929=api;
-})(globalThis,function(K,Old){
+})(globalThis,function(K,Old,N){
 'use strict';
 const MODEL='LOW_BASE_VOLUME_BREAKOUT_V1',MIN_BARS=62;
 const finite=x=>typeof x==='number'&&Number.isFinite(x);
@@ -65,6 +65,37 @@ function compute(b,amount,fundamentals=null,asOf=null){
  const eligible=checks.every(x=>x.pass);
  return {model:MODEL,status:eligible?'PASS':'FAIL',eligible,checks,features:f,quality:eligible?quality(f,b,fundamentals,asOf):null,extra:{breaksPrior5High:last.close>priorHigh,aboveMA60:last.close>f.ma60},reasons:checks.filter(x=>!x.pass).map(x=>x.key)};
 }
+
+/* Only completed daily OHLCV. Aggregated typical-price zones are not transaction-at-price records. */
+function riskContext(b,asOf){
+ const bad=reason=>({state:'UNAVAILABLE',reason,asOf,projection:null,pressureZones:[],warnings:[]});
+ if(!Array.isArray(b)||b.length<MIN_BARS||!asOf||b.at(-1)?.date!==asOf||b.some((x,i)=>!/^\d{4}-\d{2}-\d{2}$/.test(x.date||'')||x.date>asOf||i&&x.date<=b[i-1].date||!['open','high','low','close','volume'].every(k=>finite(x[k])&&x[k]>0)||x.high<Math.max(x.open,x.close)||x.low>Math.min(x.open,x.close)))return bad('完成日K或日期未核對');
+ if(!N?.pivots||!N?.snapshots)return bad('共用N字轉折模組未載入');
+ const z=b.at(-1),pv=N.pivots(b),book=N.snapshots(b,pv,'LOW_BASE_V929'),confirmed=book.records.filter(p=>p.knownAt<=asOf&&p.A.price<p.C.price&&p.C.price<p.B.price);
+ const latest=confirmed.at(-1);
+ let projection=null;
+ if(latest){
+  const {A,B,C}=latest,amplitude=B.price-A.price,retracement=(B.price-C.price)/amplitude;
+  const active=b.slice(C.knownAtIndex).every(x=>x.low>=C.price);
+  if(active&&amplitude/A.price>=.06&&retracement>=.15&&retracement<=.85){
+   const target=C.price+amplitude*1.618,seen=b.slice(C.knownAtIndex).some(x=>x.high>=target);
+   projection={A:{price:A.price,date:A.pivotDate,knownAt:A.knownAt},B:{price:B.price,date:B.pivotDate,knownAt:B.knownAt},C:{price:C.price,date:C.pivotDate,knownAt:C.knownAt},confirmedAt:C.knownAt,ratio:1.618,target,remainingPct:(target/z.close-1)*100,touched:seen,near:z.close>=target*.97,kind:'UNVALIDATED_N_1_618_PROJECTION',note:'已確認A/B/C後的理論延伸，不是已證實阻力或獲利目標'};
+  }
+ }
+ const warnings=[];
+ if(projection?.touched||projection?.near)warnings.push('已接近或曾觸及N字1.618理論延伸，留意末升段');
+ const peaks=pv.filter(x=>x.type==='HIGH'&&x.knownAt<=asOf).slice(-2),values=peaks.map(x=>rsi(b.slice(0,x.index+1),14));
+ if(peaks.length===2&&values.every(finite)&&peaks[1].price>peaks[0].price&&values[1]<values[0])warnings.push('兩個已確認波峰出現價格創高但RSI14下降');
+ const prior=b.slice(-61,-1),last3=b.slice(-4),gains=last3.slice(1).map((x,i)=>pct(x.close,last3[i].close));
+ if(gains.length===3&&gains.every(x=>x>=3))warnings.push('連續三個交易日漲幅至少3%，留意追高');
+ const low=Math.min(...prior.map(x=>x.low)),high=Math.max(...prior.map(x=>x.high)),width=(high-low)/20,bins=Array.from({length:20},(_,i)=>({low:low+width*i,high:low+width*(i+1),volume:0,days:0}));
+ if(width>0)for(const day of prior){const typical=(day.high+day.low+day.close)/3,i=Math.max(0,Math.min(19,Math.floor((typical-low)/width)));bins[i].volume+=day.volume;bins[i].days++;}
+ const total=prior.reduce((n,x)=>n+x.volume,0);
+ const zones=bins.filter(x=>width>0&&x.high>z.close&&x.days>=3&&x.volume/total>=.1).sort((a,b)=>a.low-b.low).slice(0,3).map(x=>({...x,sharePct:x.volume/total*100,kind:'DAILY_TYPICAL_PRICE_VOLUME_PROXY'}));
+ if(zones.some(x=>x.low<=z.close*1.03))warnings.push('收盤上方3%內存在歷史日K量價聚集區，僅作可能反壓觀察');
+ return {state:'RESEARCH_ONLY',asOf,projection,pressureZones:zones,warnings,method:'前60日，按(H+L+C)/3將每日日量歸入20個等寬價格區間；至少3日且占總量10%；僅顯示收盤以上最多3區',limitations:'日K量價代理，不是逐筆成交量分布、真實套牢籌碼、委託單或主力成本；工程門檻未回測，額外觀察不改現有分數、資格與排名',affectsScore:false};
+}
+
 function evaluate(report,options={}){
  const code=String(options.code||report?.stock||report?.code||''),q=options.quote,date=options.asOf||report?.marketDate||report?.closeDate||report?.dataDate,sector=options.sector||{};
  const fail=(status,reason)=>({model:MODEL,code,date,status,eligible:false,reasons:[reason]});
@@ -79,7 +110,7 @@ function evaluate(report,options={}){
  const amount=q.officialTradeValue??q.tradeValue;
  const result=compute(v.bars,amount,options.fundamentals,v.asOf);
  const last=v.bars.at(-1),levels=result.eligible?{state:'INITIAL',signalDate:v.asOf,breakoutPrice:last.close,breakoutLow:last.low,ma20:result.features.ma20,lifeLine:Math.max(last.low,result.features.ma20),pressure20:Math.max(...v.bars.slice(-21,-1).map(b=>b.high)),followup:'尚待下一完成交易日核對'}:null;
- return {...result,model:MODEL,code,date:v.asOf,historyFingerprint:v.historyFingerprint,levels};
+ return {...result,model:MODEL,code,date:v.asOf,historyFingerprint:v.historyFingerprint,levels,riskContext:result.eligible?riskContext(v.bars,v.asOf):null};
 }
-return Object.freeze({MODEL,MIN_BARS,compute,evaluate,rsi,quality,BASIC_KEYS:Object.freeze(BASIC_KEYS)});
+return Object.freeze({MODEL,MIN_BARS,compute,evaluate,rsi,quality,riskContext,BASIC_KEYS:Object.freeze(BASIC_KEYS)});
 });

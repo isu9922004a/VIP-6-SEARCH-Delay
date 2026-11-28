@@ -147,3 +147,15 @@ test('archive rejects future or mismatched source date and cannot fabricate evid
  const x=await L.loadArchives('2026-11-27',null,{fetcher:async()=>{throw Error('unexpected fetch');}});
  assert.equal(x.state,'UNAVAILABLE');assert.equal(x.snapshots.size,0);
 });
+
+test('risk context rejects future data and never fabricates an unconfirmed N target',()=>{
+ const {b,signal}=lifecycleFixture();
+ assert.equal(C.riskContext(b,signal.date).state,'RESEARCH_ONLY');
+ assert.equal(C.riskContext(b,signal.date).projection,null);
+ assert.equal(C.riskContext(b,'2026-09-01').state,'UNAVAILABLE');
+ assert.equal(C.riskContext(b,signal.date).affectsScore,false);
+});
+test('N projection and historical daily price-volume proxy are labelled non-execution evidence',()=>{
+ const result=S.riskLines({state:'RESEARCH_ONLY',projection:{A:{price:100},B:{price:120},C:{price:110},target:142.36},pressureZones:[{low:115,high:120,sharePct:12}],warnings:['測試']}).join('\n');
+ assert.match(result,/1.618理論投射 142.36/);assert.match(result,/非實際套牢籌碼/);assert.match(result,/不改原分數或排名/);
+});
