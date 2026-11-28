@@ -1,0 +1,36 @@
+'use strict';
+// Replay the official archived completed session, never synthetic history.
+const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),assert=require('node:assert/strict');
+const C=require('../strategy-low-base-breakout-v929.js'),S=require('../strategy-low-base-scanner-v929.js'),H=require('../research-official-history-v1'),D=require('../selection-data-v2'),Old=require('../restaurant-filter-v1');
+(async()=>{
+ const root=path.resolve(__dirname,'..'),market=require('../data/market/latest.json'),manifest=require('../data/research/manifest.json'),date=market.tradeDateIso;
+ assert.equal(manifest.date,date);assert.equal(manifest.snapshotContentSha256,market.contentSha256);assert.equal(manifest.verified,true);
+ assert.ok(market.rows.length>0);assert.equal(new Set(market.rows.map(q=>String(q.code))).size,market.rows.length);
+ const out=path.resolve(process.argv[2]||'/tmp/v929-universe');fs.mkdirSync(out,{recursive:true});
+ global.ShitouOfficialResearchHistory=H;
+ global.fetch=async url=>{const s=String(url),p=s.includes('research-calendar.json')?'data/market/research-calendar.json':'data/research/'+new URL(s).pathname.split('/data/research/')[1],t=fs.readFileSync(path.join(root,p),'utf8');return {ok:true,status:200,text:async()=>t,json:async()=>JSON.parse(t)};};
+ const bundle={map:new Map(market.rows.map(q=>[String(q.code),q])),snapshotRows:market.rows.length,meta:{total:market.rows.length,targetTradeDate:date,completedTradeDate:date,expectedTradeDate:date,twseQuoteDate:date,tpexQuoteDate:date,marketCoverageReady:market.marketCoverageReady===true||market.coverage?.marketCoverageReady===true,industryCoverageReady:true,snapshotTimelinessReady:true,snapshotContentSha256:market.contentSha256}};
+ D.bind({...bundle,meta:{...bundle.meta,marketCoverageReady:true}});await D.prepareResearchEvidence();
+ const plan=S.pool(bundle),records=[];
+ for(const item of plan.items){
+ const {code,q}=item;let result,hash=null;
+ const ic=String(q.industryCode||'').padStart(2,'0'),industry=String(q.industryName||q.industry||'');
+ if(!Old.ordinary(code,q)||['17','22','14'].includes(ic)||/金融|銀行|保險|證券|金控|生技|營建|建材營造/.test(industry))result={status:'EXCLUDED',eligible:false,reasons:['不在新策略範圍']};
+ else try{
+ const m=manifest.stocks[code];assert.ok(m,'官方歷史清單缺少標的');
+ const bytes=fs.readFileSync(path.join(root,'data/research',m.path));hash=crypto.createHash('sha256').update(bytes).digest('hex');assert.equal(hash,m.sha256);
+ const report=await D.prepareResearchSource(JSON.parse(bytes),code);
+ result=C.evaluate(report,{asOf:date,code,quote:D.context(code).q,sector:q});
+ }catch(e){result={status:'DATA_ERROR',eligible:false,reasons:[String(e.message||e)]};}
+ records.push({...result,code,name:q.name,date,sourceHash:hash});
+ if(records.length%200===0)console.log('V929_PROGRESS '+records.length+'/'+plan.items.length);
+ }
+ const scan=S.finish(plan,records,false),counts={};
+ for(const row of records)counts[row.status]=(counts[row.status]||0)+1;
+ assert.equal(records.length,market.rows.length);assert.equal(new Set(records.map(r=>r.code)).size,records.length);
+ assert.equal(Object.values(counts).reduce((a,b)=>a+b,0),records.length);
+ assert.ok(scan.top8.length<=8);assert.ok(scan.candidates.every(c=>c.checks.length===21&&c.checks.every(k=>k.pass)));
+ const summary={model:C.MODEL,date,marketSnapshot:market.contentSha256,input:records.length,counts,top8:scan.top8.map(c=>({code:c.code,name:c.name,score:c.quality.score})),candidateCount:scan.candidates.length,fullMarketCertified:scan.fullMarketCertified,zeroConfirmed:scan.zeroConfirmed,source:'GITHUB_VERIFIED_OFFICIAL_DAILY_ARCHIVE',fundamentalsConnected:false,performanceBacktest:false};
+ fs.writeFileSync(path.join(out,'results.json'),JSON.stringify({summary,records},null,2));
+ console.log('V929_ARCHIVE_REPLAY '+JSON.stringify(summary));
+})().catch(e=>{console.error(e);process.exitCode=1;});
