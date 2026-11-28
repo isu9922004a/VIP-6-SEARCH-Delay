@@ -45,6 +45,11 @@ function render(scan){
  const grid=el('div');grid.className='momentum-summary-grid';
  for(const [label,value] of [['必要條件通過',scan.candidates.length],['TOP 8',scan.top8.length],['未符合',scan.notMatched],['資料待核對',scan.errors],['排除',scan.excluded]]){const card=el('div');card.className='momentum-summary-card';const k=el('div',label),v=el('div',String(value));k.className='k';v.className='v';card.append(k,v);grid.appendChild(card);}host.appendChild(grid);
  const reminder=el('div','只使用完成日K；21項必要條件全通過才列入候選。基本面未核實不加分，初次突破不代表隔日續強。');reminder.className='strong-stock-reminder';host.appendChild(reminder);
+ const diag=scan.diagnostics;
+ if(diag){const panel=el('details'),summary=el('summary','逐項選股條件與資料不足原因'),body=el('div');panel.append(summary,body);
+ for(const [key,g] of Object.entries(diag.gateCounts||{}))body.appendChild(el('p',key+'：通過 '+g.pass+'／未通過 '+g.fail+'／已計算 '+g.evaluated));
+ for(const [reason,n] of Object.entries(diag.unavailableReasons||{}))body.appendChild(el('p',reason+'：'+n+' 檔'));
+ body.appendChild(el('p','各條件獨立統計，不能相加當成入選數。未核實資料不視為選股淘汰。'));host.appendChild(panel);}
  const append=(rows,title)=>{host.appendChild(el('h3',title));if(!rows.length){host.appendChild(el('p','本輪沒有此類股票，不補名單。'));return;}rows.forEach((c,i)=>{const detail=el('details'),summary=el('summary',(i+1)+'. '+c.name+'（'+c.code+'）｜'+(c.quality?c.quality.score+'分／'+c.quality.grade+'級':c.status)),p=el('p',S.lines(c).join('\n'));detail.className='strong-stock-row';p.style.whiteSpace='pre-wrap';detail.append(summary,p);const b=el('button','查詢此股');b.className='copy-btn';b.type='button';b.onclick=()=>{const input=document.getElementById('stockInput');if(input){input.value=c.code;input.dispatchEvent(new Event('input',{bubbles:true}));if(typeof root.analyzeStock==='function')root.analyzeStock();}};detail.appendChild(b);host.appendChild(detail);});};
  append(scan.top8,'TOP 8｜依突破品質排序');append(scan.candidates,'完整符合條件榜單（含低分候選）');
  if(!scan.candidates.length)host.appendChild(el('p',scan.zeroConfirmed?'全市場完整核對，本日無符合必要條件股票。':'資料或掃描未完整，不得宣稱全市場0檔。'));
