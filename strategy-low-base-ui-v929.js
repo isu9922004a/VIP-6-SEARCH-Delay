@@ -47,7 +47,7 @@ function render(scan){
  const reminder=el('div','只使用完成日K；21項必要條件全通過才列入候選。基本面未核實不加分，初次突破不代表隔日續強。');reminder.className='strong-stock-reminder';host.appendChild(reminder);
  const diag=scan.diagnostics;
  if(diag){const panel=el('details'),summary=el('summary','逐項選股條件與資料不足原因'),body=el('div');panel.append(summary,body);
- for(const [key,g] of Object.entries(diag.gateCounts||{}))body.appendChild(el('p',key+'：通過 '+g.pass+'／未通過 '+g.fail+'／已計算 '+g.evaluated));
+ for(const [key,g] of Object.entries(diag.gateCounts||{}))body.appendChild(el('p',S.gateLabel(key)+'：通過 '+g.pass+'／未通過 '+g.fail+'／已計算 '+g.evaluated));
  for(const [reason,n] of Object.entries(diag.unavailableReasons||{}))body.appendChild(el('p',reason+'：'+n+' 檔'));
  body.appendChild(el('p','各條件獨立統計，不能相加當成入選數。未核實資料不視為選股淘汰。'));host.appendChild(panel);}
  const append=(rows,title)=>{host.appendChild(el('h3',title));if(!rows.length){host.appendChild(el('p','本輪沒有此類股票，不補名單。'));return;}rows.forEach((c,i)=>{const detail=el('details'),summary=el('summary',(i+1)+'. '+c.name+'（'+c.code+'）｜'+(c.quality?c.quality.score+'分／'+c.quality.grade+'級':c.status)),p=el('p',S.lines(c).join('\n'));detail.className='strong-stock-row';p.style.whiteSpace='pre-wrap';detail.append(summary,p);const b=el('button','查詢此股');b.className='copy-btn';b.type='button';b.onclick=()=>{const input=document.getElementById('stockInput');if(input){input.value=c.code;input.dispatchEvent(new Event('input',{bubbles:true}));if(typeof root.analyzeStock==='function')root.analyzeStock();}};detail.appendChild(b);host.appendChild(detail);});};
