@@ -30,7 +30,9 @@ const C=require('../strategy-low-base-breakout-v929.js'),S=require('../strategy-
  assert.equal(records.length,market.rows.length);assert.equal(new Set(records.map(r=>r.code)).size,records.length);
  assert.equal(Object.values(counts).reduce((a,b)=>a+b,0),records.length);
  assert.ok(scan.top8.length<=8);assert.ok(scan.candidates.every(c=>c.checks.length===21&&c.checks.every(k=>k.pass)));
- const summary={model:C.MODEL,date,marketSnapshot:market.contentSha256,input:records.length,counts,top8:scan.top8.map(c=>({code:c.code,name:c.name,score:c.quality.score})),candidateCount:scan.candidates.length,fullMarketCertified:scan.fullMarketCertified,zeroConfirmed:scan.zeroConfirmed,source:'GITHUB_VERIFIED_OFFICIAL_DAILY_ARCHIVE',fundamentalsConnected:false,performanceBacktest:false};
- fs.writeFileSync(path.join(out,'results.json'),JSON.stringify({summary,records},null,2));
+ const diagnostics=scan.diagnostics;
+ const summary={model:C.MODEL,date,marketSnapshot:market.contentSha256,input:records.length,counts,top8:scan.top8.map(c=>({code:c.code,name:c.name,score:c.quality.score})),candidateCount:scan.candidates.length,fullMarketCertified:scan.fullMarketCertified,zeroConfirmed:scan.zeroConfirmed,source:'GITHUB_VERIFIED_OFFICIAL_DAILY_ARCHIVE',fundamentalsConnected:false,performanceBacktest:false,unavailableReasons:diagnostics.unavailableReasons,gateCounts:diagnostics.gateCounts};
+ fs.writeFileSync(path.join(out,'results.json'),JSON.stringify({summary,diagnostics,records},null,2));
  console.log('V929_ARCHIVE_REPLAY '+JSON.stringify(summary));
+ console.log('V929_UNAVAILABLE_BY_CODE '+JSON.stringify(diagnostics.unavailableByCode));
 })().catch(e=>{console.error(e);process.exitCode=1;});
