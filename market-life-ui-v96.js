@@ -37,6 +37,12 @@ function install(){
  const host=by('marketAnalyzeButton')?.parentElement||doc.querySelector('.controls');if(!host)return;
  const button=doc.createElement('button');button.id='marketLifeReportButton';button.type='button';button.className='btn market-btn market-life-button';button.textContent='大盤生命線研究報告';
  const note=doc.createElement('p');note.id='marketLifeReportStatus';note.className='market-life-status';note.setAttribute('role','status');note.setAttribute('aria-live','polite');host.append(button);host.after(note);
+ // Stage 1 is a separate user-triggered factual panel. Existing research stays QA-only.
+ if(root.ShitouReleaseV50?.displayCode==='V9.27'&&!by('marketFacts927')){
+  const facts=doc.createElement('script');facts.src=new URL('./market-facts-v927.js?v=V9.27-STAGE1',doc.baseURI).href;
+  facts.onload=()=>{if(!by('marketFacts927'))root.ShitouMarketFacts927?.mount(doc,note,source=>root.ShitouMarketLife96.validate(source),()=>root.ShitouMarketFreshness.getJSON(new URL('./data/index/TAIEX.json',doc.baseURI)));};
+  doc.head.append(facts);
+ }
  let revision=0,pending=false,controller=null,history=null;
  // Match the report renderer's *actual* version, not the site release label.
  // The V9.12 website may embed a V9.10 historical poster; never let its
