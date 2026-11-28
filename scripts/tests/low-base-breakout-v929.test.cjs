@@ -77,3 +77,19 @@ test('failed breakout remains failed for the tracked signal',()=>{
  assert.equal(x.state,'FAILED');
  assert.equal(x.failureDate,next.date);
 });
+
+const S=require('../../strategy-low-base-scanner-v929.js');
+test('rank by conservative quality score, never pad top eight or certify incomplete market',()=>{
+ const plan={date:'2026-11-27',items:[{code:'1001'},{code:'1002'},{code:'1003'}],marketTotal:3,marketCoverageReady:true};
+ const row=(code,score)=>({code,eligible:true,status:'PASS',quality:{score}});
+ const x=S.finish(plan,[row('1002',71),row('1001',81),{code:'1003',status:'DATA_ERROR'}],false);
+ assert.deepEqual(x.top8.map(z=>z.code),['1001','1002']);
+ assert.equal(x.fullMarketCertified,false);
+ assert.equal(x.zeroConfirmed,false);
+});
+test('missing or duplicate deep scan records cannot be treated as nonmatches',async()=>{
+ const plan={date:'2026-11-27',items:[{code:'1001'},{code:'1002'}],marketTotal:2,marketCoverageReady:true};
+ const x=await S.scan({plan,fetchBatch:async()=>({type:'MOMENTUM_DEEP_SCAN',results:[{code:'1001',ok:true,data:{}},{code:'1001',ok:true,data:{}}]})});
+ assert.equal(x.errors,2);
+ assert.equal(x.zeroConfirmed,false);
+});
