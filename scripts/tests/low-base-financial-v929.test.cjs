@@ -30,3 +30,14 @@ test('actual TPEx Season identity and missing inventory field are explicitly han
  const b=rows.map(r=>({...r,'流動資產':'1000'}));
  assert.throws(()=>Q.parse(b,'TWSE','balance',{...receipt,source:Q.sources.TWSE.balance}),/未提供存貨明細/);
 });
+
+test('shared browser and node scoring receive identical quarter evidence; reject missing receipt and future dates',()=>{
+ const F=require('../../strategy-low-base-fundamentals-v929.js'),r=Q.parse(rows,'TWSE','income',receipt).records[0],prior={...r,quarter:2,periodEnd:'2026-06-30',revenue:200,grossProfit:50,netIncome:30},snapshotHash='b'.repeat(64);
+ const bundle={schema:F.SCHEMA,date:asOf,snapshotHash,receipts:[],records:[],financialReceipts:[{...receipt,market:'TWSE',kind:'income',observedDate:asOf}],financialRecords:[r,prior]};
+ const x=F.indexBundle(bundle,{asOf,snapshotHash});
+ assert.equal(x.get(r.code,'TWSE').grossMarginAbove1787.value,30);
+ assert.deepEqual(x.get(r.code,'TWSE'),Q.evaluate([r,prior],{code:r.code,market:'TWSE',asOf}));
+ assert.throws(()=>F.indexBundle({...bundle,financialReceipts:[]},{asOf,snapshotHash}),/季度財報個股資料不符/);
+ assert.throws(()=>F.indexBundle({...bundle,date:'2026-11-27'},{asOf:'2026-11-27',snapshotHash}),/季度財報收據不符/);
+ assert.throws(()=>F.indexBundle({...bundle,financialRecords:[r,r]},{asOf,snapshotHash}),/季度財報個股資料不符/);
+});

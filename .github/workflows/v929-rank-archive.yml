@@ -12,7 +12,7 @@ jobs:
   collect:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     outputs:
       sha256: ${{ steps.publish.outputs.sha256 }}
     steps:
@@ -20,11 +20,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Capture official monthly revenue and build causal evidence
+      - name: Capture official monthly revenue and quarterly financial evidence
         run: |
           mkdir -p /tmp/v929-rank/capture
           node scripts/collect-v929-fundamentals.mjs /tmp/v929-rank/capture || echo "Official source unavailable; preserve prior verified observations"
-          node scripts/build-v929-fundamentals.mjs /tmp/v929-rank/capture /tmp/v929-rank/fundamental-evidence.json
+          mkdir -p /tmp/v929-rank/financial
+          node scripts/collect-v929-financial.mjs /tmp/v929-rank/financial || echo "Quarterly source incomplete; preserve prior verified observations"
+          node scripts/build-v929-fundamentals.mjs /tmp/v929-rank/capture /tmp/v929-rank/fundamental-evidence.json data/low-base-breakout/fundamental-raw /tmp/v929-rank/financial
       - run: V929_FUNDAMENTAL_EVIDENCE=/tmp/v929-rank/fundamental-evidence.json node scripts/audit-v929-universe.cjs /tmp/v929-rank
       - name: Validate and publish current completed-session archive
         id: publish
