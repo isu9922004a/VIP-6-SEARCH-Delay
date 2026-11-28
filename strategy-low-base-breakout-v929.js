@@ -5,7 +5,7 @@
  if(node)module.exports=api;else root.ShitouLowBaseBreakoutV929=api;
 })(globalThis,function(K,Old,N){
 'use strict';
-const MODEL='LOW_BASE_VOLUME_BREAKOUT_V1',MIN_BARS=62;
+const MODEL='LOW_BASE_VOLUME_BREAKOUT_V1',MIN_BARS=62,RULE_VERSION='V9.29.1-BALANCED';
 const finite=x=>typeof x==='number'&&Number.isFinite(x);
 const mean=(a,k)=>a.reduce((s,x)=>s+x[k],0)/a.length;
 const pct=(a,b)=>(a/b-1)*100;
@@ -46,7 +46,7 @@ function quality(f,b,fundamentals=null,asOf=null){
  const grade=n=>n>=90?'S':n>=80?'A':n>=70?'B':n>=60?'C':'D';
  return {score,scoreUpper,grade:grade(score),gradeUpper:grade(scoreUpper),points,penalty,warnings,basic,basicKnown:known,scoreBasis:'未驗證的基本面不加分；顯示可能分數上限；門檻及權重尚未回測'};
 }
-function compute(b,amount,fundamentals=null,asOf=null){
+function compute(b,amount,fundamentals=null,asOf=null,{strictBaseline=false}={}){
  if(!Array.isArray(b)||b.length<MIN_BARS)return {status:'INSUFFICIENT_DATA',eligible:false,reason:'至少62根有效日K'};
  if(!finite(amount)||amount<0)return {status:'INSUFFICIENT_DATA',eligible:false,reason:'缺少官方成交值'};
  if(b.some(x=>!['open','high','low','close','volume'].every(k=>finite(x[k]))||x.low<=0||x.high<Math.max(x.open,x.close)||x.low>Math.min(x.open,x.close)||x.volume<=0))return {status:'DATA_ERROR',eligible:false,reason:'OHLCV不合法'};
@@ -55,15 +55,21 @@ function compute(b,amount,fundamentals=null,asOf=null){
  const f={close:last.close,closePrev:prev.close,amount,volume:last.volume,ma5:ma(5),ma10:ma(10),ma20:ma(20),ma20Prev:ma(20,t-1),ma20Ago5:ma(20,t-5),ma60:ma(60),prior5Range:pct(priorHigh,priorLow),prior20Return:pct(prev.close,b[t-21].close),prior60Return:pct(prev.close,b[t-61].close),return5:pct(last.close,b[t-5].close),vma5:vma(5),vma20:vma(20),volumeRatioPrev:last.volume/prev.volume,volumeRatio5:last.volume/vma(5),volumeRatio20:last.volume/vma(20),bodyRatio:(last.close-last.open)/range,upperShadowRatio:(last.high-Math.max(last.open,last.close))/range,closeLocation:(last.close-last.low)/range,rsi5:rsi(b,5),rsi14:rsi(b,14),prior5High:priorHigh};
  f.deviation20=pct(last.close,f.ma20);f.deviation60=pct(last.close,f.ma60);
  const e=1e-9;
- const checks=Object.entries({
+ const checks=Object.entries(strictBaseline?{
  PRIOR20:f.prior20Return<=20+e,PRIOR60:f.prior60Return<=40+e,BASE5:f.prior5Range<=12+e,DRY_VOLUME:f.vma5<f.vma20,DEVIATION20:f.deviation20<=8+e,
  CROSS20:last.close>f.ma20&&prev.close<=f.ma20Prev,MA5_10:f.ma5>f.ma10,MA20_SLOPE:f.ma20>=f.ma20Ago5,
  VOLUME_PREV:f.volumeRatioPrev>2,TRADE_VALUE:amount>500000000,VOLUME5:f.volumeRatio5>1.5,VOLUME20:f.volumeRatio20>1.5,VOLUME_CAP:f.volumeRatio20<=5,
  RED:last.close>last.open,BODY:f.bodyRatio>=.5,SHADOW:f.upperShadowRatio<=.3,CLOSE_LOCATION:f.closeLocation>=.75,
  RSI5:f.rsi5<=80+e,RSI14:f.rsi14<=75+e,RETURN5:f.return5<=15+e,DEVIATION60:f.deviation60<=20+e
+ }:{
+ PRIOR20:f.prior20Return<=20+e,PRIOR60:f.prior60Return<=40+e,BASE5:f.prior5Range<=18+e,DRY_VOLUME:f.vma5<=1.2*f.vma20,DEVIATION20:f.deviation20<=8+e,
+ CROSS20:last.close>f.ma20&&(prev.close<=f.ma20Prev||last.close>priorHigh),MA5_10:f.ma5>=.97*f.ma10,MA20_SLOPE:f.ma20>=.97*f.ma20Ago5,
+ VOLUME_PREV:f.volumeRatioPrev>=1.3,TRADE_VALUE:amount>=100000000,VOLUME5:f.volumeRatio5>=1.2,VOLUME20:f.volumeRatio20>=1.2,VOLUME_CAP:f.volumeRatio20<=5,
+ RED:last.close>last.open&&last.close>prev.close,BODY:f.bodyRatio>=.3,SHADOW:f.upperShadowRatio<=.4,CLOSE_LOCATION:f.closeLocation>=.6,
+ RSI5:f.rsi5<=80+e,RSI14:f.rsi14<=75+e,RETURN5:f.return5<=15+e,DEVIATION60:f.deviation60<=20+e
  }).map(([key,pass])=>({key,pass}));
  const eligible=checks.every(x=>x.pass);
- return {model:MODEL,status:eligible?'PASS':'FAIL',eligible,checks,features:f,quality:eligible?quality(f,b,fundamentals,asOf):null,extra:{breaksPrior5High:last.close>priorHigh,aboveMA60:last.close>f.ma60},reasons:checks.filter(x=>!x.pass).map(x=>x.key)};
+ return {model:MODEL,ruleVersion:strictBaseline?'V9.29-STRICT':RULE_VERSION,breakoutKind:prev.close<=f.ma20Prev&&last.close>f.ma20?'MA20_CROSS':last.close>priorHigh&&last.close>f.ma20?'PRIOR5_HIGH_ABOVE_MA20':null,status:eligible?'PASS':'FAIL',eligible,checks,features:f,quality:eligible?quality(f,b,fundamentals,asOf):null,extra:{breaksPrior5High:last.close>priorHigh,aboveMA60:last.close>f.ma60},reasons:checks.filter(x=>!x.pass).map(x=>x.key)};
 }
 
 /* Only completed daily OHLCV. Aggregated typical-price zones are not transaction-at-price records. */
@@ -112,5 +118,5 @@ function evaluate(report,options={}){
  const last=v.bars.at(-1),levels=result.eligible?{state:'INITIAL',signalDate:v.asOf,breakoutPrice:last.close,breakoutLow:last.low,ma20:result.features.ma20,lifeLine:Math.max(last.low,result.features.ma20),pressure20:Math.max(...v.bars.slice(-21,-1).map(b=>b.high)),followup:'尚待下一完成交易日核對'}:null;
  return {...result,model:MODEL,code,date:v.asOf,historyFingerprint:v.historyFingerprint,levels,riskContext:result.eligible?riskContext(v.bars,v.asOf):null};
 }
-return Object.freeze({MODEL,MIN_BARS,compute,evaluate,rsi,quality,riskContext,BASIC_KEYS:Object.freeze(BASIC_KEYS)});
+return Object.freeze({MODEL,MIN_BARS,RULE_VERSION,compute,evaluate,rsi,quality,riskContext,BASIC_KEYS:Object.freeze(BASIC_KEYS)});
 });

@@ -61,7 +61,7 @@ for(const date of dates){
  const t=sessions.indexOf(date),daily=verifyDatedSnapshot(await read('data/market/archive/'+date+'.json'),date),universe=daily.rows.filter(included),official=new Map(await Promise.all(markets.map(async market=>[market,await dated(market,date)])));
  snapshotEvidence.push({date,contentSha256:daily.contentSha256,generatedAt:daily.generatedAt,universe:universe.length,total:daily.rows.length});
  for(const [market,s] of official)sources.push({market,date,url:s.url,sha256:s.sha256??null,ready:s.ok,error:s.error??null});
- const counts={PASS:0,FAIL:0,INSUFFICIENT_DATA:0,DATA_ERROR:0},reasons={},amountSources={},gates={};
+ let strictSignals=0,balancedTop8Eligible=0;const counts={PASS:0,FAIL:0,INSUFFICIENT_DATA:0,DATA_ERROR:0},reasons={},amountSources={},gates={};
  const missing=reason=>{counts.INSUFFICIENT_DATA++;reasons[reason]=(reasons[reason]||0)+1;};
  for(const q of universe){
  const b=prefix(q,t);if(b.length<C.MIN_BARS){missing('連續有效日K不足');continue;}
@@ -74,7 +74,8 @@ for(const date of dates){
  else if(freshUsable&&(!archivedMatches||q.officialTradeValue==null)){quote=freshQuote;proof={kind:'DATED_OFFICIAL_RECHECK',sha256:fresh.sha256};}
  else{missing(!archivedMatches&&!freshMatches?'指定日OHLCV與封存不符或缺失':(archivedMatches?q:freshQuote)?.officialTradeValue==null?'官方成交金額缺失':'成交值口徑未核對');continue;}
  amountSources[proof.kind]=(amountSources[proof.kind]||0)+1;
- const result=C.compute(b,quote.officialTradeValue,null,date);assert.ok(Object.hasOwn(counts,result.status));counts[result.status]++;
+ const baseline=C.compute(b,quote.officialTradeValue,null,date,{strictBaseline:true});if(baseline.eligible)strictSignals++;
+ const result=C.compute(b,quote.officialTradeValue,null,date);if(result.eligible&&result.quality.score>=60)balancedTop8Eligible++;assert.ok(Object.hasOwn(counts,result.status));counts[result.status]++;
  for(const check of result.checks||[]){const g=gates[check.key]||(gates[check.key]={pass:0,fail:0});g[check.pass?'pass':'fail']++;}
  if(!result.eligible)continue;
  assert.equal(result.checks.length,21);assert.ok(result.checks.every(x=>x.pass));assert.equal(b.at(-1).date,date);
@@ -88,9 +89,9 @@ for(const date of dates){
  signals.push({code:signal.code,name:signal.name,market:q.market,date,score:result.quality.score,grade:result.quality.grade,sourceSha256:proof.sha256,amountSource:proof.kind,features:result.features,observations});
  }
  assert.equal(Object.values(counts).reduce((a,b)=>a+b,0),universe.length);
- perDay.push({date,universe:universe.length,counts,reasons,amountSources,gates});
- console.log('V929_HISTORICAL_SESSION '+JSON.stringify({date,universe:universe.length,counts,reasons,amountSources}));
+ perDay.push({date,universe:universe.length,counts,reasons,amountSources,gates,strictSignals,balancedTop8Eligible});
+ console.log('V929_HISTORICAL_SESSION '+JSON.stringify({date,universe:universe.length,counts,reasons,amountSources,strictSignals,balancedTop8Eligible}));
 }
-const summary={model:C.MODEL,asOf:m.date,dates,universeByDate:snapshotEvidence.map(x=>({date:x.date,count:x.universe})),signalCount:signals.length,perDay,sourceFailures:sources.filter(s=>!s.ready).length,pointInTimeFundamentals:false,historicalUniverseVerified:true,performanceBacktest:false,policy:'依各交易日已封存且校驗指紋的市場快照建立母體及產業分類；僅使用截至當日連續官方日K、相符的官方成交金額；封存與重查金額衝突時不採用。後續收盤變化僅為觀察，不是可成交報酬；未計手續費、滑價、停牌與除權息，尚未完成正式績效回測。'};
+const summary={model:C.MODEL,ruleVersion:C.RULE_VERSION,strictSignalCount:perDay.reduce((n,d)=>n+d.strictSignals,0),asOf:m.date,dates,universeByDate:snapshotEvidence.map(x=>({date:x.date,count:x.universe})),signalCount:signals.length,perDay,sourceFailures:sources.filter(s=>!s.ready).length,pointInTimeFundamentals:false,historicalUniverseVerified:true,performanceBacktest:false,policy:'依各交易日已封存且校驗指紋的市場快照建立母體及產業分類；僅使用截至當日連續官方日K、相符的官方成交金額；封存與重查金額衝突時不採用。後續收盤變化僅為觀察，不是可成交報酬；未計手續費、滑價、停牌與除權息，尚未完成正式績效回測。'};
 const out=process.argv[2]||'/tmp/v929-universe/historical-replay.json';
 await fs.mkdir(path.dirname(out),{recursive:true});await fs.writeFile(out,JSON.stringify({summary,snapshotEvidence,sources,signals},null,2));console.log('V929_HISTORICAL_REPLAY '+JSON.stringify(summary));

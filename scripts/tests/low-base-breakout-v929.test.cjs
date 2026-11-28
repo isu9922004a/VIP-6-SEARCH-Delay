@@ -18,10 +18,11 @@ test('breakout fixture uses preceding volume windows and all gates',()=>{
  assert.equal(x.checks.length,21);
  assert.equal(x.eligible,true,JSON.stringify(x.reasons));
 });
-test('5 hundred million turnover is a strict boundary',()=>{
- const x=C.compute(fixture(),500000000);
+test('one hundred million turnover is inclusive; below fails',()=>{
+ const x=C.compute(fixture(),99999999);
  assert.equal(check(x,'TRADE_VALUE'),false);
  assert.equal(x.eligible,false);
+ assert.equal(check(C.compute(fixture(),100000000),'TRADE_VALUE'),true);
 });
 test('upper shadow and close location reject weak close',()=>{
  const b=fixture();b.at(-1).high=112;
@@ -30,10 +31,11 @@ test('upper shadow and close location reject weak close',()=>{
  assert.equal(check(x,'CLOSE_LOCATION'),false);
  assert.equal(x.eligible,false);
 });
-test('exact twofold prior volume does not qualify',()=>{
- const b=fixture();b.at(-1).volume=3600000;
+test('prior volume below 1.3x fails; exactly 1.3x passes',()=>{
+ const b=fixture();b.at(-1).volume=2339999;
  const x=C.compute(b,620000000);
  assert.equal(check(x,'VOLUME_PREV'),false);
+ b.at(-1).volume=2340000;assert.equal(check(C.compute(b,620000000),'VOLUME_PREV'),true);
 });
 test('zero-range and malformed OHLCV do not qualify',()=>{
  const b=fixture();Object.assign(b.at(-1),{open:104,high:104,low:104,close:104});
@@ -53,7 +55,7 @@ test('fundamental evidence after as-of never adds points',()=>{
 });
 test('fundamentals cannot rescue hard gate failure',()=>{
  const f=Object.fromEntries(C.BASIC_KEYS.map(k=>[k,{verified:true,publishedAt:'2026-11-26',pass:true}]));
- assert.equal(C.compute(fixture(),500000000,f,'2026-11-27').eligible,false);
+ assert.equal(C.compute(fixture(),99999999,f,'2026-11-27').eligible,false);
 });
 const L=require('../../strategy-low-base-lifecycle-v929.js');
 function lifecycleFixture(){
@@ -174,4 +176,12 @@ test('archive retains ranked candidates and refuses fabricated top8',()=>{
  const row=(code,score)=>({code,name:'測試'+code,date,status:'PASS',eligible:true,features:{close:104},quality:{score,scoreUpper:score+5,grade:score>=80?'A':score>=70?'B':score>=60?'C':'D'},checks:Array.from({length:21},()=>({pass:true})),sourceHash:'c'.repeat(64),historyFingerprint:'verified'});
  const a=A929.build(S.finish(plan,[row('1001',81),row('1002',55)],false),{snapshotHash,historyManifestHash});
  assert.deepEqual(a.top8,['1001']);assert.equal(a.complete,true);assert.equal(A929.validate({...a,top8:['1002']},{date,snapshotHash,historyManifestHash}).ok,false);
+});
+
+test('balanced profile retains anti-chasing limits and strict baseline for matched-input comparison',()=>{
+ const b=fixture(),r=C.compute(b,150000000),old=C.compute(b,150000000,null,null,{strictBaseline:true});
+ assert.equal(r.ruleVersion,'V9.29.1-BALANCED');assert.equal(r.eligible,true);
+ assert.equal(old.eligible,false);assert.equal(check(old,'TRADE_VALUE'),false);
+ for(const k of ['PRIOR20','PRIOR60','DEVIATION20','VOLUME_CAP','RSI5','RSI14','RETURN5','DEVIATION60'])assert.equal(check(r,k),check(old,k),k);
+ assert.equal(r.breakoutKind,'MA20_CROSS');
 });

@@ -65,7 +65,7 @@ test('V9.29 strategy five validates archive date, hashes, partial coverage and r
  const marketHash='a'.repeat(64);
  const m={schema:'OFFICIAL_RESEARCH_MANIFEST_V1',verified:true,date,snapshotContentSha256:marketHash,universe:2};
  const manifestText=JSON.stringify(m),historyManifestHash=await sha256(new TextEncoder().encode(manifestText));
- const archive={schema:'LOW_BASE_BREAKOUT_ARCHIVE_V1',model:'LOW_BASE_VOLUME_BREAKOUT_V1',version:'V9.29',date,snapshotHash:marketHash,historyManifestHash,total:2,counts:{PASS:0,FAIL:1,EXCLUDED:0,DATA_ERROR:0,INSUFFICIENT_DATA:1},unavailable:1,marketCoverageReady:true,complete:false,zeroConfirmed:false,candidates:[],top8:[],fundamentalsConnected:false,performanceBacktest:false};
+ const archive={schema:'LOW_BASE_BREAKOUT_ARCHIVE_V1',model:'LOW_BASE_VOLUME_BREAKOUT_V1',version:'V9.29.1-BALANCED',date,snapshotHash:marketHash,historyManifestHash,total:2,counts:{PASS:0,FAIL:1,EXCLUDED:0,DATA_ERROR:0,INSUFFICIENT_DATA:1},unavailable:1,marketCoverageReady:true,complete:false,zeroConfirmed:false,candidates:[],top8:[],fundamentalsConnected:false,performanceBacktest:false};
  const fake=(rank=archive,manifest=m)=>async url=>{
   const p=new URL(url).pathname;
   if(p.endsWith('/research-calendar.json'))return new Response(JSON.stringify({verified:true,sourceSnapshotDate:date,sourceSnapshotHash:marketHash,dates:[date]}));
