@@ -14,13 +14,28 @@ const manifest=JSON.parse(fs.readFileSync(path.join(root,'data/research/manifest
 const audit={date,publicationAllowed:false,snapshotHash:snapshot.contentSha256,requests:[],issues:[],matched:0,matchedCodes:{},archiveStatus:{}};
 const flush=()=>fs.writeFileSync(path.join(out,'live-profile-replay.json'),JSON.stringify(audit,null,2));
 let queue=Promise.resolve();
+// Bounded retries are evidence-only; never conceal the first response or exceed a global budget.
+let retryBudget=12;
+async function fetchProfile(target,record){
+ record.attempts=[];
+ for(let attempt=0;attempt<2;attempt++){
+  let resp;try{resp=await fetch(target,{redirect:'manual',signal:AbortSignal.timeout(120000)});}catch(e){record.attempts.push({attempt:attempt+1,kind:'NETWORK',error:String(e.message).slice(0,180)});if(attempt||retryBudget<=0)throw e;retryBudget--;await new Promise(r=>setTimeout(r,1000));continue;}
+  record.attempts.push({attempt:attempt+1,httpStatus:resp.status,retryAfter:resp.headers.get('retry-after')});
+  if(resp.status===200)return resp;
+  const error=Error('UPSTREAM_HTTP_'+resp.status);error.httpStatus=resp.status;
+  if(attempt||retryBudget<=0||![408,429,500,502,503,504,520,522,524].includes(resp.status))throw error;
+  const retryAfter=resp.headers.get('retry-after');let seconds=retryAfter===null?1:Number(retryAfter);if(!Number.isFinite(seconds)){const t=Date.parse(retryAfter);seconds=Number.isFinite(t)?Math.max(0,(t-Date.now())/1000):1;}if(seconds>5)throw error;
+  retryBudget--;await new Promise(r=>setTimeout(r,Math.max(1000,seconds*1000)));
+ }
+ throw Error('UPSTREAM_RETRY_EXHAUSTED');
+}
 async function liveDeep(u){
  const codes=(u.searchParams.get('codes')||'').split(',').filter(Boolean),profile=(u.searchParams.get('profile')||'FULL').toUpperCase();
  assert.ok(codes.length<=20&&codes.every(c=>/^\d{4,6}$/.test(c)));
  assert.ok(['MOMENTUM_LITE','CORE','FULL','DAILY_ONLY'].includes(profile));
  const target=new URL(endpoint);target.search=u.search;const record={profile,codes,matched:0,rejected:0,upstreamFailed:0};audit.requests.push(record);
  try{
-  const resp=await fetch(target,{redirect:'manual',signal:AbortSignal.timeout(120000)});assert.equal(resp.status,200);
+  const resp=await fetchProfile(target,record);
   const data=await resp.json();assert.equal(data.type,'MOMENTUM_DEEP_SCAN');assert.ok(Array.isArray(data.results));
   const results=codes.map(code=>{
    const r=data.results.find(x=>String(x.code)===code);
@@ -32,10 +47,11 @@ async function liveDeep(u){
    if(crypto.createHash('sha256').update(bytes).digest('hex')!==e.sha256)return reject('ARCHIVE_HASH');
    const archived=JSON.parse(bytes),rows=d.dailySeries||[],last=rows.slice(-20),reference=archived.dailySeries||[];
    if(last.length!==20||norm(last.at(-1)?.date)!==norm(date)||!last.every(b=>{const q=reference.find(x=>norm(x.date)===norm(b.date));return q&&['open','high','low','close'].every(k=>Number.isFinite(Number(b[k]))&&Number(b[k])===Number(q[k]));}))return reject('LAST20_OHLC_MISMATCH');
+   const mismatchedVolume=last.filter(b=>{const q=reference.find(x=>norm(x.date)===norm(b.date));return !q||!Number.isFinite(Number(b.volume))||Number(b.volume)!==Number(q.volume);}).map(b=>({date:b.date,upstream:b.volume,archive:reference.find(x=>norm(x.date)===norm(b.date))?.volume??null}));if(mismatchedVolume.length){(audit.volumeDiscrepancies??=[]).push({code,profile,bars:mismatchedVolume});}
    record.matched++;audit.matched++;(audit.matchedCodes[profile]??=[]).push(code);return r;
   });
   return {...data,results,requested:codes.length,success:results.filter(x=>x.ok).length,failed:results.filter(x=>!x.ok).length};
- }catch(e){record.error=String(e.message).slice(0,180);audit.issues.push({profile,reason:'REQUEST_FAILED',count:codes.length});return {type:'MOMENTUM_DEEP_SCAN',results:codes.map(code=>({code,ok:false,retryable:false,error:'Upstream request failed'}))};}finally{flush();}
+ }catch(e){record.error=String(e.message).slice(0,180);audit.issues.push({profile,reason:'REQUEST_FAILED',count:codes.length,codes,error:record.error,httpStatus:e.httpStatus??null,attempts:record.attempts??[]});return {type:'MOMENTUM_DEEP_SCAN',results:codes.map(code=>({code,ok:false,retryable:false,failureCode:'TRANSIENT_SERVICE_ERROR',error:'Upstream request failed: '+record.error}))};}finally{flush();}
 }
 async function verifyLiveMarket(){assert.equal(manifest.date,date);assert.equal(manifest.snapshotContentSha256,snapshot.contentSha256);const r=await fetch(endpoint+'?market=ALL_STOCKS',{redirect:'manual',signal:AbortSignal.timeout(90000)});assert.equal(r.status,200);const m=await r.json();assert.equal(norm(m.meta?.completedTradeDate),norm(date));assert.equal(m.meta?.snapshotContentSha256,snapshot.contentSha256);assert.equal(m.meta?.marketCoverageReady,true);assert.equal(m.meta?.industryCoverageReady,true);assert.equal(m.meta?.snapshotTimelinessReady,true);audit.marketVerified=true;flush();}
 
@@ -53,5 +69,5 @@ async function verifyLiveMarket(){assert.equal(manifest.date,date);assert.equal(
   const result=await page.evaluate(key=>{const s=key==='momentum'?lastMomentumScanDataV3762:key==='daytrade'?lastDayTradeScanDataV1:key==='strong'?STRONG_STOCK_TEST_API_V47.getLast():key==='tower'?ShitouTowerIntegration.getLast():key==='restaurant'?ShitouStrategy2560UI.getLast():(globalThis.ShitouEnhancedMacdUI?.getLast()??globalThis.ShitouHighVolatilityUI?.getLast()??globalThis.ShitouStructureUI?.getLast());if(!s)return {key,missing:true,text:document.getElementById(key==='tower'?'towerSummary':key==='restaurant'?'restaurantError':key==='structure'?'structureMessage':key==='strong'?'strongStockError':key==='momentum'?'momentumError':'dayTradeError').textContent};const pick=c=>({code:c.code||c.report?.stock||c.report?.code,eligible:c.eligible??null,status:c.status??null,label:c.label??null,score:c.score??null,close:c.close??c.report?.close??null});const groups={};for(const [k,v]of Object.entries(s)){if(Array.isArray(v)&&(v.some(x=>x&&typeof x==='object'&&(x.code||x.report?.stock))||/candidates|Candidates|top8|ranked/i.test(k)))groups[k]=v.map(pick);else if(['A','B'].includes(k)&&v&&typeof v==='object'){groups[k]={};for(const [n,rows]of Object.entries(v))if(Array.isArray(rows))groups[k][n]=rows.filter(x=>x&&typeof x==='object'&&x.code).map(pick);}}if(s.modeResults)for(const [mode,m]of Object.entries(s.modeResults))for(const [k,v]of Object.entries(m))if(Array.isArray(v))groups[mode+'.'+k]=v.map(pick);return {key,date:s.date||s.tradeDate||s.marketBundleMeta?.targetTradeDate||null,total:s.total??s.planned??s.universe??null,done:s.done??s.attempted??s.rows?.length??null,data:s.data??s.dataUnavailable??s.unverified?.length??null,failed:s.failed??null,groups};},key);
   assert.equal(result.missing,undefined,JSON.stringify(result));assert.equal(await page.locator(selector).isVisible(),true);assert.ok((await page.locator(selector).innerText()).trim().length>20);results.push(result);fs.writeFileSync(path.join(out,'selection.json'),JSON.stringify({date,marketSha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'data/market/latest.json'))).digest('hex'),results,errors,deepCalls},null,2));console.log('SCAN_FINISH '+JSON.stringify({key,total:result.total,done:result.done,data:result.data,failed:result.failed,groups:Object.fromEntries(Object.entries(result.groups).map(([k,v])=>[k,Array.isArray(v)?v.length:Object.fromEntries(Object.entries(v).map(([n,r])=>[n,r.length]))]))}));await page.screenshot({path:path.join(out,key+'-phone.png')});
  }
- assert.deepEqual(errors,[]);assert.equal(results.length,requested.length);const reasons={};for(const item of audit.issues){const k=item.profile+':'+item.reason;reasons[k]=(reasons[k]||0)+1;}console.log('V928_LIVE_PROFILE_EVIDENCE '+JSON.stringify({date,matched:audit.matched,uniqueByProfile:Object.fromEntries(Object.entries(audit.matchedCodes).map(([p,c])=>[p,new Set(c).size])),requests:audit.requests.length,issues:audit.issues.length,reasons,publicationAllowed:false}));for(const item of audit.issues.slice(0,40))console.log('V928_DATA_ISSUE '+JSON.stringify(item));assert.ok(audit.matched>0,'No validated live profiles reached scanner');
+ assert.deepEqual(errors,[]);assert.equal(results.length,requested.length);const reasons={};for(const item of audit.issues){const k=item.profile+':'+item.reason;reasons[k]=(reasons[k]||0)+1;}console.log('V928_LIVE_PROFILE_EVIDENCE '+JSON.stringify({date,matched:audit.matched,uniqueByProfile:Object.fromEntries(Object.entries(audit.matchedCodes).map(([p,c])=>[p,new Set(c).size])),requests:audit.requests.length,issues:audit.issues.length,reasons,publicationAllowed:false}));const requestReasons={};for(const item of audit.issues.filter(x=>x.reason==='REQUEST_FAILED')){const k=item.profile+':'+(item.httpStatus??item.error??'UNKNOWN');requestReasons[k]=(requestReasons[k]||0)+1;}console.log('V928_REQUEST_FAILURE_REASONS '+JSON.stringify(requestReasons));console.log('V928_VOLUME_DISCREPANCIES '+JSON.stringify({stocks:audit.volumeDiscrepancies?.length??0,examples:audit.volumeDiscrepancies?.slice(0,10)??[]}));for(const item of audit.issues.slice(0,40))console.log('V928_DATA_ISSUE '+JSON.stringify(item));assert.ok(audit.matched>0,'No validated live profiles reached scanner');
 }finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});
