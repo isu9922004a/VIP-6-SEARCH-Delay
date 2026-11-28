@@ -3,7 +3,7 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [feat/v926-postmarket-trend-lifeline]
+    branches: [feat/v926-postmarket-trend-lifeline, feat/v927-release-candidate]
 permissions:
   contents: read
 concurrency:
@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   release-candidate:
-    if: github.event_name == 'push' || startsWith(github.head_ref, 'feat/v926-')
+    if: github.event_name == 'push' || (startsWith(github.head_ref, 'feat/v926-') || startsWith(github.head_ref, 'feat/v927-'))
     # Playwright 1.56 supports WebKit on Ubuntu 24.04.
     runs-on: ubuntu-24.04
     timeout-minutes: 35
@@ -69,6 +69,11 @@ jobs:
           RESEARCH_ROOT_OVERRIDE=/tmp/verified-site npm run test:worker-browser -- "$RUNNER_TEMP/v926/worker-pages"
       - name: Replay archived official OHLCV
         run: node scripts/backtest-postmarket-v926.cjs "$RUNNER_TEMP/v926/real-archive-study.json"
+      - name: V9.27 exploratory replay audit
+        if: startsWith(github.head_ref, 'feat/v927-') || startsWith(github.ref_name, 'feat/v927-')
+        run: |
+          node --test scripts/tests/v927-release-readiness.test.cjs
+          node scripts/audit-v927-release.cjs "$RUNNER_TEMP/v926/real-archive-study.json" "$RUNNER_TEMP/v926/v927-readiness.json"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -76,7 +81,7 @@ jobs:
           path: ${{ runner.temp }}/v926
 
   formal-strategy-regression:
-    if: github.event_name == 'push' || startsWith(github.head_ref, 'feat/v926-')
+    if: github.event_name == 'push' || (startsWith(github.head_ref, 'feat/v926-') || startsWith(github.head_ref, 'feat/v927-'))
     runs-on: ubuntu-latest
     timeout-minutes: 35
     env:
@@ -122,7 +127,7 @@ jobs:
           path: ${{ runner.temp }}/v926-formal
 
   production-baseline:
-    if: github.event_name == 'pull_request' && startsWith(github.head_ref, 'feat/v926-')
+    if: github.event_name == 'pull_request' && (startsWith(github.head_ref, 'feat/v926-') || startsWith(github.head_ref, 'feat/v927-'))
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:

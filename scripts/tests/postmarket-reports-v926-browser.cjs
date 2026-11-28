@@ -157,6 +157,9 @@ async function run() {
         : route.fulfill({status:404});
     });
     await publicPage.goto(publicBase+'market-outlook.html?postmarket-study=1');
+    if((await publicPage.evaluate(()=>ShitouReleaseV50.displayCode))==='V9.27'){
+      const facts=publicPage.locator('#marketFacts927');await facts.waitFor({state:'visible'});await facts.getByRole('button',{name:'核對最新盤後點位'}).click();await facts.locator('#marketFacts927Result').getByText('行情截至 '+market.closeDate,{exact:true}).waitFor({state:'visible'});assert.match(await facts.innerText(),/新趨勢預測、ABC 歷史關卡與勝率仍在研究驗證，尚未開放/);
+    }
     await publicPage.locator('#futureMarketCleanButton').click();
     const publicModel=publicPage.locator('#simpleMarketReportDialog');
     await publicModel.locator('img').waitFor({state:'visible',timeout:30000});
