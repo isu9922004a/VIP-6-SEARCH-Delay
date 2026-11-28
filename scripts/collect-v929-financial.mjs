@@ -18,4 +18,4 @@ for(const [market,sources] of Object.entries(Q.sources))for(const [kind,source] 
 }
 await fs.writeFile(path.join(dir,'summary.json'),JSON.stringify(results,null,2));
 console.log('V929_FINANCIAL_PROBE '+JSON.stringify(results));
-if(!results.some(x=>x.ready))process.exitCode=1;
+if(!['TWSE','TPEX'].every(m=>results.some(x=>x.market===m&&x.kind==='income'&&x.ready)))process.exitCode=1;

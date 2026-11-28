@@ -22,3 +22,11 @@ test('turnover is nonannualized and needs both balance dates',()=>{
  const x=Q.evaluate([r,prev,bal,old],{code:r.code,market:'TWSE',asOf});assert.equal(x.inventoryTurnoverAbove1.value,1.4);
  assert.equal(Q.evaluate([r,prev,bal],{code:r.code,market:'TWSE',asOf}).inventoryTurnoverAbove1,undefined);
 });
+
+test('actual TPEx Season identity and missing inventory field are explicitly handled',()=>{
+ const tpex=rows.map(r=>({...r,Date:r['出表日期'],Year:r['年度'],Season:r['季別'],SecuritiesCompanyCode:r['公司代號'],'公司代號':undefined,'出表日期':undefined,'年度':undefined,'季別':undefined}));
+ const x=Q.parse(tpex,'TPEX','income',{...receipt,source:Q.sources.TPEX.income});
+ assert.equal(x.records.length,800);assert.equal(x.records[0].quarter,3);
+ const b=rows.map(r=>({...r,'流動資產':'1000'}));
+ assert.throws(()=>Q.parse(b,'TWSE','balance',{...receipt,source:Q.sources.TWSE.balance}),/未提供存貨明細/);
+});

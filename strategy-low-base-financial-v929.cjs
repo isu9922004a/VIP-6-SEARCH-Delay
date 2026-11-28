@@ -8,10 +8,11 @@ const sources=Object.freeze({
 const hex=/^[a-f0-9]{64}$/,iso=/^\d{4}-\d{2}-\d{2}$/;
 function parse(rows,market,kind,receipt){
  if(!sources[market]?.[kind]||receipt?.source!==sources[market][kind]||receipt.status!==200||!hex.test(receipt.sha256||'')||!F.taipei(receipt.retrievedAt)||!Array.isArray(rows)||rows.length<(market==='TWSE'?700:500))throw Error('財報來源收據或筆數不足');
+ if(kind==='balance'&&!rows.some(r=>Object.hasOwn(r,'存貨')))throw Error('官方資產負債摘要未提供存貨明細；不得使用流動資產替代');
  const observedDate=F.taipei(receipt.retrievedAt),records=new Map(),errors=[];
  for(const row of rows){
   // Only use the explicitly documented identity aliases. Inspect actual schemas before expanding.
-  const code=String(row['公司代號']??row.SecuritiesCompanyCode??'').trim(),rawYear=String(row['年度']??row.Year??'').trim(),q=Number(row['季別']??row.Quarter),tableDate=F.roc(row['出表日期']??row.Date),year=/^\d{3}$/.test(rawYear)?Number(rawYear)+1911:/^\d{4}$/.test(rawYear)?Number(rawYear):null;
+  const code=String(row['公司代號']??row.SecuritiesCompanyCode??'').trim(),rawYear=String(row['年度']??row.Year??'').trim(),q=Number(row['季別']??row.Season??row.Quarter),tableDate=F.roc(row['出表日期']??row.Date),year=/^\d{3}$/.test(rawYear)?Number(rawYear)+1911:/^\d{4}$/.test(rawYear)?Number(rawYear):null;
   if(!/^[1-9]\d{3}$/.test(code))continue;
   const periodEnd=year&&[1,2,3,4].includes(q)?new Date(Date.UTC(year,q*3,0)).toISOString().slice(0,10):null;
   if(!periodEnd||periodEnd>=observedDate||!tableDate||tableDate>observedDate){errors.push({code,reason:'財報期間或表列日期無效'});continue;}
