@@ -1,0 +1,7 @@
+ 'use strict';
+const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),cp=require('node:child_process'),assert=require('node:assert/strict');
+const root=path.resolve(__dirname,'..');process.chdir(root);
+for(const page of ['index.html','market-outlook.html']){const html=fs.readFileSync(page,'utf8');let inline=0;for(const match of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)){const src=match[1].match(/src=["']([^"']+)["']/i)?.[1];if(src){if(/^https?:/.test(src))continue;const file=src.split('?')[0].replace(/^\.\//,'');assert.ok(fs.existsSync(file),page+' missing '+file);new vm.Script(fs.readFileSync(file,'utf8'),{filename:file});}else if(match[2].trim()){new vm.Script(match[2],{filename:page+' inline '+(++inline)});}}for(const match of html.matchAll(/<link\b[^>]*href=["']([^"']+\.css)(?:\?[^"']*)?["']/gi))assert.ok(fs.existsSync(match[1]),match[1]);console.log(page+': all scripts and styles present; classic JavaScript parses');}
+assert.equal(require('../version-v50.js').displayCode,'V9.30');
+const files=['enhanced-macd-v923.test.cjs','macd-plus-filter.test.cjs','low-base-breakout-v929.test.cjs','main-force-v97.test.cjs','main-force-v971.test.cjs','strategy-integration.test.cjs','research-provenance.test.mjs','worker-contract-r9.test.cjs','deep-scan-fix.test.cjs','mobile-share-render-region.test.mjs','restaurant-strict.test.cjs','restaurant-transport.test.cjs'];
+const p=cp.spawnSync(process.execPath,['--test',...files.map(x=>'scripts/tests/'+x)],{cwd:root,stdio:'inherit'});process.exitCode=p.status??1;

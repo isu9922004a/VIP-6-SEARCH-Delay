@@ -1,5 +1,7 @@
+(function(){
 'use strict';
 const $=id=>document.getElementById(id),M=ShitouIndependentMarket,F=ShitouForecastPreview,n=v=>String(+v.toFixed(2)),records=new Map(),models=new Map();
+if(!$('market-type')||!$('market-refresh'))return;
 let state=null,reportSnapshot=null,backtest=null;
 function element(tag,text,cls){const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;}
 function draw(a,forecast){const bars=a.input.bars,visible=bars.slice(-(ShitouElliottVisual.enabled()?120:40)),future=forecast?.daily||[],W=680,H=320,L=74,R=20,T=ShitouElliottVisual.enabled()?55:25,B=ShitouElliottVisual.enabled()?80:45,total=visible.length+Math.max(5,future.length),values=[...(ShitouElliottVisual.enabled()?visible.flatMap(b=>[b.low,b.high]):visible.map(b=>b.close)),...future.flatMap(b=>[b.low,b.high])],lo=Math.min(...values)*.995,hi=Math.max(...values)*1.005,x=i=>L+i*(W-L-R)/(total-1),y=v=>T+(hi-v)/(hi-lo)*(H-T-B),ma=k=>visible.map((_,i)=>{const end=bars.length-visible.length+i+1;return end>=k?bars.slice(end-k,end).reduce((s,b)=>s+b.close,0)/k:null;}),path=(values,start=0)=>{let pen=false;return values.map((v,i)=>{if(!Number.isFinite(v)){pen=false;return '';}const part=(pen?'L':'M')+x(i+start)+','+y(v);pen=true;return part;}).join(' ');};
@@ -51,4 +53,5 @@ function refreshVisible(){if(document.visibilityState!=='hidden'&&Date.now()-las
 $('market-refresh').onclick=load;window.addEventListener('focus',refreshVisible);document.addEventListener('visibilitychange',refreshVisible);
 setInterval(()=>{if(document.visibilityState!=='hidden')load();},300000);
 window.addEventListener('shitou-elliott-change',render);$('market-type').onchange=render;window.independentMarketState=()=>state;window.independentMarketReportSnapshot=()=>reportSnapshot;load();
+})();
 

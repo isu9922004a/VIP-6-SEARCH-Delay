@@ -1,0 +1,76 @@
+/* Theme isolation: the original Kachi layout is preserved when data-site-theme="original". */
+#marioThemeToggle{position:fixed;top:17px;right:20px;z-index:1300;display:grid!important;place-items:center;width:49px;height:46px;min-height:44px;padding:5px;border:3px solid #150c0b;border-radius:4px;background:#ffe13b;box-shadow:3px 3px 0 #150c0b;cursor:pointer;line-height:1}
+#marioThemeToggle:hover{transform:translateY(-2px)}#marioThemeToggle:focus-visible{outline:3px solid #fff;outline-offset:4px}
+.header-right-tools{padding-right:58px!important}.mario-world-decoration{display:none}
+html[data-site-theme="mario"] body.ui-polish-v1{--bg:#790f1d;--card:#fff8e8;--text:#21100b;--ink:#21100b;--muted:#695142;--line:#d5a035;--up:#dc252c;--down:#228b3a;--font-sans:"Microsoft JhengHei","Noto Sans TC",sans-serif;background:#790f1d url('./assets/mario-world-v930.svg') repeat!important;background-size:560px 420px!important;color:#fff7df!important}
+html[data-site-theme="mario"]{background:#790f1d!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .header{background:#e92022!important;border-bottom:6px solid #4a0710!important;box-shadow:0 5px 0 #170908!important;padding:0!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .header .container{padding-top:20px!important;padding-bottom:20px!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .header h1{font-size:clamp(24px,3vw,38px)!important;line-height:1.2!important;font-weight:950!important;letter-spacing:-1px!important;text-shadow:3px 3px 0 #190c07!important;white-space:normal!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .ui-brand-name{color:#ffe03b!important;-webkit-text-stroke:1px #170c09}
+html[data-site-theme="mario"] body.ui-polish-v1 .ui-brand-accent{color:#fff8df!important;-webkit-text-stroke:1px #170c09}
+html[data-site-theme="mario"] body.ui-polish-v1 .header-origin-subtitle{display:none!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .ui-release-short{background:#ffe03b!important;color:#1a110b!important;border:3px solid #21100b!important;border-radius:2px!important;box-shadow:3px 3px 0 #21100b!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .kachi-viewport-toggle{background:#ae121d!important;color:#fff8e1!important;border:2px solid #240c09!important;border-radius:2px!important;box-shadow:2px 2px 0 #240c09!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .up-nav{background:#c21b20!important;border-bottom:5px solid #240d0c!important;backdrop-filter:none!important;box-shadow:none!important;padding:14px 0!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .up-nav-links{gap:11px!important;justify-content:center!important;flex-wrap:wrap!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .up-nav a{position:relative;background:linear-gradient(#49cd58 0 9%,#279b3c 9% 88%,#177e2c 88%)!important;color:white!important;border:4px solid #1d100c!important;border-radius:2px!important;box-shadow:4px 4px 0 #1d100c!important;padding:12px 15px!important;min-height:46px;font-size:17px!important;font-weight:950!important;text-shadow:2px 2px 0 #16100c!important;line-height:1.25!important;white-space:normal!important;text-align:center}
+html[data-site-theme="mario"] body.ui-polish-v1 .up-nav a:is(.is-active,[aria-current="location"]){background:linear-gradient(#fff8a1 0 9%,#ffe13b 9% 85%,#e8a31b 85%)!important;color:#211008!important;text-shadow:1px 1px 0 #fff!important;transform:translateY(-2px)}
+html[data-site-theme="mario"] body.ui-polish-v1 main.container{position:relative;z-index:1;padding-top:30px!important}
+html[data-site-theme="mario"] body.ui-polish-v1 :is(.panel,.momentum-hero,.daytrade-hero,.strong-stock-shortcut,.macdplus-shortcut,.momentum-card,.daytrade-card,.card,.research-card,.research-inline){background:#fff9eb!important;color:#24150f!important;border:4px solid #1f100c!important;border-radius:2px!important;box-shadow:5px 5px 0 #1b0c09,0 0 0 4px #ffd83d!important}
+html[data-site-theme="mario"] body.ui-polish-v1 :is(.section-title,.momentum-card strong,.research-inline h2,.panel h2,.panel h3){color:#23140d!important;font-weight:950!important}
+html[data-site-theme="mario"] body.ui-polish-v1 :is(.section-subtitle,.meta,.hint,.rule,.macdplus-disclaimer,.macdplus-sub,.momentum-metric .k,.ui-help-content){color:#6b4736!important}
+html[data-site-theme="mario"] body.ui-polish-v1 :is(button.btn,.copy-btn,.mini-btn,.market-outlook-entry,#marketAnalyzeButton){background:linear-gradient(#fff08b,#ffe13b 48%,#f7b921)!important;border:3px solid #24120c!important;border-radius:2px!important;color:#24120c!important;font-weight:900!important;box-shadow:3px 3px 0 #24120c!important}
+html[data-site-theme="mario"] body.ui-polish-v1 :is(button.btn,.copy-btn,.mini-btn):disabled{opacity:.5!important;box-shadow:none!important}
+html[data-site-theme="mario"] body.ui-polish-v1 :is(.momentum-stop-btn,.error){color:#9d1020!important}
+html[data-site-theme="mario"] body.ui-polish-v1 :is(input,select,textarea){background:#fffef7!important;color:#26150d!important;border:3px solid #45251b!important;border-radius:0!important}
+html[data-site-theme="mario"] body.ui-polish-v1 :is(.momentum-summary-card,.momentum-metric,.rule,.strong-stock-reminder){background:#fff1b3!important;color:#30200e!important;border-color:#c99a20!important;border-radius:0!important}
+html[data-site-theme="mario"] body.ui-polish-v1 :is(.strong-stock-progress,.momentum-progress){border:2px solid #24120c!important;border-radius:0!important;background:#eadab6!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .strong-stock-progress>div{background:repeating-linear-gradient(90deg,#2dbe4b 0 18px,#24983d 18px 22px)!important}
+html[data-site-theme="mario"] body.ui-polish-v1 #uxCommandBar{background:none!important;border:0!important;box-shadow:none!important;padding:15px 0 20px!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .kachi-section-bar{color:#20120c!important;background:linear-gradient(#fff698,#ffe13b)!important;border:4px solid #21100b!important;box-shadow:4px 4px 0 #21100b!important;padding:10px 18px!important;border-radius:0!important;width:max-content;max-width:100%;margin:0 0 17px 16px!important;font-size:24px!important;font-weight:950!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .kachi-section-bar i{display:none!important}
+html[data-site-theme="mario"] body.ui-polish-v1 #uxRegimeBar{display:grid!important;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)!important;grid-template-rows:auto auto auto!important;gap:0 24px!important;padding:0!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .ux-kpi-card{min-width:0;background:#fffdf3!important;color:#20130e!important;border:4px solid #23120d!important;border-radius:0!important;box-shadow:4px 4px 0 #160d0a!important;padding:16px 24px!important;min-height:90px!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .ux-kpi-regime{grid-area:1/1;border-bottom:0!important;border-top:6px solid #ffe13b!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .ux-kpi-index{grid-area:2/1;border-top:0!important;border-bottom:0!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .ux-kpi-breadth{grid-area:3/1;border-top:0!important;border-bottom:6px solid #ffe13b!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .ux-kpi-label{color:#281910!important;font-size:18px!important;font-weight:900!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .ux-kpi-value{color:#160f0b!important;font-size:clamp(26px,3vw,39px)!important;font-weight:950!important;letter-spacing:0!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .ux-kpi-sub{color:#634734!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .ux-kpi-guide{grid-area:1/2/4/3!important;background:#bd1720!important;border:5px solid #ffe13b!important;outline:4px solid #20120c;position:relative;padding:26px!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .ux-kpi-guide .ux-kpi-label{display:inline-block;background:#ffe13b!important;color:#20120c!important;padding:8px 12px!important;border:3px solid #20120c!important;font-size:23px!important;box-shadow:3px 3px 0 #20120c}
+html[data-site-theme="mario"] body.ui-polish-v1 .ux-kpi-guide-text{color:#fff9e7!important;font-size:clamp(18px,2vw,25px)!important;line-height:1.9!important;font-weight:850!important;padding-right:20px!important;text-shadow:1px 2px #580c15}
+html[data-site-theme="mario"] body.ui-polish-v1 .ux-breadth-track{height:24px!important;border:3px solid #22120c!important;border-radius:0!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .ux-breadth-up{background:#e92429!important}html[data-site-theme="mario"] body.ui-polish-v1 .ux-breadth-down{background:#29a346!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .ux-breadth-meta{color:#3e271a!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .footer{position:relative;z-index:1;color:#fff2cf!important;background:#4c0a13!important;border-top:5px solid #24120c!important;margin-top:32px!important;padding:30px 20px 60px!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .footer strong{color:#ffe13b!important;font-size:22px!important;font-weight:950!important}
+html[data-site-theme="mario"] .mario-world-decoration{display:block;position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.mario-ground{position:absolute;bottom:0;height:48px;width:100%;background:repeating-linear-gradient(0deg,transparent 0 21px,#29140d 21px 24px),repeating-linear-gradient(90deg,#af5e29 0 29px,#29140d 29px 32px);border-top:5px solid #30150d;box-shadow:inset 0 5px 0 #e89c48}
+.mario-pipe{position:absolute;bottom:48px;width:50px;height:90px;background:linear-gradient(90deg,#2ab541 0 15%,#57de53 15% 32%,#269936 32% 80%,#147126 80%);border:4px solid #19100a}.mario-pipe:before{content:'';position:absolute;top:-10px;left:-9px;right:-9px;height:24px;background:linear-gradient(90deg,#49d454,#239637);border:4px solid #19100a;box-shadow:inset 0 4px #81ed71}.mario-pipe.left{left:25px}.mario-pipe.right{right:25px;height:70px}
+html[data-site-theme="mario"] body.ui-polish-v1 #mainForceLifelinePanel{background:#fff8e8!important;color:#27170e!important}
+html[data-site-theme="mario"] body.ui-polish-v1 #mainForceLifelinePanel :is(p,h2,h3,.cost971-date,.cost971-source,.cost971-score){color:#493021!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .cost97-card{background:#fff2c7!important;color:#21130d!important;border:3px solid #382015!important;border-radius:0!important}
+html[data-site-theme="mario"] body.ui-polish-v1 :is(.cost97-price,.cost97-line){color:#23160d!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .mobile-bottom-dock{background:#ce1c23!important;border-top:4px solid #24120c!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .mobile-bottom-dock button{color:#fff5d9!important;border-radius:0!important}html[data-site-theme="mario"] body.ui-polish-v1 .mobile-bottom-dock button.active{color:#ffe13b!important;background:#70101c!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .mobile-strategy-sheet{background:#fff5db!important;color:#20120d!important;border:4px solid #25130b!important;border-radius:0!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .mobile-strategy-sheet button{background:#ffe13b!important;color:#20120c!important;border:3px solid #27160d!important;border-radius:0!important}
+@media(max-width:820px){#marioThemeToggle{top:12px;right:11px;width:44px;height:44px}.header-right-tools{padding-right:47px!important}html[data-site-theme="mario"] body.ui-polish-v1 .header h1{font-size:23px!important;gap:5px!important}html[data-site-theme="mario"] body.ui-polish-v1 .header .container{padding:18px 14px!important}html[data-site-theme="mario"] body.ui-polish-v1 #uxRegimeBar{grid-template-columns:minmax(0,1fr)!important;gap:0!important}html[data-site-theme="mario"] body.ui-polish-v1 .ux-kpi-guide{grid-area:4/1!important;margin-top:18px!important;padding:18px!important}html[data-site-theme="mario"] body.ui-polish-v1 .ux-kpi-card{padding:13px 16px!important}html[data-site-theme="mario"] body.ui-polish-v1 .ux-kpi-guide-text{font-size:18px!important;line-height:1.75!important}html[data-site-theme="mario"] body.ui-polish-v1 .up-nav a{font-size:14px!important;padding:10px!important}html[data-site-theme="mario"] body.ui-polish-v1 main.container{padding-top:18px!important}.mario-pipe{opacity:.35}.mario-pipe.left{left:5px}.mario-pipe.right{right:5px}}
+@media(prefers-reduced-motion:reduce){#marioThemeToggle:hover{transform:none}}
+
+html[data-site-theme="mario"] body.ui-polish-v1 :is(.header h1,.ui-brand-name,.ui-brand-accent,.ui-release-short){font-family:"Microsoft JhengHei","Noto Sans TC",sans-serif!important;letter-spacing:0!important;font-weight:950!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .ui-brand-accent{font-size:.86em!important;-webkit-text-stroke:0!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .kachi-section-bar span{color:#21130c!important;font-size:23px!important;font-weight:950!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .up-nav-links{display:flex!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .up-nav a{flex:1 1 auto!important;font-size:15px!important;padding:12px!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .ux-kpi-guide{display:block!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .ux-kpi-guide-text{margin-top:28px!important}
+html[data-site-theme="mario"] body.ui-polish-v1 .ux-breadth-meta span{color:#633e26!important}
+html[data-site-theme="mario"] body.ui-polish-v1 #marketOutlookNative{background:#fff8e8!important;color:#24150e!important;border:4px solid #21120d!important;border-radius:0!important;box-shadow:4px 4px 0 #1e100b!important}
+html[data-site-theme="mario"] body.ui-polish-v1 #marketOutlookNative :is(h1,h2,h3,p,.mo-eyebrow,.mo-subtitle,.mo-text,.mo-status){color:#352014!important;font-family:"Microsoft JhengHei",sans-serif!important}
+html[data-site-theme="mario"] body.ui-polish-v1 #marketOutlookNative :is(.card,.mo-card,.mo-panel,.mo-chart-card){background:#fff0bc!important;color:#2a190e!important;border:3px solid #573421!important;border-radius:0!important}
+html[data-site-theme="mario"] body.ui-polish-v1 #marketOutlookNative button{background:#ffe13b!important;color:#25150c!important;border:3px solid #25150c!important;border-radius:0!important;font-weight:900!important}
+
+html[data-site-theme="mario"] body.mario-secondary header.top{background:#e72025;border-bottom:5px solid #20120b;padding-right:80px;color:#fff8dd}html[data-site-theme="mario"] body.mario-secondary header.top :is(.brand,a,.tag){color:#fff6d5}html[data-site-theme="mario"] body.mario-secondary .intro{color:#fff7db}html[data-site-theme="mario"] body.mario-secondary .panel{background:#fff8e8;color:#29190f;border-radius:0;border:4px solid #21130b}html[data-site-theme="mario"] body.mario-secondary .panel :is(h1,h2,h3,p){color:#29190f}html[data-site-theme="mario"] body.mario-secondary .controls button{background:#ffe13b;color:#27170e;border:3px solid #24150d;border-radius:0}

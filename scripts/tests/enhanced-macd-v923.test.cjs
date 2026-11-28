@@ -127,13 +127,13 @@ test('35/25/25/15 weights, scale invariance, and deterministic Top 8', () => {
   assert.equal(evaluate(risky).qualifiesB, true);
 });
 
-test('entry point loads only the current sixth strategy', () => {
+test('integration loads the exact new MACD core and retains the original application version', () => {
   const html = fs.readFileSync('index.html', 'utf8');
-  assert.doesNotMatch(html, /<script src="[^"]*(?:structure-reversal|high-volatility)/);
-  assert.match(html, /enhanced-macd-v923\.js\?v=V9\.23/);
-  const release = require('../../version-v50.js');
-  assert.equal(C.VERSION, release.sixthStrategyDataVersion);
-  assert.equal(release.displayCode, 'V9.29');
+  assert.match(html, /enhanced-macd-v923\.js\?v=INTEGRATED1/);
+  assert.match(html, /macd-plus-filter-v1\.js\?v=INTEGRATED1/);
+  assert.equal(C.VERSION, 'V9.23');
+  assert.match(html, /main-force-lifeline-ui-v97\.js/);
+  assert.match(html, /strategy-low-base-ui-v929\.js/);
 });
 
 test('verified older no-close days extend warm-up and never replace the prior exchange session', () => {

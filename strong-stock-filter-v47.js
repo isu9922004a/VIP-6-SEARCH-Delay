@@ -14,7 +14,11 @@ const FALLBACK_TWSE_CLOSED_V49=Object.freeze({
   '2026-02-16':'農曆春節','2026-02-17':'農曆春節','2026-02-18':'農曆春節','2026-02-19':'農曆春節','2026-02-20':'農曆春節',
   '2026-02-27':'和平紀念日補假','2026-04-03':'兒童節補假','2026-04-06':'清明節補假','2026-05-01':'勞動節',
   '2026-06-19':'端午節','2026-09-25':'中秋節','2026-09-28':'教師節','2026-10-09':'國慶日補假',
-  '2026-10-26':'臺灣光復暨金門古寧頭大捷紀念日補假','2026-12-25':'行憲紀念日'
+  '2026-10-26':'臺灣光復暨金門古寧頭大捷紀念日補假','2026-12-25':'行憲紀念日',
+  '2027-01-01':'中華民國開國紀念日','2027-02-04':'春節休市','2027-02-05':'農曆除夕',
+  '2027-02-08':'農曆春節','2027-02-09':'農曆春節','2027-02-10':'農曆春節',
+  '2027-03-01':'和平紀念日補假','2027-04-05':'兒童節及清明節','2027-05-01':'勞動節',
+  '2027-06-09':'端午節','2027-09-15':'中秋節','2027-10-11':'國慶日補假','2027-12-25':'行憲紀念日'
 });
 function marketClosedStateV49(meta,today){
   const weekday=new Date(today+'T00:00:00Z').getUTCDay();
@@ -46,7 +50,7 @@ function validateMarket(meta,marketRowCount,now=new Date()){
   if(target!==today&&minutes>=17*60+35&&!closed.closed){const weekday=new Date(today+'T00:00:00Z').getUTCDay();if(weekday>=1&&weekday<=5)return {ok:false,reason:`目前仍是 ${target} 舊市場快照，尚未取得 ${today} 最新盤後資料`};}
   return {ok:true,date:target,marketClosed:closed.closed,marketClosureName:closed.name};
 }
-function officialIndustry(record){const code=String(record?.industryCode??'').trim(),name=String(record?.industryName||record?.industry||'').trim();if(!code&&!name)return {key:'UNKNOWN',reason:'官方產業別缺失'};if(code==='17'||/金融|銀行|保險|證券|金控/.test(name))return {key:'FINANCIAL'};if(code==='22'||/生技|醫療|製藥|藥品|生物科技|醫材/.test(name))return {key:'BIOTECH'};return {key:'OK'};}
+function officialIndustry(record,options){const prefs=options||globalThis.ShitouIndustryFilterPrefs||null;const code=String(record?.industryCode??'').trim(),name=String(record?.industryName||record?.industry||'').trim();if(!code&&!name)return {key:'UNKNOWN',reason:'官方產業別缺失'};if(code==='17'||/金融|銀行|保險|證券|金控/.test(name))return prefs?.includeFinancial?{key:'OK',industryOverride:'FINANCIAL'}:{key:'FINANCIAL'};if(code==='22'||/生技|醫療|製藥|藥品|生物科技|醫材/.test(name))return prefs?.includeBiotech?{key:'OK',industryOverride:'BIOTECH'}:{key:'BIOTECH'};return {key:'OK'};}
 function normalize(report,snapshotDate,quote){if(report?.completed===false||report?.isComplete===false)return invalid('盤後尚未完成，不判讀選股訊號');const source=report?.dailySeries;if(!Array.isArray(source)||source.length<RULE.minBars)return invalid(`完整已收盤日K少於${RULE.minBars}根`);const rows=[];let previous='';for(const item of source){const d=date(item?.date),open=number(item?.open),high=number(item?.high),low=number(item?.low),close=number(item?.close),volume=number(item?.volume);if(item.completed===false||item.isComplete===false||!d||d<=previous||!(open>0&&high>0&&low>0&&close>0&&volume!==null&&volume>=0)||high<Math.max(open,low,close)||low>Math.min(open,high,close))return invalid('日K日期、順序或OHLCV資料不完整／不合理');rows.push({date:d,open,high,low,close,volume});previous=d;}
  const final=rows.at(-1),reportDate=date(report?.closeDate),marketDate=date(snapshotDate);if(!reportDate||!marketDate||final.date!==reportDate||reportDate!==marketDate)return invalid(`市場／個股／日K資料日期不一致：${marketDate||'-'}／${reportDate||'-'}／${final.date}`);const displayed=number(report?.close),market=number(quote?.close),quoteDate=date(quote?.quoteDate);if(!(displayed>0&&market>0)||quoteDate!==marketDate||Math.abs(displayed-final.close)>Math.max(.02,final.close*.0001)||Math.abs(market-final.close)>Math.max(.02,final.close*.0001))return invalid('市場報價、個股收盤與日K收盤不同價／不同日');const qv=number(quote?.volume);if(!(qv>0)||!(final.volume>0))return invalid(`同日成交量缺失：${marketDate}`);
  const sourceVolume=final.volume,ratio=qv/sourceVolume,diffPct=Math.abs(qv-sourceVolume)/qv*100;

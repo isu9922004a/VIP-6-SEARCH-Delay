@@ -1,11 +1,11 @@
-#towerGoldPanel[data-cost97]{scroll-margin-top:20px;padding:clamp(16px,3vw,28px);padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));color:#EDF6FF;background:#0B2032!important;border:1px solid #345267;border-radius:18px}
-#towerGoldPanel[data-cost97] p{overflow-wrap:anywhere;line-height:1.6}
-#towerGoldPanel[data-cost97] h2{font-size:clamp(1.55rem,4vw,2rem);margin-bottom:8px;color:#EDF6FF}
+#mainForceLifelinePanel[data-cost97]{scroll-margin-top:20px;padding:clamp(16px,3vw,28px);padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));color:#EDF6FF;background:#0B2032!important;border:1px solid #345267;border-radius:18px}
+#mainForceLifelinePanel[data-cost97] p{overflow-wrap:anywhere;line-height:1.6}
+#mainForceLifelinePanel[data-cost97] h2{font-size:clamp(1.55rem,4vw,2rem);margin-bottom:8px;color:#EDF6FF}
 .cost971-subtitle,.cost971-date,.cost971-source,.cost971-score{color:#B8CBE2}
 .cost971-date{font-weight:650;margin:20px 0 6px}
 .cost97-actions{display:flex;flex-wrap:wrap;gap:12px;margin:16px 0}
 .cost97-actions button,.cost97-card button,#cost97Research button,.cost971-ranking-head button{min-height:48px;padding:12px 18px;white-space:normal;border-radius:12px}
-#towerGoldPanel [hidden]{display:none!important}
+#mainForceLifelinePanel [hidden]{display:none!important}
 .cost971-primary{background:#FFD76A!important;color:#0B2032!important;border-color:#FFD76A!important;font-weight:750}
 .cost971-overview,#cost971Progress:has(>.cost971-stat){display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0}
 .cost971-stat{display:flex;flex-direction:column;gap:4px;min-width:0;padding:14px 12px;border:1px solid #345267;border-radius:12px;background:#102E43}
@@ -27,16 +27,16 @@
 
 /* V9.16 cost97 detail contrast repair: scoped to the six main-force result accordions.
    Never change global filter-result styling or stock-screening behavior. */
-#towerGoldPanel[data-cost97] #cost97Results > details{
+#mainForceLifelinePanel[data-cost97] #cost97Results > details{
   background:#102E43;
   color:#EDF6FF;
   border:1px solid #345267;
   border-radius:12px;
   padding:4px 14px;
 }
-#towerGoldPanel[data-cost97] #cost97Results > details > summary{
+#mainForceLifelinePanel[data-cost97] #cost97Results > details > summary{
   color:#EDF6FF!important;
 }
-#towerGoldPanel[data-cost97] #cost97Results > details[open]{
+#mainForceLifelinePanel[data-cost97] #cost97Results > details[open]{
   background:#102E43;
 }

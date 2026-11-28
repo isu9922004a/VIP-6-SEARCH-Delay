@@ -1,0 +1,2153 @@
+/* ============================================================================
+ * 孫悟空STOCK 9.1LX — KACHI × GOLD (勝色金箔風格介面)
+ * 16:9 寬螢幕桌面版 ＋ 自動偵測行動裝置專用版
+ * Palette:
+ *   勝色主底色 (Kachi Indigo ~75%): #12162E / #181D3B / #0D1024
+ *   標準和金色 (Wa-Gold ~10%):      #C9A23F / #E8CC7D / #F6E2A1 / #9B7826
+ *   和紙米白字色 (Washi Ink ~15%):  #F4F1EA / #B6B1A6 (WCAG AAA)
+ *   台股語意色 (Harmonized TW):     緋紅 #E86A7A（買/漲）｜翠玉綠 #45C496（賣/跌）
+ * ============================================================================ */
+
+:root,
+body,
+body.ui-polish-v1,
+body.dark-mode,
+html body.ui-polish-v1.dark-mode {
+  --kachi-bg: #12162e;
+  --kachi-deep: #0c0f22;
+  --kachi-surface: #181d3b;
+  --kachi-surface-2: #1f2549;
+  --kachi-surface-3: #262d57;
+  --gold-main: #c9a23f;
+  --gold-light: #e8cc7d;
+  --gold-bright: #f6e2a1;
+  --gold-deep: #9b7826;
+  --gold-border: rgba(201, 162, 63, 0.28);
+  --gold-border-strong: rgba(232, 204, 125, 0.56);
+  --gold-glow: rgba(201, 162, 63, 0.22);
+  --washi-ink: #f4f1ea;
+  --washi-muted: #b6b1a6;
+  --washi-dim: #8a8694;
+  --tw-bull: #e86a7a;
+  --tw-bull-bg: rgba(232, 106, 122, 0.14);
+  --tw-bear: #45c496;
+  --tw-bear-bg: rgba(69, 196, 150, 0.14);
+  --font-display: "Noto Serif TC", "Songti TC", "PMingLiU", "Source Han Serif TC", Georgia, serif;
+  --font-sans: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, -apple-system, sans-serif;
+
+  /* Map legacy tokens cleanly to Kachi × Gold */
+  --ux-bg: var(--kachi-bg);
+  --ux-bg-elevated: var(--kachi-surface);
+  --ux-surface: var(--kachi-surface);
+  --ux-surface-2: var(--kachi-deep);
+  --ux-surface-3: var(--kachi-surface-2);
+  --ux-border: var(--gold-border);
+  --ux-border-strong: var(--gold-border-strong);
+  --ux-text: var(--washi-ink);
+  --ux-muted: var(--washi-muted);
+  --ux-accent: var(--gold-light);
+  --ux-accent-2: var(--gold-main);
+  --ux-accent-soft: rgba(201, 162, 63, 0.14);
+  --ux-bull: var(--tw-bull);
+  --ux-bull-bg: var(--tw-bull-bg);
+  --ux-bear: var(--tw-bear);
+  --ux-bear-bg: var(--tw-bear-bg);
+  --ux-warn: var(--gold-light);
+  --ux-warn-bg: rgba(201, 162, 63, 0.12);
+  --ux-radius: 14px;
+  --ux-shadow: 0 14px 36px rgba(6, 8, 22, 0.54);
+
+  --primary: #c9a23f;
+  --on-primary: #12162e;
+  --focus: #e8cc7d;
+  --gray-0: #181d3b;
+  --gray-50: #12162e;
+  --gray-100: #1f2549;
+  --gray-300: rgba(201, 162, 63, 0.24);
+  --gray-600: #b6b1a6;
+  --gray-900: #f4f1ea;
+  --success-fg: #6ee7b7;
+  --success-bg: rgba(69, 196, 150, 0.14);
+  --success-border: rgba(69, 196, 150, 0.38);
+  --warning-fg: #f6e2a1;
+  --warning-bg: rgba(201, 162, 63, 0.12);
+  --warning-border: rgba(201, 162, 63, 0.42);
+  --danger-fg: #f59aa6;
+  --danger-bg: rgba(232, 106, 122, 0.14);
+  --danger-border: rgba(232, 106, 122, 0.42);
+  --info-fg: #e8cc7d;
+  --info-bg: rgba(201, 162, 63, 0.12);
+  --info-border: rgba(201, 162, 63, 0.36);
+  --up: #e86a7a;
+  --down: #45c496;
+  --up-surface: #181d3b;
+  --up-soft: #12162e;
+  --up-border: rgba(201, 162, 63, 0.24);
+  --up-ink: #f4f1ea;
+  --up-muted: #b6b1a6;
+  --up-accent: #e8cc7d;
+  --card: #181d3b;
+  --bg: #12162e;
+  --text: #f4f1ea;
+  --muted: #b6b1a6;
+  --line: rgba(201, 162, 63, 0.24);
+  --shadow-card: 0 12px 30px rgba(6, 8, 22, 0.46);
+  --shadow-layer: 0 24px 56px rgba(4, 6, 18, 0.7);
+}
+
+/* ============================================================================
+ * Base Kachi Indigo Canvas + Subtle Japanese Gold Lattice Background
+ * ============================================================================ */
+html,
+html body.ui-polish-v1 {
+  font-family: var(--font-sans) !important;
+  background-color: #12162e !important;
+  background-image:
+    radial-gradient(ellipse 68% 36% at 50% -8%, rgba(201, 162, 63, 0.15), transparent 66%),
+    radial-gradient(ellipse 40% 28% at 12% 10%, rgba(201, 162, 63, 0.08), transparent 62%),
+    radial-gradient(ellipse 40% 28% at 88% 10%, rgba(201, 162, 63, 0.08), transparent 62%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23C9A23F' stroke-opacity='0.055' stroke-width='0.8'%3E%3Cpath d='M32 0L64 32L32 64L0 32Z'/%3E%3Cpath d='M32 10L54 32L32 54L10 32Z'/%3E%3C/g%3E%3C/svg%3E"),
+    linear-gradient(180deg, #141936 0%, #12162e 45%, #0e1226 100%) !important;
+  background-attachment: fixed !important;
+  color: var(--washi-ink) !important;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ============================================================================
+ * 16:9 Widescreen Desktop Shell (Unified Width across Header, Nav, Main, Footer)
+ * ============================================================================ */
+html body.ui-polish-v1 .header .container,
+html body.workspace-v831 .header .container,
+html body.ui-polish-v1 .up-nav-links,
+html body.ui-polish-v1 main.container,
+html body.ui-polish-v1 .footer {
+  width: min(94vw, 1660px) !important;
+  max-width: 1660px !important;
+  margin-inline: auto !important;
+  box-sizing: border-box !important;
+}
+
+/* ============================================================================
+ * Top Header — KACHI × GOLD Executive Crest Bar
+ * ============================================================================ */
+html body.ui-polish-v1 .header {
+  background: rgba(15, 19, 41, 0.94) !important;
+  border-bottom: 1px solid rgba(201, 162, 63, 0.36) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 6px 26px rgba(5, 7, 19, 0.56);
+}
+html body.ui-polish-v1 .header .container,
+html body.workspace-v831 .header .container {
+  padding: 12px 6px !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+html body.ui-polish-v1 .header-brand-stack {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+html body.ui-polish-v1 .header h1,
+html body.workspace-v831 .header h1 {
+  margin: 0 !important;
+  flex: 1 1 auto;
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  font-family: var(--font-display) !important;
+  font-size: clamp(20px, 2vw, 25px) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  color: var(--washi-ink) !important;
+}
+html body.ui-polish-v1 .ui-brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  background: linear-gradient(145deg, rgba(201, 162, 63, 0.22), rgba(18, 22, 46, 0.92));
+  border: 1px solid rgba(232, 204, 125, 0.65);
+  box-shadow: inset 0 0 0 2px rgba(18, 22, 46, 0.8), 0 0 16px rgba(201, 162, 63, 0.26);
+  font-size: 17px !important;
+  flex-shrink: 0;
+}
+html body.ui-polish-v1 .ui-brand-name {
+  color: var(--washi-ink);
+}
+html body.ui-polish-v1 .ui-brand-accent {
+  color: var(--gold-light);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+html body.ui-polish-v1 .header p.header-origin-subtitle {
+  display: block !important;
+  margin: 1px 0 0 44px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  line-height: 1.4 !important;
+  color: rgba(232, 204, 125, 0.78) !important;
+  letter-spacing: 0.06em;
+}
+html body.ui-polish-v1 #releaseDetails,
+html body.ui-polish-v1 .header .header-tagline,
+html body.ui-polish-v1 .header p:not(.header-origin-subtitle),
+#themeToggleButton {
+  display: none !important;
+}
+html body.ui-polish-v1 .header-right-tools {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.kachi-viewport-toggle {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: 30px !important;
+  height: 30px !important;
+  padding: 0 12px !important;
+  margin: 0 !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(201, 162, 63, 0.52) !important;
+  background: rgba(18, 22, 46, 0.82) !important;
+  color: var(--washi-ink) !important;
+  font-family: var(--font-sans) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  letter-spacing: 0.03em !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  box-shadow: none !important;
+  transition: all 0.18s ease !important;
+}
+.kachi-viewport-toggle:hover {
+  border-color: var(--gold-bright);
+  background: rgba(201, 162, 63, 0.16);
+  color: var(--gold-bright);
+  box-shadow: 0 0 16px rgba(201, 162, 63, 0.24);
+}
+html body.ui-polish-v1 .ui-release-short {
+  margin-left: 0 !important;
+  padding: 5px 14px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(246, 226, 161, 0.75) !important;
+  background: linear-gradient(135deg, #f6e2a1 0%, #d4af4e 52%, #a98229 100%) !important;
+  color: #12162e !important;
+  font-family: var(--font-sans) !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.06em;
+  box-shadow: 0 3px 16px rgba(201, 162, 63, 0.34);
+}
+
+/* ============================================================================
+ * Sticky 7-Tab Navigation Bar (.up-nav)
+ * ============================================================================ */
+html body.ui-polish-v1 .up-nav {
+  background: rgba(16, 20, 42, 0.90) !important;
+  border-bottom: 1px solid rgba(201, 162, 63, 0.22) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  box-shadow: 0 8px 24px rgba(5, 7, 19, 0.38) !important;
+  padding-inline: 0 !important;
+}
+html body.ui-polish-v1 .up-nav-links {
+  padding: 10px 6px !important;
+  display: grid !important;
+  grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+html body.ui-polish-v1 .up-nav-links a {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  min-height: 38px !important;
+  padding: 6px 10px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(201, 162, 63, 0.22) !important;
+  background: rgba(24, 29, 59, 0.76) !important;
+  color: var(--washi-muted) !important;
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.03em !important;
+  white-space: nowrap !important;
+  text-decoration: none !important;
+  transition: all 0.18s ease !important;
+}
+html body.ui-polish-v1 .up-nav-links a:hover {
+  border-color: rgba(232, 204, 125, 0.58) !important;
+  background: rgba(33, 40, 78, 0.90) !important;
+  color: var(--washi-ink) !important;
+}
+html body.ui-polish-v1 .up-nav-links a.is-active,
+html body.ui-polish-v1 .up-nav-links a[aria-current="location"] {
+  background: linear-gradient(135deg, rgba(201, 162, 63, 0.28), rgba(246, 226, 161, 0.14)) !important;
+  border-color: var(--gold-light) !important;
+  color: var(--gold-bright) !important;
+  box-shadow: 0 0 20px rgba(201, 162, 63, 0.28), inset 0 -2px 0 var(--gold-light) !important;
+}
+
+/* Main Container */
+html body.ui-polish-v1 main.container {
+  padding: 16px 6px 26px !important;
+}
+
+/* ============================================================================
+ * Section Hairline Heading ("數據指標 ──────────") + 4-Card Gold Bento KPI
+ * ============================================================================ */
+.kachi-section-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 10px;
+}
+.kachi-section-bar span {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--washi-ink);
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+}
+.kachi-section-bar i {
+  flex: 1 1 auto;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(201, 162, 63, 0.55) 0%, rgba(201, 162, 63, 0.14) 65%, transparent 100%);
+}
+
+.ux-shell.ux-kpi-shell {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin-bottom: 16px !important;
+}
+.ux-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+.ux-kpi-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 15px 18px;
+  border-radius: 13px;
+  border: 1px solid rgba(201, 162, 63, 0.30);
+  background: linear-gradient(165deg, rgba(28, 34, 68, 0.94), rgba(18, 22, 46, 0.96));
+  box-shadow: inset 0 1px 0 rgba(246, 226, 161, 0.12), 0 10px 26px rgba(6, 8, 22, 0.44);
+  min-width: 0;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+.ux-kpi-card:hover {
+  border-color: rgba(232, 204, 125, 0.62);
+  box-shadow: inset 0 1px 0 rgba(246, 226, 161, 0.2), 0 0 24px rgba(201, 162, 63, 0.18);
+}
+.ux-kpi-card.ux-kpi-regime.bear {
+  border-color: rgba(232, 106, 122, 0.44);
+  background: linear-gradient(160deg, rgba(120, 32, 48, 0.26), rgba(18, 22, 46, 0.96));
+}
+.ux-kpi-card.ux-kpi-regime.bull {
+  border-color: rgba(69, 196, 150, 0.44);
+  background: linear-gradient(160deg, rgba(16, 90, 68, 0.26), rgba(18, 22, 46, 0.96));
+}
+.ux-kpi-card.ux-kpi-regime.neutral {
+  border-color: rgba(201, 162, 63, 0.48);
+  background: linear-gradient(160deg, rgba(130, 98, 28, 0.20), rgba(18, 22, 46, 0.96));
+}
+.ux-kpi-card.ux-kpi-index {
+  border-color: rgba(232, 204, 125, 0.56);
+  background: linear-gradient(160deg, rgba(201, 162, 63, 0.16), rgba(18, 22, 46, 0.96));
+  box-shadow: 0 0 22px rgba(201, 162, 63, 0.14), inset 0 1px 0 rgba(246, 226, 161, 0.22);
+}
+.ux-kpi-card.ux-kpi-guide {
+  border-color: rgba(244, 241, 234, 0.36);
+  background: linear-gradient(160deg, rgba(44, 52, 92, 0.65), rgba(18, 22, 46, 0.96));
+}
+.ux-kpi-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--washi-muted);
+  letter-spacing: 0.05em;
+}
+.ux-kpi-value {
+  font-size: clamp(20px, 1.9vw, 26px);
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--washi-ink);
+  font-variant-numeric: tabular-nums;
+}
+.ux-kpi-card.ux-kpi-regime.bear .ux-kpi-value { color: #f29479; }
+.ux-kpi-card.ux-kpi-regime.bull .ux-kpi-value { color: var(--tw-bear); }
+.ux-kpi-card.ux-kpi-regime.neutral .ux-kpi-value { color: var(--gold-light); }
+.ux-kpi-card.ux-kpi-index .ux-kpi-value { color: var(--gold-bright); }
+.ux-kpi-sub {
+  font-size: 12.5px;
+  color: var(--washi-muted);
+  font-variant-numeric: tabular-nums;
+}
+.ux-breadth-track {
+  display: flex;
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(12, 15, 34, 0.92);
+  margin: 4px 0 2px;
+  gap: 2px;
+}
+.ux-breadth-up {
+  background: linear-gradient(90deg, #c94c5f, #e86a7a);
+  border-radius: 999px 0 0 999px;
+}
+.ux-breadth-down {
+  background: linear-gradient(90deg, #2b9a72, #45c496);
+  border-radius: 0 999px 999px 0;
+}
+.ux-breadth-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--washi-muted);
+  font-variant-numeric: tabular-nums;
+}
+.ux-breadth-ratio strong { color: var(--washi-ink); }
+.ux-kpi-guide-text {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--washi-ink);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.ux-up { color: var(--tw-bull); }
+.ux-down { color: var(--tw-bear); }
+
+/* Hide legacy V50 banner completely */
+html body.ui-polish-v1 .r45-candidate-banner,
+#v50ResearchBanner {
+  display: none !important;
+}
+html body.ui-polish-v1 .v50-alert {
+  padding: 10px 14px !important;
+  margin-bottom: 14px !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(201, 162, 63, 0.36) !important;
+  background: rgba(201, 162, 63, 0.09) !important;
+  color: var(--gold-bright) !important;
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+}
+
+/* ============================================================================
+ * Unified Kachi Indigo Glass Surfaces
+ * ============================================================================ */
+html body.ui-polish-v1 :is(.panel, #workspaceV831, #workspaceStockSummary, #workspaceSearchPanel) {
+  background: linear-gradient(175deg, rgba(26, 32, 64, 0.94), rgba(18, 22, 46, 0.97)) !important;
+  border: 1px solid rgba(201, 162, 63, 0.24) !important;
+  border-radius: 16px !important;
+  box-shadow: inset 0 1px 0 rgba(246, 226, 161, 0.08), 0 12px 32px rgba(6, 8, 22, 0.48) !important;
+  color: var(--washi-ink) !important;
+}
+html body.ui-polish-v1 #workspaceSearchPanel {
+  padding: 20px !important;
+}
+html body.ui-polish-v1 :is(.section-title, .momentum-hero-title, .daytrade-hero-title) {
+  font-family: var(--font-display) !important;
+  color: var(--washi-ink) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+}
+
+/* ============================================================================
+ * Gold-Foil Primary CTAs & Outlined Secondary Controls
+ * ============================================================================ */
+html body.ui-polish-v1 #searchButton,
+html body.ui-polish-v1 #marketSimpleAnalysisButton,
+html body.ui-polish-v1 #momentumScanButton,
+html body.ui-polish-v1 #dayTradeScanButton,
+html body.ui-polish-v1 #strongStockScanButton,
+html body.ui-polish-v1 #macdPlusScanButton {
+  background: linear-gradient(135deg, #f6e2a1 0%, #d4af4e 52%, #a98229 100%) !important;
+  border: 1px solid rgba(246, 226, 161, 0.72) !important;
+  color: #12162e !important;
+  font-weight: 800 !important;
+  border-radius: 999px !important;
+  box-shadow: 0 4px 20px rgba(201, 162, 63, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
+  letter-spacing: 0.04em;
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease !important;
+}
+html body.ui-polish-v1 #searchButton:hover:not(:disabled),
+html body.ui-polish-v1 #marketSimpleAnalysisButton:hover:not(:disabled),
+html body.ui-polish-v1 #momentumScanButton:hover:not(:disabled),
+html body.ui-polish-v1 #dayTradeScanButton:hover:not(:disabled),
+html body.ui-polish-v1 #strongStockScanButton:hover:not(:disabled),
+html body.ui-polish-v1 #macdPlusScanButton:hover:not(:disabled) {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 26px rgba(232, 204, 125, 0.46) !important;
+}
+
+/* Tab 2 (個股) Search Bar & Quick Actions */
+html body.ui-polish-v1 #stockInput {
+  min-height: 48px !important;
+  padding: 10px 18px !important;
+  background: #0d1024 !important;
+  color: var(--washi-ink) !important;
+  border: 1px solid rgba(201, 162, 63, 0.40) !important;
+  border-radius: 999px !important;
+  font-size: 16px !important;
+  box-shadow: inset 0 2px 8px rgba(4, 6, 18, 0.6) !important;
+}
+html body.ui-polish-v1 #stockInput::placeholder {
+  color: var(--washi-dim) !important;
+}
+html body.ui-polish-v1 #stockInput:focus {
+  border-color: var(--gold-bright) !important;
+  box-shadow: 0 0 0 3px rgba(201, 162, 63, 0.22) !important;
+  outline: none !important;
+}
+html body.ui-polish-v1 #searchButton {
+  min-height: 48px !important;
+  padding: 10px 28px !important;
+}
+html body.ui-polish-v1 .quick-actions {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  margin-top: 12px !important;
+}
+html body.ui-polish-v1 .quick-actions .mini-btn {
+  min-height: 40px !important;
+  background: rgba(18, 22, 46, 0.78) !important;
+  border: 1px solid rgba(201, 162, 63, 0.30) !important;
+  color: var(--washi-ink) !important;
+  border-radius: 999px !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+}
+html body.ui-polish-v1 .quick-actions .mini-btn:hover {
+  border-color: var(--gold-light) !important;
+  color: var(--gold-bright) !important;
+  background: rgba(201, 162, 63, 0.12) !important;
+}
+
+/* Tab 2 Report Actions Panel */
+html body.ui-polish-v1 #stockReportActionsPanel {
+  padding: 20px !important;
+}
+html body.ui-polish-v1 #stockReportActionsPanel .workspace-stock-actions-identity {
+  color: var(--washi-muted) !important;
+  font-size: 14px !important;
+  margin: 4px 0 14px !important;
+}
+html body.ui-polish-v1 .stock-image-generator-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+  width: 100%;
+  margin-bottom: 12px !important;
+}
+html body.ui-polish-v1 .stock-image-generator-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 16px !important;
+  border-radius: 13px !important;
+  background: rgba(14, 18, 38, 0.88) !important;
+  border: 1px solid rgba(201, 162, 63, 0.28) !important;
+  box-shadow: inset 0 1px 0 rgba(246, 226, 161, 0.08) !important;
+}
+html body.ui-polish-v1 .stock-image-generator-card[data-mode="professional"] {
+  border-color: rgba(232, 204, 125, 0.62) !important;
+  background: linear-gradient(155deg, rgba(201, 162, 63, 0.14), rgba(14, 18, 38, 0.94)) !important;
+  box-shadow: 0 0 24px rgba(201, 162, 63, 0.14), inset 0 1px 0 rgba(246, 226, 161, 0.20) !important;
+}
+html body.ui-polish-v1 .stock-image-generator-card[data-mode="professional"] .stock-image-generator-title {
+  color: var(--gold-bright) !important;
+}
+html body.ui-polish-v1 .stock-image-generator-title {
+  font-size: 15.5px !important;
+  font-weight: 800 !important;
+  color: var(--washi-ink) !important;
+}
+html body.ui-polish-v1 .stock-image-generator-note {
+  font-size: 13px !important;
+  color: var(--washi-muted) !important;
+  line-height: 1.55 !important;
+}
+html body.ui-polish-v1 .stock-image-generator-actions button {
+  width: 100% !important;
+  min-height: 44px !important;
+  border-radius: 999px !important;
+  font-weight: 700 !important;
+}
+html body.ui-polish-v1 .stock-image-generator-card[data-mode="beginner"] .image-btn {
+  background: rgba(24, 29, 59, 0.90) !important;
+  border: 1px solid rgba(201, 162, 63, 0.48) !important;
+  color: var(--washi-ink) !important;
+}
+html body.ui-polish-v1 .stock-image-generator-card[data-mode="professional"] .image-btn {
+  background: linear-gradient(135deg, #f6e2a1 0%, #d4af4e 52%, #a98229 100%) !important;
+  border: 1px solid rgba(246, 226, 161, 0.75) !important;
+  color: #12162e !important;
+}
+html body.ui-polish-v1 #stockReportActionsPanel > .copy-actions {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+html body.ui-polish-v1 #stockReportActionsPanel > .copy-actions > .stock-image-generator-grid {
+  grid-column: 1 / -1 !important;
+}
+html body.ui-polish-v1 #copyReportButton,
+html body.ui-polish-v1 #copyNewbieButton {
+  width: 100% !important;
+  min-height: 42px !important;
+  border-radius: 999px !important;
+  background: rgba(16, 20, 42, 0.82) !important;
+  border: 1px solid rgba(201, 162, 63, 0.34) !important;
+  color: var(--washi-ink) !important;
+  font-weight: 700 !important;
+}
+html body.ui-polish-v1 #copyReportButton:hover,
+html body.ui-polish-v1 #copyNewbieButton:hover {
+  border-color: var(--gold-light) !important;
+  color: var(--gold-bright) !important;
+  background: rgba(201, 162, 63, 0.12) !important;
+}
+
+/* Gold Pill Toggle Switch */
+label[data-elliott-toggle-wrap="true"] {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin-top: 12px !important;
+  padding: 10px 14px !important;
+  border-radius: 11px !important;
+  border: 1px solid rgba(201, 162, 63, 0.24) !important;
+  background: rgba(14, 18, 38, 0.82) !important;
+  color: var(--washi-ink) !important;
+  font-size: 13.5px !important;
+  cursor: pointer;
+}
+label[data-elliott-toggle-wrap="true"] input[type="checkbox"] {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  position: relative !important;
+  width: 40px !important;
+  height: 22px !important;
+  min-width: 40px !important;
+  border-radius: 999px !important;
+  background: #232a52 !important;
+  border: 1px solid rgba(201, 162, 63, 0.42) !important;
+  cursor: pointer !important;
+  transition: background 0.2s ease, border-color 0.2s ease !important;
+  flex-shrink: 0;
+}
+label[data-elliott-toggle-wrap="true"] input[type="checkbox"]::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--washi-muted);
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+label[data-elliott-toggle-wrap="true"] input[type="checkbox"]:checked {
+  background: linear-gradient(135deg, #e8cc7d, #b0892b) !important;
+  border-color: var(--gold-bright) !important;
+}
+label[data-elliott-toggle-wrap="true"] input[type="checkbox"]:checked::after {
+  transform: translateX(18px);
+  background: #12162e;
+}
+
+/* Wave & 20-Day Future Cards — Kachi Indigo + Gold Micro-Grid */
+section[data-wave-export-kind="stock"],
+section[data-future-export-kind="stock"],
+#marketOutlookNative section.controls > section[data-wave-export-kind="market"],
+#marketOutlookNative section.controls > section[data-future-export-kind="market"] {
+  position: relative;
+  margin-top: 12px !important;
+  padding: 15px 16px !important;
+  border-radius: 13px !important;
+  border: 1px solid rgba(201, 162, 63, 0.28) !important;
+  background-color: rgba(14, 18, 38, 0.90) !important;
+  background-image:
+    linear-gradient(rgba(201, 162, 63, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(201, 162, 63, 0.045) 1px, transparent 1px) !important;
+  background-size: 26px 26px !important;
+  box-shadow: inset 0 1px 0 rgba(246, 226, 161, 0.08) !important;
+}
+section[data-wave-export-kind="stock"] strong,
+section[data-future-export-kind="stock"] strong {
+  font-size: 15px !important;
+  color: var(--washi-ink) !important;
+}
+section[data-wave-export-kind="stock"] button,
+section[data-future-export-kind="stock"] button,
+#marketOutlookNative section.controls > section[data-wave-export-kind="market"] button,
+#marketOutlookNative section.controls > section[data-future-export-kind="market"] button {
+  background: rgba(24, 29, 59, 0.88) !important;
+  border: 1px solid rgba(201, 162, 63, 0.52) !important;
+  color: var(--gold-bright) !important;
+  border-radius: 999px !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 14px rgba(6, 8, 22, 0.36) !important;
+}
+section[data-wave-export-kind="stock"] button:hover,
+section[data-future-export-kind="stock"] button:hover,
+#marketOutlookNative section.controls > section[data-wave-export-kind="market"] button:hover,
+#marketOutlookNative section.controls > section[data-future-export-kind="market"] button:hover {
+  background: rgba(201, 162, 63, 0.16) !important;
+  border-color: var(--gold-bright) !important;
+}
+section[data-wave-export-kind="stock"] p,
+section[data-future-export-kind="stock"] p {
+  font-size: 12.5px !important;
+  color: var(--washi-muted) !important;
+}
+
+/* ============================================================================
+ * Scanner Tabs (主升段 / 當沖標的 / 強勢飆股 / MACD+)
+ * ============================================================================ */
+html body.ui-polish-v1 :is(.momentum-shortcut, .daytrade-shortcut, .strong-stock-shortcut, .macdplus-shortcut) {
+  background: linear-gradient(165deg, rgba(28, 34, 68, 0.94), rgba(18, 22, 46, 0.97)) !important;
+  border: 1px solid rgba(201, 162, 63, 0.28) !important;
+  border-left: 3px solid var(--gold-main) !important;
+  border-radius: 16px !important;
+  padding: 20px !important;
+  margin-block: 0 !important;
+  box-shadow: inset 0 1px 0 rgba(246, 226, 161, 0.10), 0 12px 30px rgba(6, 8, 22, 0.44) !important;
+}
+html body.ui-polish-v1 .daytrade-shortcut { border-left-color: var(--tw-bear) !important; }
+html body.ui-polish-v1 .strong-stock-shortcut { border-left-color: var(--gold-bright) !important; }
+html body.ui-polish-v1 .macdplus-shortcut { border-left-color: var(--gold-light) !important; }
+html body.ui-polish-v1 :is(.momentum-shortcut, .daytrade-shortcut, .strong-stock-shortcut, .macdplus-shortcut) > .section-title {
+  color: var(--washi-ink) !important;
+  font-size: 19px !important;
+  margin-bottom: 6px !important;
+}
+html body.ui-polish-v1 .ui-strategy-summary {
+  color: var(--washi-muted) !important;
+  font-size: 13.5px !important;
+  margin-bottom: 14px !important;
+}
+html body.ui-polish-v1 :is(.momentum-progress-bar, #strongStockProgressBar, #macdPlusProgressBar) {
+  background: linear-gradient(90deg, #a98229, #f6e2a1) !important;
+}
+#macdPlusResult { display: none; }
+.macdplus-disclaimer {
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(201, 162, 63, 0.36);
+  background: rgba(201, 162, 63, 0.10);
+  color: var(--gold-bright);
+  font-size: 13px;
+  line-height: 1.55;
+}
+.macdplus-summary-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  margin-bottom: 12px;
+}
+#macdPlusList {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 14px !important;
+}
+/* 16:9 Widescreen 2-column scanner cards on wide desktops */
+@media (min-width: 1320px) {
+  body.viewport-desktop #macdPlusList,
+  body.viewport-desktop #momentumList,
+  body.viewport-desktop #dayTradeList,
+  body.viewport-desktop #strongStockList {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+    align-items: start;
+  }
+}
+.macdplus-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 18px !important;
+}
+.macdplus-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.macdplus-card-title-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.macdplus-rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 26px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: rgba(201, 162, 63, 0.18);
+  border: 1px solid rgba(232, 204, 125, 0.52);
+  color: var(--gold-bright);
+  font-size: 12.5px;
+  font-weight: 800;
+}
+.macdplus-tag {
+  font-size: 12px;
+  color: var(--washi-muted);
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 162, 63, 0.22);
+  background: rgba(14, 18, 38, 0.78);
+}
+.macdplus-cap-tag {
+  color: var(--gold-light);
+  border-color: rgba(201, 162, 63, 0.42);
+}
+.macdplus-jump-btn {
+  min-height: 36px !important;
+  padding: 6px 14px !important;
+  font-size: 13px !important;
+  border-radius: 999px !important;
+}
+.macdplus-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.macdplus-sub {
+  margin-top: 3px;
+  font-size: 12px;
+  color: var(--washi-muted);
+}
+.macdplus-score-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--washi-ink);
+}
+.macdplus-score-pills > span {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(14, 18, 38, 0.86);
+  border: 1px solid rgba(201, 162, 63, 0.22);
+}
+.macdplus-score-pills strong { color: var(--gold-light); }
+.macdplus-new-pill {
+  color: #6ee7b7 !important;
+  border-color: rgba(69, 196, 150, 0.40) !important;
+}
+.macdplus-summary {
+  font-size: 13px;
+  color: var(--washi-muted);
+  line-height: 1.55;
+}
+.macdplus-empty {
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px dashed rgba(201, 162, 63, 0.36);
+  background: rgba(14, 18, 38, 0.72);
+  color: var(--washi-ink);
+  font-size: 14px;
+  line-height: 1.65;
+  text-align: center;
+}
+.macdplus-export-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.risk-low { color: var(--tw-bear); font-weight: 700; }
+.risk-mid { color: var(--gold-light); font-weight: 700; }
+.risk-high { color: var(--tw-bull); font-weight: 700; }
+
+/* Candidate Cards — Kachi Indigo + Gold Left Accent */
+html body.ui-polish-v1 :is(.momentum-card, .filter-stock-card, .strong-stock-row) {
+  background: linear-gradient(180deg, rgba(26, 32, 64, 0.94), rgba(18, 22, 46, 0.97)) !important;
+  border: 1px solid rgba(201, 162, 63, 0.22) !important;
+  border-left: 4px solid var(--gold-main) !important;
+  border-radius: 13px !important;
+  box-shadow: 0 6px 18px rgba(6, 8, 22, 0.36) !important;
+  transition: border-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease !important;
+}
+html body.ui-polish-v1 .momentum-card:has(.momentum-badge.s),
+html body.ui-polish-v1 .momentum-card.s { border-left-color: var(--gold-bright) !important; }
+html body.ui-polish-v1 .momentum-card:has(.momentum-badge.a),
+html body.ui-polish-v1 .momentum-card.a { border-left-color: var(--gold-main) !important; }
+html body.ui-polish-v1 .momentum-card:has(.momentum-badge.b),
+html body.ui-polish-v1 .momentum-card.b { border-left-color: var(--tw-bear) !important; }
+html body.ui-polish-v1 :is(.momentum-card, .filter-stock-card):hover {
+  border-color: rgba(232, 204, 125, 0.56) !important;
+  box-shadow: 0 10px 26px rgba(6, 8, 22, 0.50), 0 0 18px rgba(201, 162, 63, 0.14) !important;
+}
+html body.ui-polish-v1 :is(.momentum-summary-card, .daytrade-summary-card) {
+  background: rgba(14, 18, 38, 0.88) !important;
+  border: 1px solid rgba(201, 162, 63, 0.22) !important;
+  border-radius: 11px !important;
+}
+html body.ui-polish-v1 :is(.momentum-summary-card, .daytrade-summary-card) .v {
+  color: var(--gold-bright) !important;
+}
+html body.ui-polish-v1 :is(.help-fold, details.rule, .workspace-export-notes) {
+  background: rgba(14, 18, 38, 0.78) !important;
+  border: 1px solid rgba(201, 162, 63, 0.22) !important;
+  border-radius: 11px !important;
+}
+
+/* ============================================================================
+ * Tab 1: Native Market Outlook (#marketOutlookNative) — 16:9 Executive Layout
+ * ============================================================================ */
+.market-shortcut {
+  margin-top: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+.market-shortcut::after { display: none !important; }
+
+#marketOutlookNative {
+  --mo-panel: linear-gradient(175deg, rgba(26, 32, 64, 0.94), rgba(18, 22, 46, 0.97));
+  --mo-panel-sub: rgba(14, 18, 38, 0.92);
+  --mo-border: rgba(201, 162, 63, 0.26);
+  --mo-text: var(--washi-ink);
+  --mo-muted: var(--washi-muted);
+  --mo-teal: var(--gold-light);
+  --mo-amber: var(--gold-bright);
+  --mo-red: var(--tw-bull);
+  color: var(--mo-text);
+  display: grid;
+  gap: 14px;
+}
+#marketOutlookNative .mo-intro {
+  padding: 2px 2px 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 18px;
+}
+#marketOutlookNative .mo-eyebrow {
+  margin: 0 0 4px;
+  letter-spacing: 0.16em;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--gold-light);
+  width: 100%;
+}
+#marketOutlookNative .mo-intro h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(22px, 2.3vw, 32px);
+  line-height: 1.25;
+  color: var(--washi-ink);
+  letter-spacing: 0.04em;
+}
+#marketOutlookNative .mo-subtitle {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--washi-muted);
+}
+#marketOutlookNative section.controls {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+  align-items: stretch !important;
+  padding: 16px !important;
+  margin: 0 !important;
+  border-radius: 15px !important;
+  border: 1px solid rgba(201, 162, 63, 0.26) !important;
+  background: var(--mo-panel) !important;
+  box-shadow: inset 0 1px 0 rgba(246, 226, 161, 0.08), 0 10px 28px rgba(6, 8, 22, 0.44) !important;
+}
+/* 16:9 Desktop: 4-column horizontal command strip so chart sits above the fold! */
+@media (min-width: 1260px) {
+  body.viewport-desktop #marketOutlookNative section.controls {
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 0.95fr) minmax(0, 1.1fr) minmax(0, 1.1fr) !important;
+    align-items: center !important;
+  }
+}
+#marketOutlookNative section.controls > #market-refresh {
+  order: 1;
+  min-height: 46px;
+  width: 100%;
+  margin: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 162, 63, 0.44);
+  background: rgba(14, 18, 38, 0.86);
+  color: var(--washi-ink);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+#marketOutlookNative section.controls > #market-refresh:hover {
+  border-color: var(--gold-bright);
+  color: var(--gold-bright);
+  background: rgba(201, 162, 63, 0.14);
+}
+#marketOutlookNative section.controls > #marketSimpleAnalysisButton {
+  order: 2;
+  min-height: 46px;
+  width: 100%;
+  margin: 0;
+  font-size: 14px;
+}
+#marketOutlookNative section.controls > section[data-wave-export-kind="market"],
+#marketOutlookNative section.controls > section[data-future-export-kind="market"] {
+  grid-column: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  margin-top: 0 !important;
+}
+#marketOutlookNative section.controls > section[data-wave-export-kind="market"] { order: 3; }
+#marketOutlookNative section.controls > section[data-future-export-kind="market"] { order: 4; }
+#marketOutlookNative section.controls > section[data-wave-export-kind="market"] strong,
+#marketOutlookNative section.controls > section[data-future-export-kind="market"] strong {
+  font-size: 13.5px !important;
+  line-height: 1.35 !important;
+  color: var(--washi-ink);
+}
+#marketOutlookNative section.controls > section[data-wave-export-kind="market"] button,
+#marketOutlookNative section.controls > section[data-future-export-kind="market"] button {
+  width: 100% !important;
+  min-height: 40px !important;
+  font-size: 13.5px !important;
+}
+#marketOutlookNative section.controls > section[data-wave-export-kind="market"] p,
+#marketOutlookNative section.controls > section[data-future-export-kind="market"] p {
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+  margin: 0 !important;
+  min-height: 16px;
+  color: var(--washi-muted);
+}
+#marketOutlookNative section.controls > label[data-elliott-toggle-wrap="true"] {
+  order: 99 !important;
+  grid-column: 1 / -1 !important;
+  margin-top: 2px !important;
+}
+#marketOutlookNative #simpleMarketReportStatus {
+  margin: 0;
+  font-size: 13px;
+  color: var(--washi-muted);
+}
+#marketOutlookNative #market-error {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--tw-bull);
+}
+#marketOutlookNative #market-error:empty { display: none; }
+#marketOutlookNative .mo-notice {
+  margin: 0;
+  border-left: 3px solid var(--gold-main);
+  background: rgba(201, 162, 63, 0.10);
+  padding: 10px 15px;
+  border-radius: 10px;
+  font-size: 13px;
+  color: var(--gold-bright);
+}
+#marketOutlookNative .mo-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.32fr);
+  gap: 16px;
+}
+#marketOutlookNative .mo-panel {
+  background: var(--mo-panel);
+  border: 1px solid var(--mo-border);
+  border-radius: 15px;
+  padding: 18px 20px;
+  min-width: 0;
+  box-shadow: inset 0 1px 0 rgba(246, 226, 161, 0.08), 0 10px 28px rgba(6, 8, 22, 0.42);
+}
+#marketOutlookNative .mo-panel h2 {
+  margin: 0 0 12px;
+  font-family: var(--font-display);
+  font-size: 17px;
+  color: var(--washi-ink);
+  letter-spacing: 0.04em;
+}
+#marketOutlookNative .mo-panel p { margin: 8px 0; line-height: 1.65; }
+#marketOutlookNative .mo-verdict {
+  font-family: var(--font-display);
+  font-size: clamp(20px, 2.2vw, 27px);
+  font-weight: 800;
+  margin: 6px 0 10px;
+  color: var(--gold-bright);
+}
+#marketOutlookNative .mo-divider {
+  border-top: 1px solid var(--mo-border);
+  margin-top: 14px !important;
+  padding-top: 12px;
+}
+#marketOutlookNative .mo-muted,
+#marketOutlookNative .mo-mini { font-size: 12.5px; color: var(--washi-muted); }
+#marketOutlookNative #market-chart {
+  background: #0e1227;
+  border-radius: 12px;
+  padding: 10px 8px 6px;
+  border: 1px solid rgba(201, 162, 63, 0.28);
+}
+#marketOutlookNative #market-chart svg { display: block; width: 100%; height: auto; }
+#marketOutlookNative #market-chart text { fill: var(--washi-muted); font-size: 12px; }
+#marketOutlookNative .mo-legend {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 12px;
+  color: var(--washi-muted);
+  margin: 10px 0 4px;
+}
+#marketOutlookNative .mo-legend i {
+  width: 16px;
+  height: 3px;
+  display: inline-block;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+#marketOutlookNative .mo-legend .actual { background: #e8cc7d; }
+#marketOutlookNative .mo-legend .ma5 { background: #f6e2a1; }
+#marketOutlookNative .mo-legend .ma20 { background: #a992e8; }
+#marketOutlookNative .mo-legend .prediction { background: #45c496; }
+#marketOutlookNative .mo-price-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+#marketOutlookNative .price-item {
+  padding: 14px;
+  background: var(--mo-panel-sub);
+  border: 1px solid var(--mo-border);
+  border-radius: 11px;
+}
+#marketOutlookNative .price-item strong {
+  display: block;
+  font-size: 21px;
+  margin: 4px 0;
+  color: var(--gold-bright);
+  font-variant-numeric: tabular-nums;
+}
+#marketOutlookNative .price-item span {
+  display: block;
+  font-size: 12.5px;
+  color: var(--washi-muted);
+  line-height: 1.5;
+}
+#marketOutlookNative #market-elliott:empty,
+#marketOutlookNative #market-engulf-range:empty { display: none; }
+#marketOutlookNative .mo-footer {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--washi-dim);
+  padding: 4px 2px 10px;
+}
+
+/* Consolidated Export Hub */
+.ux-export-hub {
+  border: 1px solid rgba(201, 162, 63, 0.26);
+  border-radius: 12px;
+  background: rgba(14, 18, 38, 0.86);
+  padding: 10px 14px;
+  margin: 12px 0;
+}
+.ux-export-hub-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.ux-export-hub-title { font-size: 13px; font-weight: 700; color: var(--washi-ink); }
+.ux-export-hub-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ux-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 162, 63, 0.36);
+  background: rgba(24, 29, 59, 0.88);
+  color: var(--washi-ink);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ux-btn:hover { border-color: var(--gold-light); color: var(--gold-bright); }
+.ux-export-drawer {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(201, 162, 63, 0.24);
+}
+.ux-export-drawer.ux-collapsed { display: none; }
+
+/* Minimal Gold-Hairline Footer */
+html body.ui-polish-v1 .footer {
+  border-top: 1px solid rgba(201, 162, 63, 0.22);
+  margin-top: 28px;
+  padding: 18px 6px 28px;
+  color: var(--washi-dim) !important;
+  font-size: 12px !important;
+  line-height: 1.7;
+}
+html body.ui-polish-v1 .footer strong { color: var(--gold-light); }
+
+/* ============================================================================
+ * 1. Stock & Strategy Tab Card Pruning (Preserved per User Spec)
+ * ============================================================================ */
+#workspaceStockSummary,
+body.workspace-v831:not([data-workspace-v831="stock"]) #workspaceStockActionsSlot,
+body.workspace-v831:not([data-workspace-v831="stock"]) #stockReportActionsPanel,
+body.workspace-v831:not([data-workspace-v831="stock"]) #result {
+  display: none !important;
+}
+#beginnerCommandCenterV46 > details.v46-technical,
+#stockIndicatorShadow,
+#result > #shitoAssistantV47,
+#result > #shitoAssistantV47 ~ :not(#stockReportActionsPanel),
+.indicator-shadow-box,
+[id$="IndicatorShadow"],
+#momentumResult .industry-radar-v47,
+#dayTradeResult .industry-radar-v47,
+.industry-radar-v47,
+#dayTradeResult .daytrade-key-legend,
+.daytrade-key-legend {
+  display: none !important;
+}
+
+/* Harmonize inline #result legacy cards with Kachi × Gold */
+html body.ui-polish-v1 #result { margin-top: 14px; }
+html body.ui-polish-v1 #result > section.panel,
+html body.ui-polish-v1 #result > div.panel,
+html body.ui-polish-v1 #waveStockCardV49,
+html body.ui-polish-v1 #stockStageCardV53245,
+html body.ui-polish-v1 #bookOpeningDecisionR494,
+html body.ui-polish-v1 #bookOpeningDecisionR495 {
+  margin-bottom: 14px;
+}
+html body.ui-polish-v1 .v46-hero,
+html body.ui-polish-v1 .v46-levels,
+html body.ui-polish-v1 .v46-snapshot-card,
+html body.ui-polish-v1 .v46-audience-card,
+html body.ui-polish-v1 .v46-level-card,
+html body.ui-polish-v1 .snr-panel-v532,
+html body.ui-polish-v1 .snr-side-v532,
+html body.ui-polish-v1 .snr-plain-v532,
+html body.ui-polish-v1 .v46-checklist,
+html body.ui-polish-v1 .v46-check-item,
+html body.ui-polish-v1 #v46ChecklistNote,
+html body.ui-polish-v1 .v46-checklist-note,
+html body.ui-polish-v1 .v46-risk-card,
+html body.ui-polish-v1 .selection-risk-v53247,
+html body.ui-polish-v1 .selection-risk-v53247 .risk-cell,
+html body.ui-polish-v1 .wave-v49-card {
+  background: rgba(16, 20, 42, 0.92) !important;
+  border: 1px solid rgba(201, 162, 63, 0.24) !important;
+  color: var(--washi-ink) !important;
+}
+html body.ui-polish-v1 .v46-levels { background: rgba(22, 27, 54, 0.90) !important; }
+html body.ui-polish-v1 .v46-level-card { background: rgba(13, 17, 36, 0.94) !important; }
+html body.ui-polish-v1 .v46-level-legend,
+html body.ui-polish-v1 .v46-levels .level-legend,
+html body.ui-polish-v1 #v53248PriceLegend,
+html body.ui-polish-v1 .v53248-price-legend,
+html body.ui-polish-v1 .v53248-keybar,
+html body.ui-polish-v1 #selectionRiskCardV53247 .v53248-keybar,
+html body.ui-polish-v1 #selectionRiskCardV53247 .v53248-price-strip,
+html body.ui-polish-v1 #selectionRiskCardV53247 > div:last-child,
+html body.ui-polish-v1 #selectionRiskCardV53247 [style*="background:#fff"],
+html body.ui-polish-v1 #selectionRiskCardV53247 [style*="background: #fff"],
+html body.ui-polish-v1 #selectionRiskCardV53247 [style*="background:#f"] {
+  background: rgba(13, 17, 36, 0.90) !important;
+  border: 1px solid rgba(201, 162, 63, 0.24) !important;
+  color: var(--washi-ink) !important;
+}
+html body.ui-polish-v1 #v53248PriceLegend *,
+html body.ui-polish-v1 .v53248-price-legend *,
+html body.ui-polish-v1 #selectionRiskCardV53247 * { color: var(--washi-ink) !important; }
+html body.ui-polish-v1 #selectionRiskCardV53247 small,
+html body.ui-polish-v1 #selectionRiskCardV53247 .meta { color: var(--washi-muted) !important; }
+html body.ui-polish-v1 .v46-snapshot-card .k,
+html body.ui-polish-v1 .v46-level-card .k,
+html body.ui-polish-v1 .snr-side-v532 .k { color: var(--washi-muted) !important; }
+html body.ui-polish-v1 .v46-snapshot-card .v,
+html body.ui-polish-v1 .v46-audience-card h3,
+html body.ui-polish-v1 .v46-risk-card h3,
+html body.ui-polish-v1 .v46-conclusion,
+html body.ui-polish-v1 .v46-state,
+html body.ui-polish-v1 .v46-answer,
+html body.ui-polish-v1 .v46-price,
+html body.ui-polish-v1 .snr-side-v532 .v,
+html body.ui-polish-v1 .selection-risk-v53247 strong { color: var(--washi-ink) !important; }
+html body.ui-polish-v1 .v46-eyebrow,
+html body.ui-polish-v1 .v46-section-title { color: var(--gold-light) !important; }
+html body.ui-polish-v1 .v46-current-price {
+  background: rgba(232, 106, 122, 0.14) !important;
+  border: 1px solid rgba(232, 106, 122, 0.42) !important;
+  color: #f6a6b0 !important;
+}
+html body.ui-polish-v1 .v46-current-price small { color: var(--washi-muted) !important; }
+html body.ui-polish-v1 .v46-light,
+html body.ui-polish-v1 .snr-badge-v532,
+html body.ui-polish-v1 .v46-checklist-result {
+  background: rgba(201, 162, 63, 0.14) !important;
+  border: 1px solid rgba(201, 162, 63, 0.44) !important;
+  color: var(--gold-bright) !important;
+}
+html body.ui-polish-v1 .wave-fib-line {
+  background: rgba(201, 162, 63, 0.10) !important;
+  border: 1px solid rgba(201, 162, 63, 0.36) !important;
+  color: var(--gold-bright) !important;
+}
+html body.ui-polish-v1 .wave-fib-line strong,
+html body.ui-polish-v1 .wave-fib-line b { color: #fff4d1 !important; }
+html body.ui-polish-v1 .wave-note { color: var(--washi-muted) !important; }
+html body.ui-polish-v1 .v46-check-item,
+html body.ui-polish-v1 .v46-check-item * { color: var(--washi-ink) !important; }
+html body.ui-polish-v1 .v46-check-item small,
+html body.ui-polish-v1 .v46-check-item .s,
+html body.ui-polish-v1 .v46-reason,
+html body.ui-polish-v1 .v46-audience-card li,
+html body.ui-polish-v1 .v46-risk-card li,
+html body.ui-polish-v1 .snr-plain-v532,
+html body.ui-polish-v1 .snr-side-v532 .s,
+html body.ui-polish-v1 .snr-foot-v532,
+html body.ui-polish-v1 .v46-checklist-note { color: var(--washi-muted) !important; }
+
+/* ============================================================================
+ * 2. Image-Only Preview Modals (Kachi × Gold Backdrop & Close Button)
+ * ============================================================================ */
+#imagePreviewModal {
+  padding: 16px !important;
+  background: rgba(8, 10, 24, 0.92) !important;
+  backdrop-filter: blur(8px);
+}
+#imagePreviewModal .image-modal-card {
+  position: relative !important;
+  width: min(96vw, 720px) !important;
+  max-width: 100% !important;
+  margin: auto !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+#imagePreviewModal .image-modal-head {
+  position: sticky !important;
+  top: 8px !important;
+  z-index: 5 !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  padding: 0 !important;
+  margin: 0 0 -44px 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  pointer-events: none;
+}
+#imagePreviewModal #imagePreviewTitle,
+#imagePreviewModal .image-modal-actions,
+#imagePreviewModal .image-preview-note,
+#imagePreviewModal .image-modal-card > :not(.image-modal-head):not(.image-preview-wrap) {
+  display: none !important;
+}
+#imagePreviewModal .image-modal-close {
+  pointer-events: auto !important;
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  min-height: 38px !important;
+  padding: 0 !important;
+  margin: 8px 8px 0 0 !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(232, 204, 125, 0.65) !important;
+  background: rgba(18, 22, 46, 0.90) !important;
+  color: var(--gold-bright) !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5) !important;
+  cursor: pointer !important;
+}
+#imagePreviewModal .image-preview-wrap {
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  background: transparent !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+#imagePreviewModal #imagePreviewImg {
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  margin: 0 auto !important;
+  border-radius: 12px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.65) !important;
+}
+#simpleMarketReportDialog,
+#simpleStockReportDialog {
+  position: relative !important;
+  width: min(96vw, 720px) !important;
+  max-width: 96vw !important;
+  max-height: 94dvh !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  background: transparent !important;
+  overflow: auto !important;
+  box-shadow: none !important;
+}
+#simpleMarketReportDialog::backdrop,
+#simpleStockReportDialog::backdrop {
+  background: rgba(8, 10, 24, 0.92) !important;
+  backdrop-filter: blur(8px);
+}
+#simpleMarketReportDialog > :not(img):not(.simple-market-report-controls),
+#simpleMarketReportDialog .simple-market-report-controls > :not([data-image-close="true"]),
+#simpleStockReportDialog > :not(img):not(.simple-stock-report-controls),
+#simpleStockReportDialog .simple-stock-report-controls > :not([data-image-close="true"]) {
+  display: none !important;
+}
+#simpleMarketReportDialog .simple-market-report-controls,
+#simpleStockReportDialog .simple-stock-report-controls {
+  position: sticky !important;
+  top: 8px !important;
+  z-index: 5 !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  margin: 0 0 -46px 0 !important;
+  padding: 0 !important;
+  pointer-events: none;
+}
+#simpleMarketReportDialog [data-image-close="true"],
+#simpleStockReportDialog [data-image-close="true"] {
+  pointer-events: auto !important;
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  min-height: 38px !important;
+  padding: 0 !important;
+  margin: 8px 8px 0 0 !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(232, 204, 125, 0.65) !important;
+  background: rgba(18, 22, 46, 0.90) !important;
+  color: var(--gold-bright) !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5) !important;
+  cursor: pointer !important;
+}
+#simpleMarketReportDialog img,
+#simpleStockReportDialog img {
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  margin: 0 auto !important;
+  border-radius: 12px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.65) !important;
+}
+
+/* ============================================================================
+ * 3. 籌碼板塊（Kachi × Gold 16:9 3-Column Institutional Terminal）
+ *    ＋ 個股三大法人盤後籌碼卡 (#stockChipsCardV90)
+ * ============================================================================ */
+body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="chips"] #workspaceSearchPanel {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+.chips-shortcut { width: 100%; color: var(--washi-ink); }
+.chips-board-layout {
+  display: grid;
+  grid-template-columns: 124px minmax(0, 1fr) 368px;
+  gap: 14px;
+  align-items: start;
+}
+.chips-quad-rail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+.chips-quad-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 118px;
+  padding: 12px 8px;
+  border-radius: 13px;
+  border: 1px solid rgba(201, 162, 63, 0.24);
+  background: linear-gradient(180deg, rgba(26, 32, 64, 0.96), rgba(16, 20, 42, 0.98));
+  color: var(--washi-ink);
+  cursor: pointer;
+  transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+}
+.chips-quad-card:hover {
+  border-color: var(--q-accent, var(--gold-light));
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px rgba(6, 8, 22, 0.48);
+}
+.chips-quad-card.is-active {
+  border-color: var(--q-accent, var(--gold-light));
+  background: linear-gradient(180deg, rgba(36, 44, 86, 0.96), rgba(18, 22, 46, 0.98));
+  box-shadow: 0 0 0 1px var(--q-accent, var(--gold-light)), 0 0 22px rgba(201, 162, 63, 0.24);
+}
+.chips-qc-name { font-size: 13px; font-weight: 800; letter-spacing: 0.06em; }
+.chips-qc-num {
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1.1;
+  color: var(--washi-ink);
+  font-variant-numeric: tabular-nums;
+}
+.chips-qc-sub { font-size: 11px; color: var(--washi-muted); font-weight: 600; }
+
+.chips-center-col { display: grid; gap: 12px; min-width: 0; }
+.chips-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 13px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(201, 162, 63, 0.26);
+  background: linear-gradient(180deg, rgba(26, 32, 64, 0.95), rgba(18, 22, 46, 0.97));
+}
+.chips-tb-left { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.chips-tb-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gold-bright);
+  letter-spacing: 0.05em;
+}
+.chips-tb-legend { font-size: 12px; color: var(--washi-muted); line-height: 1.5; }
+.chips-reset-btn {
+  padding: 4px 11px !important;
+  font-size: 12px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(232, 106, 122, 0.48) !important;
+  background: rgba(232, 106, 122, 0.14) !important;
+  color: #f6a6b0 !important;
+  cursor: pointer;
+}
+.chips-seg {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 162, 63, 0.30);
+  background: rgba(12, 15, 34, 0.90);
+}
+.chips-seg button {
+  min-height: 28px !important;
+  padding: 4px 12px !important;
+  margin: 0 !important;
+  border: 1px solid transparent !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  color: var(--washi-muted) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.chips-seg button:hover { color: var(--washi-ink) !important; }
+.chips-seg button.is-active {
+  background: linear-gradient(135deg, rgba(201, 162, 63, 0.28), rgba(246, 226, 161, 0.16)) !important;
+  border-color: rgba(232, 204, 125, 0.56) !important;
+  color: var(--gold-bright) !important;
+  box-shadow: none !important;
+}
+.chips-bubble-host {
+  border-radius: 14px;
+  border: 1px solid rgba(201, 162, 63, 0.26);
+  background: #0e1227;
+  padding: 8px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(246, 226, 161, 0.06), 0 14px 32px rgba(6, 8, 22, 0.50);
+}
+.chips-bubble-svg { display: block; width: 100%; height: auto; }
+.chips-bubble-node { cursor: pointer; outline: none; }
+.chips-bubble-node circle {
+  transition: fill-opacity 0.16s ease, stroke-width 0.16s ease, filter 0.16s ease;
+}
+.chips-bubble-node:hover circle,
+.chips-bubble-node:focus-visible circle {
+  fill-opacity: 0.98;
+  filter: drop-shadow(0 0 12px rgba(232, 204, 125, 0.48));
+}
+.chips-bubble-node.is-selected circle {
+  filter: drop-shadow(0 0 14px rgba(246, 226, 161, 0.48));
+}
+
+.chips-detail-panel {
+  border-radius: 14px;
+  border: 1px solid rgba(201, 162, 63, 0.26);
+  background: linear-gradient(180deg, rgba(26, 32, 64, 0.95), rgba(18, 22, 46, 0.97));
+  padding: 15px 18px;
+}
+.chips-detail-placeholder,
+.chips-loading,
+.chips-empty-row { font-size: 13px; color: var(--washi-muted); padding: 12px 4px; }
+.chips-error { font-size: 13px; color: #f6a6b0; padding: 12px 4px; }
+.chips-detail-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(201, 162, 63, 0.18);
+}
+.chips-detail-title { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.chips-detail-title strong { font-family: var(--font-display); font-size: 17px; color: var(--washi-ink); }
+.chips-detail-title small { font-size: 12px; color: var(--washi-muted); }
+.chips-quad-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 11.5px;
+  font-weight: 800;
+}
+.chips-detail-kpis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  font-size: 13px;
+  color: var(--washi-muted);
+  font-variant-numeric: tabular-nums;
+}
+.chips-breakdown-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 9px 12px;
+  margin: 10px 0 12px;
+  border-radius: 10px;
+  background: rgba(12, 15, 34, 0.84);
+  border: 1px solid rgba(201, 162, 63, 0.18);
+  font-size: 12.5px;
+  color: var(--washi-muted);
+  font-variant-numeric: tabular-nums;
+}
+.chips-detail-cols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.chips-detail-col h4 { margin: 0 0 8px; font-size: 12.5px; font-weight: 800; color: var(--gold-light); }
+
+.chips-sidebar { display: grid; gap: 12px; min-width: 0; }
+.chips-side-card {
+  border-radius: 14px;
+  border: 1px solid rgba(201, 162, 63, 0.26);
+  background: linear-gradient(180deg, rgba(26, 32, 64, 0.95), rgba(18, 22, 46, 0.97));
+  padding: 14px 15px;
+}
+.chips-side-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.chips-side-head strong {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--washi-ink);
+}
+.chips-side-head small { font-size: 11.5px; color: var(--washi-muted); font-variant-numeric: tabular-nums; }
+.chips-mkt-total {
+  font-size: 30px;
+  font-weight: 900;
+  line-height: 1.15;
+  margin: 2px 0 10px;
+  font-variant-numeric: tabular-nums;
+}
+.chips-mkt-sub-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  margin-bottom: 10px;
+}
+.chips-mkt-sub-grid > div {
+  padding: 8px 9px;
+  border-radius: 10px;
+  background: rgba(12, 15, 34, 0.84);
+  border: 1px solid rgba(201, 162, 63, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.chips-mkt-sub-grid span { font-size: 11px; color: var(--washi-muted); }
+.chips-mkt-sub-grid strong { font-size: 13.5px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.chips-mini-hist { padding-top: 8px; border-top: 1px solid rgba(201, 162, 63, 0.16); }
+.chips-mini-label { font-size: 11px; color: var(--washi-muted); margin-bottom: 4px; }
+.chips-flow-group-label { font-size: 11.5px; font-weight: 800; margin: 4px 0 6px; }
+.chips-flow-item,
+.chips-stock-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  margin-bottom: 5px;
+  border-radius: 10px;
+  border: 1px solid rgba(201, 162, 63, 0.14);
+  background: rgba(13, 17, 36, 0.82);
+  color: var(--washi-ink);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.chips-flow-item:last-child,
+.chips-stock-row:last-child { margin-bottom: 0; }
+.chips-flow-item:hover,
+.chips-stock-row:hover,
+.chips-flow-item.is-selected {
+  border-color: rgba(232, 204, 125, 0.54);
+  background: rgba(34, 42, 82, 0.92);
+}
+.chips-fi-left,
+.chips-sr-left { display: flex; flex-direction: column; min-width: 0; gap: 1px; }
+.chips-fi-left strong,
+.chips-sr-left strong {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--washi-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chips-fi-left small,
+.chips-sr-left small {
+  font-size: 11px;
+  color: var(--washi-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chips-fi-val { font-size: 13px; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.chips-sr-right { display: flex; flex-direction: column; align-items: flex-end; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.chips-sr-right strong { font-size: 12.5px; font-weight: 800; }
+.chips-sr-right small { font-size: 10.5px; opacity: 0.85; }
+
+.chips-buy { color: var(--tw-bull) !important; }
+.chips-sell { color: var(--tw-bear) !important; }
+.chips-flat { color: var(--washi-muted) !important; }
+
+/* Individual Stock Three-Institutions Card (#stockChipsCardV90) */
+.stock-chips-card {
+  background: linear-gradient(175deg, rgba(26, 32, 64, 0.96), rgba(16, 20, 42, 0.98)) !important;
+  border: 1px solid rgba(201, 162, 63, 0.34) !important;
+  border-radius: 15px !important;
+  padding: 16px 18px !important;
+  margin-bottom: 14px !important;
+  color: var(--washi-ink) !important;
+  box-shadow: inset 0 1px 0 rgba(246, 226, 161, 0.10), 0 12px 30px rgba(6, 8, 22, 0.44) !important;
+}
+.stock-chips-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.stock-chips-head .section-title {
+  margin: 0 !important;
+  font-size: 16.5px !important;
+  font-weight: 700 !important;
+  color: var(--gold-bright) !important;
+}
+.stock-chips-meta { font-size: 12px; color: var(--washi-muted); margin-top: 3px; }
+.stock-chips-streaks { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips-streak {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  border: 1px solid rgba(201, 162, 63, 0.28);
+  background: rgba(14, 18, 38, 0.85);
+  color: var(--washi-ink);
+}
+.chips-streak-buy {
+  border-color: rgba(232, 106, 122, 0.48);
+  background: rgba(232, 106, 122, 0.14);
+  color: #f6a6b0;
+}
+.chips-streak-sell {
+  border-color: rgba(69, 196, 150, 0.48);
+  background: rgba(69, 196, 150, 0.14);
+  color: #7ee3bd;
+}
+.stock-chips-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.stock-chips-kpi {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(12, 15, 34, 0.88);
+  border: 1px solid rgba(201, 162, 63, 0.20);
+  font-variant-numeric: tabular-nums;
+}
+.stock-chips-kpi.is-total {
+  border-color: rgba(232, 204, 125, 0.48);
+  background: linear-gradient(155deg, rgba(201, 162, 63, 0.12), rgba(12, 15, 34, 0.92));
+}
+.stock-chips-kpi .k { font-size: 12px; color: var(--washi-muted); font-weight: 700; }
+.stock-chips-kpi .v { font-size: 21px; font-weight: 900; margin: 4px 0 3px; line-height: 1.2; }
+.stock-chips-kpi .s { font-size: 11.5px; color: var(--washi-muted); line-height: 1.45; }
+.stock-chips-chart-wrap {
+  padding: 12px 14px 8px;
+  border-radius: 12px;
+  background: rgba(12, 15, 34, 0.90);
+  border: 1px solid rgba(201, 162, 63, 0.22);
+}
+.stock-chips-chart-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: var(--washi-ink);
+  font-weight: 700;
+}
+.stock-chips-svg { display: block; width: 100%; height: auto; }
+
+/* ============================================================================
+ * 4. Dedicated Mobile App Edition (body.viewport-mobile — Auto-Detected)
+ * ============================================================================ */
+.mobile-bottom-dock,
+.mobile-strategy-sheet,
+.mobile-sheet-backdrop {
+  display: none;
+}
+
+html body.ui-polish-v1.viewport-mobile {
+  padding-bottom: calc(74px + env(safe-area-inset-bottom, 0px)) !important;
+}
+html body.ui-polish-v1.viewport-mobile .header .container,
+html body.ui-polish-v1.viewport-mobile .up-nav-links,
+html body.ui-polish-v1.viewport-mobile main.container,
+html body.ui-polish-v1.viewport-mobile .footer {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+html body.ui-polish-v1.viewport-mobile .header .container {
+  padding: 10px 12px !important;
+}
+html body.ui-polish-v1.viewport-mobile .header h1 {
+  font-size: 16.5px !important;
+  gap: 6px !important;
+  letter-spacing: 0.03em !important;
+  flex-wrap: nowrap !important;
+}
+html body.ui-polish-v1.viewport-mobile .ui-brand-name,
+html body.ui-polish-v1.viewport-mobile .ui-brand-accent {
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+html body.ui-polish-v1.viewport-mobile .ui-brand-mark {
+  width: 28px;
+  height: 28px;
+  font-size: 14px !important;
+}
+html body.ui-polish-v1.viewport-mobile .header p.header-origin-subtitle {
+  margin: 2px 0 0 34px !important;
+  font-size: 11px !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+html body.ui-polish-v1.viewport-mobile .header-right-tools {
+  gap: 6px !important;
+}
+html body.ui-polish-v1.viewport-mobile .kachi-viewport-toggle {
+  min-height: 26px !important;
+  height: 26px !important;
+  padding: 0 9px !important;
+  font-size: 11px !important;
+}
+html body.ui-polish-v1.viewport-mobile .ui-release-short {
+  padding: 3px 9px !important;
+  font-size: 11px !important;
+}
+
+/* Mobile Top Horizontal Snap-Scroll Pill Bar (all 7 tabs 1-tap reachable, zero overlap) */
+html body.ui-polish-v1.viewport-mobile .up-nav {
+  padding-inline: 0 !important;
+}
+html body.ui-polish-v1.viewport-mobile .up-nav-links {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  justify-content: flex-start !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+  gap: 8px !important;
+  padding: 8px 12px !important;
+  scrollbar-width: none;
+}
+html body.ui-polish-v1.viewport-mobile .up-nav-links::-webkit-scrollbar { display: none; }
+html body.ui-polish-v1.viewport-mobile .up-nav-links a {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: max-content !important;
+  scroll-snap-align: start;
+  min-height: 34px !important;
+  padding: 5px 14px !important;
+  font-size: 12.5px !important;
+  white-space: nowrap !important;
+}
+
+html body.ui-polish-v1.viewport-mobile main.container {
+  padding: 12px 12px 24px !important;
+}
+html body.ui-polish-v1.viewport-mobile #workspaceSearchPanel {
+  padding: 14px !important;
+}
+html body.ui-polish-v1.viewport-mobile .ux-kpi-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 9px !important;
+}
+html body.ui-polish-v1.viewport-mobile .ux-kpi-card {
+  padding: 12px 12px !important;
+}
+html body.ui-polish-v1.viewport-mobile .ux-kpi-value {
+  font-size: 19px !important;
+}
+html body.ui-polish-v1.viewport-mobile #marketOutlookNative section.controls,
+html body.ui-polish-v1.viewport-mobile #marketOutlookNative .mo-layout,
+html body.ui-polish-v1.viewport-mobile .stock-image-generator-grid,
+html body.ui-polish-v1.viewport-mobile #stockReportActionsPanel > .copy-actions,
+html body.ui-polish-v1.viewport-mobile .macdplus-export-actions,
+html body.ui-polish-v1.viewport-mobile .chips-board-layout,
+html body.ui-polish-v1.viewport-mobile .chips-detail-cols {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+html body.ui-polish-v1.viewport-mobile #marketOutlookNative .mo-price-grid,
+html body.ui-polish-v1.viewport-mobile .stock-chips-grid,
+html body.ui-polish-v1.viewport-mobile .macdplus-metrics-grid,
+html body.ui-polish-v1.viewport-mobile .macdplus-summary-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+html body.ui-polish-v1.viewport-mobile .chips-quad-rail {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 7px !important;
+}
+html body.ui-polish-v1.viewport-mobile .chips-quad-card {
+  min-height: 76px !important;
+  padding: 8px 4px !important;
+}
+html body.ui-polish-v1.viewport-mobile .chips-qc-num { font-size: 20px !important; }
+html body.ui-polish-v1.viewport-mobile .chips-qc-sub { font-size: 10px !important; }
+html body.ui-polish-v1.viewport-mobile .search-row {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 8px !important;
+}
+html body.ui-polish-v1.viewport-mobile #searchButton { width: 100% !important; }
+html body.ui-polish-v1.viewport-mobile .quick-actions { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+
+/* Mobile Fixed Bottom Navigation Dock */
+html body.ui-polish-v1.viewport-mobile .mobile-bottom-dock {
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9990;
+  background: rgba(14, 18, 38, 0.97);
+  border-top: 1px solid rgba(201, 162, 63, 0.42);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  padding: 6px 6px calc(6px + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -10px 30px rgba(4, 6, 18, 0.65);
+}
+html body.ui-polish-v1.viewport-mobile .mobile-bottom-dock button {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 2px !important;
+  min-height: 48px !important;
+  padding: 4px 2px !important;
+  margin: 0 !important;
+  border: 1px solid transparent !important;
+  border-radius: 10px !important;
+  background: transparent !important;
+  color: var(--washi-muted) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+  box-shadow: none !important;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+html body.ui-polish-v1.viewport-mobile .mobile-bottom-dock button i {
+  font-style: normal;
+  font-size: 16px;
+  line-height: 1.1;
+}
+html body.ui-polish-v1.viewport-mobile .mobile-bottom-dock button.is-active {
+  color: var(--gold-bright) !important;
+  background: rgba(201, 162, 63, 0.16) !important;
+  border-color: rgba(232, 204, 125, 0.46) !important;
+}
+
+/* Mobile Slide-Up Strategy Sheet */
+body.viewport-mobile .mobile-sheet-backdrop:not([hidden]) {
+  display: block !important;
+  position: fixed;
+  inset: 0;
+  z-index: 9991;
+  background: rgba(6, 8, 22, 0.68);
+  backdrop-filter: blur(4px);
+}
+body.viewport-mobile .mobile-strategy-sheet:not([hidden]) {
+  display: block !important;
+  position: fixed;
+  left: 10px;
+  right: 10px;
+  bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+  z-index: 9992;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(232, 204, 125, 0.48);
+  background: linear-gradient(180deg, rgba(26, 32, 64, 0.98), rgba(15, 19, 40, 0.99));
+  box-shadow: 0 16px 46px rgba(4, 6, 18, 0.78);
+}
+.mobile-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--gold-bright);
+}
+.mobile-sheet-close {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 162, 63, 0.42);
+  background: rgba(14, 18, 38, 0.85);
+  color: var(--washi-ink);
+  cursor: pointer;
+}
+.mobile-sheet-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+.mobile-sheet-grid button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(201, 162, 63, 0.28);
+  background: rgba(14, 18, 38, 0.86);
+  color: var(--washi-ink);
+  text-align: left;
+  cursor: pointer;
+}
+.mobile-sheet-grid button strong { font-size: 13.5px; color: var(--washi-ink); }
+.mobile-sheet-grid button small { font-size: 11px; color: var(--washi-muted); }
+.mobile-sheet-grid button.is-active {
+  border-color: var(--gold-bright);
+  background: rgba(201, 162, 63, 0.18);
+}
+
+/* Tablet fallback media queries when in desktop mode at medium widths */
+@media (max-width: 1140px) {
+  body.viewport-desktop .chips-board-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  body.viewport-desktop .chips-quad-rail {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  body.viewport-desktop .chips-quad-card { min-height: 82px; }
+  body.viewport-desktop #marketOutlookNative .mo-price-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 960px) {
+  body.viewport-desktop .up-nav-links {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+  body.viewport-desktop .ux-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  body.viewport-desktop #marketOutlookNative .mo-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

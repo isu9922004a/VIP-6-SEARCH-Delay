@@ -21,7 +21,7 @@ async function loadCalendar(snapshot,{fetch:fetcher=globalThis.fetch,url='./data
  const key=snapshot.date;let task=requests.get(key);
  if(!task){
   if(requests.size>8)requests.delete(requests.keys().next().value);
-  task=(async()=>{const urls=[url,'https://raw.githubusercontent.com/isu9922004a/VIP-BOWTOWER-4-SEARCH/main/data/market/research-calendar.json'];
+  task=(async()=>{const urls=[url,'https://raw.githubusercontent.com/liu060703-dev/VIP-6-SEARCH-Delay/main/data/market/research-calendar.json'];
    try{return await Promise.any(urls.map(async endpoint=>{const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),timeoutMs);try{const response=await fetcher(endpoint+'?asof='+snapshot.date+'&fresh='+Date.now(),{cache:'no-store',signal:controller.signal});if(!response.ok)throw Error('HTTP '+response.status);const result=calendar(await response.json(),snapshot);if(result.status!=='VERIFIED')throw Error(result.reason);return result;}finally{clearTimeout(timer);}}));}
    catch(error){return {status:'UNKNOWN',reason:'官方交易日尚未取得：'+[...new Set((error.errors||[error]).map(e=>e.message))].join('；')};}
   })();requests.set(key,task);task.then(result=>{if(result.status!=='VERIFIED'&&requests.get(key)===task)requests.delete(key);});

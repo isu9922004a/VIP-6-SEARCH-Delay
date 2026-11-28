@@ -658,7 +658,8 @@ async function setPreviewPage(index){
   const pageIndex=selected.index,page=selected.pages[pageIndex];
   // Keep the preview, download and native share attached to the same page.
   if(typeof original.show!=='function')throw Error('圖片預覽模組未載入');
-  const shown=await original.show(page,selected.names[pageIndex],selected.pages.length===1?selected.title:(selected.title+'｜第 '+(pageIndex+1)+'/'+selected.pages.length+' 頁'),{owner:selected});
+  window.ShitouMarketComfortReport?.mountReader?.(page);
+  const shown=await original.show(page,selected.names[pageIndex],selected.pages.length===1?selected.title:(selected.title+'｜第 '+(pageIndex+1)+'/'+selected.pages.length+' 頁'));
   if(shown===false||previewSet!==selected||selected.index!==pageIndex)return;
   const label=document.getElementById('r45PreviewPageLabel');if(label)label.textContent=previewSet.pages.length===1?'單一張完整長圖':`第 ${previewSet.index+1}／${previewSet.pages.length} 頁`;
   const prev=document.getElementById('r45PreviewPrev'),next=document.getElementById('r45PreviewNext');if(prev)prev.disabled=previewSet.index===0;if(next)next.disabled=previewSet.index===previewSet.pages.length-1;
@@ -666,21 +667,18 @@ async function setPreviewPage(index){
 
 function mountPreviewActions(){
   const actions=document.querySelector('#imagePreviewModal .image-modal-actions');if(!actions)return;
-  let group=actions.querySelector('#r45PreviewControls');
+  let group=actions.querySelector('.r45-preview-actions');
   if(!group){
-    group=document.createElement('div');group.id='r45PreviewControls';group.className='r45-preview-actions';
-    actions.closest('#imagePreviewModal').addEventListener('shitou-preview-change',event=>{
-      if(event.detail!==previewSet){previewSet=null;group.hidden=true;}
-    });
+    group=document.createElement('div');group.className='r45-preview-actions';
     group.innerHTML='<button id="r45PreviewPrev" type="button">← 上一頁</button><strong id="r45PreviewPageLabel"></strong><button id="r45PreviewNext" type="button">下一頁 →</button><button id="r45PreviewZip" type="button">⬇️ 下載完整 ZIP</button>';
     actions.append(group);
     group.querySelector('#r45PreviewPrev').addEventListener('click',()=>setPreviewPage((previewSet?.index||0)-1));
     group.querySelector('#r45PreviewNext').addEventListener('click',()=>setPreviewPage((previewSet?.index||0)+1));
     group.querySelector('#r45PreviewZip').addEventListener('click',async()=>{
-      if(!previewSet)return;const selected=previewSet,button=group.querySelector('#r45PreviewZip'),old=button.textContent;button.disabled=true;button.textContent='正在打包…';
+      if(!previewSet)return;const button=group.querySelector('#r45PreviewZip'),old=button.textContent;button.disabled=true;button.textContent='正在打包…';
       try{
-        const entries=[];for(let i=0;i<selected.pages.length;i++){if(selected!==previewSet)return;const value=await blob(selected.pages[i]);entries.push({name:selected.names[i],bytes:new Uint8Array(await value.arrayBuffer())});}
-        if(selected===previewSet)download(zip(entries),selected.zipName);
+        const entries=[];for(let i=0;i<previewSet.pages.length;i++){const value=await blob(previewSet.pages[i]);entries.push({name:previewSet.names[i],bytes:new Uint8Array(await value.arrayBuffer())});}
+        download(zip(entries),previewSet.zipName);
       }finally{button.disabled=false;button.textContent=old;}
     });
   }
@@ -723,7 +721,7 @@ async function generateStock(mode='beginner',withWatermark=false){
   // assistant/evidence strips over already complete V50 canvases.
   const professional=mode==='professional',renderer=professional?window.renderStockProfessionalInfographicV51:window.renderStockInfographicV46;
   if(typeof renderer!=='function')throw new Error('個股圖片產生器不存在');
-  let source=renderer(report);if(!source)throw new Error('個股圖片畫布不存在');if(window.ShitouKlineAttackReport)source=window.ShitouKlineAttackReport.appendStockCanvas(source,report);
+  const source=renderer(report);if(!source)throw new Error('個股圖片畫布不存在');
   let result;
   if(professional||source.dataset?.unifiedReport==='true'){
     if(withWatermark&&typeof original.watermark==='function')original.watermark(source,'stock');

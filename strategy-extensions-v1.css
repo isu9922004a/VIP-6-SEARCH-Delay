@@ -1,0 +1,13 @@
+/* Scope all extension visibility to the two added strategies. */
+body.workspace-v831:not([data-workspace-v831="filters"]) #mainForceLifelinePanel,
+body.workspace-v831:not([data-workspace-v831="filters"]) #lowBasePanel,
+body.workspace-v831[data-workspace-v831="filters"]:not([data-workspace-filter-v831="mainforce"]) #mainForceLifelinePanel,
+body.workspace-v831[data-workspace-v831="filters"]:not([data-workspace-filter-v831="lowbase"]) #lowBasePanel {display:none!important}
+body[data-workspace-filter-v831="mainforce"] #workspaceSearchPanel,
+body[data-workspace-filter-v831="lowbase"] #workspaceSearchPanel {display:none!important}
+#mainForceLifelinePanel,#lowBasePanel {scroll-margin-top:90px;max-width:100%;box-sizing:border-box}
+#mainForceLifelinePanel .cost97-actions{flex-wrap:wrap}
+#mainForceLifelinePanel .cost97-grid{min-width:0}
+#lowBasePanel .lowbase-controls{margin:0}
+#mainForceLifelinePanel button,#lowBasePanel button{min-height:44px}
+.up-nav-links{flex-wrap:wrap}

@@ -40,7 +40,7 @@ function render(scan){const summary=by('towerSummary'),list=by('towerList');if(s
 const towerPause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const towerTransientError=e=>!/Worker HTTP (?:400|401|403|404|405|410|422)\b|深掃格式錯誤/i.test(String(e?.message||e));
 async function fetchBatch(items,profile,options={}){
- const endpoint=typeof MARKET_API_BASE_URL!=='undefined'?MARKET_API_BASE_URL:'https://shitou-taiwanmarket-api.d318426.workers.dev';
+ const endpoint=typeof MARKET_API_BASE_URL!=='undefined'?MARKET_API_BASE_URL:'https://vip-6-market-api.liu060703.workers.dev';
  const timeoutMs=Number.isFinite(Number(options.timeoutMs))?Math.max(4000,Math.min(45000,Number(options.timeoutMs))):32000;
  const controller=new AbortController();let timedOut=false;
  const timer=setTimeout(()=>{timedOut=true;controller.abort();},timeoutMs);

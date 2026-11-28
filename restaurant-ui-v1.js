@@ -51,7 +51,7 @@ function render(scan){S.assertSnapshot(scan);last=scan;const host=by('Result');i
 }
 async function request(part,date,attempt=1,timeoutMs=REQUEST_TIMEOUT_MS){
  const controller=new AbortController();controllers.add(controller);const timer=setTimeout(()=>controller.abort(),Math.min(REQUEST_TIMEOUT_MS,timeoutMs));requests++;
- try{const base=typeof MARKET_API_BASE_URL!=='undefined'?MARKET_API_BASE_URL:'https://shitou-taiwanmarket-api.d318426.workers.dev',codes=part.map(i=>i.code).join(','),markets=part.map(i=>String(i.q.market).toUpperCase()).join(',');
+ try{const base=typeof MARKET_API_BASE_URL!=='undefined'?MARKET_API_BASE_URL:'https://vip-6-market-api.liu060703.workers.dev',codes=part.map(i=>i.code).join(','),markets=part.map(i=>String(i.q.market).toUpperCase()).join(',');
   const response=await fetch(`${base}/?market=DEEP_SCAN&profile=DAILY_ONLY&codes=${encodeURIComponent(codes)}&markets=${encodeURIComponent(markets)}&_restaurant_refresh=${Date.now()}_${attempt}`,{cache:'no-store',headers:{Accept:'application/json'},signal:controller.signal});
   if(!response.ok)throw Error('Worker HTTP '+response.status);const payload=await response.json();if(payload.type!=='MOMENTUM_DEEP_SCAN'||!Array.isArray(payload.results))throw Error('第五策略深掃格式錯誤');
   const aligned=await root.ShitouSelectionDataV2.harmonize(part,payload,'DAILY_ONLY');

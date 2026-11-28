@@ -7,15 +7,13 @@
 <meta charset="UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<link rel="stylesheet" href="./tower-design.css?v=V8.7.2">
 
-<title>石頭少爺 V9.29｜盤後研究與策略選股</title>
-<link rel="stylesheet" href="./enhanced-macd-v923.css?v=V9.23">
+<title>石頭少爺Agent V9.30</title>
 <script src="./scan-exclusions-rsi-v5328.js?v=V8.7.2"></script>
 <script src="./stock-query-runtime-v826.js?v=V8.7.2"></script>
 <script src="./report-watermark-v84.js?v=V8.7.2"></script>
 <link rel="stylesheet" href="./frontend-v84.css?v=V8.7.2">
-<script src="./version-v50.js?v=V9.29-CORE1"></script>
+<script src="./version-v50.js?v=V8.8-POSTCLOSE1"></script>
 <script src="./report-beginner-copy-v88.js?v=V8.8-COPY1"></script>
 
 <style>
@@ -1079,7 +1077,13 @@ body.dark .v46-reason,body.dark .v46-note,body.dark .v46-family{color:#d2dae7}bo
 
 /* RESTAURANT_FULLBLEED_1_BEGIN */
 @media(max-width:600px){
-
+ #imagePreviewModal[data-report-full-bleed="true"]{padding:0;display:none;background:#163c58}
+ #imagePreviewModal[data-report-full-bleed="true"].show{display:block}
+ #imagePreviewModal[data-report-full-bleed="true"] .image-modal-card{width:100%;max-width:none;margin:0;padding:0;border:0;border-radius:0;box-shadow:none}
+ #imagePreviewModal[data-report-full-bleed="true"] .image-modal-head{padding:10px 12px;margin:0}
+ #imagePreviewModal[data-report-full-bleed="true"] .image-preview-wrap{width:100%;margin:0;padding:0;border:0;border-radius:0;max-height:none;overflow:visible;background:#163c58}
+ #imagePreviewModal[data-report-full-bleed="true"] #imagePreviewImg{width:100%;max-width:none;height:auto;margin:0;padding:0;border:0;border-radius:0;box-shadow:none;object-fit:contain}
+ #imagePreviewModal[data-report-full-bleed="true"] .image-modal-actions,#imagePreviewModal[data-report-full-bleed="true"] .image-preview-note{padding:10px 12px;margin:0}
 }
 
 /* MARKET-ENTRY-POLISH-V1: homepage market actions only, no analytical changes. */
@@ -1177,20 +1181,28 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
 .strong-stock-reminder{background:#fff8df;border:1px solid #e9d588;border-radius:10px;padding:12px;line-height:1.7}
 </style>
 <link rel="stylesheet" href="./filter-unified-mobile-v1.css?v=V8.7.2">
-<link rel="stylesheet" href="./research-v83/workspace-v831.css?v=V8.7.2-ACTIONSFIRST1">
+<link rel="stylesheet" href="./research-v83/workspace-v831.css?v=9.1LX">
 <link rel="stylesheet" href="./ui-polish-v1.css?v=V8.8-MARKETTOP1">
-<link rel="stylesheet" href="./ui-simplify-v95.css?v=V9.5-UI1">
+<script src="./mario-theme-v930.js?v=V9.30-1"></script>
+<script src="./kachi-canvas-theme-v1.js?v=V9.30-1"></script>
 </head>
 
-<body class="ui-polish-v1">
+<body class="ui-polish-v1 dark-mode">
 
 <header class="header">
 
   <div class="container">
 
-    <h1><span class="ui-brand-mark">🪨</span> 石頭少爺 Agent <span class="ui-release-short">V9.29</span></h1>
-    <nav aria-label="策略捷徑" class="ui-inline-1"><a id="towerGoldShortcut" href="#towerGoldPanel" class="ui-inline-2" title="盤後新生 K0 全市場掃描">④ 主力生命線成本</a></nav>
-
+    <div class="header-brand-stack">
+      <h1>
+        <span class="ui-brand-mark" aria-hidden="true">🪨</span>
+        <span class="ui-brand-name">石頭少爺</span>
+        <span class="ui-brand-accent">Agent</span>
+        <span class="header-right-tools">
+          <span class="ui-release-short">V9.30</span>
+        </span>
+      </h1>
+    </div>
 
     <span class="version-pill">石頭少爺 Agent V50｜R5.3.2.8.1-TOWER-SHADOW.5.1-DATEGATE.1-REVIEW.2-OBSERVE.2-RESTAURANT.2-RSICTX.1-TOP8.1-SNAPFIX.1-NOPARALLEL.1-BUGFIX.1-FULLBLEED.1-IPHONECARD.1-MOBILE-LINE.1-HEALTH.3-STRUCTURE.1-UNIFIEDUI.1-DATASYNC.1-CLOSE.1｜RSI多週期暨餐廳前八強單張總覽版｜盤後資料｜強勢飆股新版主軸</span>
 
@@ -1202,11 +1214,11 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
 
   <section class="panel">
 
-    <label class="section-title v925-search-label" for="stockInput">股票代號或名稱</label>
+    <div class="section-title">🔎 輸入股票代號或中文名稱</div>
 
     <div class="search-row">
 
-      <input id="stockInput" class="stock-input" inputmode="search" maxlength="30" list="stockSuggestions" autocomplete="off" placeholder="例如：8039、台虹、4939、亞電" value="8039">
+      <input id="stockInput" class="stock-input" inputmode="search" maxlength="30" list="stockSuggestions" autocomplete="off" placeholder="例如：8039、台虹、4939、亞電" value="">
 
       <datalist id="stockSuggestions"></datalist>
 
@@ -1214,47 +1226,57 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
 
     </div>
 
-    <div class="quick-actions v925-toolbar" role="group" aria-label="查詢工具">
+    <div class="quick-actions">
       <button id="clearInputButton" class="mini-btn" type="button" onclick="clearStockInput()" title="清除股票輸入欄位">✕ 清除輸入</button>
-      <button id="themeToggleButton" class="mini-btn" type="button" onclick="toggleDarkMode()" aria-pressed="false" title="切換日間／夜間介面">🌙 夜間模式</button>
       <button id="reloadPageButton" class="mini-btn" type="button" onclick="reloadPage()" title="重新整理目前頁面（類似 F5）">🔄 重新整理</button>
     </div>
-    <div class="quick-actions v925-export-actions" role="group" aria-label="圖片報告匯出">
-      <button id="stockSimpleAnalysisButton" class="mini-btn" type="button" title="產生無浮水印個股精簡分析圖片">Ai模擬明日走勢圖片報告</button>
-      <button id="stockSimpleAnalysisWatermarkButton" class="mini-btn" type="button" title="產生含石頭少爺台股分析標題的浮水印版個股報告">浮水印版Ai模擬明日走勢圖片報告</button>
-    </div>
-
-
 
     <div class="market-shortcut">
-      <div class="section-title ui-inline-3">📈 台股大盤加權指數</div>
-      <div class="market-action-row">
-        <a class="market-outlook-entry" href="./market-outlook.html" aria-label="開啟獨立大盤趨勢推演">
-          <span class="market-outlook-entry-icon" aria-hidden="true">📈</span>
-          <span class="market-outlook-entry-copy">
-            <strong>獨立大盤趨勢推演</strong>
-          </span>
-          <span class="market-outlook-entry-arrow" aria-hidden="true">↗</span>
-        </a>
-        <button id="marketAnalyzeButton" class="btn market-btn market-quick-analyze" type="button" onclick="analyzeMarketIndex()">📈 一鍵分析台股大盤加權指數</button>
+      <div id="marketOutlookNative" class="market-outlook-native">
+        <div class="mo-intro">
+          <p class="mo-eyebrow">MARKET OUTLOOK</p>
+          <h1>大盤明天，<br>偏多、偏空，還是盤整？</h1>
+          <p class="mo-subtitle">單獨分析指數本身的走勢、技術線與重要點位。</p>
+        </div>
+        <section class="controls">
+          <input type="hidden" id="market-type" value="TAIEX">
+          <button id="market-refresh" type="button">🔄 重新載入大盤</button>
+          <button id="marketSimpleAnalysisButton" type="button">🖼️ Ai模擬明日走勢圖片報告</button>
+        </section>
+        <p id="simpleMarketReportStatus" role="status" aria-live="polite">載入完成後可產生單張圖片，並分享至 LINE。</p>
+        <p id="market-error" role="alert"></p>
+        <p id="market-source" class="mo-notice">尚未載入指數行情。此頁不讀取個股資料，也不使用個股選股結果。</p>
+        <div class="mo-layout">
+          <section class="mo-panel">
+            <h2>大盤一句話判讀</h2>
+            <div id="market-verdict" class="mo-verdict">等待指數資料</div>
+            <p id="market-plain">載入大盤本身的完成日K後，判讀目前趨勢與轉強／轉弱關卡。</p>
+            <div id="market-observations" aria-label="漲跌力道與關卡觀察"></div>
+            <p id="market-next" class="mo-divider">下一交易日模型推斷：尚無結果。</p>
+          </section>
+          <section class="mo-panel">
+            <h2>大盤技術走勢｜指數點數</h2>
+            <div id="market-chart"><p class="mo-muted">預留指數日K、均線與推演範圍。</p></div>
+            <p class="mo-legend"><span><i class="actual"></i>指數收盤</span><span><i class="ma5"></i>MA5</span><span><i class="ma20"></i>MA20</span><span><i class="prediction"></i>模型收盤中位數</span></p>
+            <p class="mo-mini">未來陰影為模型收盤取樣的10%～90%分位範圍，並非已校準機率。</p>
+          </section>
+        </div>
+        <section class="mo-panel"><h2>大盤重要關卡</h2><div id="market-levels" class="mo-price-grid"></div></section>
+        <section class="mo-panel"><h2>下一交易日三種劇本</h2><div id="market-scenarios">等待指數資料後建立續強、整理與轉弱條件。</div></section>
+        <section id="market-elliott" class="mo-panel" aria-label="波浪位置與兩種觀察情境"></section>
+        <section id="market-engulf-range"></section>
+        <section class="mo-panel"><h2>判斷依據</h2><div id="market-evidence">以指數OHLC、均線方向與歷史高低關卡判讀；模型另外使用同一指數的歷史資料推論。</div></section>
+        <footer class="mo-footer">本頁有獨立資料、研究日期與模型結果。採用指數本身的完成日K與可追溯Kronos輸出；執行收據核對狀態另行顯示；若模型過期或缺漏，明確顯示尚無結果。台股績效尚未驗證，取樣占比不是實際勝率。</footer>
       </div>
-
       <div id="marketLoading" class="loading">⏳ 正在取得臺灣加權股價指數資料並分析...</div>
       <div id="marketError" class="error"></div>
-
-<details class="help-fold"><summary>查看說明、時段與風險提醒</summary><div class="ui-help-content"><div class="hint">按一次取得臺灣加權股價指數正式盤後資料；先看市場是順風、震盪還是偏弱，再看價格三線、量能三線與波段回撤位置。ABC／N字保留作輔助，不把單一比例當成反轉答案。</div></div></details>
-</div>
+    </div>
 
     <div class="momentum-shortcut">
       <div class="section-title ui-inline-4">🚀 主動式主升掃描</div>
+<p class="ui-strategy-summary">找出正在轉強的股票，再核對量價與風險。</p>
 
-      <div class="rule ui-inline-6">
-        <label for="momentumDeepLimit">分析範圍</label>
-        <select id="momentumDeepLimit" class="ui-inline-7">
-          <option value="70">主升快篩排序前70檔（較快）</option><option value="140">主升快篩排序前140檔</option><option value="all">全部主升快篩合格股票（較久）</option>
-        </select>
-
-      </div>
+      <input type="hidden" id="momentumDeepLimit" value="all">
       <div class="momentum-action-row">
         <button id="momentumScanButton" class="btn momentum-btn" type="button" onclick="runMomentumScanV3769()">🚀 主動式主升掃描</button>
         <button id="momentumStopButton" class="momentum-stop-btn" type="button" onclick="stopMomentumScanV3762()">■ 停止掃描</button>
@@ -1270,18 +1292,12 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
 </div>
 
     <div class="daytrade-shortcut">
-      <div class="section-title ui-inline-4">⚡ 明日當沖盤前適配（已檢查突破警訊）</div>
+      <div class="section-title ui-inline-4">⚡ 明日當沖盤前適配</div>
+<p class="ui-strategy-summary">挑選下一交易日的觀察股，開盤後仍要確認。</p>
 
-      <div class="rule ui-inline-6">
-        <label for="dayTradeDeepLimit">分析範圍</label>
-        <select id="dayTradeDeepLimit" class="ui-inline-7">
-          <option value="70">快篩排序前 70 檔（較快）</option>
-          <option value="140">前140檔（沿用既有安全上限，避免資料服務超載）</option>
-        </select>
-
-      </div>
+      <input type="hidden" id="dayTradeDeepLimit" value="all">
       <div class="daytrade-action-row">
-        <button id="dayTradeScanButton" class="btn daytrade-btn" type="button" title="交易日建議 17:35～18:00 查詢；報告的市場日期與個股日期必須一致" onclick="runDayTradeScanV1()">⚡ 明日當沖盤前適配（已檢查突破警訊）</button>
+        <button id="dayTradeScanButton" class="btn daytrade-btn" type="button" title="交易日建議 17:35～18:00 查詢；報告的市場日期與個股日期必須一致" onclick="runDayTradeScanV1()">⚡ 明日當沖盤前適配</button>
         <button id="dayTradeStopButton" class="momentum-stop-btn" type="button" onclick="stopDayTradeScanV1()">■ 停止掃描</button>
       </div>
 
@@ -1305,15 +1321,12 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
 
 
     <div class="strong-stock-shortcut" id="strongStockShortcut">
-      <div class="section-title">🔎 第三套｜強勢飆股濾網（獨立策略）</div>
+      <div class="section-title">🔥 強勢飆股篩選</div>
+<p class="ui-strategy-summary">先找強勢候選，再檢查價格、量能與資料日期。</p>
 
 
 
-      <div class="rule ui-inline-8"><label for="strongStockDeepLimit">完整日 K 範圍</label>
-        <select id="strongStockDeepLimit" class="ui-inline-9">
-          <option value="70">快篩前70檔</option><option value="140" selected>快篩前140檔</option><option value="all">全部快篩合格股（可能需較久）</option>
-        </select>
-      </div>
+      <input type="hidden" id="strongStockDeepLimit" value="all">
       <div class="strong-stock-actions">
         <button id="strongStockScanButton" class="btn" type="button" onclick="runStrongStockScanV47()">🔎 查詢強勢飆股濾網</button>
         <button id="strongStockStopButton" class="momentum-stop-btn show" type="button" onclick="stopStrongStockScanV47()" disabled>■ 停止</button>
@@ -1324,6 +1337,49 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
 
 <details class="help-fold"><summary>查看說明、時段與風險提醒</summary><div class="ui-help-content"><div class="section-subtitle">新版主軸為「三盤轉折＋價格三線＋量能三線＋波段回撤量尺」：先找真正轉強，再量這一波已回吐多少；費波比例只描述位置，不保證反轉。條件分只代表結構完整度，不是勝率。</div><div class="strong-stock-reminder">📌 查詢前請先記分，再按「查詢強勢飆股濾網」。V50 沿用快篩合格股分批取得「完成日K」後直接在前端計算三盤、價格三線、量能三線與回撤位置。選股條件沒有放寬；看到 50%、61.8% 仍只代表觀察區，最後要等價格確認。資料日期不同就直接停止，不拿舊資料硬算。</div><div class="meta">資料實際取自 Market Worker 的 ALL_STOCKS；GitHub 專案內 latest.json 更新，不代表 Worker 一定已同步。</div><div class="meta">先快篩完整市場；共用七類排除條件，官方變更交易名單與市場同日才掃描。上限外僅屬尚未分析，不得算成淘汰或全市場零候選。</div><div id="strongStockProgressText" class="meta">等待盤後查詢…</div></div></details>
 </div>
+
+    <div class="macdplus-shortcut" id="macdPlusShortcut">
+      <div class="section-title">📊 強化 MACD+黃金交叉掃描</div>
+      <p class="ui-strategy-summary">尋找 MACD 剛黃金交叉、成交量適中且股本低於 50 億元的短線候選股。</p>
+      <div class="macdplus-disclaimer">⚠️ 回測資料不足｜尚無可驗證的歷史報酬樣本。Top 8 供隔日到 5 個交易日研究參考。</div>
+      <div class="strong-stock-actions">
+        <button id="macdPlusScanButton" class="btn" type="button" onclick="runMacdPlusScanV1()">📊 執行強化 MACD+ 掃描</button>
+        <button id="macdPlusStopButton" class="momentum-stop-btn show" type="button" onclick="stopMacdPlusScanV1()" disabled>■ 停止</button>
+      </div>
+      <div class="strong-stock-progress"><div id="macdPlusProgressBar"></div></div>
+      <div id="macdPlusProgressText" class="momentum-progress-text">等待盤後掃描…</div>
+      <div id="macdPlusError" class="error"></div>
+      <details class="help-fold">
+        <summary>查看入選條件、資料口徑與排名權重</summary>
+        <div class="ui-help-content">
+          <div class="section-subtitle">
+            <strong>入選條件：</strong><br>
+            • MACD（12、26、9）在最新完成交易日剛黃金交叉（須嚴格比較最近兩個市場交易日）<br>
+            • 成交量 2,000 至 10,000 張，含上下限（1 張 = 1,000 股）<br>
+            • 官方實收資本額大於 0 元且小於 50 億元<br>
+            • 排除生技醫療、金融保險、建材營造及非一般普通股商品（新版條件）
+          </div>
+          <div class="meta">
+            <strong>資料口徑：</strong>採交易所未還原收盤價。MACD 使用最近 100 根有效日 K，已核對的無收盤日不補價。新掛牌股至少有 50 根且自掛牌日完整核對才計算。除權息或拆併股可能影響訊號。
+          </div>
+          <div class="meta">
+            <strong>解讀與排名權重：</strong>MA20 取最近 20 根有效日 K，並與前 5 個交易日均量一同供解讀與排名（均量資料不足時量能項目計 0 分）。排名權重為 <strong>MACD 動能 35%</strong>、<strong>月線趨勢 25%</strong>、<strong>成交量增強 25%</strong>、<strong>突破與追高風險 15%</strong>。Top 8 供隔日到 5 個交易日研究參考。
+          </div>
+        </div>
+      </details>
+    </div>
+
+    <div class="chips-shortcut" id="chipsSectorShortcut">
+      <div class="chips-board-layout">
+        <aside id="chipsQuadRail" class="chips-quad-rail" aria-label="四象限板塊統計"></aside>
+        <div class="chips-center-col">
+          <div id="chipsBubbleToolbar" class="chips-toolbar"></div>
+          <div id="chipsBubbleChartHost" class="chips-bubble-host"></div>
+          <section id="chipsSectorDetail" class="chips-detail-panel" aria-label="板塊法人籌碼明細"></section>
+        </div>
+        <aside id="chipsSectorSidebar" class="chips-sidebar" aria-label="大盤籌碼與資金去向"></aside>
+      </div>
+    </div>
 
     <div id="loading" class="loading">⏳ 正在取得股票資料並分析...</div>
 
@@ -1432,6 +1488,31 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
 <div class="ui-export-group"><p class="ui-export-label">浮水印版（防盜）</p><button class="copy-btn watermark-image-btn" type="button" onclick="showStrongStockImageV47(false,true)">🛡️ 前8檔浮水印圖片</button><button class="copy-btn watermark-image-btn" type="button" onclick="showStrongStockImageV47(true,true)">🛡️ 全部候選浮水印圖片</button></div>
 </div>
       <div id="strongStockMessage" class="copy-message"></div>
+    </section>
+  </section>
+
+  <section id="macdPlusResult" class="momentum-result macdplus-result">
+    <section class="panel">
+      <div class="momentum-hero">
+        <div>
+          <div class="section-title">📊 強化 MACD+｜Top 8 短線候選排行</div>
+          <div id="macdPlusMeta" class="meta">-</div>
+        </div>
+      </div>
+      <div class="macdplus-disclaimer">⚠️ 回測資料不足｜尚無可驗證的歷史報酬樣本。除權息或拆併股可能影響訊號；Top 8 僅供隔日到 5 個交易日研究參考。</div>
+      <div class="momentum-summary-grid macdplus-summary-grid">
+        <div class="momentum-summary-card"><div class="k">全市場普通股</div><div id="macdPlusUniverseCount" class="v">-</div></div>
+        <div class="momentum-summary-card"><div class="k">股本＋量能初篩</div><div id="macdPlusPreFilterCount" class="v">-</div></div>
+        <div class="momentum-summary-card"><div class="k">MACD 核對數</div><div id="macdPlusScannedCount" class="v">-</div></div>
+        <div class="momentum-summary-card"><div class="k">金叉符合總數</div><div id="macdPlusQualifiedCount" class="v">-</div></div>
+      </div>
+      <details class="rule ui-inline-11"><summary class="ui-inline-12">查看全市場篩選與淘汰原因統計</summary><div id="macdPlusAudit" class="ui-inline-13"></div></details>
+      <div id="macdPlusList" class="momentum-list"></div>
+      <div class="macdplus-export-actions">
+        <button id="macdPlusImageButton" class="copy-btn image-btn" type="button" onclick="showMacdPlusImageV1()">🖼️ 產生 Top 8 圖片報告</button>
+        <button id="macdPlusCopyButton" class="copy-btn" type="button" onclick="copyMacdPlusTextV1()">📋 複製文字報告</button>
+      </div>
+      <div id="macdPlusMessage" class="copy-message"></div>
     </section>
   </section>
 
@@ -1972,7 +2053,6 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
             <div class="stock-image-generator-note">大字、短句、空手／持股分流，適合手機快速查看。</div>
             <div class="stock-image-generator-actions">
               <button id="generateStockBeginnerImageButton" class="copy-btn image-btn" type="button" onclick="generateStockBeginnerInfographicV51(false)">🖼️ 生成新手簡易個股圖片分析報告</button>
-              <button id="generateStockBeginnerWatermarkImageButton" class="copy-btn watermark-image-btn" type="button" onclick="generateStockBeginnerInfographicV51(true)">🛡️ 生成新手簡易個股圖片分析報告（防盜浮水印）</button>
             </div>
           </div>
           <div class="stock-image-generator-card" data-mode="professional">
@@ -1980,7 +2060,6 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
             <div class="stock-image-generator-note">保留完整技術資料，結論與操作說明同步改成白話。</div>
             <div class="stock-image-generator-actions">
               <button id="generateStockProfessionalImageButton" class="copy-btn image-btn" type="button" onclick="generateStockProfessionalInfographicV51(false)">🖼️ 生成專業個股圖片分析報告</button>
-              <button id="generateStockProfessionalWatermarkImageButton" class="copy-btn watermark-image-btn" type="button" onclick="generateStockProfessionalInfographicV51(true)">🛡️ 生成專業個股圖片分析報告（防盜浮水印）</button>
             </div>
           </div>
         </div>
@@ -1993,25 +2072,22 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
 
   </section>
 
-    <details class="help-fold"><summary>股票名稱與資料來源說明</summary><div class="hint">可輸入股票代號或繁體中文股票名稱，例如「8039」「台虹」「4939」「亞電」。已內建上市／上櫃股票代碼與名稱索引，中文名稱可直接快速解析；TWSE／TPEx 官方名稱清單仍會在背景載入校正。</div></details>
 </main>
 
 <div id="imagePreviewModal" class="image-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="imagePreviewTitle">
   <div class="image-modal-card">
-    <header class="image-modal-head">
-      <div id="imagePreviewTitle" class="image-modal-title">圖片報告</div>
-      <button class="image-modal-close" type="button" onclick="closeInfographicPreviewV3328()">✕ 關閉</button>
-    </header>
-    <div class="image-preview-wrap" tabindex="0" aria-label="圖片報告內容">
-      <img id="imagePreviewImg" alt="石頭少爺分析圖預覽">
-      <p id="imagePreviewNote" class="image-preview-note" role="status"></p>
+    <div class="image-modal-head">
+      <div id="imagePreviewTitle" class="image-modal-title">🖼️ 分析圖預覽</div>
+      <button class="image-modal-close" type="button" aria-label="關閉" onclick="closeInfographicPreviewV3328()">✕</button>
     </div>
-    <footer class="image-modal-footer">
-      <div class="image-modal-actions">
-        <a id="imageDownloadLink" class="image-save-link" download>💾 儲存 PNG</a>
-        <button id="imageShareButton" class="image-share-btn" type="button" onclick="shareInfographicV3328()">📤 分享到 LINE</button>
-      </div>
-    </footer>
+    <div class="image-preview-wrap">
+      <img id="imagePreviewImg" alt="石頭少爺分析圖預覽">
+    </div>
+    <div class="image-modal-actions">
+      <a id="imageDownloadLink" class="image-save-link" href="#" download>💾 儲存 PNG</a>
+      <button id="imageShareButton" class="image-share-btn" type="button" onclick="shareInfographicV3328()">📤 分享圖片</button>
+    </div>
+    <div id="imagePreviewNote" class="image-preview-note">圖片由目前盤後分析資料產生；實際尺寸會在生成後顯示。兩種版本都會放入同一份支撐壓力交叉驗證結果，也可另外生成防盜浮水印版。</div>
   </div>
 </div>
 
@@ -2264,7 +2340,7 @@ body.dark-mode .market-shortcut #marketAnalyzeButton.market-quick-analyze:hover{
 // ========================================================================
 
 const V40_RELEASE_LABEL=ShitouReleaseV50.release;
-const API_BASE_URL="https://shitou-agent-fib-api.d318426.workers.dev";
+const API_BASE_URL="https://vip-6-stock-api.liu060703.workers.dev";
 
 // V40：延續 GIS-KY 英文名稱修正；新增「戰術頸線突破」與「Fib B正式突破」角色隔離，避免B尚未突破卻被寫成支撐。
 // V40：角色一致性收尾——長文字價格地圖與新手「往下先看」同步納入有效戰術頸線；未正式突破B時，K線／量能文字改成「尚未有正式突破K可評分」。
@@ -2299,7 +2375,7 @@ const API_BASE_URL="https://shitou-agent-fib-api.d318426.workers.dev";
 // V40 新增「型態輔助觀察」：以既有突破品質、B回測、日20MA、量價、假突破風險與K棒訊號，輔助辨識突破延續／中途整理／假突破／高檔做頭風險；不硬套W底、M頭、頭肩底／頂、旗形或三角形名稱，不改Worker與既有核心計算。
 // V40 的 RECLAIM 固定倍數描述＋「🏆 股票」排版空格完整沿用。
 // 大盤 Worker 與個股 Worker 分開；V40 新增「波段階段輔助判讀」白話章節與新手短版；V40 的報告時間標示、V40 的 Fib 五層新手應對註解、V40 的排版整理完整沿用；V40 的重複 N 字修正完整沿用；V40 的B突破後回測防守語意完整沿用；V40 新手看這邊獨立複製、V40 價格作戰地圖、V40 ABC爬山白話解說、V40 清除輸入與夜間模式、V40 固定倍數關卡語意、V40 失效條件／歷史越過、V40 月線待確認、V40 大盤戰報邏輯全部沿用。
-const MARKET_API_BASE_URL="https://shitou-taiwanmarket-api.d318426.workers.dev";
+const MARKET_API_BASE_URL="https://vip-6-market-api.liu060703.workers.dev";
 
 const FRONTEND_REPORT_VERSION="2026-09-05-report-v3.7.7.7.39-b12-rc4-actiongate-ma60-consistency";
 
@@ -20513,6 +20589,10 @@ const INFOGRAPHIC_FONT_SCALE_V3333=1.16;
 // 舊版基準 1.16 保留；個股圖優先嘗試 1.23，若換行內容會超出既有欄位，drawWrapV3328 會自動退回安全倍率。
 const STOCK_INFOGRAPHIC_FONT_SCALE_V3776=1.23;
 const INFO_FONT_V3328='-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","Microsoft JhengHei",Arial,sans-serif';
+let infographicPreviewUrlV3328=null;
+let infographicPreviewBlobV3328=null;
+let infographicPreviewFilenameV3328="石頭少爺分析圖.png";
+let infographicPreviewTitleV3328="石頭少爺分析圖";
 
 function infoPaletteV3328(){
   return {
@@ -23065,16 +23145,56 @@ function sanitizeFilenameV3328(s){
   return String(s||"分析圖").replace(/[\\/:*?"<>|]+/g,"_").replace(/\s+/g,"_");
 }
 
-function showInfographicPreviewV3328(canvas, filename, title, options){
-  return window.ShitouImageShareV1.show(canvas, filename, title, options);
+function canvasBlobV3328(canvas){
+  return new Promise((resolve,reject)=>{
+    try{canvas.toBlob(blob=>blob?resolve(blob):reject(new Error("PNG 轉換失敗")),"image/png");}
+    catch(err){reject(err);}
+  });
+}
+
+async function showInfographicPreviewV3328(canvas,filename,title){
+  const request=window.ShitouReportPreviewEpoch=(window.ShitouReportPreviewEpoch||0)+1;
+  const shareReady=window.ShitouImageShareV1?.prepare(canvas,{filename});
+  const blob=await canvasBlobV3328(canvas);
+  if(request!==window.ShitouReportPreviewEpoch)return false;
+  if(infographicPreviewUrlV3328)URL.revokeObjectURL(infographicPreviewUrlV3328);
+  infographicPreviewUrlV3328=URL.createObjectURL(blob);
+  infographicPreviewBlobV3328=blob;
+  infographicPreviewFilenameV3328=filename;
+  infographicPreviewTitleV3328=title;
+  const modal=document.getElementById("imagePreviewModal"),img=document.getElementById("imagePreviewImg"),link=document.getElementById("imageDownloadLink"),head=document.getElementById("imagePreviewTitle"),share=document.getElementById("imageShareButton");
+  modal.dataset.reportFullBleed=canvas.dataset?.fullBleed==="true"?"true":"false"; // RESTAURANT_FULLBLEED_1
+  img.src=infographicPreviewUrlV3328;link.href=infographicPreviewUrlV3328;link.download=filename;head.textContent=`🖼️ ${title}｜PNG 預覽`;
+  let canShare=false;try{const f=new File([blob],filename,{type:"image/png"});canShare=!!(navigator.share&&navigator.canShare&&navigator.canShare({files:[f]}));}catch{}
+  if(!window.ShitouImageShareV1)share.style.display=canShare?"inline-flex":"none";
+  modal.classList.add("show");modal.setAttribute("aria-hidden","false");document.body.style.overflow="hidden";
+  await shareReady;
+  return request===window.ShitouReportPreviewEpoch;
 }
 
 function closeInfographicPreviewV3328(){
-  window.ShitouImageShareV1.close();
+  window.ShitouReportPreviewEpoch=(window.ShitouReportPreviewEpoch||0)+1;
+  window.ShitouImageShareV1?.clear();
+  infographicPreviewBlobV3328=null;
+  infographicPreviewFilenameV3328="";
+  if(infographicPreviewUrlV3328)URL.revokeObjectURL(infographicPreviewUrlV3328);
+  infographicPreviewUrlV3328=null;
+  document.getElementById("imagePreviewImg")?.removeAttribute("src");
+  document.getElementById("imageDownloadLink")?.removeAttribute("href");
+  const modal=document.getElementById("imagePreviewModal");modal.classList.remove("show");modal.setAttribute("aria-hidden","true");document.body.style.overflow="";
 }
 
-function shareInfographicV3328(){
-  return window.ShitouImageShareV1.shareCurrent();
+async function shareInfographicV3328(){
+  if(window.ShitouImageShareV1)return window.ShitouImageShareV1.shareCurrent();
+  if(!infographicPreviewBlobV3328)return;
+  const note=document.getElementById("imagePreviewNote");
+  try{
+    const file=new File([infographicPreviewBlobV3328],infographicPreviewFilenameV3328,{type:"image/png"});
+    if(!(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})))throw new Error("此瀏覽器不支援直接分享圖片檔");
+    await navigator.share({files:[file]});
+  }catch(err){
+    if(err?.name!=="AbortError")note.textContent=`分享未完成：${err?.message||"此裝置不支援"}。可改用「儲存 PNG」或長按預覽圖片。`;
+  }
 }
 
 async function generateStockInfographicV3328(withWatermark=false){
@@ -24033,33 +24153,25 @@ function clearStockInput(){
   }
 }
 
-function applyUiTheme(theme){
-  const isDark=theme==="dark";
-  document.body.classList.toggle("dark-mode",isDark);
-  const button=document.getElementById("themeToggleButton");
-  if(button){
-    button.textContent=isDark?"☀️ 日間模式":"🌙 夜間模式";
-    button.setAttribute("aria-pressed",String(isDark));
-    button.title=isDark?"切換為日間介面":"切換為夜間介面";
-  }
+function applyUiTheme(){
+  document.body.classList.add("dark-mode");
 }
 
 function toggleDarkMode(){
-  const nextTheme=document.body.classList.contains("dark-mode")?"light":"dark";
-  applyUiTheme(nextTheme);
-  try{localStorage.setItem(UI_THEME_STORAGE_KEY,nextTheme);}catch{}
+  applyUiTheme();
 }
 
 function initUiTheme(){
-  let savedTheme="light";
-  try{
-    const saved=localStorage.getItem(UI_THEME_STORAGE_KEY);
-    if(saved==="dark"||saved==="light")savedTheme=saved;
-  }catch{}
-  applyUiTheme(savedTheme);
+  applyUiTheme();
 }
 
 
+document.getElementById("imagePreviewModal")?.addEventListener("click",e=>{
+  if(e.target?.id==="imagePreviewModal")closeInfographicPreviewV3328();
+});
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"&&document.getElementById("imagePreviewModal")?.classList.contains("show"))closeInfographicPreviewV3328();
+});
 
 initUiTheme();
 
@@ -24964,7 +25076,7 @@ function momentumPositiveV377737(v){
   const x=momentumNumberV377737(v);return x!==null&&x>0?x:null;
 }
 function momentumDeepLimitV377737(){
-  const value=document.getElementById("momentumDeepLimit")?.value;
+  const value=document.getElementById("momentumDeepLimit")?.value||"all";
   return value==="all"?Infinity:value==="140"?140:MOMENTUM_DEEP_LIMIT_V3765;
 }
 async function loadMomentumMarketBundleV377737(){
@@ -27429,8 +27541,8 @@ function dayTradePositiveV377736(value){
 }
 
 function dayTradeDeepLimitV377736(){
-  const value=document.getElementById("dayTradeDeepLimit")?.value;
-  return value==="all"?DAYTRADE_SAFE_MAX_V41:value==="140"?140:DAYTRADE_DEEP_LIMIT_V1;
+  const value=document.getElementById("dayTradeDeepLimit")?.value||"all";
+  return value==="all"?Infinity:value==="140"?140:DAYTRADE_DEEP_LIMIT_V1;
 }
 
 function dayTradeGradeV377736(score,fake){
@@ -28278,7 +28390,7 @@ function buildDayTradePhase1PoolV1(bundle,limit=DAYTRADE_DEEP_LIMIT_V1){
   return {ranked,deep:ranked.slice(0,size),deferred:ranked.slice(size),financial,biotech,noQuote,liquidity};
 }
 
-const DAYTRADE_SCAN_BUTTON_TEXT_V53244="⚡ 明日當沖盤前適配（已檢查突破警訊）";
+const DAYTRADE_SCAN_BUTTON_TEXT_V53244="⚡ 明日當沖盤前適配";
 function restoreDayTradeButtonsV53244(){
   const btn=document.getElementById("dayTradeScanButton"),stopBtn=document.getElementById("dayTradeStopButton");
   if(btn){btn.disabled=false;btn.textContent=DAYTRADE_SCAN_BUTTON_TEXT_V53244;}
@@ -29580,7 +29692,7 @@ const buildDayTradeTextReportV1_V40_BASE=buildDayTradeTextReportV1;
 buildDayTradeTextReportV1=function(scan){return finalizeReportTextV40(buildDayTradeTextReportV1_V40_BASE(scan));};
 
 function upgradeTextNodeV40(node){
-  if(node.parentElement?.closest("#releaseDetails,.research-inline,[data-enhanced-macd-copy],[data-filter='structure']"))return;
+  if(node.parentElement?.closest("#releaseDetails,.research-inline,.up-nav,.header,#macdPlusShortcut,#macdPlusResult,#chipsSectorShortcut,#stockChipsCardV90,#mobileBottomDockV90,#mobileStrategySheetV90,#viewportModeToggleV90"))return;
   if(!node||node.nodeType!==Node.TEXT_NODE||!node.parentElement)return;
   if(node.parentElement.closest("script,style,.current-price-v40,.version-pill,footer strong"))return;
   const source=plainLanguageV40(node.nodeValue||"");
@@ -33363,7 +33475,7 @@ function v53248HumanizeNode(root){
   while(walker.nextNode())nodes.push(walker.currentNode);
   for(const node of nodes){
     const p=node.parentElement;
-    if(!p||["SCRIPT","STYLE","TEXTAREA"].includes(p.tagName)||p.closest(".version-pill,footer strong,#releaseDetails,.research-inline"))continue;
+    if(!p||["SCRIPT","STYLE","TEXTAREA"].includes(p.tagName)||p.closest(".version-pill,footer strong,#releaseDetails,.research-inline,.up-nav,.header,#macdPlusShortcut,#macdPlusResult,#chipsSectorShortcut,#stockChipsCardV90,#mobileBottomDockV90,#mobileStrategySheetV90,#viewportModeToggleV90"))continue;
     const next=v53248PlainText(node.nodeValue);
     if(next!==node.nodeValue)node.nodeValue=next;
   }
@@ -34062,7 +34174,7 @@ function v532410PolishNode(root){
   if(!root||typeof document==="undefined")return;
   const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);const nodes=[];let n;
   while((n=walker.nextNode()))nodes.push(n);
-  for(const node of nodes){const p=node.parentElement?.tagName;if(p==="SCRIPT"||p==="STYLE"||node.parentElement?.closest("#releaseDetails,.research-inline"))continue;const x=v532410PlainText(node.nodeValue);if(x!==node.nodeValue)node.nodeValue=x;}
+  for(const node of nodes){const p=node.parentElement?.tagName;if(p==="SCRIPT"||p==="STYLE"||node.parentElement?.closest("#releaseDetails,.research-inline,.up-nav,.header,#macdPlusShortcut,#macdPlusResult,#chipsSectorShortcut,#stockChipsCardV90,#mobileBottomDockV90,#mobileStrategySheetV90,#viewportModeToggleV90"))continue;const x=v532410PlainText(node.nodeValue);if(x!==node.nodeValue)node.nodeValue=x;}
 }
 function v532410PolishDayTradeUi(){
   ["dayTradeResult","shitoAssistantV47","industryEtfContextV47"].forEach(id=>v532410PolishNode(document.getElementById(id)));
@@ -34756,7 +34868,7 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 
 <script src="./technical-evidence-r45.js?v=V8.7.2"></script>
 <script src="./r45-integration.js?v=V8.7.2"></script>
-<script src="./r45-report-suite.js?v=V9.29-CORE1"></script>
+<script src="./r45-report-suite.js?v=V8.7.2-MARKETPAGE1-MARKETFRESH1-WAVESEPARATE1"></script>
 <script src="./teacher-three-pan-core.js?v=V8.7.2"></script>
 <script src="./shitou-wave-core-v48.js?v=V8.7.2"></script>
 <script src="./xiaomingdao-course-v52.js?v=V8.7.2"></script>
@@ -34764,7 +34876,7 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 <script src="./price-action-context-v1.js?v=V8.7.2-ENGULFRANGE1"></script>
 <script src="./selection-evidence-v1.js?v=V8.7.2-HISTORY1"></script>
 <script src="./worker-data-contract-v1.js?v=V8.7.2"></script>
-<script src="./research-official-history-v1.js?v=V9.29-CORE1"></script>
+<script src="./research-official-history-v1.js?v=V8.7.2-STREAMSCAN3"></script>
 <script src="./research-source-evidence-v1.js?v=V8.7.2"></script>
 <script src="./selection-data-v2.js?v=V8.7.2-STREAMSCAN3"></script>
 <script src="./selection-decision-v2.js?v=V8.7.2"></script>
@@ -34979,39 +35091,21 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 </script>
 
 <script src="./report-layout-v563.js?v=V8.7.2"></script>
-<script src="./shitou-v50-ui.js?v=V9.5-UI1"></script>
+<script src="./shitou-v50-ui.js?v=V8.7.2"></script>
 
-<script src="./teacher-three-pan-ui.js?v=V8.7.2"></script>
 <script src="./data/market/scan-exclusions.js?v=V8.7.2"></script>
 <script src="./scan-report-rsi-v5328.js?v=V8.7.2"></script>
 <script src="./stock-image-colors-v1.js?v=V8.7.2"></script>
 <script src="./tower-line-core.js?v=V8.7.2-SCANIMAGES2"></script>
-<script src="./tower-risk-adapter.js?v=V8.7.2"></script>
-<script src="./tower-trend-classifier.js?v=V8.7.2"></script>
-<script src="./tower-gold-scanner.js?v=V8.7.2"></script>
-<script src="./tower-report.js?v=V8.7.2"></script>
-<script src="./tower-design-ui.js?v=V8.7.2"></script>
-<script src="./tower-scan-export.js?v=V8.7.2"></script>
-<script src="./tower-fast-a.js?v=V8.7.2"></script>
-<script src="./tower-integration.js?v=V8.7.2"></script>
-<script src="./tower-scan-copy.js?v=V8.7.2"></script>
-<script src="./tower-beginner-guide.js?v=V8.7.2"></script>
-<script src="./tower-stock-report.js?v=V8.7.2"></script>
 <!-- DAYTRADE-140-FIX.1: activate existing bounded FULL candidate enrichment; no ranking or Gate changes -->
 <script src="./daytrade-r11-performance.js?v=V8.7.2"></script>
 <script src="./selection-evidence-integration-v1.js?v=V8.7.2"></script>
 <script src="./rsi-extended-v1.js?v=V8.7.2"></script>
 <script src="./indicator-shadow-v1.js?v=V8.7.2"></script>
-<script src="./indicator-shadow-ui-v1.js?v=V9.4-LIFE94-2"></script>
-<script src="./restaurant-filter-v1.js?v=V8.7.2-RESTAURANT6"></script>
-<script src="./restaurant-scanner-v1.js?v=V8.7.2-RESTAURANT6"></script>
-<link rel="stylesheet" href="./report-preview-v926.css?v=V9.29-CORE1">
-<script src="./mobile-image-share-v1.js?v=V9.29-CORE1"></script>
+<script src="./indicator-shadow-ui-v1.js?v=V8.7.2-RESTAURANT6"></script>
+<script src="./mobile-image-share-v1.js?v=V8.7.2-MARKETPAGE1"></script>
 <script src="./mobile-png-export-r5329.js?v=V8.7.2"></script>
-<script src="./restaurant-report-v1.js?v=V8.7.2-RESTAURANT6"></script>
-<script src="./enhanced-macd-v923.js?v=V9.23-THREE1"></script>
-<script src="./enhanced-macd-ui-v923.js?v=V9.23-THREE1"></script>
-<script src="./filter-unified-mobile-v1.js?v=V9.5-UI1"></script>
+<script src="./filter-unified-mobile-v1.js?v=V8.8-CLEAN1"></script>
 <script>
 // BPREWATCH.1: separate B-mode stop-falling observation from formally confirmed reversals.
 (function(){const v=window.ShitouReleaseV50;if(!v)return;
@@ -35027,27 +35121,19 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 <script src="./research-history-v1.js?v=V8.7.2"></script>
 <script src="./structure-context-v1.js?v=V8.7.2-ENGULFPLAIN2"></script>
 <script src="./research-beginner-v1.js?v=V8.7.2"></script>
-<script src="./research-chart-layout-v921.js?v=V9.4-LIFE94-2"></script>
-<script src="./research-life-source-audit-v932.js?v=V9.4-LIFE94-2"></script>
-<script src="./kline-life-03-core-v1.js?v=V9.4-LIFE94-2"></script>
-<script src="./kline-life-03-pages-v94.js?v=V9.7.2-LIFEVIS1"></script>
-<script src="./kline-life-03-viewer-v94.js?v=V9.29-CORE1"></script>
-<script src="./life-line-visual-v972.js?v=V9.7.2-LIFEVIS1"></script>
-<script src="./life-line-visual-v98.js?v=V9.12-ETF-RESEARCH1"></script>
-<script src="./kline-life-03-report-v1.js?v=V9.12-ETF-RESEARCH1"></script>
-<script src="./research-chart-v1.js?v=V9.4-LIFE94-2"></script>
+<script src="./research-chart-v1.js?v=V8.8-COPY1"></script>
 <script src="./elliott-wave-v1.js?v=V8.8-HIERARCHY1"></script>
-<script src="./elliott-wave-visual-v1.js?v=V8.8-HIERARCHY1"></script>
+<script src="./elliott-wave-visual-v1.js?v=V8.8-NATIVE1"></script>
 <script src="./wave-postclose-context-v1.js?v=V8.7.2-POSTCLOSE1"></script>
 <script src="./elliott-wave-stock-beginner-v1.js?v=V8.8-HIERARCHY1"></script>
 <script src="./elliott-wave-market-beginner-v1.js?v=V8.8-HIERARCHY1"></script>
-<script src="./elliott-wave-report-v1.js?v=V8.8-HIERARCHY1"></script>
+<script src="./elliott-wave-report-v1.js?v=V8.8-NATIVE1"></script>
 <script src="./unified-analysis-v1.js?v=V8.7.2-ELLIOTT3"></script>
 <script src="./research-n-continuation-v1.js?v=V8.7.2"></script>
 <script src="./research-entry-direction-v1.js?v=V8.7.2"></script>
 <script src="./research-query-fallback-v1.js?v=V8.7.2"></script>
 <script src="./research-opening-plan-v1.js?v=V8.7.2"></script>
-<script src="./four-models-research-v1.js?v=V9.4-LIFE94-2"></script>
+<script src="./four-models-research-v1.js?v=V8.7.2-ELLIOTT1"></script>
 <script src="./research-zh-tw-v1.js?v=V8.7.2"></script>
 <!-- V8.7.2: real, identity-checked Kronos results; missing results remain unavailable. -->
 <link rel="stylesheet" href="./research-v83/stock-fifth-module.css?v=V8.7.2">
@@ -35060,26 +35146,24 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 <script src="./research-v83/forecast-engine.js?v=V8.7.2-NETWORKRECOVERY1"></script>
 <script src="./research-v83/kronos-data.js?v=V8.7.2-NETWORKRECOVERY1"></script>
 <script src="./research-action-guide-v1.js?v=V8.7.2-ENGULFRANGE2"></script>
-<script src="./research-report-v1.js?v=V9.29"></script>
-<script src="./engulf-range-report-v1.js?v=V8.8-COPY1"></script>
+<script src="./research-report-v1.js?v=V8.8-COPY1"></script>
+<script src="./engulf-range-report-v1.js?v=V8.8-NATIVE1"></script>
 <script src="./drax-price-reminder-v1.js?v=V8.7.2"></script>
-<script src="./research-integration-v1.js?v=V9.29-CORE1"></script>
-<script src="./research-v83/stock-simple-report.js?v=V9.29-CORE1"></script>
+<script src="./research-integration-v1.js?v=V8.8-CLEAN2"></script>
+<script src="./research-v83/stock-simple-report.js?v=V8.8-CLEAN6"></script>
 <script src="./stock-audit-alert-v82.js?v=V8.7.2"></script>
-<script src="./release-compact-v1.js?v=V9.29-CORE1"></script>
+<script src="./release-compact-v1.js?v=V9.30-1"></script>
+<link rel="stylesheet" href="./research-v83/market-simple-report.css?v=V8.8-NATIVE1">
 <link rel="stylesheet" href="./ui-polish-v85.css?v=V8.7.2">
-<script src="./ui-polish-v85.js?v=V9.5-UI1" defer></script>
-
-<script src="./kline-attack-v90.js?v=V9.4-LIFE94-2"></script>
-<script src="./kline-attack-report-v90.js?v=V9.4-LIFE94-2"></script>
-<script src="./strategy-low-base-breakout-v929.js?v=V9.29-CORE1"></script>
-<script src="./strategy-low-base-lifecycle-v929.js?v=V9.29-CORE1"></script>
-<script src="./strategy-low-base-scanner-v929.js?v=V9.29-CORE1"></script>
-<script src="./strategy-low-base-report-v929.js?v=V9.29-CORE1"></script>
-<script src="./strategy-low-base-fundamentals-v929.js?v=V9.29-CORE1"></script>
-<script src="./strategy-low-base-ui-v929.js?v=V9.29-CORE1"></script>
-<link rel="stylesheet" href="./research-ui-v921.css?v=V9.4-LIFE94-2">
-<link rel="stylesheet" href="./market-life-v96.css?v=V9.6-MARKETLIFE1">
+<link rel="stylesheet" href="./ux-enhance-v1.css?v=9.1LX">
+<script src="./viewport-mode-v90.js?v=INTEGRATED1"></script>
+<script src="./ui-polish-v85.js?v=INTEGRATED1" defer></script>
+<script src="./strategy-enhance-v1.js?v=V8.8-UX1" defer></script>
+<script src="./ux-enhance-v1.js?v=9.1LX" defer></script>
+<script src="./enhanced-macd-v923.js?v=INTEGRATED1"></script>
+<script src="./macd-plus-filter-v1.js?v=INTEGRATED1"></script>
+<script src="./macd-plus-ui-v1.js?v=INTEGRATED1"></script>
+<script src="./chips-sector-ui-v1.js?v=9.1LX"></script>
 </body>
 
 </html>
@@ -35087,32 +35171,48 @@ document.querySelectorAll(".version-pill,footer strong").forEach(el=>{if(/石頭
 
 <script src="./market-research-v1.js?v=V8.7.2-ENGULFRANGE1"></script>
 <script src="./research-market-integration-r13.js?v=V8.7.2"></script>
-<script src="./research-v83/workspace-v831.js?v=V9.25"></script>
+<script src="./research-v83/workspace-v831.js?v=INTEGRATED1"></script>
 
 
 <script src="./research-v83/market-freshness.js?v=V8.8-POSTCLOSE1"></script>
-<script src="./market-report-comfort-v864.js?v=V9.29-CORE1"></script>
-<script src="./market-report-refresh-v864.js?v=V9.29-CORE1"></script>
-<script src="./stock-professional-v84.js?v=V9.4-LIFE94-2"></script>
+<script src="./research-v86/market-regime.js?v=V8.7.2"></script>
+<script src="./research-v83/market-engine.js?v=V8.7.2-ELLIOTT1"></script>
+<script src="./research-v83/market-simple-report.js?v=V8.8-CLEAN6"></script>
+<script src="./research-v83/market.js?v=V8.8-NATIVE1"></script>
+<script src="./market-report-comfort-v864.js?v=V8.8-WAVE-EVIDENCE1"></script>
+<script src="./market-report-refresh-v864.js?v=V8.8-WAVE-EVIDENCE1"></script>
+<script src="./stock-professional-v84.js?v=V8.8-COPY1"></script>
 
 
 <script src="./kronos-future-core-v1.js?v=V8.8-WAVE-EVIDENCE1"></script>
 <script src="./kronos-future-share-config-v873.js?v=V8.8-SHARES1"></script>
 <script src="./kronos-future-shares-v873.js?v=V8.8-SHARES1"></script>
-<script src="./kronos-future-report-v1.js?v=V9.29-CORE1"></script>
-<script src="./ui-simplify-v95.js?v=V9.5-UI1" defer></script>
+<script src="./kronos-future-report-v1.js?v=V8.8-NATIVE3"></script>
 
-<script src="./market-life-source-audit-v96.js?v=V9.6-MARKETLIFE1"></script>
-<script src="./market-life-report-v96.js?v=V9.6-MARKETLIFE1"></script>
-<script src="./market-life-ui-v96.js?v=V9.29-CORE1"></script>
+<!-- User-requested strategy additions; baseline application modules remain mounted. -->
+<link rel="stylesheet" href="./main-force-lifeline-v97.css?v=INTEGRATED1">
+<link rel="stylesheet" href="./strategy-extensions-v1.css?v=INTEGRATED1">
+<script src="./strategy-extensions-v1.js?v=INTEGRATED1"></script>
+<script src="./restaurant-filter-v1.js?v=INTEGRATED1"></script>
+<script src="./research-chart-layout-v921.js?v=INTEGRATED1"></script>
+<script src="./research-life-source-audit-v932.js?v=INTEGRATED1"></script>
+<script src="./kline-life-03-core-v1.js?v=INTEGRATED1"></script>
+<script src="./kline-life-03-report-v1.js?v=INTEGRATED1"></script>
+<script src="./kline-life-03-pages-v94.js?v=INTEGRATED1"></script>
+<script src="./kline-life-03-viewer-v94.js?v=INTEGRATED1"></script>
+<script src="./life-line-visual-v972.js?v=INTEGRATED1"></script>
+<script src="./main-force-lifeline-core-v97.js?v=INTEGRATED1"></script>
+<script src="./main-force-lifeline-scanner-v97.js?v=INTEGRATED1"></script>
+<script src="./main-force-lifeline-ranking-v971.js?v=INTEGRATED1"></script>
+<script src="./main-force-lifeline-report-v97.js?v=INTEGRATED1"></script>
+<script src="./main-force-lifeline-ui-v97.js?v=INTEGRATED1"></script>
+<script src="./kline-attack-v90.js?v=INTEGRATED1"></script>
+<script src="./kline-attack-report-v90.js?v=INTEGRATED1"></script>
+<script src="./strategy-low-base-breakout-v929.js?v=INTEGRATED1"></script>
+<script src="./strategy-low-base-lifecycle-v929.js?v=INTEGRATED1"></script>
+<script src="./strategy-low-base-scanner-v929.js?v=INTEGRATED1"></script>
+<script src="./strategy-low-base-report-v929.js?v=INTEGRATED1"></script>
+<script src="./strategy-low-base-fundamentals-v929.js?v=INTEGRATED1"></script>
+<script src="./strategy-low-base-ui-v929.js?v=INTEGRATED1"></script>
 
-<link rel="stylesheet" href="./main-force-lifeline-v97.css?v=V9.18-COST97-CONTRAST1">
-<link rel="stylesheet" href="./ui-feedback-v923.css?v=V9.23-UIFEEDBACK.2">
-<script src="./main-force-lifeline-core-v97.js?v=V9.7.2-LIFEVIS1"></script>
-<script src="./main-force-lifeline-scanner-v97.js?v=V9.7.2-LIFEVIS1"></script>
-<script src="./main-force-lifeline-ranking-v971.js?v=V9.7.2-LIFEVIS1"></script>
-<script src="./main-force-lifeline-report-v97.js?v=V9.7.2-LIFEVIS1"></script>
-<script src="./main-force-lifeline-ui-v97.js?v=V9.7.2-LIFEVIS1"></script>
-<script src="./ui-feedback-v923.js?v=V9.23-UIFEEDBACK.2" defer></script>
-<link rel="stylesheet" href="./ui-minimal-v925.css?v=V9.25-UI1">
-<script src="./ui-minimal-v925.js?v=V9.25-UI1" defer></script>
+<link rel="stylesheet" href="./mario-theme-v930.css?v=V9.30-1">

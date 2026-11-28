@@ -3,19 +3,19 @@
 'use strict';
 const Copy=typeof module==='object'&&module.exports?require('../report-beginner-copy-v88.js'):globalThis.ShitouReportCopyV88;
 const explain=value=>Copy?Copy.line(value):String(value??'');
-const TITLE='個股精簡分析',VERSION='V9.29',WATERMARK='石頭少爺台股分析'+VERSION+'版',TOPIC='明天可能怎麼走？該怎麼做？',W=1284,MIN_H=2778,MAX_H=8192;
+const TITLE='個股精簡分析',VERSION='V8.8',WATERMARK='石頭少爺台股分析'+VERSION+'版',TOPIC='明天可能怎麼走？該怎麼做？',W=1284,MIN_H=2778,MAX_H=8192;
 const V=typeof module==='object'&&module.exports?require('../elliott-wave-visual-v1.js'):root.ShitouElliottVisual;
 const titleFor=()=>TITLE;
 function model(a,{watermarked=false}={}){if(!a?.code||!a.date)throw Error('請先完成個股查詢，再產生精簡分析。');const section=R.view(a).actionGuide.sections.find(s=>s.number==='05'),narrative=section?.fullNarrative||section?.narrative;if(!narrative?.length)throw Error('完整個股分析模組尚未載入。');
- return {title:titleFor(watermarked),watermarked:!!watermarked,topic:TOPIC,name:a.name||a.code,code:String(a.code),date:a.date,close:a.sourceBars?.at(-1)?.close??a.quote?.close,version:VERSION,baseBlockCount:narrative.length,blocks:[...narrative.map(b=>({...b})),...(a.klineAttack?[{kind:'heading',text:'K線攻防：接下來看什麼？'},...a.klineAttack.lines.map(text=>({kind:'body',text}))]:[])],modelRun:section.forecast?.executionVerified===true,sourceState:section.forecast?.state||'UNAVAILABLE',structureStrength:section.structureStrength||null,reportObservations:section.reportObservations||null};
+ return {title:titleFor(watermarked),watermarked:!!watermarked,topic:TOPIC,name:a.name||a.code,code:String(a.code),date:a.date,close:a.sourceBars?.at(-1)?.close??a.quote?.close,version:VERSION,blocks:narrative.map(b=>({...b})),modelRun:section.forecast?.executionVerified===true,sourceState:section.forecast?.state||'UNAVAILABLE',structureStrength:section.structureStrength||null,reportObservations:section.reportObservations||null};
 }
 function page(a,{document:doc=root.document,watermarked=false}={}){const wave=null,chartHeight=wave?.bars?.length?740:0,data=model(a,{watermarked}),canvas=doc.createElement('canvas');let H=MIN_H;canvas.width=W;canvas.height=H;const ctx=canvas.getContext('2d'),M=28,CW=W-2*M,padding=32,textW=CW-padding*2,colors={text:'#f0f6fb',muted:'#b8d9e9',yellow:'#f7cf70',aqua:'#79e4d1',red:'#ff9a91'};
  const font=(size,bold)=>{ctx.font=`${bold?750:600} ${size}px "Microsoft JhengHei","Segoe UI Emoji",sans-serif`;};
  const wrap=(text,size,bold=false)=>{font(size,bold);return R.wrap(ctx,text,textW);};
- let layout;for(const body of [38,37,36,35,34,33,32]){const blocks=data.blocks.map(b=>{const size=b.kind==='headline'?body+6:b.kind==='heading'?body+4:b.kind==='subheading'?body+1:b.kind==='notice'||b.kind==='footnote'?30:body,line=size+12,bold=['headline','heading','subheading','summary'].includes(b.kind),lines=wrap(b.text,size,bold),gap=b.kind==='heading'?18:b.kind==='subheading'?12:7;return {...b,size,line,bold,lines,height:lines.length*line+gap};}),top=140,header=218,gap=14,title=64,bottom=104,bodyHeight=title+blocks.reduce((n,b)=>n+b.height,0)+20,total=top+header+gap+chartHeight+bodyHeight+bottom+42,baseTotal=total-blocks.slice(data.baseBlockCount).reduce((n,b)=>n+b.height,0);
+ let layout;for(const body of [38,37,36,35,34,33,32]){const blocks=data.blocks.map(b=>{const size=b.kind==='headline'?body+6:b.kind==='heading'?body+4:b.kind==='subheading'?body+1:b.kind==='notice'||b.kind==='footnote'?30:body,line=size+12,bold=['headline','heading','subheading','summary'].includes(b.kind),lines=wrap(b.text,size,bold),gap=b.kind==='heading'?18:b.kind==='subheading'?12:7;return {...b,size,line,bold,lines,height:lines.length*line+gap};}),top=140,header=218,gap=14,title=64,bottom=104,bodyHeight=title+blocks.reduce((n,b)=>n+b.height,0)+20,total=top+header+gap+chartHeight+bodyHeight+bottom+42;
   // Keep the existing compact layout when it fits. Longer narratives extend
   // the PNG at the minimum readable font instead of dropping text or failing.
-  if(baseTotal<=MIN_H||body===32){H=Math.max(MIN_H,Math.ceil(total));if(H>MAX_H)throw Error('完整報告超過長圖容量，請改用完整文字報告。');layout={body,blocks,top,header,gap,title,bottom,bodyHeight,extra:H-total};break;}}
+  if(total<=H||body===32){H=Math.max(MIN_H,Math.ceil(total));if(H>MAX_H)throw Error('完整報告超過長圖容量，請改用完整文字報告。');layout={body,blocks,top,header,gap,title,bottom,bodyHeight,extra:H-total};break;}}
  canvas.height=H; // Resizing resets context state; draw() reapplies each font.
  const panel=(y,h)=>{ctx.fillStyle='#10344f';ctx.beginPath();ctx.roundRect(M,y,CW,h,24);ctx.fill();ctx.strokeStyle='#28627d';ctx.lineWidth=2;ctx.stroke();};
  const draw=(lines,x,y,size,color,bold=false,line=size+12)=>{font(size,bold);ctx.fillStyle=color;lines.forEach((t,i)=>ctx.fillText(t,x,y+i*line));};
@@ -28,7 +28,7 @@ function page(a,{document:doc=root.document,watermarked=false}={}){const wave=nu
  const audit={wordingVersion:Copy?.VERSION,chart:chartAudit,elliottWave:wave?{headline:wave.headline,clarity:wave.clarity}:null,watermarkStyle:watermarked?'REFERENCE_DIAGONAL_V84':null,title:data.title,watermarked:data.watermarked,topic:TOPIC,width:W,height:H,extendedHeight:H>MIN_H,code:data.code,date:data.date,version:data.version,bodyFont:layout.body,bodyBottom:y,onlyFifthSection:true,completeNarrative:true,sourceBlocks:data.blocks,structureStrength:data.structureStrength,reportObservations:data.reportObservations,modelRun:data.modelRun,sourceState:data.sourceState,noClipping:y<=H-104,topSafeArea:140,bottomSafeArea:104};
  if(!audit.noClipping)throw Error('獨立報告超出安全區，停止匯出。');canvas.dataset.researchAudit=JSON.stringify(audit);return {width:W,height:H,dataset:{researchAudit:JSON.stringify(audit)},renderExportRegion:()=>canvas,toBlob:(cb,type='image/png')=>canvas.toBlob(cb,type)};
 }
-let activeUrl=null,activeImageBlob=null,activeImageFile=null;
+let activeUrl=null,activeImageBlob=null,activeImageFile=null,sharePending=false;
 // The stock picker displays "名稱 | 代號"; compare its two exact fields,
  // not the entire decorated input, while still rejecting a different stock.
 function matchesCurrentStockInput(value,a){
@@ -44,7 +44,7 @@ function current(){const stock=root.ShitouResearchIntegration?.getCurrentStock?.
 function status(text){let node=root.document.getElementById('simpleStockReportStatus');if(!node){node=root.document.createElement('p');node.id='simpleStockReportStatus';node.setAttribute('role','status');root.document.getElementById('stockSimpleAnalysisButton')?.parentElement.after(node);}node.textContent=text;}
 function close(){
  root.document.getElementById('simpleStockReportDialog')?.close();
- if(activeUrl){root.ShitouImageShareV1.release(activeUrl);activeUrl=null;}
+ if(activeUrl){URL.revokeObjectURL(activeUrl);activeUrl=null;}
  activeImageBlob=null;activeImageFile=null;
 }
 function shareNotice(message){
@@ -52,12 +52,43 @@ function shareNotice(message){
  if(node)node.textContent=message;
 }
 function shareCurrentImage(){
- const file=activeImageFile, blob=activeImageBlob;
- return root.ShitouImageShareV1.shareCompact({file,blob,button:root.document.getElementById('simpleStockLineShareButton'),
-  status:shareNotice,isCurrent:()=>activeImageBlob===blob&&root.document.getElementById('simpleStockReportDialog')?.open===true});
+ const blob=activeImageBlob,file=activeImageFile,button=root.document.getElementById('simpleStockLineShareButton'),nav=root.navigator;
+ if(sharePending)return;
+ if(!blob?.size){shareNotice('圖片尚未備妥，請先重新產生報告。');return;}
+ // All share/clipboard calls are started directly inside the click event.
+ // Do not await image encoding or fetch before invoking native share.
+ const mobile=/iPhone|iPad|iPod|Android/i.test(nav?.userAgent||'')||(nav?.platform==='MacIntel'&&nav?.maxTouchPoints>1);
+ const clipboardAvailable=typeof nav?.clipboard?.write==='function'&&typeof root.ClipboardItem==='function';
+ const supportedFileShare=typeof nav?.share==='function'&&file&&
+  (typeof nav.canShare!=='function'||(()=>{try{return nav.canShare({files:[file]});}catch(_){return false;}})());
+ const applyPending=value=>{sharePending=value;if(button)button.disabled=value;};
+ const finish=(request,success)=>{
+  applyPending(true);
+  Promise.resolve(request).then(()=>shareNotice(success)).catch(error=>{
+   shareNotice(error?.name==='AbortError'?
+    '已取消系統分享；圖片仍保留，可再次按分享。':
+    '分享未完成：'+(error?.message||'裝置未支援')+'。可改用「下載 PNG」，從 LINE 聊天室傳送。');
+  }).finally(()=>applyPending(false));
+ };
+ // On desktop prefer copying the PNG for direct paste into the LINE desktop app.
+ if(supportedFileShare&&(mobile||!clipboardAvailable)){
+  try{
+   // Share the actual PNG file, not a webpage URL or a stock-report link.
+   finish(nav.share({files:[file]}),'已交給系統分享流程；請在 LINE 聊天室確認是否送出。');
+  }catch(error){shareNotice('開啟系統分享失敗：'+(error?.message||'請改用下載 PNG')+'。');}
+  return;
+ }
+ if(clipboardAvailable){
+  try{
+   finish(nav.clipboard.write([new root.ClipboardItem({'image/png':blob})]),
+    '✅ 已複製完整 PNG 圖片。請開啟 LINE 電腦版聊天室，按 Ctrl+V（Mac：⌘V）貼上後送出。');
+  }catch(error){shareNotice('複製圖片失敗：'+(error?.message||'權限不足')+'。請先下載 PNG，再到 LINE 傳送。');}
+  return;
+ }
+ shareNotice('此瀏覽器不支援直接分享或複製 PNG。請先按「下載 PNG」，再從 LINE 聊天室傳送。手機建議使用 Safari 或 Chrome 開啟。');
 }
 let opening=false;
-async function open(watermarked=false){if(opening)return null;opening=true;const triggers=["stockSimpleAnalysisButton","stockSimpleAnalysisWatermarkButton"].map(id=>root.document.getElementById(id)).filter(Boolean);triggers.forEach(b=>{b.disabled=true;b.setAttribute('aria-busy','true');});try{const a=current();await root.ShitouKronosData?.ensure(a);if(current().code!==a.code||current().date!==a.date)throw Error('查詢已變更，請重新產生目前個股的報告。');const oldGuide=root.document.getElementById('researchStock')?.querySelector('.research-action-guide');if(oldGuide&&root.ShitouResearchActionGuide?.mount)oldGuide.replaceWith(root.ShitouResearchActionGuide.mount(root.document,R.view(a).actionGuide));if(root.document.fonts?.ready)await root.document.fonts.ready;const result=page(a,{watermarked}),blob=await new Promise(resolve=>result.toBlob(resolve));if(!blob?.size)throw Error('PNG產生失敗。');if(current().code!==a.code||current().date!==a.date||current().sourceSnapshotId!==a.sourceSnapshotId)throw Error('查詢已更新，請重新產生目前報告。');if(activeUrl)root.ShitouImageShareV1.release(activeUrl);activeUrl=URL.createObjectURL(blob);activeImageBlob=blob;let dialog=root.document.getElementById('simpleStockReportDialog');if(!dialog){dialog=root.document.createElement('dialog');dialog.id='simpleStockReportDialog';dialog.setAttribute('aria-label',TITLE+'圖片預覽');dialog.addEventListener('close',()=>{if(activeUrl)root.ShitouImageShareV1.release(activeUrl);activeUrl=null;activeImageBlob=null;activeImageFile=null;});root.document.body.append(dialog);}dialog.replaceChildren();const title=root.document.createElement('h2');title.textContent=TITLE+'｜'+a.name+'（'+a.code+'）｜'+VERSION+'｜'+(watermarked?'浮水印版':'無浮水印版');const image=root.document.createElement('img');image.src=activeUrl;image.alt=TITLE+'完整圖片';const controls=root.document.createElement('div');controls.className='simple-stock-report-controls';const download=root.document.createElement('a');download.href=activeUrl;download.download=VERSION+'_個股精簡分析_'+(watermarked?'浮水印版':'無浮水印')+'_'+a.name+'_'+a.code+'_'+a.date+'.png';download.textContent='儲存 PNG';download.className='mini-btn';activeImageFile=typeof root.File==='function'?new root.File([blob],download.download,{type:'image/png',lastModified:Date.now()}):null;const share=root.document.createElement('button');share.type='button';share.id='simpleStockLineShareButton';share.className='mini-btn';share.textContent='📤 分享到 LINE';share.addEventListener('click',shareCurrentImage);const dismiss=root.document.createElement('button');dismiss.type='button';dismiss.textContent='關閉';dismiss.className='mini-btn';dismiss.onclick=close;controls.append(download,share,dismiss);if(root.ShitouKronosData?.statusFor?.(a)?.retryable){const retry=root.document.createElement('button');retry.type='button';retry.id='simpleStockModelRetryButton';retry.className='mini-btn';retry.textContent='重新載入模型';retry.onclick=()=>open(watermarked);controls.prepend(retry);}const shareStatus=root.document.createElement('p');shareStatus.id='simpleStockShareStatus';shareStatus.className='simple-stock-report-share-status';shareStatus.setAttribute('role','status');shareStatus.setAttribute('aria-live','polite');shareStatus.textContent='手機：點分享後選 LINE 聊天室；電腦：不支援直接分享時會複製圖片，貼到 LINE 電腦版即可。';root.ShitouImageShareV1.layoutCompact(dialog,{title,controls,dismiss,status:shareStatus,image,download});dialog.dataset.reportAudit=result.dataset.researchAudit;if(!dialog.open)dialog.showModal();status(a.name+'（'+a.code+'）圖片已備妥。');return result;
+async function open(watermarked=false){if(opening)return null;opening=true;const triggers=["stockSimpleAnalysisButton","stockSimpleAnalysisWatermarkButton"].map(id=>root.document.getElementById(id)).filter(Boolean);triggers.forEach(b=>{b.disabled=true;b.setAttribute('aria-busy','true');});try{const a=current();await root.ShitouKronosData?.ensure(a);if(current().code!==a.code||current().date!==a.date)throw Error('查詢已變更，請重新產生目前個股的報告。');const oldGuide=root.document.getElementById('researchStock')?.querySelector('.research-action-guide');if(oldGuide&&root.ShitouResearchActionGuide?.mount)oldGuide.replaceWith(root.ShitouResearchActionGuide.mount(root.document,R.view(a).actionGuide));if(root.document.fonts?.ready)await root.document.fonts.ready;const result=page(a,{watermarked}),blob=await new Promise(resolve=>result.toBlob(resolve));if(!blob?.size)throw Error('PNG產生失敗。');if(current().code!==a.code||current().date!==a.date||current().sourceSnapshotId!==a.sourceSnapshotId)throw Error('查詢已更新，請重新產生目前報告。');if(activeUrl)URL.revokeObjectURL(activeUrl);activeUrl=URL.createObjectURL(blob);activeImageBlob=blob;let dialog=root.document.getElementById('simpleStockReportDialog');if(!dialog){dialog=root.document.createElement('dialog');dialog.id='simpleStockReportDialog';dialog.setAttribute('aria-label',TITLE+'圖片預覽');dialog.addEventListener('close',()=>{if(activeUrl)URL.revokeObjectURL(activeUrl);activeUrl=null;activeImageBlob=null;activeImageFile=null;});dialog.addEventListener('click',e=>{if(e.target===dialog)close();});root.document.body.append(dialog);}dialog.replaceChildren();const title=root.document.createElement('h2');title.textContent=TITLE+'｜'+a.name+'（'+a.code+'）｜'+VERSION+'｜'+(watermarked?'浮水印版':'無浮水印版');const image=root.document.createElement('img');image.src=activeUrl;image.alt=TITLE+'完整圖片';const controls=root.document.createElement('div');controls.className='simple-stock-report-controls';const download=root.document.createElement('a');download.href=activeUrl;download.download=VERSION+'_個股精簡分析_'+(watermarked?'浮水印版':'無浮水印')+'_'+a.name+'_'+a.code+'_'+a.date+'.png';download.textContent='下載 PNG';download.className='mini-btn';activeImageFile=typeof root.File==='function'?new root.File([blob],download.download,{type:'image/png',lastModified:Date.now()}):null;const share=root.document.createElement('button');share.type='button';share.id='simpleStockLineShareButton';share.className='mini-btn';share.textContent='📤 分享圖片到 LINE';share.addEventListener('click',shareCurrentImage);const dismiss=root.document.createElement('button');dismiss.type='button';dismiss.dataset.imageClose='true';dismiss.setAttribute('aria-label','關閉');dismiss.textContent='✕';dismiss.className='mini-btn';dismiss.onclick=close;controls.append(download,share,dismiss);if(root.ShitouKronosData?.statusFor?.(a)?.retryable){const retry=root.document.createElement('button');retry.type='button';retry.id='simpleStockModelRetryButton';retry.className='mini-btn';retry.textContent='重新載入模型';retry.onclick=()=>open(watermarked);controls.prepend(retry);}const shareStatus=root.document.createElement('p');shareStatus.id='simpleStockShareStatus';shareStatus.className='simple-stock-report-share-status';shareStatus.setAttribute('role','status');shareStatus.setAttribute('aria-live','polite');shareStatus.textContent='手機：點分享後選 LINE 聊天室；電腦：不支援直接分享時會複製圖片，貼到 LINE 電腦版即可。';dialog.append(title,controls,shareStatus,image);dialog.dataset.reportAudit=result.dataset.researchAudit;if(!dialog.open)dialog.showModal();status('已產生 '+a.name+'（'+a.code+'）個股'+(watermarked?'浮水印版':'無浮水印版')+'精簡分析圖片。');return result;
  }catch(e){status(e.message);return null;}finally{opening=false;triggers.forEach(b=>{b.disabled=false;b.removeAttribute('aria-busy');});}}
 function init(){
  const binds=[['stockSimpleAnalysisButton',false],['stockSimpleAnalysisWatermarkButton',true]];

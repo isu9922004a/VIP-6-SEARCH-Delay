@@ -5,8 +5,7 @@ if(!C||!U||!R)return;
 let identity=null,date=null,revision=0,scheduled=false,activeKind='STRONG',latestStockQuery=null,stockQuerySerial=0,previewSerial=0;const sourceRecords=new Map(),records=new Map(),baselines=new Map(),cache=new Map(),seen=new Map();
 const entryModes=new Map();
 let flags=U.flags();try{const saved=JSON.parse(localStorage.getItem('shitou-research-flags-v1')||'null');if(saved)flags=U.flags(saved);}catch(_){}
-const el=(tag,text)=>{const x=document.createElement(tag);if(text!==undefined)x.textContent=text;return x;},by=id=>document.getElementById(id),LABEL={MAIN:'① 主升段',DAYTRADE:'② 當沖盤前',STRONG:'③ 強勢飆股',TOWER:'④ 寶塔點金',RESTAURANT:'⑤ 🌟2560戰法',STOCK_QUERY:'⑦ 個股查詢｜專屬研究'};
-const plain=value=>root.ShitouChartLayout921?.plain(value)??String(value??'');
+const el=(tag,text)=>{const x=document.createElement(tag);if(text!==undefined)x.textContent=text;return x;},by=id=>document.getElementById(id),LABEL={MAIN:'① 主升段',DAYTRADE:'② 當沖盤前',STRONG:'③ 強勢飆股',TOWER:'④ 寶塔點金',RESTAURANT:'⑤ 餐廳量價',STRUCTURE_A:'⑥ 結構A',STRUCTURE_B:'⑥ 結構B',STOCK_QUERY:'⑦ 個股查詢｜專屬研究'};
 function safely(fn){try{return fn();}catch(e){console.warn('研究附層暫停：'+e.message);return null;}}
 function briefLine(a,label){const line=R.lines(a).find(x=>x.startsWith('【'+label+'】'));return line?line.slice(label.length+2):'—';}
 // An individual lookup is NOT an additional scanner candidate or a formal rank.
@@ -28,10 +27,10 @@ function stockQueryIntro(stock){
  const box=el('div');box.className='research-stock-intro';
  const heading=el('h4',`${stock.analysis.name}（${stock.analysis.code}）｜個股專屬研究`);
  const row=el('div');row.className='research-stock-metrics';
- for(const [name,value] of [['收盤價（元）',stockFmt(stock.metrics.close)],['短線力道 RSI5（0～100）',stockFmt(stock.metrics.rsi5)],['20日平均價 MA20（元）',stockFmt(stock.metrics.ma20)]]){
+ for(const [name,value] of [['收盤價',stockFmt(stock.metrics.close)],['日RSI5',stockFmt(stock.metrics.rsi5)],['日MA20',stockFmt(stock.metrics.ma20)]]){
   const cell=el('div');cell.className='research-stock-metric';cell.append(el('span',name),el('strong',value));row.append(cell);
  }
- const meta=el('p',`行情 ${stock.metrics.marketDate}｜${stock.analysis?.limitedHistory?'官方行情已核對，先作觀察':stock.source?.financialOfficialDailyOnly?'已核驗官方日K；月K及濾網資格不判讀':stock.metrics.verifiedDailyResearch?'使用已收盤日K':'資料還不完整'}｜個股查詢，不列入選股排行`);
+ const meta=el('p',`行情 ${stock.metrics.marketDate}｜${stock.analysis?.limitedHistory?'官方行情已核驗，僅供觀察':stock.metrics.verifiedDailyResearch?'完成日K研究':'研究資料尚未完整'}｜非原濾網排名`);
  meta.className='research-stock-meta';
  box.append(heading,row,meta);return box;
 }
@@ -45,7 +44,7 @@ function captureStockQuery(input,{activate=false}={}){
  const selector=by('researchKind');if(selector)selector.value=activeKind;
  render();return latestStockQuery;
 }
-function clearStockQuery(){root.ShitouDraxPriceReminder?.clear();previewSerial++;latestStockQuery=null;root.closeInfographicPreviewV3328?.();root.ShitouImageShareV1?.clear();root.ShitouLifeViewer94?.reset();by('researchStock')?.remove();if(activeKind==='STOCK_QUERY')render();}
+function clearStockQuery(){root.ShitouDraxPriceReminder?.clear();previewSerial++;latestStockQuery=null;root.closeInfographicPreviewV3328?.();root.ShitouImageShareV1?.clear();by('researchStock')?.remove();if(activeKind==='STOCK_QUERY')render();}
 function researchCard(a,number,prefix='研究',expanded=false){
  const details=el('details');details.className='research-stock-card';details.open=expanded;
  details.dataset.code=String(a.code||'');details.dataset.researchState=String(a.state||'');
@@ -54,18 +53,12 @@ function researchCard(a,number,prefix='研究',expanded=false){
  const title=el('span',prefix==='個股'?`個股｜${a.name||'名稱待核對'}`:`${prefix} #${number} ${a.name||'名稱待核對'}`);title.className='research-card-name';
  const code=el('span',`（${a.code||'—'}）`);code.className='research-card-code';
  heading.append(title,code);
- const stage=el('span',plain(a.entryDirection?.direction?.label||R.stageLabel(a)));
+ const stage=el('span',a.entryDirection?.direction?.label||R.stageLabel(a));
  stage.className='research-card-stage '+(['AVOID','DATA'].includes(a.entryDirection?.entry)||['OVEREXTENDED','BREAKOUT_FAILURE','INSUFFICIENT_DATA'].includes(a.state)||a.state==='OBSERVATION'&&['短線偏弱','短線回檔','均線下方整理','反彈仍遇中期壓力','MA20下方整理'].includes(R.stageLabel(a))?'research-card-stage-warn':'research-card-stage-neutral');
  const report=R.view(a);
  const glance=el('span',report.summary[0]?.value.split('\n')[0]||R.stageLabel(a));
  glance.className='research-card-glance';
- const dateLine=el('span','已收盤行情 '+(a.date||'日期還沒核對'));dateLine.className='research-card-date';
- summary.append(heading,dateLine,stage,glance);
- const life=root.ShitouKlineLife03Report?.inspect(a);
- const lifeRisks=[...(life?.contradictions||[]),...(life?.riskWarnings||[]),...(life?.chaseRisk?.reasons||[])];
- const immediate=[...(a.risks||[]),...(lifeRisks.length?['生命線研究：'+lifeRisks.join('；')]:[]),...(a.dataQuality?.missing||[])];
- if(immediate.length){const risk=el('span',plain(immediate.join('；')));risk.className='research-card-risk';summary.append(risk);}
- details.append(summary);
+ summary.append(heading,stage,glance);details.append(summary);
  const body=el('div');body.className='research-card-body';
  details.dataset.reportSchema=report.schemaVersion;
  const guide=root.ShitouResearchActionGuide.mount(document,report.actionGuide);
@@ -76,22 +69,7 @@ function researchCard(a,number,prefix='研究',expanded=false){
   if(guideIndex===0){value.textContent='';const parts=item.value.split('\n');value.append(el('strong',parts.shift()),document.createTextNode('\n'),el('span',parts.join('\n')));}
   row.append(key,value);return row;
  }
- body.append(guide);
- if(life){
-  const lf=root.ShitouKlineLife03Report.fields(life),panel=el('section');
-  panel.className='research-guide-evidence research-life03-card';
-  panel.dataset.model='V9.2-KLINE-LIFE03';
-  // Life-line fields are a separate study, not part of the legacy
-  // .research-card-field contract used by the settled research report.
-  const lifeField=item=>{const node=field(item);node.className='research-life03-field';
-   node.style.display='grid';node.style.gap='4px';node.style.padding='7px 0';return node;};
-  panel.append(el('h4','生命線研究'),lifeField(lf.summary),lifeField(lf.details[7]));
-  const more=el('details');more.className='research-life03-details';more.append(el('summary','看確認條件、訊號日期與資料來源'));
-  for(const item of lf.teaching||[])more.append(lifeField(item));
-  for(const item of lf.details.filter((_,i)=>i!==7))more.append(lifeField(item));panel.append(more);
-  body.append(panel);
- }
- if(root.ShitouEngulfRangeReport)body.append(root.ShitouEngulfRangeReport.mount(document,a));if(root.ShitouElliottVisual)body.append(root.ShitouElliottVisual.mount(document,a));
+ body.append(guide);if(root.ShitouEngulfRangeReport)body.append(root.ShitouEngulfRangeReport.mount(document,a));if(root.ShitouElliottVisual)body.append(root.ShitouElliottVisual.mount(document,a));
  const evidence=el('details');evidence.className='research-guide-evidence';evidence.append(el('summary','查看完整研究與資料驗證'));
  for(const item of report.details)evidence.append(field(item));body.append(evidence);
  if(a.openingPlan){
@@ -102,7 +80,6 @@ function researchCard(a,number,prefix='研究',expanded=false){
  const actions=el('div');actions.className='research-card-actions';
  const button=el('button','查看摘要圖片');button.type='button';button.onclick=()=>preview([a]);actions.append(button);
  const fullButton=el('button','查看完整研究圖片');fullButton.type='button';fullButton.onclick=()=>preview([a],{stockMode:prefix==='個股',detail:true});actions.append(fullButton);
- if(root.ShitouKlineLife03Report&&prefix!=='個股'){const lifeButton=el('button','查看生命線研究圖片');lifeButton.type='button';lifeButton.onclick=()=>preview([a],{lifeOnly:true});actions.append(lifeButton);}
  if(a.unifiedResearch?.chart||a.nContinuation?.chart){const chartButton=el('button','查看結構證據圖');chartButton.type='button';chartButton.onclick=()=>preview([a],{stockMode:prefix==='個股',chartOnly:true});actions.append(chartButton);}
  if(a.foundation?.alertPlan)actions.append(alertControls(a));
  body.append(actions);details.append(body);
@@ -118,28 +95,12 @@ function researchCard(a,number,prefix='研究',expanded=false){
 }
 
 function bind(snapshot){if(snapshot?.identity!==identity){identity=snapshot?.identity||null;date=snapshot?.date||null;records.clear();sourceRecords.clear();baselines.clear();seen.clear();cache.clear();revision++;schedule();}}
-// A financial stock may use a verified official DAILY_ONLY archive for a manual
-// chart when the shared scan research path fails. This does not qualify a scan.
-function isOfficialFinancial(q){return String(q?.industryCode||'').padStart(2,'0')==='17'||/金融|銀行|保險|證券|金控/.test(String(q?.industryName||''));}
-function verifiedFinancialDaily(report,q,code,date){
- const archive=root.ShitouOfficialResearchHistory,bar=report?.dailySeries?.at(-1);
- if(!archive?.proof?.(report)||!isOfficialFinancial(q)||!q||!bar)return false;
- if(String(report.stock)!==code||report.closeDate!==date||report.marketDate!==date||report.market!==q.market||
-    String(q.code)!==code||String(q.quoteDate||'').replaceAll('-','')!==date.replaceAll('-','')||
-    report.completed!==true||report.isComplete!==true||report.volumeUnit!=='shares'||
-    report.priceAdjustment?.verified!==true||report.priceAdjustment?.basis!=='UNADJUSTED_OFFICIAL_OHLC'||
-    report.dataContract?.sourceMode!=='DAILY_ONLY'||bar.date!==date)return false;
- return ['open','high','low','close'].every(k=>Number.isFinite(q[k])&&Number.isFinite(bar[k])&&Math.abs(q[k]-bar[k])<=.011)&&
-   Number.isFinite(report.close)&&Math.abs(report.close-bar.close)<=.011;
-}
 function source(input){const raw=U.normalizeInput(input),r={...raw};
  const D=root.ShitouSelectionDataV2,code=String(r.stock||r.code||''),sourceDate=r.marketDate||r.closeDate||r.dataDate;
  // Only the verified canonical cache may supply history. A same ticker in an old
  // scan is insufficient evidence: apply also checks date, market, close and completion.
  const trustedObservation=r.officialObservationOnly===true&&safely(()=>root.ShitouOfficialResearchHistory?.availability(r,{quote:D.context(code).q}));
- const trustedFinancialDaily=r.financialOfficialDailyOnly===true&&D?.getSnapshot()?.date===sourceDate&&
-   safely(()=>verifiedFinancialDaily(r,D.context(code).q,code,sourceDate));
- if(!trustedObservation&&!trustedFinancialDaily&&D?.get(code)&&D.getSnapshot()?.date===sourceDate){
+ if(!trustedObservation&&D?.get(code)&&D.getSnapshot()?.date===sourceDate){
   const canonical=D.get(code);
   // A failed canonical acquisition belongs to the shared snapshot, regardless
   // of whether the caller came through the async stock lookup or a scan adapter.
@@ -187,27 +148,17 @@ async function prepareStockQueryUncached(input){
   const reason=D.getSnapshot()?.date===date&&D.get(code)?.error||String(e.message||e);
   // Retain strictly verified official facts when the trading pipeline rejects
   // a short history or a volume-scope conflict. No scanner cache is upgraded.
-  const archive=root.ShitouOfficialResearchHistory;let q=null;try{q=D.context(code).q;}catch(_){}
-  let official=archive?.get(code,date)||null;
-  // Do not confuse an uncached verified archive with missing market data.
-  // A manual financial lookup may load it; the scanner and its error cache are unchanged.
-  if(!official&&q&&isOfficialFinancial(q)&&D.getSnapshot()?.date===date){
-   try{official=await archive?.load(code,{date,market:q.market});}catch(e){console.warn('金融股官方日線備援無法核驗：'+String(e.message||e));}
-  }
-  if(official&&q&&archive?.availability(official,{quote:q}))return {...official,code,officialObservationOnly:true,quoteEvidence:D.quoteEvidence?.(code,date),officialObservationReason:reason};
-  if(official&&verifiedFinancialDaily(official,q,code,date))return {...official,code,financialOfficialDailyOnly:true,
-   officialMonthlyUnavailable:true,officialMonthlyUnavailableReason:'僅有已驗證官方日K，月K與策略資格不判讀',
-   monthlyStatus:'UNAVAILABLE',monthlyPass:null,entry:null,startMonthConfirmed:false,
-   quoteEvidence:D.quoteEvidence?.(code,date),officialObservationReason:reason};
+  const official=root.ShitouOfficialResearchHistory?.get(code,date);let q=null;try{q=D.context(code).q;}catch(_){}
+  if(official&&q&&root.ShitouOfficialResearchHistory.availability(official,{quote:q}))return {...official,code,officialObservationOnly:true,quoteEvidence:D.quoteEvidence?.(code,date),officialObservationReason:reason};
   return {...raw,quoteEvidence:D.quoteEvidence?.(code,date)||raw.quoteEvidence,researchAcquisitionError:reason,researchInputErrors:[...new Set([...(raw.researchInputErrors||[]),reason])]};
  }
 }
-function forReport(input){const r=source(input),key=U.hash([root.ShitouUnifiedAnalysis.VERSION,r,flags]);if(!cache.has(key)){if(cache.size>=512)cache.delete(cache.keys().next().value);const evaluated=C.evaluate(r,{flags}),result=root.ShitouKlineLife03?.withSource(evaluated,r)||evaluated;cache.set(key,result);if(result.unifiedResearch?.code)try{root.ShitouResearchHistory?.append(localStorage,result.unifiedResearch);}catch(e){console.warn('歷史研究快照未保存：'+e.message);}}return cache.get(key);}
+function forReport(input){const r=source(input),key=U.hash([root.ShitouUnifiedAnalysis.VERSION,r,flags]);if(!cache.has(key)){if(cache.size>=512)cache.delete(cache.keys().next().value);const result=C.evaluate(r,{flags});cache.set(key,result);if(result.unifiedResearch?.code)try{root.ShitouResearchHistory?.append(localStorage,result.unifiedResearch);}catch(e){console.warn('歷史研究快照未保存：'+e.message);}}return cache.get(key);}
 function capture({snapshot,items,results}){if(!snapshot?.identity)return;bind(snapshot);for(const item of items){const code=String(item.code),matches=results.filter(x=>String(x.code||x.data?.stock||x.data?.code||'')===code),x=matches.length===1?matches[0]:null;let a;if(x?.ok&&x.data){sourceRecords.set(code,structuredClone(x.data));a=safely(()=>forReport(x.data));}else sourceRecords.delete(code);if(!a)a=C.evaluate({stock:code,name:item.name||code,closeDate:date,completed:false});records.set(code,a);}revision++;schedule();}
 function baseline(kind,scan,rows){
- if(!Object.hasOwn(LABEL,kind)||!scan||!Array.isArray(rows))return;const d=U.T.date(scan.dataDate||scan.date||scan.marketBundleMeta?.targetTradeDate||scan.marketBundleMeta?.completedTradeDate);if(!d||date&&d!==date)return;
+ if(!scan||!Array.isArray(rows))return;const d=U.T.date(scan.dataDate||scan.date||scan.marketBundleMeta?.targetTradeDate||scan.marketBundleMeta?.completedTradeDate);if(!d||date&&d!==date)return;
  const entries=rows.map((c,i)=>({code:String(c.code||c.stock||c.report?.stock||c.report?.code||''),rank:i+1,score:structuredClone(c.score??null),eligible:c.eligible??c.formalLaunchEligible??null}));
- const host=by(({MAIN:'momentumResult',DAYTRADE:'dayTradeResult',STRONG:'strongStockResult',TOWER:'towerGoldPanel',RESTAURANT:'restaurantResult'})[kind]);
+ const host=by(({MAIN:'momentumResult',DAYTRADE:'dayTradeResult',STRONG:'strongStockResult',TOWER:'towerGoldPanel',RESTAURANT:'restaurantResult',STRUCTURE_A:'structureResult',STRUCTURE_B:'structureResult'})[kind]);
  const signature=U.hash([d,entries,scan.id||scan.snapshotId||null,revision,flags]),unchanged=seen.get(kind)===signature;
  // Legacy renderers replace their result DOM again after broker enrichment or
  // mode changes. The same data signature does not prove our section survived.
@@ -226,8 +177,9 @@ function sync(){
  const main=typeof lastMomentumScanDataV3762!=='undefined'?lastMomentumScanDataV3762:null,day=typeof lastDayTradeScanDataV1!=='undefined'?lastDayTradeScanDataV1:null;
  safely(()=>baseline('MAIN',main,main?.candidates));safely(()=>baseline('DAYTRADE',day,day?.candidates));
  for(const [kind,provider] of [['STRONG',root.STRONG_STOCK_TEST_API_V47],['TOWER',root.ShitouTowerIntegration],['RESTAURANT',root.ShitouRestaurantUI]]){const s=provider?.getLast?.();safely(()=>baseline(kind,s,s?.candidates));}
+ const s=root.ShitouStructureUI?.getLast?.();for(const mode of ['A','B'])safely(()=>baseline('STRUCTURE_'+mode,s,s?.modeResults?.[mode]?.ranked));
 }
-function ranking(){const base=baselines.get(activeKind),all=new Map(records);for(const a of base?.analyses||[])all.set(a.code,a);return C.rank([...all.values()].filter(a=>!date||a.date===date),{kind:activeKind,baselineCodes:base?.entries.map(x=>x.code)||[]});}
+function ranking(){const base=baselines.get(activeKind),kind=activeKind.startsWith('STRUCTURE')?'STRUCTURE':activeKind,all=new Map(records);for(const a of base?.analyses||[])all.set(a.code,a);return C.rank([...all.values()].filter(a=>!date||a.date===date),{kind,baselineCodes:base?.entries.map(x=>x.code)||[]});}
 function entryMode(kind=activeKind){return flags.entryDirectionEnabled===false?'ALL':entryModes.get(kind)||'EVALUATE';}
 function researchPool(){return baselines.get(activeKind)?.analyses||[...records.values()].filter(a=>!date||a.date===date);}
 function selectedRows(){return Entry.select(researchPool(),entryMode()).map(x=>({analysis:x.analysis,rank:x.index+1}));}
@@ -252,7 +204,7 @@ function exportData(type='json'){
  if(activeKind==='STOCK_QUERY'){
   if(!latestStockQuery)return null;
   const {analysis:a,metrics:m}=latestStockQuery;
-  const data={version:root.ShitouReleaseV50.code,mode:'SINGLE_STOCK_RESEARCH',analysis:a,report:R.view(a),life03:root.ShitouKlineLife03?.evaluate(a)||null,metrics:m,formalRank:null,performance:'NOT_VALIDATED'};
+  const data={version:root.ShitouReleaseV50.code,mode:'SINGLE_STOCK_RESEARCH',analysis:a,report:R.view(a),metrics:m,formalRank:null,performance:'NOT_VALIDATED'};
   if(type==='json')save(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),`石頭少爺_${root.ShitouReleaseV50.displayCode}_${a.code}_個股研究.json`);
   else if(type==='csv'){const p=a.foundation?.alertPlan,esc=x=>'"'+String(x??'').replaceAll('"','""')+'"';const rows=[['code','date','priceAbove','priceBelow','dayGainPercent','dayLossPercent','status'],[a.code,a.date,p?.priceAbove?.input,p?.priceBelow?.input,p?.dayGainPercentInput,p?.dayLossPercentInput,'MANUAL_ONLY']];save(new Blob(['\uFEFF'+rows.map(r=>r.map(esc).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'}),`石頭少爺_${root.ShitouReleaseV50.displayCode}_${a.code}_到價提醒.csv`);}
   else save(new Blob([`個股專屬研究｜${a.name}（${a.code}）\n行情 ${m.marketDate}｜收盤 ${stockFmt(m.close)}｜日RSI5 ${stockFmt(m.rsi5)}｜日MA20 ${stockFmt(m.ma20)}\n${R.text(a)}\n僅當次個股查詢，不參與原榜排名。`],{type:'text/plain;charset=utf-8'}),`石頭少爺_${root.ShitouReleaseV50.displayCode}_${a.code}_個股研究.txt`);
@@ -266,152 +218,17 @@ function exportData(type='json'){
 }
 async function copy(value,button){try{await navigator.clipboard.writeText(String(value));button.textContent='已複製';}catch(_){const box=el('textarea',String(value));box.readOnly=true;button.after(box);box.select();button.textContent='請長按選取複製';}}
 function alertControls(a){const plan=a.foundation.alertPlan,box=el('div');box.className='research-alerts';for(const [label,value] of [['價格高於',plan.priceAbove.input],['價格低於',plan.priceBelow.input],['單日漲幅超過',plan.dayGainPercentInput],['單日跌幅超過',plan.dayLossPercentInput]]){const button=el('button',label+'：'+(value===null?'尚無有效價位':label.startsWith('價格')?R.fmt(value):String(value)));button.type='button';button.disabled=value===null;button.onclick=()=>copy(label.startsWith("價格")?R.fmt(value):value,button);box.appendChild(button);}const all=el('button','複製四欄'),link=el('a','開啟 DRAX');all.type='button';all.onclick=()=>copy([`股票 ${a.code}｜${a.date}`,`價格高於 ${R.fmt(plan.priceAbove.input)}`,`價格低於 ${R.fmt(plan.priceBelow.input)}`,`單日漲幅超過 ${plan.dayGainPercentInput??'未知'}`,`單日跌幅超過 ${plan.dayLossPercentInput??'未知'}`,'平台語意待確認；待手動設定'].join('\n'),all);link.href='https://drax.tw/';link.target='_blank';link.rel='noopener noreferrer';box.append(all,link);return box;}
-async function preview(analyses,{stockMode=false,detail=false,chartOnly=false,lifeOnly=false,watermark=false}={}){if(!analyses.length)return;const token=++previewSerial,query=stockQuerySerial;root.ShitouImageShareV1?.clear();if(!lifeOnly)await Promise.all(analyses.map(a=>root.ShitouKronosData?.ensure(a)));if(document.fonts?.ready)await document.fonts.ready;if(token!==previewSerial||query!==stockQuerySerial)return null;
- if(lifeOnly){
-  by('life972Error')?.remove();root.closeInfographicPreviewV3328?.();root.ShitouLifeViewer94?.reset();
-  try{for(const [name,file] of [['ShitouLifeIntelligence913','life-line-intelligence-v913.js'],['ShitouTransparency916','life-risk-transparency-v916.js'],['ShitouHeikinAshi920','heikin-ashi-life-v920.js'],['ShitouLifeVisual913','life-line-visual-v913.js']]){if(root[name])continue;await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=new URL('./'+file+'?v='+(root.ShitouReleaseV50?.cacheVersion||'V9.22-HIGH-VOLATILITY-1'),document.baseURI).href;script.onload=()=>root[name]?resolve():reject(Error(file+' 模組不完整'));script.onerror=()=>reject(Error(file+' 載入失敗'));document.head.append(script);});}let marketContext=null, benchmark=null;const marketSource=latestStockQuery?.analysis===analyses[0]?latestStockQuery?.source:null;
-  if(marketSource?.market==='TWSE'&&root.ShitouMarketLife96?.evaluate){
-   try{
-    for(const [name,file] of [['ShitouMarketLifeRisk910','market-life-risk-v910.js'],['ShitouMarketLifeRisk913','market-life-risk-v913.js']]){
-     if(root[name])continue;
-     await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=new URL('./'+file+'?v=V9.15-MARKETSTOCK1',document.baseURI).href;script.onload=()=>root[name]?resolve():reject(Error(file+' 載入不完整'));script.onerror=()=>reject(Error(file+' 載入失敗'));document.head.append(script);});
-    }
-    const response=await fetch(new URL('./data/index/TAIEX.json',document.baseURI),{cache:'no-store'});
-    if(response.ok){const official=await response.json(),verified=root.ShitouMarketLife96.evaluate(official);if(verified.sourceVerified===true&&verified.dataAsOf===marketSource.closeDate){
-      marketContext=root.ShitouMarketLifeRisk913.evaluate(verified);benchmark=official;
-     }}
-   }catch(_){marketContext=null;}
-  }
-  await root.ShitouLifeVisual913.ready(document);if(token!==previewSerial||query!==stockQuerySerial)return null;const pages=analyses.flatMap(a=>{const life=root.ShitouKlineLife03Report?.inspect(a);return life?root.ShitouLifeVisual913.build(life,{document,watermark,v916:true,market:marketContext,source:latestStockQuery?.analysis===a?latestStockQuery.source:null,display:{fields:root.ShitouKlineLife03Report.fields(life),teaching:root.ShitouKlineLife03Report.teaching()}}):[];});
-  if(new URLSearchParams(root.location.search).get('postmarket-study')==='1' && stockMode && analyses.length===1 && latestStockQuery?.analysis===analyses[0]){
-   try{
-    const {makeStudyPage}=await import('./postmarket-preview-v926.js?v=V9.26-RESEARCH-2B');
-    const life=root.ShitouKlineLife03Report.inspect(analyses[0]);
-    const source=latestStockQuery.source,proof=root.ShitouOfficialResearchHistory?.proof(source);
-    const research=await makeStudyPage({source,study:life,analysis:analyses[0],benchmark,marketRisk:marketContext,watermark,dataAsOf:proof?.generatedAt,
-     quality:analyses[0].models?.A?.breakoutQuality?.score});
-    if(research)pages.push(research);
-   }catch(error){console.warn('盤後趨勢研究頁暫不可用',error.message);}
-  }
-  if(token!==previewSerial||query!==stockQuerySerial)return null;
-  const shown=await root.ShitouLifeViewer94.show(pages);if(token!==previewSerial||query!==stockQuerySerial)return null;if(!shown)throw Error('圖片編碼或預覽未完成');root.ShitouHeikinAshi920?.installJump(document,pages);return shown;
-  }catch(error){if(token!==previewSerial||query!==stockQuerySerial)return null;root.closeInfographicPreviewV3328?.();root.ShitouLifeViewer94?.reset();root.ShitouImageShareV1?.clear();const message=el('p','生命線圖片尚未完成：'+error.message);message.id='life972Error';message.setAttribute('role','alert');(by('researchStock')||by('researchPanel')||document.body).append(message);return null;}
- }
+async function preview(analyses,{stockMode=false,detail=false,chartOnly=false,watermark=false}={}){if(!analyses.length)return;const token=++previewSerial,query=stockQuerySerial;root.ShitouImageShareV1?.clear();await Promise.all(analyses.map(a=>root.ShitouKronosData?.ensure(a)));if(document.fonts?.ready)await document.fonts.ready;if(token!==previewSerial||query!==stockQuerySerial)return null;
  const pages=analyses.flatMap(a=>{const metrics=stockMode&&latestStockQuery?.analysis===a?latestStockQuery.metrics:null;
  if(chartOnly){const c=R.candlePage(a,{displayCode:root.ShitouReleaseV50.displayCode,watermark});return c?[c]:[];}
  return R.pages(a,{displayCode:root.ShitouReleaseV50.displayCode,stockMetrics:metrics,stockMode,detail,watermark});});
- root.ShitouLifeViewer94?.reset();
  return root.strongStockShowPagesV47(pages,{title:chartOnly?'四策略研究｜結構證據圖':'四策略研究｜白話行動指南',prefix:root.ShitouReleaseV50.displayCode+(stockMode?'_個股研究':'_研究')+(chartOnly?'_結構圖':''),date:analyses[0].date,kind:'v8-research',note:stockMode?'個股研究不列入濾網排名｜非買進訊號':'精簡摘要僅供研究觀察；原榜資格與排序保留。'});}
-
-function mountStock(input){const host=by('result');if(!host)return;by('researchStock')?.remove();const a=forReport(input);if(!Object.values(flags).some((v,i)=>v&&Object.keys(flags)[i].endsWith('Enabled')))return;const box=el('section');box.id='researchStock';box.className='research-inline';const card=researchCard(a,1,'個股',false);card.querySelector('.research-card-actions>button').onclick=()=>preview([a],{stockMode:true});box.append(el('h3','四策略研究摘要'),card);host.append(box);}
+function mountStock(){by('researchStock')?.remove();}
 function setFlags(next){flags=U.flags({...flags,...next});cache.clear();seen.clear();records.clear();revision++;try{localStorage.setItem('shitou-research-flags-v1',JSON.stringify(flags));}catch(_){}const snapshot=root.ShitouSelectionDataV2?.getSnapshot?.();if(snapshot){const results=[...sourceRecords].map(([code,data])=>({ok:true,code,data}));capture({snapshot,items:results.map(x=>({code:x.code})),results});}if(typeof lastReportData!=='undefined'&&lastReportData){captureStockQuery(lastReportData);mountStock(lastReportData);}schedule();return {...flags};}
-function render(){const panel=by('researchPanel');if(!panel)return;
- if(by('researchCsv')){by('researchCsv').disabled=!latestStockQuery;by('researchCsv').title=latestStockQuery?`製作 ${latestStockQuery.analysis.name}（${latestStockQuery.analysis.code}）提醒圖片`:'請先完成個股查詢';}
- if(activeKind==='STOCK_QUERY'){
-  const stock=latestStockQuery,host=by('researchRows');by('researchEntryTools')?.replaceChildren();by('researchToggle').checked=flags.fourModelsEnabled;
-  host.classList.add('research-card-grid');host.replaceChildren();
-  by('researchScope').textContent=stock?`個股查詢：${stock.analysis.name}（${stock.analysis.code}）｜行情 ${stock.metrics.marketDate}`:'請先在「個股查詢」輸入股票代號並完成分析。';
-  by('researchBaseline').textContent='此模式只顯示最新一次成功查詢的股票，不參與六套原濾網的排名。';
-  by('researchFunnel').textContent=stock?(stock.analysis.limitedHistory?'已顯示官方核驗行情與可計算的短期均價；完整策略仍受歷史或交易規則限制。':stock.metrics.verifiedDailyResearch?'已顯示該股四模型研究與關鍵價位；資料認證另查。':'個股行情可供觀察；四模型所需完整日K資料不足，不補猜訊號。'):'查詢成功後可展開手機卡片、查看圖片及匯出文字摘要。';
-  if(stock){host.append(stockQueryIntro(stock));const card=researchCard(stock.analysis,1,'個股',false);host.append(card);
-   const button=card.querySelector('.research-card-actions>button');if(button)button.onclick=()=>preview([stock.analysis],{stockMode:true});}
-  by('researchPreview').disabled=!stock;
-  by('researchPreview').textContent='四策略研究｜個股查詢摘要圖';
-  return;
- }
- by('researchPreview').textContent='目前篩選前八檔附圖';
- const rank=ranking(),base=baselines.get(activeKind),selected=selectedRows();by('researchEntryTools').replaceChildren(entryControls(researchPool(),activeKind,render));by('researchToggle').checked=flags.fourModelsEnabled;by('researchScope').textContent=`行情 ${date||'待查詢'}｜本策略取得 ${researchPool().length} 檔｜二次篩選顯示 ${selected.length} 檔。`;
- by('researchBaseline').textContent=base?`${LABEL[activeKind]} 原榜：${base.entries.map(x=>'#'+x.rank+' '+x.code).join('、')||'0檔'}。原排序保留。`:'此策略目前只有研究摘要，尚無可比較原榜。';const host=by('researchRows');host.replaceChildren();
- host.classList.add('research-card-grid');
- for(const row of selected.slice(0,8))host.append(researchCard(row.analysis,row.rank,'原榜位置'));if(!selected.length)host.append(el('p','目前沒有符合所選進場檢查的股票。請切換查看「先等」「待核」或「全部」，不要為了湊名單放寬條件。'));
- const risk=el('p',`補充：風險觀察 ${rank.risks.length} 檔｜資料不足 ${rank.dataInsufficient.length} 檔。`);risk.className='research-card-note';host.append(risk);by('researchPreview').disabled=!selected.length;
- const dual=[...records.values()].map(a=>a.foundation?.dualScanContext).filter(Boolean);by('researchFunnel').textContent=`模式一符合 ${dual.filter(x=>x.modeA.status==='RESEARCH_MATCH').length}｜待驗證 ${dual.filter(x=>x.modeA.status==='DATA_UNVERIFIED').length}；模式二符合 ${dual.filter(x=>x.modeB.status==='RESEARCH_MATCH').length}｜待驗證 ${dual.filter(x=>x.modeB.status==='DATA_UNVERIFIED').length}。`;
-}
-function mount(){const panel=el('section');panel.id='researchPanel';panel.className='research-inline';panel.innerHTML='<h3>四策略研究</h3><p>原榜保留；新增「⑦ 個股查詢」可查看剛完成的單股專屬研究摘要。</p><div class="research-tools"><label><input id="researchToggle" type="checkbox">四模型研究</label><button id="researchRollback" type="button">一鍵關閉新增研究</button><button id="researchRestore" type="button">恢復研究顯示</button><select id="researchKind" aria-label="比較原策略"></select></div><p id="researchScope" role="status"></p><p id="researchBaseline"></p><p id="researchFunnel"></p><div id="researchEntryTools"></div><div id="researchRows"></div><div class="research-tools"><button type="button" id="researchPreview">研究前八強附圖</button><button type="button" id="researchTxt">匯出文字報告（TXT）</button><button type="button" id="researchCsvZh">匯出繁體中文研究表（CSV）</button><button type="button" id="researchJson">原始研究資料（JSON）</button><button type="button" id="researchCsv">DRAX 價格對應提醒</button></div>';
- const target=by('priceActionPanel')||by('towerGoldPanel');if(target)target.after(panel);else document.body.append(panel);for(const [k,v] of Object.entries(LABEL)){const o=el('option',v);o.value=k;by('researchKind').append(o);}by('researchKind').value=activeKind;by('researchKind').onchange=e=>{activeKind=e.target.value;render();};by('researchToggle').onchange=e=>setFlags({fourModelsEnabled:e.target.checked});by('researchRollback').onclick=()=>setFlags(Object.fromEntries(Object.keys(U.DEFAULTS).filter(k=>k.endsWith('Enabled')).map(k=>[k,false])));by('researchRestore').onclick=()=>setFlags(U.DEFAULTS);by('researchPreview').onclick=()=>activeKind==='STOCK_QUERY'?latestStockQuery&&preview([latestStockQuery.analysis],{stockMode:true}):preview(selectedRows().slice(0,8).map(x=>x.analysis));by('researchTxt').onclick=()=>exportData('txt');by('researchCsvZh').onclick=()=>exportData('csv-zh');by('researchJson').onclick=()=>exportData('json');by('researchCsv').onclick=()=>{if(latestStockQuery)root.ShitouDraxPriceReminder?.open(latestStockQuery.analysis,by('researchCsv'));};
-}
+function render(){by('researchPanel')?.remove();}
+function mount(){by('researchPanel')?.remove();}
 for(const name of ['buildReportText','buildReportTextV32','buildLegacyReportText']){const old=root[name];if(typeof old==='function')root[name]=function(input,...args){const out=old.call(this,input,...args);if(!flags.fourModelsEnabled&&!flags.threeDayStructureEnabled&&!flags.granvilleContextEnabled&&!flags.candlePatternEnabled&&!flags.dualScanEnabled&&!flags.alertPlanEnabled)return out;return typeof out==='string'&&!out.includes('【V8研究附錄】')?out+'\n\n【V8研究附錄】\n'+R.text(forReport(input)):out;};}
-// V9.12 ETF manual-only adapter: isolated official ETF catalog, never a scanner candidate.
-const ETF912_CODES=Object.freeze({'0050':'元大台灣50','0056':'元大高股息','006208':'富邦台50','00878':'國泰永續高股息','00919':'群益台灣精選高息'});
-let etf912Report=null,etf912OriginalGetter=null,etf912GetterInstalled=false;
-const etf912Base=()=>new URL('./data/etf/',globalThis.location.href).href;
-async function etf912JSON(url){
- const r=await fetch(url,{cache:'no-store',headers:{Accept:'application/json'}});
- if(!r.ok||!/json/i.test(r.headers.get('content-type')||''))throw Error('ETF 官方研究資料無法讀取（HTTP '+r.status+'）。尚未發布就不使用舊價格。');
- return r.text();
-}
-function etf912Valid(report,entry,date,code){
- const bars=report.dailySeries;
- if(report.schema!=='SHITOU_ETF_DAILY_RESEARCH_V912'||report.etfResearchOnly!==true||report.securityType!=='ETF'||report.stock!==code||
- report.market!=='TWSE'||report.closeDate!==date||report.marketDate!==date||report.completed!==true||report.isComplete!==true||
- report.volumeUnit!=='shares'||report.dailySeriesMeta?.volumeUnit!=='shares'||report.dailySeriesMeta?.source!=='TWSE_STOCK_DAY_OFFICIAL_ETF'||
- report.dailySeriesMeta?.onlyCompletedBars!==true||report.priceAdjustment?.basis!=='UNADJUSTED_OFFICIAL_OHLC'||
- report.priceAdjustment?.verified!==true||report.monthlyPass!==null||report.entry!==null||!Array.isArray(bars)||bars.length!==entry.bars||
- report.etfSourceAudit?.type!=='TWSE_OFFICIAL_ETF'||report.etfSourceAudit.asOf!==date||
- report.etfSourceAudit.noSyntheticPrices!==true||!Array.isArray(report.etfSourceAudit.sourceMonths)||!report.etfSourceAudit.sourceMonths.length||
- report.etfSourceAudit.sourceMonths.some(x=>!/^https:\/\/www\.twse\.com\.tw\/rwd\/zh\/afterTrading\/STOCK_DAY\?/.test(x.source)||!/^[a-f0-9]{64}$/.test(x.sourceSha256)))
- throw Error('ETF 的代號、交易日、單位、價格來源或基金身分驗證失敗');
- if(!bars.every((b,i)=>b&&/^\d{4}-\d{2}-\d{2}$/.test(b.date)&&b.date<=date&&(!i||bars[i-1].date<b.date)&&
- ['open','high','low','close'].every(k=>Number.isFinite(b[k])&&b[k]>0)&&Number.isInteger(b.volume)&&b.volume>0&&
- b.low<=Math.min(b.open,b.close)&&b.high>=Math.max(b.open,b.close)))throw Error('ETF 日 K 資料缺漏或成交單位異常');
- if(bars.at(-1)?.date!==date||bars.at(-1).close!==report.close||report.close!==entry.close)throw Error('ETF 最新收盤日或收盤價與研究清單不一致');
- return report;
-}
-async function etf912Load(code){
- const base=etf912Base(),manifest=JSON.parse(await etf912JSON(base+'manifest.json?fresh='+Date.now()));
- if(manifest.schema!=='SHITOU_ETF_MANIFEST_V912'||manifest.verified!==true||manifest.securityType!=='ETF'||manifest.selectionEligible!==false||
- manifest.scannerUniverseModified!==false||! /^\d{4}-\d{2}-\d{2}$/.test(manifest.date))throw Error('ETF 官方資料清單未通過核驗');
- const entry=manifest.instruments?.[code];
- if(!entry||entry.type!=='ETF'||entry.market!=='TWSE'||entry.path!==manifest.date+'/'+code+'.json'||entry.name!==ETF912_CODES[code]||!/^[a-f0-9]{64}$/.test(entry.sha256))throw Error('ETF '+code+' 尚未加入官方行情研究檔；不使用普通股資料替代');
- const snapshot=root.ShitouSelectionDataV2?.getSnapshot?.();
- if(snapshot?.date&&snapshot.date!==manifest.date)throw Error('ETF '+code+' 與一般股票行情日期不同，暫停混用，等待盤後同步');
- const content=await etf912JSON(base+entry.path+'?revision='+entry.sha256);
- const bytes=new TextEncoder().encode(content),digest=await crypto.subtle.digest('SHA-256',bytes);
- const hash=[...new Uint8Array(digest)].map(n=>n.toString(16).padStart(2,'0')).join('');
- if(hash!==entry.sha256)throw Error('ETF 官方研究檔 SHA256 驗證失敗');
- return etf912Valid(JSON.parse(content),entry,manifest.date,code);
-}
-function etf912HideOldResult(hide){
- const result=by('result');if(!result)return;
- for(const child of [...result.children]){
-  if(child.id==='researchStock'||child.id==='etf912Notice'||child.id==='stockReportActionsPanel')continue;
-  if(hide&&!child.hasAttribute('data-etf912-old-hidden')){child.setAttribute('data-etf912-old-hidden',child.hidden?'true':'false');child.hidden=true;}
-  if(!hide&&child.hasAttribute('data-etf912-old-hidden')){child.hidden=child.getAttribute('data-etf912-old-hidden')==='true';child.removeAttribute('data-etf912-old-hidden');}
- }
-}
-function etf912Attach(report){
- const result=by('result');if(!result)throw Error('查詢結果區尚未建立');
- etf912Report=report;
- if(!etf912GetterInstalled){etf912OriginalGetter=root.shitouGetLastReportV82;root.shitouGetLastReportV82=()=>etf912Report||etf912OriginalGetter?.();etf912GetterInstalled=true;}
- root.ShitouWorkspaceV831?.closeReport();
- result.style.display='block';
- etf912HideOldResult(true);
- by('etf912Notice')?.remove();
- const n=el('p','ETF 盤後技術研究｜'+report.name+'（'+report.stock+'）｜完成交易日 '+report.closeDate+'｜此處生命線是價格型態參考，不是主力成本；不含淨值、折溢價、收益分配、營收籌碼或策略入選資格。');
- n.id='etf912Notice';n.setAttribute('role','status');n.style.cssText='padding:12px;border:1px solid #71CFFF;border-radius:10px;line-height:1.7;';
- result.prepend(n);
- captureStockQuery(report,{activate:true});mountStock(report);
- root.ShitouWorkspaceV831?.select('stock');root.ShitouWorkspaceV831?.renderSummary();
-}
 const oldAnalyze=root.analyzeStock;if(typeof oldAnalyze==='function')root.analyzeStock=async function(...args){
- const code=String(by('stockInput')?.value||'').trim();
- if(/^00\d{2,4}$/.test(code)){
-  if(by('searchButton')?.disabled)return;
-  const serial=++stockQuerySerial;clearStockQuery();etf912Report=null;
-  const result=by('result');by('etf912Notice')?.remove();
-  try{
-   const report=await root.ShitouQueryRuntime.deadline(()=>etf912Load(code),25000,'ETF 官方研究資料讀取超時');
-   if(serial!==stockQuerySerial)return;
-   etf912Attach(report);return report;
-  }catch(e){
-   if(serial!==stockQuerySerial)return;
-   etf912HideOldResult(true);
-   if(result){result.style.display='block';const n=el('p','ETF '+code+'：'+e.message+'。未使用模擬價格，亦未修改策略濾網。');n.id='etf912Notice';n.setAttribute('role','alert');result.prepend(n);}
-   console.warn('V9.12 ETF',e);root.ShitouWorkspaceV831?.renderSummary();return null;
-  }
- }
- etf912Report=null;etf912HideOldResult(false);by('etf912Notice')?.remove();
-
  if(by('searchButton')?.disabled)return;
  const seq=++stockQuerySerial;
  const stockInput=by('stockInput'),hasSearch=!!(stockInput?.value?.trim()||!stockInput);

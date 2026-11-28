@@ -7,7 +7,10 @@ const INDUSTRIES=Object.freeze({'24':'半導體業','25':'電腦及週邊設備�
 const finite=v=>typeof v==='number'&&Number.isFinite(v),fmt=v=>finite(v)?v.toFixed(2):'資料不足';
 function latestSession(calendar,now=new Date()){
  const p=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(now),today=p.slice(0,10),minute=Number(p.slice(11,13))*60+Number(p.slice(14,16));
- if(calendar?.verified!==true||String(calendar.coverageYear)!==today.slice(0,4)||calendar.source!=='https://openapi.twse.com.tw/v1/holidaySchedule/holidaySchedule'||!Array.isArray(calendar.dates)||calendar.dates.some((d,i)=>!/^\d{4}-\d{2}-\d{2}$/.test(d)||i&&d<=calendar.dates[i-1]))throw Error('最新完成交易日曆尚未核驗');
+ const year=today.slice(0,4),years=String(calendar?.coverageYear||'').split('-');
+ const originalSource='https://www.twse.com.tw/rwd/zh/holidaySchedule/holidaySchedule?date=20260101&response=json + https://www.twse.com.tw/rwd/zh/holidaySchedule/holidaySchedule?date=20270101&response=json';
+ const sourceVerified=calendar?.source==='https://openapi.twse.com.tw/v1/holidaySchedule/holidaySchedule'||calendar?.source===originalSource&&/^[a-f0-9]{64}$/.test(calendar.sourceSha256||'')&&calendar.historicalSource==='https://www.twse.com.tw/exchangeReport/FMTQIK';
+ if(calendar?.verified!==true||!years.includes(year)||!sourceVerified||!Array.isArray(calendar.dates)||calendar.dates.some((d,i)=>!/^\d{4}-\d{2}-\d{2}$/.test(d)||i&&d<=calendar.dates[i-1]))throw Error('最新完成交易日曆尚未核驗');
  // A dated official archive must also exist. Never turn provisional intraday data into a close.
  const date=calendar.dates.filter(d=>d<today||d===today&&minute>=1055).at(-1);if(!date)throw Error('交易日曆沒有可確認的完成日');return date;
 }

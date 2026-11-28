@@ -51,7 +51,7 @@ for(const [name,build] of [['第六濾網單張',structure],['第五濾網單張
   const state=await h.root.ShitouImageShareV1.prepare(descriptor,{filename:'TEST_TOP8.png'});
   assert.ok(state?.files?.length===1);
   assert.equal(state.files[0].type,'image/jpeg');assert.equal(h.ui.imageShareButton.disabled,false);
-  assert.match(h.ui.imageShareButton.textContent,/分享到 LINE/);
+  assert.match(h.ui.imageShareButton.textContent,/分享目前圖片到 LINE/);
   await h.root.ShitouImageShareV1.shareCurrent();
   assert.equal(h.shares(),1);
   let png=null;descriptor.toBlob(x=>png=x,'image/png');assert.equal(png?.type,'image/png');

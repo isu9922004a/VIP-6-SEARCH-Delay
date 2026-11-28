@@ -11,7 +11,7 @@
   const CACHE_REV='STRONG_STREAMING_SCAN_2';
   const CPU_BREAKER_CONSECUTIVE=4;
   const FAILURE_WINDOW_SIZE=16;
-  const MARKET_ENDPOINT_R49=(typeof MARKET_API_BASE_URL!=='undefined'&&MARKET_API_BASE_URL)?MARKET_API_BASE_URL:'https://shitou-taiwanmarket-api.d318426.workers.dev';
+  const MARKET_ENDPOINT_R49=(typeof MARKET_API_BASE_URL!=='undefined'&&MARKET_API_BASE_URL)?MARKET_API_BASE_URL:'https://vip-6-market-api.liu060703.workers.dev';
   let activeCache=null;
   let last=null,running=false,stopped=false;
   const id=key=>document.getElementById('strongStock'+key);
@@ -228,7 +228,7 @@
       const bundle=await loadDayTradeMarketBundleV377736();
       const meta=bundle.meta||{},market=F.validateMarket(meta,bundle.snapshotRows,new Date());
       if(!market.ok)throw new Error(`${market.reason}${marketDateDiagnostic(meta)}｜本次未進行選股；請等待官方資料更新並確認 Market Worker 已同步後重試。`);
-      const pool=marketPool(bundle,limit?.value||'140'),total=pool.deep.length;
+      const pool=marketPool(bundle,limit?.value||'all'),total=pool.deep.length;
       if(!total)throw new Error('無有效深度分析範圍；請檢查市場及產業資料');
       const health=root.ShitouDeepScanHealthV1;
       if(!health)throw new Error('DEEP_SCAN 健康檢查模組未載入，停止全市場掃描');

@@ -25,10 +25,13 @@ body.workspace-v831[data-workspace-v831="stock"] #workspaceSearchPanel>.market-s
 body.workspace-v831[data-workspace-v831="stock"] #workspaceSearchPanel>.momentum-shortcut,
 body.workspace-v831[data-workspace-v831="stock"] #workspaceSearchPanel>.daytrade-shortcut,
 body.workspace-v831[data-workspace-v831="stock"] #workspaceSearchPanel>.strong-stock-shortcut,
+body.workspace-v831[data-workspace-v831="stock"] #workspaceSearchPanel>.macdplus-shortcut,
+body.workspace-v831[data-workspace-v831="stock"] #workspaceSearchPanel>.chips-shortcut,
 body.workspace-v831[data-workspace-v831="stock"] #marketResult,
 body.workspace-v831[data-workspace-v831="stock"] #momentumResult,
 body.workspace-v831[data-workspace-v831="stock"] #dayTradeResult,
 body.workspace-v831[data-workspace-v831="stock"] #strongStockResult,
+body.workspace-v831[data-workspace-v831="stock"] #macdPlusResult,
 body.workspace-v831[data-workspace-v831="stock"] #towerGoldPanel,
 body.workspace-v831[data-workspace-v831="stock"] #restaurantResult,
 body.workspace-v831[data-workspace-v831="stock"] #structureResult,
@@ -37,6 +40,7 @@ body.workspace-v831[data-workspace-v831="market"] #result,
 body.workspace-v831[data-workspace-v831="market"] #momentumResult,
 body.workspace-v831[data-workspace-v831="market"] #dayTradeResult,
 body.workspace-v831[data-workspace-v831="market"] #strongStockResult,
+body.workspace-v831[data-workspace-v831="market"] #macdPlusResult,
 body.workspace-v831[data-workspace-v831="market"] #towerGoldPanel,
 body.workspace-v831[data-workspace-v831="market"] #restaurantResult,
 body.workspace-v831[data-workspace-v831="market"] #structureResult,
@@ -51,27 +55,44 @@ body.workspace-v831:not([data-workspace-v831="stock"]) #workspaceSearchPanel>#lo
 body.workspace-v831:not([data-workspace-v831="stock"]) #workspaceSearchPanel>#error{display:none!important}
 body.workspace-v831[data-workspace-v831="market"] #workspaceSearchPanel>.momentum-shortcut,
 body.workspace-v831[data-workspace-v831="market"] #workspaceSearchPanel>.daytrade-shortcut,
-body.workspace-v831[data-workspace-v831="market"] #workspaceSearchPanel>.strong-stock-shortcut{display:none!important}
+body.workspace-v831[data-workspace-v831="market"] #workspaceSearchPanel>.strong-stock-shortcut,
+body.workspace-v831[data-workspace-v831="market"] #workspaceSearchPanel>.macdplus-shortcut,
+body.workspace-v831[data-workspace-v831="market"] #workspaceSearchPanel>.chips-shortcut{display:none!important}
 body.workspace-v831[data-workspace-v831="filters"] #workspaceSearchPanel>.market-shortcut{display:none!important}
 /* Show only the chosen strategy's scanner and result. */
+body.workspace-v831[data-workspace-v831="filters"]:not([data-workspace-filter-v831="chips"]) #workspaceSearchPanel>.chips-shortcut,
+body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="chips"] #workspaceSearchPanel>.momentum-shortcut,
+body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="chips"] #workspaceSearchPanel>.daytrade-shortcut,
+body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="chips"] #workspaceSearchPanel>.strong-stock-shortcut,
+body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="chips"] #workspaceSearchPanel>.macdplus-shortcut,
 body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="momentum"] #workspaceSearchPanel>.daytrade-shortcut,
 body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="momentum"] #workspaceSearchPanel>.strong-stock-shortcut,
+body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="momentum"] #workspaceSearchPanel>.macdplus-shortcut,
 body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="daytrade"] #workspaceSearchPanel>.momentum-shortcut,
 body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="daytrade"] #workspaceSearchPanel>.strong-stock-shortcut,
+body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="daytrade"] #workspaceSearchPanel>.macdplus-shortcut,
 body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="strong"] #workspaceSearchPanel>.momentum-shortcut,
 body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="strong"] #workspaceSearchPanel>.daytrade-shortcut,
+body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="strong"] #workspaceSearchPanel>.macdplus-shortcut,
+body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="macdplus"] #workspaceSearchPanel>.momentum-shortcut,
+body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="macdplus"] #workspaceSearchPanel>.daytrade-shortcut,
+body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="macdplus"] #workspaceSearchPanel>.strong-stock-shortcut,
 body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="tower"] #workspaceSearchPanel>.momentum-shortcut,
 body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="tower"] #workspaceSearchPanel>.daytrade-shortcut,
 body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="tower"] #workspaceSearchPanel>#strongStockShortcut,
+body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="tower"] #workspaceSearchPanel>.macdplus-shortcut,
 body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="restaurant"] #workspaceSearchPanel>.momentum-shortcut,
 body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="restaurant"] #workspaceSearchPanel>.daytrade-shortcut,
 body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="restaurant"] #workspaceSearchPanel>#strongStockShortcut,
+body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="restaurant"] #workspaceSearchPanel>.macdplus-shortcut,
 body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="structure"] #workspaceSearchPanel>.momentum-shortcut,
 body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="structure"] #workspaceSearchPanel>.daytrade-shortcut,
-body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="structure"] #workspaceSearchPanel>#strongStockShortcut{display:none!important}
+body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="structure"] #workspaceSearchPanel>#strongStockShortcut,
+body.workspace-v831[data-workspace-v831="filters"][data-workspace-filter-v831="structure"] #workspaceSearchPanel>.macdplus-shortcut{display:none!important}
 body.workspace-v831[data-workspace-v831="filters"]:not([data-workspace-filter-v831="momentum"]) #momentumResult,
 body.workspace-v831[data-workspace-v831="filters"]:not([data-workspace-filter-v831="daytrade"]) #dayTradeResult,
 body.workspace-v831[data-workspace-v831="filters"]:not([data-workspace-filter-v831="strong"]) #strongStockResult,
+body.workspace-v831[data-workspace-v831="filters"]:not([data-workspace-filter-v831="macdplus"]) #macdPlusResult,
 body.workspace-v831[data-workspace-v831="filters"]:not([data-workspace-filter-v831="tower"]) #towerGoldPanel,
 body.workspace-v831[data-workspace-v831="filters"]:not([data-workspace-filter-v831="restaurant"]) #restaurantResult,
 body.workspace-v831[data-workspace-v831="filters"]:not([data-workspace-filter-v831="structure"]) #structureResult{display:none!important}
@@ -86,8 +107,7 @@ body.workspace-v831[data-workspace-v831="filters"]:not([data-workspace-filter-v8
 #workspaceStockSummary .workspace-stock-actions button[disabled]{opacity:.6;cursor:not-allowed}
 #workspaceStockSummary .workspace-stock-actions button.workspace-secondary{background:transparent;color:#1d5577}
 #workspaceStockSummary .workspace-stock-help{font-size:12px;line-height:1.5;margin-top:9px;color:var(--muted,#708090)}
-/* Modal is the original live #result element; no cloning/recalculation. */
-body.workspace-v831[data-workspace-v831="stock"] #result:not(.workspace-stock-open){display:none!important}
+/* Render #result inline directly under search & actions on the stock tab. */
 body.workspace-v831[data-workspace-v831="stock"] #result.workspace-stock-open{
  display:block!important;position:fixed!important;inset:70px max(10px,calc((100vw - 920px)/2)) 12px!important;
  width:auto!important;max-height:none!important;overflow-y:auto!important;overscroll-behavior:contain;
