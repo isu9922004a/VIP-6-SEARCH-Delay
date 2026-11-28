@@ -27,7 +27,7 @@ test('both entry points load one shared copy module without changing existing sc
   }else{
    assert.ok(!scripts.some(s=>homepageUiScripts.includes(s)));
   }
-  const fifth=['breakout','lifecycle','scanner','report','ui'].map(n=>'./strategy-low-base-'+n+'-v929.js');
+  const fifth=['breakout','lifecycle','scanner','report','fundamentals','ui'].map(n=>'./strategy-low-base-'+n+'-v929.js');
   if(file==='index.html'){
    assert.deepEqual(scripts.filter(s=>fifth.includes(s)),fifth);
    assert.ok(scripts.indexOf(fifth[0])>scripts.indexOf('./kline-attack-report-v90.js'));
