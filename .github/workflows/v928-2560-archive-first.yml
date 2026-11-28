@@ -2,9 +2,7 @@ name: V9.28 2560 archive-first transport regression
 on:
   push:
     branches: ['feat/v928-telegram-bot']
-    paths: ['strategy-2560-ui-v1.js','.github/workflows/v928-2560-archive-first.yml']
-  pull_request:
-    paths: ['strategy-2560-ui-v1.js','.github/workflows/v928-2560-archive-first.yml']
+    paths: ['strategy-2560-ui-v1.js','scripts/tests/v928-live-profile-replay.cjs','.github/workflows/v928-2560-archive-first.yml']
   workflow_dispatch:
 permissions:
   contents: read
