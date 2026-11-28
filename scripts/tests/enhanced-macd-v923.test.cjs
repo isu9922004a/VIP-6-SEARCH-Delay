@@ -133,7 +133,7 @@ test('entry point loads only the current sixth strategy', () => {
   assert.match(html, /enhanced-macd-v923\.js\?v=V9\.23/);
   const release = require('../../version-v50.js');
   assert.equal(C.VERSION, release.sixthStrategyDataVersion);
-  assert.equal(release.displayCode, 'V9.26');
+  assert.equal(release.displayCode, 'V9.27');
 });
 
 test('verified older no-close days extend warm-up and never replace the prior exchange session', () => {
