@@ -4,6 +4,9 @@ on:
     branches: ['main']
     paths:
       - 'enhanced-macd*v923.js'
+      - 'strategy-low-base-*-v929.js'
+      - 'version-v50.js'
+      - 'index.html'
       - 'data/enhanced-macd/latest.json'
       - '.github/workflows/deploy-frontend.yml'
       - '.github/workflows/deploy-data-pages.yml'

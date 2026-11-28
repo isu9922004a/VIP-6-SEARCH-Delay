@@ -13,7 +13,7 @@ const C=require('../strategy-low-base-breakout-v929.js'),S=require('../strategy-
  D.bind({...bundle,meta:{...bundle.meta,marketCoverageReady:true}});await D.prepareResearchEvidence();
  const plan=S.pool(bundle),records=[];
  let fundamentals=null,fundamentalEvidenceHash=null;
- if(process.env.V929_FUNDAMENTAL_EVIDENCE){
+ if(process.env.V929_FUNDAMENTAL_EVIDENCE&&process.env.V929_RESEARCH_ONLY==='1'){
   const bytes=fs.readFileSync(process.env.V929_FUNDAMENTAL_EVIDENCE);
   fundamentals=require('../strategy-low-base-fundamentals-v929.js').indexBundle(JSON.parse(bytes),{asOf:date,snapshotHash:market.contentSha256});
   fundamentalEvidenceHash=crypto.createHash('sha256').update(bytes).digest('hex');

@@ -45,7 +45,7 @@ function render(scan){
  const grid=el('div');grid.className='momentum-summary-grid';
  for(const [label,value] of [['必要條件通過',scan.candidates.length],['TOP 8',scan.top8.length],['未符合',scan.notMatched],['資料待核對',scan.errors],['排除',scan.excluded]]){const card=el('div');card.className='momentum-summary-card';const k=el('div',label),v=el('div',String(value));k.className='k';v.className='v';card.append(k,v);grid.appendChild(card);}host.appendChild(grid);
  const reminder=el('div','只使用完成日K；21項必要條件全通過才列入候選。基本面未核實不加分，初次突破不代表隔日續強。');reminder.className='strong-stock-reminder';host.appendChild(reminder);
- if(scan.fundamentalReview)host.appendChild(el('p',scan.fundamentalReview.state==='READY'?'基本面封存已核對 '+scan.fundamentalReview.companies+' 家；缺少的個別條件不加分。':'基本面封存尚未核對，本輪未核實項目不加分。'));
+ if(scan.fundamentalReview)host.appendChild(el('p',scan.fundamentalReview.state==='READY'?'基本面封存已核對 '+scan.fundamentalReview.companies+' 家；缺少的個別條件不加分。':'V9.29核心版：基本面暫不加分；完整基本面預定V9.30。'));
  const diag=scan.diagnostics;
  if(diag){const panel=el('details'),summary=el('summary','逐項選股條件與資料不足原因'),body=el('div');panel.append(summary,body);
  for(const [key,g] of Object.entries(diag.gateCounts||{}))body.appendChild(el('p',S.gateLabel(key)+'：通過 '+g.pass+'／未通過 '+g.fail+'／已計算 '+g.evaluated));
@@ -85,7 +85,7 @@ async function run(){
   const plan=S.pool(bundle,by('Limit').value);if(!plan.items.length)throw Error('普通股與快照檢查後沒有可分析股票；請檢查同日量價資料');
   const L=root.ShitouLowBaseLifecycleV929,K=root.ShitouKlineAttack,controller=new AbortController();controllers.add(controller);
   let archive=null;try{if(L&&K){note('核對前5日封存行情，準備生命週期追蹤…');archive=await L.loadArchives(plan.date,plan.marketSnapshotFingerprint,{signal:controller.signal});}}finally{controllers.delete(controller);}if(stopped)return;
-  let fundamentals=null;try{if(root.ShitouLowBaseFundamentalsV929)fundamentals=await root.ShitouLowBaseFundamentalsV929.loadBundle({asOf:plan.date,snapshotHash:plan.marketSnapshotFingerprint});}catch(_){}if(stopped)return;
+  const fundamentals={state:'DEFERRED_V930',companies:0,reason:'V9.29核心版不使用未完整驗證基本面',get:()=>({})};
   note('低位階帶量突破｜正在核對 '+plan.items.length+' 檔');
   const result=await S.scan({plan,archive,fundamentals,reviewFollowup:archive?(report,opts)=>L.replay(report,{...opts,C:root.ShitouLowBaseBreakoutV929,K}):null,fetchBatch:items=>fetchBatch(items,market.date),shouldStop:()=>stopped,batchSize:4,onProgress:s=>{progress(s.processed,s.planned);note('處理 '+s.processed+'/'+s.planned+'｜候選 '+s.candidates.length+'｜資料待核對 '+s.errors+'｜服務請求 '+requests);}});
   render(result);note((result.stopped?'已停止':'本輪完成')+'｜必要條件通過 '+result.candidates.length+'｜資料待核對 '+result.errors+'｜'+(result.fullMarketCertified?'全市場完整':'非完整市場'));
