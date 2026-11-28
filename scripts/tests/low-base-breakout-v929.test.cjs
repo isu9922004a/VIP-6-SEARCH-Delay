@@ -159,3 +159,19 @@ test('N projection and historical daily price-volume proxy are labelled non-exec
  const result=S.riskLines({state:'RESEARCH_ONLY',projection:{A:{price:100},B:{price:120},C:{price:110},target:142.36},pressureZones:[{low:115,high:120,sharePct:12}],warnings:['測試']}).join('\n');
  assert.match(result,/1.618理論投射 142.36/);assert.match(result,/非實際套牢籌碼/);assert.match(result,/不改原分數或排名/);
 });
+
+const A929=require('../../strategy-low-base-archive-v929.js');
+test('archive publishes partial coverage without inventing zero or top8',()=>{
+ const date='2026-11-27',snapshotHash='a'.repeat(64),historyManifestHash='b'.repeat(64),plan={date,items:[{code:'1001'},{code:'1002'}],marketTotal:2,marketCoverageReady:true,marketSnapshotFingerprint:snapshotHash};
+ const scan=S.finish(plan,[{code:'1001',date,status:'FAIL',eligible:false},{code:'1002',date,status:'INSUFFICIENT_DATA',eligible:false}],false);
+ const a=A929.build({...scan,marketCoverageReady:true},{snapshotHash,historyManifestHash}),ctx={date,snapshotHash,historyManifestHash};
+ assert.equal(A929.validate(a,ctx).ok,true);assert.equal(a.complete,false);assert.equal(a.zeroConfirmed,false);assert.match(A929.text(a,ctx).text,/不可宣稱全市場零入選/);
+ assert.equal(A929.validate({...a,zeroConfirmed:true},ctx).ok,false);assert.equal(A929.validate(a,{...ctx,date:'2026-11-26'}).ok,false);assert.equal(A929.validate(a,{...ctx,snapshotHash:'c'.repeat(64)}).ok,false);
+ assert.throws(()=>A929.build({...scan,pending:1},{snapshotHash,historyManifestHash}),/掃描未完成/);
+});
+test('archive retains ranked candidates and refuses fabricated top8',()=>{
+ const date='2026-11-27',snapshotHash='a'.repeat(64),historyManifestHash='b'.repeat(64),plan={date,items:[{code:'1001'},{code:'1002'}],marketTotal:2,marketCoverageReady:true,marketSnapshotFingerprint:snapshotHash};
+ const row=(code,score)=>({code,name:'測試'+code,date,status:'PASS',eligible:true,features:{close:104},quality:{score,scoreUpper:score+5,grade:score>=80?'A':score>=70?'B':score>=60?'C':'D'},checks:Array.from({length:21},()=>({pass:true})),sourceHash:'c'.repeat(64),historyFingerprint:'verified'});
+ const a=A929.build(S.finish(plan,[row('1001',81),row('1002',55)],false),{snapshotHash,historyManifestHash});
+ assert.deepEqual(a.top8,['1001']);assert.equal(a.complete,true);assert.equal(A929.validate({...a,top8:['1002']},{date,snapshotHash,historyManifestHash}).ok,false);
+});

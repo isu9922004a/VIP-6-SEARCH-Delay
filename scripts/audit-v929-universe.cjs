@@ -31,6 +31,11 @@ const C=require('../strategy-low-base-breakout-v929.js'),S=require('../strategy-
  assert.equal(Object.values(counts).reduce((a,b)=>a+b,0),records.length);
  assert.ok(scan.top8.length<=8);assert.ok(scan.candidates.every(c=>c.checks.length===21&&c.checks.every(k=>k.pass)));
  const diagnostics=scan.diagnostics;
+ const A=require('../strategy-low-base-archive-v929.js');
+ const historyManifestHash=crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'data/research/manifest.json'))).digest('hex');
+ const archive=A.build({...scan,marketCoverageReady:plan.marketCoverageReady},{snapshotHash:market.contentSha256,historyManifestHash});
+ fs.writeFileSync(path.join(out,'rank-archive.json'),JSON.stringify(archive)+'\n');
+ console.log('V929_RANK_ARCHIVE '+JSON.stringify({date:archive.date,total:archive.total,counts:archive.counts,complete:archive.complete,zeroConfirmed:archive.zeroConfirmed,top8:archive.top8}));
  const summary={model:C.MODEL,date,marketSnapshot:market.contentSha256,input:records.length,counts,top8:scan.top8.map(c=>({code:c.code,name:c.name,score:c.quality.score})),candidateCount:scan.candidates.length,fullMarketCertified:scan.fullMarketCertified,zeroConfirmed:scan.zeroConfirmed,source:'GITHUB_VERIFIED_OFFICIAL_DAILY_ARCHIVE',fundamentalsConnected:false,performanceBacktest:false,unavailableReasons:diagnostics.unavailableReasons,gateCounts:diagnostics.gateCounts};
  fs.writeFileSync(path.join(out,'results.json'),JSON.stringify({summary,diagnostics,records},null,2));
  console.log('V929_ARCHIVE_REPLAY '+JSON.stringify(summary));
