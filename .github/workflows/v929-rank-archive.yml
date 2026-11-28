@@ -20,7 +20,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node scripts/audit-v929-universe.cjs /tmp/v929-rank
+      - name: Capture official monthly revenue and build causal evidence
+        run: |
+          mkdir -p /tmp/v929-rank/capture
+          node scripts/collect-v929-fundamentals.mjs /tmp/v929-rank/capture || echo "Official source unavailable; preserve prior verified observations"
+          node scripts/build-v929-fundamentals.mjs /tmp/v929-rank/capture /tmp/v929-rank/fundamental-evidence.json
+      - run: V929_FUNDAMENTAL_EVIDENCE=/tmp/v929-rank/fundamental-evidence.json node scripts/audit-v929-universe.cjs /tmp/v929-rank
       - name: Validate and publish current completed-session archive
         id: publish
         shell: bash
@@ -33,14 +38,22 @@ jobs:
           assert.equal(rank.date,today,'Refuse to publish an older session as today');
           assert.equal(ix.closeDate,rank.date);assert.equal(cal.verified,true);assert.equal(cal.sourceSnapshotDate,rank.date);assert.equal(cal.sourceSnapshotHash,market.contentSha256);
           const historyManifestHash=crypto.createHash('sha256').update(fs.readFileSync('data/research/manifest.json')).digest('hex');
-          assert.equal(A.validate(rank,{date:market.tradeDateIso,snapshotHash:market.contentSha256,historyManifestHash}).ok,true);
+          const fundamentalEvidenceHash=crypto.createHash('sha256').update(fs.readFileSync('/tmp/v929-rank/fundamental-evidence.json')).digest('hex');
+          assert.equal(A.validate(rank,{date:market.tradeDateIso,snapshotHash:market.contentSha256,historyManifestHash,fundamentalEvidenceHash}).ok,true);
           if(fs.existsSync('data/low-base-breakout/latest.json'))assert.ok(rank.date>=require('./data/low-base-breakout/latest.json').date);
           NODE
           git fetch origin main
           test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" || { echo "Main moved; refuse stale publication"; exit 1; }
           mkdir -p data/low-base-breakout
           cp /tmp/v929-rank/rank-archive.json data/low-base-breakout/latest.json
-          git add data/low-base-breakout/latest.json
+          mkdir -p data/low-base-breakout/fundamentals
+          TRADE_DATE=$(node -p "require('/tmp/v929-rank/rank-archive.json').date")
+          cp /tmp/v929-rank/fundamental-evidence.json "data/low-base-breakout/fundamentals/$TRADE_DATE.json"
+          if test -d /tmp/v929-rank/raw-stage; then
+            mkdir -p data/low-base-breakout/fundamental-raw
+            cp -a /tmp/v929-rank/raw-stage/. data/low-base-breakout/fundamental-raw/
+          fi
+          git add data/low-base-breakout
           if ! git diff --cached --quiet; then
             git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "data(v9.29): publish fifth-strategy verified candidate archive"
             git push origin HEAD:main

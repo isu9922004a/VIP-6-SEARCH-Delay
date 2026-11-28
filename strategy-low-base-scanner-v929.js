@@ -42,7 +42,7 @@ function finish(plan,results,stopped,archive=null){
  const fullMarketCertified=plan.marketCoverageReady&&pending===0&&identityErrors===0&&!stopped&&errors===0&&(plan.deferred||0)===0&&plan.marketTotal===plan.items.length;
  return {model:C.MODEL,date:plan.date,marketSnapshotFingerprint:plan.marketSnapshotFingerprint,marketTotal:plan.marketTotal,followups,followupReview,diagnostics:diagnostics(results),planned:plan.items.length,deferred:plan.deferred||0,processed:plan.items.length-pending,pending,stopped,errors,identityErrors,fullMarketCertified,results:results.slice(),candidates,top8:candidates.filter(c=>c.quality.score>=60).slice(0,8),excluded:results.filter(c=>c.status==='EXCLUDED').length,notMatched:results.filter(c=>c.status==='FAIL').length,zeroConfirmed:fullMarketCertified&&candidates.length===0};
 }
-async function scan({plan,fetchBatch,shouldStop=()=>false,onProgress=()=>{},batchSize=4,archive=null,reviewFollowup=null}){
+async function scan({plan,fetchBatch,shouldStop=()=>false,onProgress=()=>{},batchSize=4,archive=null,reviewFollowup=null,fundamentals=null}){
  if(!plan?.date||!Array.isArray(plan.items)||typeof fetchBatch!=='function'||!Number.isInteger(batchSize)||batchSize<1||batchSize>8||new Set(plan.items.map(x=>x.code)).size!==plan.items.length)throw Error('掃描參數不合法');
  plan=JSON.parse(JSON.stringify(plan));
  const results=[];let stopped=false;
@@ -56,14 +56,14 @@ async function scan({plan,fetchBatch,shouldStop=()=>false,onProgress=()=>{},batc
  const hits=(payload?.results||[]).filter(z=>String(z.code||z.data?.stock||z.data?.code||'')===item.code);
  let result;
  if(problem||hits.length!==1||!hits[0]?.ok||!hits[0]?.data)result=failure(problem||hits[0]?.error||'缺少唯一有效個股回傳');
- else try{result=C.evaluate(hits[0].data,{asOf:plan.date,code:item.code,quote:item.q,sector:item.sector});}catch(e){result=failure(String(e.message||e));}
+ else try{result=C.evaluate(hits[0].data,{asOf:plan.date,code:item.code,quote:item.q,sector:item.sector,fundamentals:fundamentals?.get?.(item.code,item.q?.market)});}catch(e){result=failure(String(e.message||e));}
  let followupReview=null;
  if(archive&&typeof reviewFollowup==='function'&&result.status!=='EXCLUDED'&&hits.length===1&&hits[0]?.ok&&hits[0]?.data)try{followupReview=reviewFollowup(hits[0].data,{code:item.code,quote:item.q,asOf:plan.date,archive});}catch(e){followupReview={state:'UNAVAILABLE',checked:0,unavailable:archive.dates?.length||5,entries:[],reasons:[String(e.message||e)]};}
  results.push({...result,code:item.code,date:plan.date,name:String(item.q?.name||item.code),...(followupReview?{followupReview}:{})});
  }
  onProgress(finish(plan,results,false,archive));
  }
- return finish(plan,results,stopped,archive);
+ return {...finish(plan,results,stopped,archive),fundamentalReview:{state:fundamentals?.state||'UNAVAILABLE',companies:fundamentals?.companies||0,hash:fundamentals?.hash||null,reason:fundamentals?.reason||null}};
 }
 function riskLines(r){const p=x=>Number.isFinite(x)?x.toFixed(2):'未確認';
  if(r.state!=='RESEARCH_ONLY')return ['N字與量價壓力：'+(r.reason||'尚未核對')];

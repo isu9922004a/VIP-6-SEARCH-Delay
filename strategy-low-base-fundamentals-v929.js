@@ -45,5 +45,30 @@ function evidence(records,{code,market,asOf}={}){
  if(continuous(12)){const rows=b.slice(0,12);out.revenue12High=e(z.current>=Math.max(...rows.map(r=>r.current)),rows,'最新月營收不低於近12個連續月最高營收（同高亦通過）',z.current);}
  return out;
 }
-return Object.freeze({SOURCES,roc,number,taipei,parse,evidence});
+
+const SCHEMA='V929_FUNDAMENTAL_EVIDENCE_V1';
+async function digest(bytes){return Array.from(new Uint8Array(await globalThis.crypto.subtle.digest('SHA-256',bytes)),x=>x.toString(16).padStart(2,'0')).join('');}
+function indexBundle(bundle,{asOf,snapshotHash}={}){
+ if(bundle?.schema!==SCHEMA||bundle.date!==asOf||!date(asOf)||!HEX.test(snapshotHash||'')||bundle.snapshotHash!==snapshotHash||!Array.isArray(bundle.records)||!Array.isArray(bundle.receipts))throw Error('基本面日期或市場指紋不符');
+ const proofs=new Map(),groups=new Map(),ids=new Set();
+ for(const p of bundle.receipts){if(p?.source!==SOURCES[p.market]||p.status!==200||!HEX.test(p.sha256||'')||!date(p.observedDate)||p.observedDate>asOf||taipei(p.retrievedAt)!==p.observedDate)throw Error('基本面來源收據不符');const key=[p.market,p.sha256,p.retrievedAt].join('|');if(proofs.has(key))throw Error('基本面收據重複');proofs.set(key,p);}
+ for(const x of bundle.records){const key=[x.market,x.sourceSha256,x.retrievedAt].join('|'),p=proofs.get(key),id=[x.market,x.code,x.period,x.retrievedAt].join('|');
+  if(!p||ids.has(id)||!(/^[1-9]\d{3}$/.test(x.code||''))||x.source!==p.source||x.observedDate!==p.observedDate||x.unit!=='NTD_THOUSAND'||!date(x.period+'-01')||!date(x.tableDate)||x.tableDate>x.observedDate||x.period>=x.observedDate.slice(0,7)||![x.current,x.priorYear].every(n=>typeof n==='number'&&Number.isFinite(n)&&n>=0))throw Error('基本面個股紀錄未核對');
+  ids.add(id);const group=x.market+'|'+x.code;if(!groups.has(group))groups.set(group,[]);groups.get(group).push(x);
+ }
+ return {get:(code,market)=>evidence(groups.get(market+'|'+code)||[],{code,market,asOf}),records:bundle.records.length,receipts:proofs.size,companies:groups.size};
+}
+async function loadBundle({asOf,snapshotHash,fetcher=globalThis.fetch,signal}={}){
+ const get=async path=>{const res=await fetcher(path,{cache:'no-store',signal});if(!res.ok)throw Error('基本面封存 HTTP '+res.status);return res;};
+ try{
+  const rank=await (await get('data/low-base-breakout/latest.json')).json();
+  if(rank?.schema!=='LOW_BASE_BREAKOUT_ARCHIVE_V1'||rank.date!==asOf||rank.snapshotHash!==snapshotHash||rank.fundamentalsConnected!==true||!HEX.test(rank.fundamentalEvidenceHash||''))throw Error('同日基本面封存尚未發布');
+  const bytes=await (await get('data/low-base-breakout/fundamentals/'+asOf+'.json')).arrayBuffer();
+  if(await digest(bytes)!==rank.fundamentalEvidenceHash)throw Error('基本面封存指紋不符');
+  const idx=indexBundle(JSON.parse(new TextDecoder().decode(bytes)),{asOf,snapshotHash});
+  return {state:'READY',hash:rank.fundamentalEvidenceHash,...idx};
+ }catch(e){return {state:'UNAVAILABLE',reason:String(e.message||e),get:()=>({}),companies:0};}
+}
+
+return Object.freeze({SOURCES,SCHEMA,roc,number,taipei,parse,evidence,indexBundle,loadBundle});
 });

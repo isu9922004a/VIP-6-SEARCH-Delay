@@ -46,6 +46,11 @@ export async function getLowBase(date,fetcher=runtimeFetch){
   if(manifest.schema!=='OFFICIAL_RESEARCH_MANIFEST_V1'||manifest.verified!==true||manifest.date!==date||manifest.snapshotContentSha256!==cal.sourceSnapshotHash)fail('LOW_BASE_MANIFEST_INVALID');
   const {data:archive}=await read('data/low-base-breakout/latest.json',fetcher);
   const context={date,snapshotHash:cal.sourceSnapshotHash,historyManifestHash:await sha256(bytes)};
+  if(archive.fundamentalsConnected===true){
+   const {data:fundamental,bytes:fundBytes}=await read('data/low-base-breakout/fundamentals/'+date+'.json',fetcher);
+   if(fundamental.schema!=='V929_FUNDAMENTAL_EVIDENCE_V1'||fundamental.date!==date||fundamental.snapshotHash!==cal.sourceSnapshotHash)fail('LOW_BASE_FUNDAMENTAL_MISMATCH');
+   context.fundamentalEvidenceHash=await sha256(fundBytes);
+  }
   const result=lowBaseArchive.text(archive,context);
   if(result.ready&&archive.total!==manifest.universe)fail('LOW_BASE_UNIVERSE_MISMATCH');
   return {...result,text:result.text+'\n'+SITE};

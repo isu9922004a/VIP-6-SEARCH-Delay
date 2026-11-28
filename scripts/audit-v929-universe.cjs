@@ -12,6 +12,12 @@ const C=require('../strategy-low-base-breakout-v929.js'),S=require('../strategy-
  const bundle={map:new Map(market.rows.map(q=>[String(q.code),q])),snapshotRows:market.rows.length,meta:{total:market.rows.length,targetTradeDate:date,completedTradeDate:date,expectedTradeDate:date,twseQuoteDate:date,tpexQuoteDate:date,marketCoverageReady:market.marketCoverageReady===true||market.coverage?.marketCoverageReady===true,industryCoverageReady:true,snapshotTimelinessReady:true,snapshotContentSha256:market.contentSha256}};
  D.bind({...bundle,meta:{...bundle.meta,marketCoverageReady:true}});await D.prepareResearchEvidence();
  const plan=S.pool(bundle),records=[];
+ let fundamentals=null,fundamentalEvidenceHash=null;
+ if(process.env.V929_FUNDAMENTAL_EVIDENCE){
+  const bytes=fs.readFileSync(process.env.V929_FUNDAMENTAL_EVIDENCE);
+  fundamentals=require('../strategy-low-base-fundamentals-v929.js').indexBundle(JSON.parse(bytes),{asOf:date,snapshotHash:market.contentSha256});
+  fundamentalEvidenceHash=crypto.createHash('sha256').update(bytes).digest('hex');
+ }
  for(const item of plan.items){
  const {code,q}=item;let result,hash=null;
  const ic=String(q.industryCode||'').padStart(2,'0'),industry=String(q.industryName||q.industry||'');
@@ -20,7 +26,7 @@ const C=require('../strategy-low-base-breakout-v929.js'),S=require('../strategy-
  const m=manifest.stocks[code];assert.ok(m,'官方歷史清單缺少標的');
  const bytes=fs.readFileSync(path.join(root,'data/research',m.path));hash=crypto.createHash('sha256').update(bytes).digest('hex');assert.equal(hash,m.sha256);
  const report=await D.prepareResearchSource(JSON.parse(bytes),code);
- result=C.evaluate(report,{asOf:date,code,quote:D.context(code).q,sector:q});
+ result=C.evaluate(report,{asOf:date,code,quote:D.context(code).q,sector:q,fundamentals:fundamentals?.get(code,q.market)});
  }catch(e){result={status:'DATA_ERROR',eligible:false,reasons:[String(e.message||e)]};}
  records.push({...result,code,name:q.name,date,sourceHash:hash});
  if(records.length%200===0)console.log('V929_PROGRESS '+records.length+'/'+plan.items.length);
@@ -33,10 +39,10 @@ const C=require('../strategy-low-base-breakout-v929.js'),S=require('../strategy-
  const diagnostics=scan.diagnostics;
  const A=require('../strategy-low-base-archive-v929.js');
  const historyManifestHash=crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'data/research/manifest.json'))).digest('hex');
- const archive=A.build({...scan,marketCoverageReady:plan.marketCoverageReady},{snapshotHash:market.contentSha256,historyManifestHash});
+ const archive=A.build({...scan,marketCoverageReady:plan.marketCoverageReady},{snapshotHash:market.contentSha256,historyManifestHash,fundamentalEvidenceHash});
  fs.writeFileSync(path.join(out,'rank-archive.json'),JSON.stringify(archive)+'\n');
  console.log('V929_RANK_ARCHIVE '+JSON.stringify({date:archive.date,total:archive.total,counts:archive.counts,complete:archive.complete,zeroConfirmed:archive.zeroConfirmed,top8:archive.top8}));
- const summary={model:C.MODEL,date,marketSnapshot:market.contentSha256,input:records.length,counts,top8:scan.top8.map(c=>({code:c.code,name:c.name,score:c.quality.score})),candidateCount:scan.candidates.length,fullMarketCertified:scan.fullMarketCertified,zeroConfirmed:scan.zeroConfirmed,source:'GITHUB_VERIFIED_OFFICIAL_DAILY_ARCHIVE',fundamentalsConnected:false,performanceBacktest:false,unavailableReasons:diagnostics.unavailableReasons,gateCounts:diagnostics.gateCounts};
+ const summary={model:C.MODEL,date,marketSnapshot:market.contentSha256,input:records.length,counts,top8:scan.top8.map(c=>({code:c.code,name:c.name,score:c.quality.score})),candidateCount:scan.candidates.length,fullMarketCertified:scan.fullMarketCertified,zeroConfirmed:scan.zeroConfirmed,source:'GITHUB_VERIFIED_OFFICIAL_DAILY_ARCHIVE',fundamentalsConnected:fundamentals!==null,fundamentalEvidenceHash,performanceBacktest:false,unavailableReasons:diagnostics.unavailableReasons,gateCounts:diagnostics.gateCounts};
  fs.writeFileSync(path.join(out,'results.json'),JSON.stringify({summary,diagnostics,records},null,2));
  console.log('V929_ARCHIVE_REPLAY '+JSON.stringify(summary));
  console.log('V929_UNAVAILABLE_BY_CODE '+JSON.stringify(diagnostics.unavailableByCode));

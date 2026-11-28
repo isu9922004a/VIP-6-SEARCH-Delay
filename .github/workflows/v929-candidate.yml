@@ -8,6 +8,7 @@ on:
       - 'index.html'
       - 'scripts/audit-v929-universe.cjs'
       - 'scripts/collect-v929-fundamentals.mjs'
+      - 'scripts/build-v929-fundamentals.mjs'
       - 'scripts/tests/low-base-fundamentals-v929.test.cjs'
       - 'telegram-bot/**'
       - 'scripts/audit-v929-telegram-archive.mjs'

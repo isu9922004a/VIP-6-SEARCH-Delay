@@ -23,3 +23,13 @@ test('stale, future, duplicate and wrong-market data fail closed',()=>{
  assert.ok(!F.parse([...rows,rows[0]],'TWSE',receipt).records.some(x=>x.code==='1000'));
  assert.equal(F.evidence([{...r,priorYear:0}],{code:'1000',market:'TWSE',asOf:'2026-11-28'}).revenueYoYPositive,undefined);
 });
+
+test('session-bound evidence package validates receipts and forbids future observations',()=>{
+ const parsed=F.parse(rows,'TWSE',receipt),r=parsed.records[0],snapshotHash='b'.repeat(64);
+ const bundle={schema:F.SCHEMA,date:'2026-11-28',snapshotHash,receipts:[{...receipt,market:'TWSE',observedDate:'2026-11-28'}],records:[r]};
+ const idx=F.indexBundle(bundle,{asOf:bundle.date,snapshotHash});
+ assert.equal(idx.get(r.code,'TWSE').revenueYoYPositive.pass,true);
+ assert.throws(()=>F.indexBundle({...bundle,date:'2026-11-27'},{asOf:'2026-11-27',snapshotHash}));
+ assert.throws(()=>F.indexBundle({...bundle,receipts:[]},{asOf:bundle.date,snapshotHash}));
+ assert.throws(()=>F.indexBundle({...bundle,records:[r,r]},{asOf:bundle.date,snapshotHash}));
+});
