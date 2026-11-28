@@ -8,7 +8,7 @@ const filters=[
  {key:'daytrade',label:'② 明日當沖'},
  {key:'strong',label:'③ 強勢飆股'},
  {key:'tower',label:'④ 主力生命線成本'},
- {key:'restaurant',label:'⑤ 🌟2560戰法'},
+ {key:'restaurant',label:'⑤ 主升段低位階帶量突破'},
  {key:'structure',label:'⑥ 強化 MACD+'}
 ];
 let currentTab='stock',currentFilter='momentum',lastFocus=null,openMode=null,observedCode='',lifePreviewBusy=false,lifePreviewToken=0,lifePreviewError='';

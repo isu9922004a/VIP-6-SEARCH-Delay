@@ -1,0 +1,20 @@
+name: V9.29 Telegram Bot integration candidate
+on:
+  pull_request:
+    paths: ['telegram-bot/**', '.github/workflows/v928-telegram-bot.yml', 'strategy-low-base-archive-v929.js']
+  push:
+    branches: ['feat/v928-telegram-bot', 'feat/v929-low-base-volume-breakout']
+    paths: ['telegram-bot/**', '.github/workflows/v928-telegram-bot.yml']
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test telegram-bot/core.test.mjs
+      - run: node --check telegram-bot/worker.mjs

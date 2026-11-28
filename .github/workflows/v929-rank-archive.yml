@@ -1,0 +1,78 @@
+name: Publish V9.29 fifth-strategy archive
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '40 13,14 * * 1-5'
+permissions:
+  contents: write
+concurrency:
+  group: v929-low-base-rank-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  collect:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      sha256: ${{ steps.publish.outputs.sha256 }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/audit-v929-universe.cjs /tmp/v929-rank
+      - name: Validate and publish current completed-session archive
+        id: publish
+        shell: bash
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs=require('node:fs'),assert=require('node:assert/strict'),crypto=require('node:crypto'),A=require('./strategy-low-base-archive-v929');
+          const market=require('./data/market/latest.json'),cal=require('./data/market/research-calendar.json'),ix=require('./data/index/TAIEX.json'),rank=require('/tmp/v929-rank/rank-archive.json');
+          const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+          assert.equal(rank.date,today,'Refuse to publish an older session as today');
+          assert.equal(ix.closeDate,rank.date);assert.equal(cal.verified,true);assert.equal(cal.sourceSnapshotDate,rank.date);assert.equal(cal.sourceSnapshotHash,market.contentSha256);
+          const historyManifestHash=crypto.createHash('sha256').update(fs.readFileSync('data/research/manifest.json')).digest('hex');
+          assert.equal(A.validate(rank,{date:market.tradeDateIso,snapshotHash:market.contentSha256,historyManifestHash}).ok,true);
+          if(fs.existsSync('data/low-base-breakout/latest.json'))assert.ok(rank.date>=require('./data/low-base-breakout/latest.json').date);
+          NODE
+          git fetch origin main
+          test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" || { echo "Main moved; refuse stale publication"; exit 1; }
+          mkdir -p data/low-base-breakout
+          cp /tmp/v929-rank/rank-archive.json data/low-base-breakout/latest.json
+          git add data/low-base-breakout
+          if ! git diff --cached --quiet; then
+            git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "data(v9.29): publish fifth-strategy verified candidate archive"
+            git push origin HEAD:main
+          fi
+          echo "sha256=$(sha256sum data/low-base-breakout/latest.json | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v929-fifth-rank-evidence
+          path: /tmp/v929-rank/
+          if-no-files-found: warn
+  deploy:
+    needs: collect
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy-data-pages.yml
+    with:
+      artifact-name: v929-fifth-rank-pages
+  verify-live:
+    needs: [collect, deploy]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      EXPECTED_SHA256: ${{ needs.collect.outputs.sha256 }}
+    steps:
+      - run: |
+          set -euo pipefail
+          url="https://isu9922004a.github.io/VIP-6-SEARCH-Delay/data/low-base-breakout/latest.json"
+          for attempt in {1..12}; do
+            if curl --fail --silent --show-error --max-time 10 "$url?run=$GITHUB_RUN_ID-$attempt" -o /tmp/live.json && echo "$EXPECTED_SHA256  /tmp/live.json" | sha256sum --check; then exit 0; fi
+            sleep 10
+          done
+          exit 1
