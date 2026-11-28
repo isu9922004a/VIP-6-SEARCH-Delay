@@ -1,0 +1,97 @@
+name: V9.28 targeted volume diagnosis and 2560 replay
+on:
+  push:
+    branches: ['feat/v928-telegram-bot']
+    paths: ['.github/workflows/v928-volume-2560-diagnosis.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v928-live-scanner
+  cancel-in-progress: false
+jobs:
+  diagnose-and-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      CHROME_BIN: /usr/bin/google-chrome
+      V95_STRATEGIES: restaurant
+      V95_USE_OFFICIAL_MACD: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Trace official snapshot versus upstream and proxy volumes
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/v928-volume"
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import crypto from 'node:crypto';
+          const manifest=JSON.parse(fs.readFileSync('data/research/manifest.json'));
+          const snapshot=JSON.parse(fs.readFileSync('data/market/latest.json'));
+          const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
+          const date=manifest.date;
+          if(snapshot.tradeDateIso!==date||snapshot.contentSha256!==manifest.snapshotContentSha256)throw Error('Official snapshot identity mismatch');
+          const report={date,publicationAllowed:false,stocks:[],pending:[],errors:[]};
+          const out=process.env.RUNNER_TEMP+'/v928-volume';
+          const save=()=>fs.writeFileSync(out+'/report.json',JSON.stringify(report,null,2)+'\n');
+          const archive=entry=>{const bytes=fs.readFileSync('data/research/'+entry.path);if(sha(bytes)!==entry.sha256)throw Error('Archive hash mismatch');return JSON.parse(bytes);};
+          for(const [code,entry] of Object.entries(manifest.stocks)){
+            if(entry.ready===true)continue;
+            try{const a=archive(entry),e=a.officialArchiveEvidence??{};report.pending.push({code,market:entry.market,bars:entry.bars,reason:entry.reason,originalBars:e.originalHistoryBars??null,excludedEarlierSessions:e.excludedEarlierSessions??[],missingSessions:e.missingSessions??[],zeroVolumeDates:e.zeroVolumeDates??[]});}
+            catch(e){report.errors.push({code,error:String(e.message)});}
+          }
+          save();
+          const norm=v=>String(v??'').replace(/\D/g,'');
+          const stockEndpoint='https://shitou-agent-fib-api.d318426.workers.dev/';
+          const marketEndpoint='https://shitou-taiwanmarket-api.d318426.workers.dev/';
+          for(const code of ['6664','1324','1441','1590','1626','2073','2414','6751','2330']){
+            const item={code,checks:[]};report.stocks.push(item);
+            try{
+              const entry=manifest.stocks[code],a=archive(entry);
+              item.archive={market:entry.market,ready:entry.ready,last:a.dailySeries?.at(-1),source:a.dailySeriesMeta?.source,unit:a.volumeUnit??a.dataContract?.volumeUnit};
+              item.snapshotRows=snapshot.rows.filter(r=>String(r.code??r.stock??r['證券代號']??r[0])===code);
+              for(const kind of ['stock-daily','market-daily','market-full']){
+                const u=new URL(kind==='stock-daily'?stockEndpoint:marketEndpoint);
+                if(kind==='stock-daily'){u.searchParams.set('stock',code);u.searchParams.set('mode','DAILY_ONLY');u.searchParams.set('marketHint',entry.market);}
+                else{u.searchParams.set('market','DEEP_SCAN');u.searchParams.set('codes',code);u.searchParams.set('profile',kind==='market-daily'?'DAILY_ONLY':'FULL');}
+                const check={kind};item.checks.push(check);
+                try{
+                  const response=await fetch(u,{redirect:'manual',signal:AbortSignal.timeout(90000)});
+                  check.httpStatus=response.status;check.retryAfter=response.headers.get('retry-after');
+                  if(response.ok){
+                    const raw=Buffer.from(await response.arrayBuffer());fs.writeFileSync(out+'/'+code+'-'+kind+'.json',raw);
+                    const x=JSON.parse(raw),r=kind==='stock-daily'?x:x.results?.find(y=>String(y.code)===code),d=kind==='stock-daily'?(x.data??x):r?.data;
+                    check.failureCode=r?.failureCode??null;check.error=r?.error??null;
+                    if(d){
+                      check.identityMatches=String(d.stock)===code;check.dateMatches=norm(d.closeDate)===norm(date);check.completed=d.completed===true;
+                      check.source=d.dailySeriesMeta?.source;check.unit=d.volumeUnit??d.dataContract?.volumeUnit??d.dailySeriesMeta?.volumeUnit;
+                      check.last=d.dailySeries?.at(-1);check.previous=d.dailySeries?.at(-2);
+                      const reference=item.archive.last,bar=check.last;
+                      if(reference&&bar){check.ohlcExact=['open','high','low','close'].every(k=>Number.isFinite(Number(bar[k]))&&Number(bar[k])===Number(reference[k]));check.volumeExact=Number.isFinite(Number(bar.volume))&&Number(bar.volume)===Number(reference.volume);check.volumeRatio=Number(reference.volume)>0?Number(bar.volume)/Number(reference.volume):null;}
+                    }
+                  }
+                }catch(e){check.error=String(e.message);}
+                save();await new Promise(r=>setTimeout(r,500));
+              }
+            }catch(e){report.errors.push({code,error:String(e.message)});}finally{save();}
+          }
+          console.log('V928_PENDING_ARCHIVE_SUMMARY '+JSON.stringify({count:report.pending.length,errors:report.errors.length}));
+          for(const item of report.stocks)console.log('V928_VOLUME_TRACE '+JSON.stringify(item));
+          if(report.errors.length)process.exitCode=1;
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v928-volume-and-pending-archive-evidence
+          path: ${{ runner.temp }}/v928-volume
+      - run: npm ci
+      - name: Repeat original 2560 strategy with bounded diagnostic retry
+        run: node scripts/tests/v928-live-profile-replay.cjs "$RUNNER_TEMP/v928-2560-diagnosis"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v928-2560-diagnostic-replay-not-for-publication
+          path: ${{ runner.temp }}/v928-2560-diagnosis
