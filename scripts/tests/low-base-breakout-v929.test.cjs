@@ -129,3 +129,21 @@ test('initial breakout levels are rendered with explicit no-followup claim',()=>
  const date='2026-11-27',c={...C.compute(fixture(),620000000),date,code:'1001',name:'測試',levels:{state:'INITIAL',signalDate:date,breakoutPrice:104,breakoutLow:98.5,ma20:100,lifeLine:100,pressure20:105,followup:'尚待下一完成交易日核對'}};
  const lines=S.lines(c).join('\n');assert.match(lines,/突破收盤價 104.00/);assert.match(lines,/收盤失效參考：跌破 100.00/);assert.match(lines,/前20日最高價壓力 105.00/);assert.match(lines,/尚待下一完成交易日核對/);
 });
+
+test('follow-up source failure does not convert today candidate or imply a confirmed zero',async()=>{
+ const plan={date:'2026-11-27',items:[{code:'1001'}],marketTotal:1,marketCoverageReady:true};
+ const archive={state:'UNAVAILABLE',dates:[],snapshots:new Map(),errors:[{date:plan.date,reason:'缺少封存'}]};
+ const x=await S.scan({plan,archive,reviewFollowup:()=>({state:'UNAVAILABLE',checked:0,unavailable:5,entries:[]}),fetchBatch:async()=>({type:'MOMENTUM_DEEP_SCAN',results:[{code:'1001',ok:true,data:{}}]})});
+ assert.equal(x.followupReview.state,'UNAVAILABLE');assert.equal(x.followupReview.unavailable,5);assert.equal(x.fullMarketCertified,false);
+});
+test('follow-up entries are independent of today hard-gate ranking',()=>{
+ const date='2026-11-27',plan={date,items:[{code:'1001'}],marketTotal:1,marketCoverageReady:true};
+ const followup={code:'1001',name:'測試',signalDate:'2026-11-26',age:1,state:'CONFIRMED',close:105,breakoutPrice:104,breakoutLow:99,ma20:100,lifeLine:100,volumeFloor:1000,lastVolumeHealthy:true};
+ const x=S.finish(plan,[{code:'1001',date,status:'FAIL',eligible:false,followupReview:{checked:5,unavailable:0,entries:[followup]}}],false,{state:'READY',dates:['2026-11-26'],errors:[]});
+ assert.equal(x.candidates.length,0);assert.equal(x.followups.length,1);assert.match(S.text(x),/隔日確認/);assert.match(S.text(x),/不列入今日新突破TOP 8/);
+});
+test('archive rejects future or mismatched source date and cannot fabricate evidence',async()=>{
+ await assert.rejects(L.verifyArchive({tradeDateIso:'2026-11-28'},'2026-11-27'),/封存日期或市場範圍不符/);
+ const x=await L.loadArchives('2026-11-27',null,{fetcher:async()=>{throw Error('unexpected fetch');}});
+ assert.equal(x.state,'UNAVAILABLE');assert.equal(x.snapshots.size,0);
+});

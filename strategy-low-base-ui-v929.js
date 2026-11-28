@@ -52,6 +52,7 @@ function render(scan){
  body.appendChild(el('p','各條件獨立統計，不能相加當成入選數。未核實資料不視為選股淘汰。'));host.appendChild(panel);}
  const append=(rows,title)=>{host.appendChild(el('h3',title));if(!rows.length){host.appendChild(el('p','本輪沒有此類股票，不補名單。'));return;}rows.forEach((c,i)=>{const detail=el('details'),summary=el('summary',(i+1)+'. '+c.name+'（'+c.code+'）｜'+(c.quality?c.quality.score+'分／'+c.quality.grade+'級':c.status)),p=el('p',S.lines(c).join('\n'));detail.className='strong-stock-row';p.style.whiteSpace='pre-wrap';detail.append(summary,p);const b=el('button','查詢此股');b.className='copy-btn';b.type='button';b.onclick=()=>{const input=document.getElementById('stockInput');if(input){input.value=c.code;input.dispatchEvent(new Event('input',{bubbles:true}));if(typeof root.analyzeStock==='function')root.analyzeStock();}};detail.appendChild(b);host.appendChild(detail);});};
  append(scan.top8,'TOP 8｜依突破品質排序');append(scan.candidates,'完整符合條件榜單（含低分候選）');
+ if(scan.followupReview){const section=el('details'),summary=el('summary','前5日突破生命週期追蹤（'+(scan.followups?.length||0)+'筆）');section.appendChild(summary);const f=scan.followupReview;section.appendChild(el('p','歷史封存來源：'+({READY:'已核對',PARTIAL:'部分不足',UNAVAILABLE:'未取得'}[f.state]||f.state)+'｜已核對 '+f.checked+'筆｜資料不足 '+f.unavailable+'筆｜未追蹤股票 '+f.notReviewed+'檔。此區不列入今日新突破排名。'));for(const e of f.sourceErrors||[])section.appendChild(el('p',e.date+'：'+e.reason));for(const x of scan.followups||[]){const p=el('p',S.followupLines(x).join('\n'));p.style.whiteSpace='pre-wrap';section.appendChild(p);}if(!scan.followups?.length)section.appendChild(el('p','目前未確認前5日突破追蹤訊號；資料不足不等同無訊號。'));host.appendChild(section);}
  if(!scan.candidates.length)host.appendChild(el('p',scan.zeroConfirmed?'全市場完整核對，本日無符合必要條件股票。':'資料或掃描未完整，不得宣稱全市場0檔。'));
  const detail=el('details'),summary=el('summary','完整逐檔紀錄、未入選與失敗原因'),pre=el('pre',S.text(scan));detail.append(summary,pre);host.appendChild(detail);
  progress(scan.processed,scan.planned);finishUI();
@@ -81,8 +82,10 @@ async function run(){
  try{note('核對最近完成交易日與普通股資料…');let bundle=await root.loadDayTradeMarketBundleV377736();if(stopped)return;
   const market=F.validateMarket(bundle.meta,bundle.snapshotRows,new Date());if(!market.ok)throw Error(market.reason);D.bind(bundle);
   const plan=S.pool(bundle,by('Limit').value);if(!plan.items.length)throw Error('普通股與快照檢查後沒有可分析股票；請檢查同日量價資料');
+  const L=root.ShitouLowBaseLifecycleV929,K=root.ShitouKlineAttack,controller=new AbortController();controllers.add(controller);
+  let archive=null;try{if(L&&K){note('核對前5日封存行情，準備生命週期追蹤…');archive=await L.loadArchives(plan.date,plan.marketSnapshotFingerprint,{signal:controller.signal});}}finally{controllers.delete(controller);}if(stopped)return;
   note('低位階帶量突破｜正在核對 '+plan.items.length+' 檔');
-  const result=await S.scan({plan,fetchBatch:items=>fetchBatch(items,market.date),shouldStop:()=>stopped,batchSize:4,onProgress:s=>{progress(s.processed,s.planned);note('處理 '+s.processed+'/'+s.planned+'｜候選 '+s.candidates.length+'｜資料待核對 '+s.errors+'｜服務請求 '+requests);}});
+  const result=await S.scan({plan,archive,reviewFollowup:archive?(report,opts)=>L.replay(report,{...opts,C:root.ShitouLowBaseBreakoutV929,K}):null,fetchBatch:items=>fetchBatch(items,market.date),shouldStop:()=>stopped,batchSize:4,onProgress:s=>{progress(s.processed,s.planned);note('處理 '+s.processed+'/'+s.planned+'｜候選 '+s.candidates.length+'｜資料待核對 '+s.errors+'｜服務請求 '+requests);}});
   render(result);note((result.stopped?'已停止':'本輪完成')+'｜必要條件通過 '+result.candidates.length+'｜資料待核對 '+result.errors+'｜'+(result.fullMarketCertified?'全市場完整':'非完整市場'));
  }catch(e){const message='第五濾網未完成：'+String(e.message||e);by('Error').textContent=message;note(message);}finally{running=false;controllers.forEach(c=>c.abort());controllers.clear();originalButtons.forEach((b,i)=>b.disabled=prior[i]);by('Run').disabled=false;by('Stop').disabled=true;by('Limit').disabled=false;finishUI();}
 }
