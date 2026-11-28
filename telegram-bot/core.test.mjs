@@ -10,3 +10,20 @@ test('strict date and OHLC guards',()=>{const rows=Array.from({length:27},(_,i)=
 test('unavailable strategy never fabricates ranking',async()=>{const r=await getStrategy(1,date,()=>{throw Error('unexpected fetch')});assert.equal(r.ready,false);assert.match(r.text,/尚未取得/);});
 test('stale source fail closed and model missing not manufactured',async()=>{assert.match(await response({type:'market'},async()=>new Response('{}'),now),/尚未核驗/);assert.match(forecastText({},null,date),/暫/);});
 test('webhook secret and allowlist gates',async()=>{const env={TELEGRAM_BOT_TOKEN:'test',TELEGRAM_WEBHOOK_SECRET:'secret',TELEGRAM_CHAT_IDS:'123'};const u='https://example.com/telegram/webhook';assert.equal((await worker.fetch(new Request(u,{method:'POST',body:'{}'}),env,{})).status,404);const req=new Request(u,{method:'POST',headers:{'x-telegram-bot-api-secret-token':'secret'},body:JSON.stringify({update_id:1,message:{chat:{id:456,type:'private'},from:{id:456},text:'/market'}})});assert.equal((await worker.fetch(req,env,{})).status,200);});
+
+test('real archived data integration: market, stock and original MACD Top8',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const {getMarket,getStock}=await import('./core.mjs');
+ const f=async u=>{const p=new URL(u).pathname.replace('/VIP-6-SEARCH-Delay/','');try{return new Response(await readFile(new URL('../'+p,import.meta.url)),{status:200});}catch{return new Response('',{status:404});}};
+ const ix=JSON.parse(await readFile(new URL('../data/index/TAIEX.json',import.meta.url),'utf8'));
+ const current=ix.closeDate;
+ const cutoff=new Date(current+'T09:00:00Z');
+ const market=await getMarket(f,cutoff);
+ assert.equal(market.date,current);
+ assert.match(market.text,/Kronos .*模擬收盤中位/s,'official current Kronos receipt and input must agree');
+ const stock=await getStock('2330',current,f);
+ assert.match(stock,/2330/);
+ const rank=await getStrategy(6,current,f);
+ assert.equal(rank.ready,true);
+ assert.match(rank.text,/強化 MACD/);
+});
